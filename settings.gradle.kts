@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -20,5 +21,9 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Episodive"
+
 include(":app")
- 
+
+include(":core:model")
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
