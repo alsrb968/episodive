@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   check-for-changes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     outputs:
       source_changes: ${{ steps.check_changes.outputs.any_changed }}
@@ -38,7 +38,7 @@ jobs:
   build:
     needs: check-for-changes
     if: needs.check-for-changes.outputs.source_changes == 'true'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -79,7 +79,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
-          gistID: c9a0adeca134526611f8990962be022b
+          gistID: 991664386c54d6464bb3399f02d8e1c1
           filename: coverage.json
           label: Coverage
           message: ${{ steps.jacoco.outputs.coverage-overall }}%
