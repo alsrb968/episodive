@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   check-for-changes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     outputs:
       source_changes: ${{ steps.check_changes.outputs.any_changed }}
@@ -38,7 +38,7 @@ jobs:
   build:
     needs: check-for-changes
     if: needs.check-for-changes.outputs.source_changes == 'true'
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
