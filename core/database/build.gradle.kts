@@ -7,17 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "io.jacob.episodive.core.data"
+    namespace = "io.jacob.episodive.core.database"
 }
 
 dependencies {
-    implementation(projects.core.database)
-    implementation(projects.core.domain)
     implementation(projects.core.model)
-    implementation(projects.core.network)
 
-    implementation(libs.androidx.media3.exoplayer)
-
-    //----- Paging
-    implementation(libs.androidx.paging.runtime)
+    implementation(libs.google.gson)
 }

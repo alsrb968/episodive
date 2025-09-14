@@ -5,7 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.network.api.PodcastIndexApi
-import io.jacob.episodive.core.network.api.PodcastIndexClient
+import io.jacob.episodive.core.network.PodcastIndexClient
 import javax.inject.Singleton
 
 @Module

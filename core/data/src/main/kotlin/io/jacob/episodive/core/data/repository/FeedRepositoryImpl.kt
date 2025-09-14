@@ -1,11 +1,11 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.data.mapper.toCommaString
-import io.jacob.episodive.core.data.mapper.toLong
-import io.jacob.episodive.core.data.mapper.toRecentFeeds
-import io.jacob.episodive.core.data.mapper.toRecentNewFeeds
-import io.jacob.episodive.core.data.mapper.toRecentNewValueFeeds
-import io.jacob.episodive.core.data.mapper.toSoundbites
+import io.jacob.episodive.core.network.util.toCommaString
+import io.jacob.episodive.core.network.util.toLong
+import io.jacob.episodive.core.network.util.toRecentFeeds
+import io.jacob.episodive.core.network.util.toRecentNewFeeds
+import io.jacob.episodive.core.network.util.toRecentNewValueFeeds
+import io.jacob.episodive.core.network.util.toSoundbites
 import io.jacob.episodive.core.domain.repository.FeedRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.RecentFeed

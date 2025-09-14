@@ -1,4 +1,4 @@
-package io.jacob.episodive.core.network.api
+package io.jacob.episodive.core.network.util
 
 import io.jacob.episodive.core.network.BuildConfig
 import okhttp3.Interceptor
