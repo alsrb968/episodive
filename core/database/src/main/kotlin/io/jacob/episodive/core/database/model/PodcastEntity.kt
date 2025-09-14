@@ -4,10 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Medium
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 @Entity(tableName = "podcasts")
 data class PodcastEntity(
     @PrimaryKey val id: Long,

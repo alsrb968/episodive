@@ -2,10 +2,8 @@ package io.jacob.episodive.core.domain.repository
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Podcast
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 interface PodcastRepository {
     suspend fun searchPodcasts(
         query: String,

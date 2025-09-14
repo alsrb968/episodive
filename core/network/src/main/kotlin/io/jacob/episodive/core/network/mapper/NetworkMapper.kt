@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package io.jacob.episodive.core.network.mapper
 
 import io.jacob.episodive.core.model.Category
@@ -23,7 +21,6 @@ import io.jacob.episodive.core.network.model.SoundbiteResponse
 import io.jacob.episodive.core.network.model.TranscriptResponse
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 fun PodcastResponse.toPodcast(): Podcast =

@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalTime::class)
-
 package io.jacob.episodive.core.database.mapper
 
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
-import kotlin.time.ExperimentalTime
 
 fun PodcastEntity.toPodcast(): Podcast =
     Podcast(

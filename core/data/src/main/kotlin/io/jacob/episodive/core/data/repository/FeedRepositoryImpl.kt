@@ -14,10 +14,8 @@ import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.network.NetworkDataSource
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 class FeedRepositoryImpl @Inject constructor(
     private val networkDataSource: NetworkDataSource
 ) : FeedRepository {

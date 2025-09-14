@@ -9,10 +9,8 @@ import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.network.NetworkDataSource
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 class EpisodeRepositoryImpl @Inject constructor(
     private val networkDataSource: NetworkDataSource,
 ) : EpisodeRepository {

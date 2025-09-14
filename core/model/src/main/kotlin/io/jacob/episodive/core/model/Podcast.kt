@@ -1,9 +1,7 @@
 package io.jacob.episodive.core.model
 
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 data class Podcast(
     val id: Long,
     val podcastGuid: String,

@@ -1,14 +1,14 @@
 package io.jacob.episodive.core.database.util
 
-import androidx.room.TypeConverters
+import androidx.room.TypeConverter
 import io.jacob.episodive.core.model.EpisodeType
 
 class EpisodeTypeConverter {
-    @TypeConverters
+    @TypeConverter
     fun fromEpisodeType(episodeType: EpisodeType?): String? =
         episodeType?.name
 
-    @TypeConverters
+    @TypeConverter
     fun toEpisodeType(name: String?): EpisodeType? =
         name?.let { EpisodeType.valueOf(it) }
 }

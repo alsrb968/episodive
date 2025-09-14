@@ -1,11 +1,8 @@
-@file:OptIn(ExperimentalTime::class)
-
 package io.jacob.episodive.core.testing.data
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Medium
 import io.jacob.episodive.core.model.Podcast
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 val podcastTestData =

@@ -5,7 +5,6 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
-import kotlin.jvm.java
 
 class RoomDatabaseRule : TestWatcher() {
     lateinit var db: PodcastIndexDatabase

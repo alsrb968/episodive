@@ -1,19 +1,18 @@
 package io.jacob.episodive.core.database.model
 
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.EpisodeType
 import io.jacob.episodive.core.model.Person
 import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.Transcript
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 @Entity(tableName = "episodes")
 data class EpisodeEntity(
-    val id: Long,
+    @PrimaryKey val id: Long,
     val guid: String,
     val title: String,
     val link: String,

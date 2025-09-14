@@ -1,16 +1,14 @@
 package io.jacob.episodive.core.database.util
 
-import androidx.room.TypeConverters
-import kotlin.time.ExperimentalTime
+import androidx.room.TypeConverter
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 class InstantConverter {
-    @TypeConverters
+    @TypeConverter
     fun fromInstant(instant: Instant?): Long? =
         instant?.epochSeconds
 
-    @TypeConverters
+    @TypeConverter
     fun toInstant(epochSeconds: Long?): Instant? =
         epochSeconds?.let { Instant.fromEpochSeconds(it) }
 }
