@@ -1,5 +1,6 @@
 package io.jacob.episodive.core.network.api
 
+import io.jacob.episodive.core.network.PodcastIndexClient
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

@@ -5,10 +5,8 @@ import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.RecentNewFeed
 import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 interface FeedRepository {
     suspend fun getRecentFeeds(
         max: Int? = null,

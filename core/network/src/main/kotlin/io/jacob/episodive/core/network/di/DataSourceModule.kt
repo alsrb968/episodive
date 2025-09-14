@@ -17,6 +17,6 @@ object DataSourceModule {
     fun provideNetworkDataSource(
         api: PodcastIndexApi
     ): NetworkDataSource {
-        return NetworkDataSourceImpl(api)
+        return NetworkDataSourceImpl(api = api)
     }
 }

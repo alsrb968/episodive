@@ -1,5 +1,6 @@
-package io.jacob.episodive.core.network.api
+package io.jacob.episodive.core.network
 
+import io.jacob.episodive.core.network.util.PodcastIndexInterceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

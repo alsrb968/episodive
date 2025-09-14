@@ -1,9 +1,7 @@
 package io.jacob.episodive.core.model
 
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 data class RecentFeed(
     val id: Long,
     val url: String,

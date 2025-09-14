@@ -28,6 +28,8 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.model)
+
     //----- Retrofit
     implementation(libs.squareup.retrofit2.retrofit)
     implementation(libs.squareup.retrofit2.converter.gson)

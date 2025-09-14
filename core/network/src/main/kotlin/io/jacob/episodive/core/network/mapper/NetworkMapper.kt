@@ -1,6 +1,4 @@
-@file:OptIn(ExperimentalTime::class)
-
-package io.jacob.episodive.core.data.mapper
+package io.jacob.episodive.core.network.mapper
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
@@ -23,7 +21,6 @@ import io.jacob.episodive.core.network.model.SoundbiteResponse
 import io.jacob.episodive.core.network.model.TranscriptResponse
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 fun PodcastResponse.toPodcast(): Podcast =
@@ -113,7 +110,7 @@ fun Long.toInstant(): Instant =
 
 fun Instant.toLong(): Long = epochSeconds
 
-fun String.toMedium(): Medium = Medium.valueOf(this)
+fun String.toMedium(): Medium? = Medium.entries.find { it.value == this }
 
 fun Map<Int, String>.toCategories(): List<Category> =
     this.mapNotNull { (id, _) ->
