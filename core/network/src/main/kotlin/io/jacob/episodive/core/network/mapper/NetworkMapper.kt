@@ -110,7 +110,7 @@ fun Long.toInstant(): Instant =
 
 fun Instant.toLong(): Long = epochSeconds
 
-fun String.toMedium(): Medium = Medium.valueOf(this)
+fun String.toMedium(): Medium? = Medium.entries.find { it.value == this }
 
 fun Map<Int, String>.toCategories(): List<Category> =
     this.mapNotNull { (id, _) ->

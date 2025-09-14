@@ -10,5 +10,5 @@ class MediumConverter {
 
     @TypeConverter
     fun toMedium(value: String?): Medium? =
-        value?.let { Medium.valueOf(it) }
+        value?.let { stringValue -> Medium.entries.find { it.value == stringValue } }
 }
