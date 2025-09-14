@@ -28,6 +28,7 @@ include(":core:data")
 include(":core:designsystem")
 include(":core:domain")
 include(":core:model")
+include(":core:network")
 include(":core:testing")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

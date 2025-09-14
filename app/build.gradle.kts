@@ -8,7 +8,6 @@ plugins {
 
 android {
     namespace = "io.jacob.episodive"
-    compileSdk = 36
 
     defaultConfig {
         applicationId = "io.jacob.episodive"
