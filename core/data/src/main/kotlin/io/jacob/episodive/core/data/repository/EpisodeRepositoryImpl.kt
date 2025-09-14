@@ -1,9 +1,9 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.network.util.toCommaString
-import io.jacob.episodive.core.network.util.toEpisode
-import io.jacob.episodive.core.network.util.toEpisodes
-import io.jacob.episodive.core.network.util.toLong
+import io.jacob.episodive.core.network.mapper.toCommaString
+import io.jacob.episodive.core.network.mapper.toEpisode
+import io.jacob.episodive.core.network.mapper.toEpisodes
+import io.jacob.episodive.core.network.mapper.toLong
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode

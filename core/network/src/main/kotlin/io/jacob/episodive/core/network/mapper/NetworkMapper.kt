@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package io.jacob.episodive.core.network.util
+package io.jacob.episodive.core.network.mapper
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
