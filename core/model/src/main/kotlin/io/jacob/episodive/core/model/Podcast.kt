@@ -37,5 +37,5 @@ data class Podcast(
     val imageUrlHash: Long? = null,
 //    val value: Value4Value? = null,
 //    val funding: Funding? = null,
-    val newestItemPubDate: Instant? = null,
+    val newestItemPublishTime: Instant? = null,
 )

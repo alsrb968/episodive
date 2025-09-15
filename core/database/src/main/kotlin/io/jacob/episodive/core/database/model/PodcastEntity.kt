@@ -40,5 +40,5 @@ data class PodcastEntity(
     val categories: List<Category>? = null,
     val locked: Int,
     val imageUrlHash: Long? = null,
-    val newestItemPubDate: Instant? = null,
+    val newestItemPublishTime: Instant? = null,
 )

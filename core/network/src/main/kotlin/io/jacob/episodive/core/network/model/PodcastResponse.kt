@@ -37,7 +37,7 @@ data class PodcastResponse(
     @SerializedName("imageUrlHash") val imageUrlHash: Long? = null,
 //    @SerializedName("value") val value: Value4Value? = null,
 //    @SerializedName("funding") val funding: Funding? = null,
-    @SerializedName("newestItemPubdate") val newestItemPubDate: Long? = null,
+    @SerializedName(value = "newestItemPubdate", alternate = ["newestItemPublishTime"]) val newestItemPublishTime: Long? = null,
 )
 
 /*

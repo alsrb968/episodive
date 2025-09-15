@@ -211,7 +211,7 @@
       },
       {
         "tableName": "podcasts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `podcastGuid` TEXT NOT NULL, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `originalUrl` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT NOT NULL, `author` TEXT NOT NULL, `ownerName` TEXT NOT NULL, `image` TEXT NOT NULL, `artwork` TEXT NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `lastCrawlTime` INTEGER NOT NULL, `lastParseTime` INTEGER NOT NULL, `lastGoodHttpStatusTime` INTEGER NOT NULL, `lastHttpStatus` INTEGER NOT NULL, `contentType` TEXT NOT NULL, `itunesId` INTEGER, `itunesType` TEXT, `generator` TEXT, `language` TEXT NOT NULL, `explicit` INTEGER, `type` INTEGER NOT NULL, `medium` TEXT, `dead` INTEGER NOT NULL, `chash` TEXT, `episodeCount` INTEGER NOT NULL, `crawlErrors` INTEGER NOT NULL, `parseErrors` INTEGER NOT NULL, `categories` TEXT, `locked` INTEGER NOT NULL, `imageUrlHash` INTEGER, `newestItemPubDate` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `podcastGuid` TEXT NOT NULL, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `originalUrl` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT NOT NULL, `author` TEXT NOT NULL, `ownerName` TEXT NOT NULL, `image` TEXT NOT NULL, `artwork` TEXT NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `lastCrawlTime` INTEGER NOT NULL, `lastParseTime` INTEGER NOT NULL, `lastGoodHttpStatusTime` INTEGER NOT NULL, `lastHttpStatus` INTEGER NOT NULL, `contentType` TEXT NOT NULL, `itunesId` INTEGER, `itunesType` TEXT, `generator` TEXT, `language` TEXT NOT NULL, `explicit` INTEGER, `type` INTEGER NOT NULL, `medium` TEXT, `dead` INTEGER NOT NULL, `chash` TEXT, `episodeCount` INTEGER NOT NULL, `crawlErrors` INTEGER NOT NULL, `parseErrors` INTEGER NOT NULL, `categories` TEXT, `locked` INTEGER NOT NULL, `imageUrlHash` INTEGER, `newestItemPublishTime` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -398,8 +398,8 @@
             "affinity": "INTEGER"
           },
           {
-            "fieldPath": "newestItemPubDate",
-            "columnName": "newestItemPubDate",
+            "fieldPath": "newestItemPublishTime",
+            "columnName": "newestItemPublishTime",
             "affinity": "INTEGER"
           }
         ],
