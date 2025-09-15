@@ -39,7 +39,7 @@ fun PodcastEntity.toPodcast(): Podcast =
         categories = categories,
         locked = locked,
         imageUrlHash = imageUrlHash,
-        newestItemPubDate = newestItemPubDate,
+        newestItemPublishTime = newestItemPublishTime,
     )
 
 fun List<PodcastEntity>.toPodcasts(): List<Podcast> =
@@ -79,7 +79,7 @@ fun Podcast.toPodcastEntity(): PodcastEntity =
         categories = categories,
         locked = locked,
         imageUrlHash = imageUrlHash,
-        newestItemPubDate = newestItemPubDate,
+        newestItemPublishTime = newestItemPublishTime,
     )
 
 fun List<Podcast>.toPodcastEntities(): List<PodcastEntity> =

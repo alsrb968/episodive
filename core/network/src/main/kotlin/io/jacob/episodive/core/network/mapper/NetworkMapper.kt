@@ -57,7 +57,7 @@ fun PodcastResponse.toPodcast(): Podcast =
         categories = categories?.toCategories(),
         locked = locked,
         imageUrlHash = imageUrlHash,
-        newestItemPubDate = newestItemPubDate?.toInstant(),
+        newestItemPublishTime = newestItemPublishTime?.toInstant(),
     )
 
 fun List<PodcastResponse>.toPodcasts(): List<Podcast> =

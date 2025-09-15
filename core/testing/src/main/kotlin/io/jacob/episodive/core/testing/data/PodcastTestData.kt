@@ -39,5 +39,5 @@ val podcastTestData =
         categories = listOf(Category.BUSINESS),
         locked = 0,
         imageUrlHash = 1979648873,
-        newestItemPubDate = Instant.fromEpochSeconds(1757451600),
+        newestItemPublishTime = Instant.fromEpochSeconds(1757451600),
     )
