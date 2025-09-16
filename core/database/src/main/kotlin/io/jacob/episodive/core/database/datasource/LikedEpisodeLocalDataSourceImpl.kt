@@ -34,8 +34,9 @@ class LikedEpisodeLocalDataSourceImpl @Inject constructor(
     }
 
     override suspend fun toggleLike(id: Long, likedAt: Instant) {
+        val isLiked = isLiked(id).first()
         database.withTransaction {
-            if (isLiked(id).first()) {
+            if (isLiked) {
                 removeLike(id)
             } else {
                 addLike(LikedEpisodeEntity(id, likedAt))
