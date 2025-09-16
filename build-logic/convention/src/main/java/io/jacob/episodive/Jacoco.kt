@@ -41,7 +41,9 @@ private val coverageExclusions = listOf(
     "**/*Component\$*.class",
     "**/*Subcomponent*.class",
     // Model classes
-    "**/model/**/*.class"
+    "**/model/**/*.class",
+    // DI classes
+    "**/di/**/*.class",
 )
 
 private fun String.capitalize() = replaceFirstChar {
