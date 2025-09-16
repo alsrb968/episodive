@@ -9,11 +9,11 @@ class PodcastLocalDataSourceImpl(
     private val podcastDao: PodcastDao,
 ) : PodcastLocalDataSource {
     override suspend fun upsertPodcast(podcast: PodcastEntity) {
-        return podcastDao.upsertPodcast(podcast)
+        podcastDao.upsertPodcast(podcast)
     }
 
     override suspend fun upsertPodcasts(podcasts: List<PodcastEntity>) {
-        return podcastDao.upsertPodcasts(podcasts)
+        podcastDao.upsertPodcasts(podcasts)
     }
 
     override fun getPodcasts(): Flow<List<PodcastEntity>> {
@@ -25,6 +25,6 @@ class PodcastLocalDataSourceImpl(
     }
 
     override suspend fun deletePodcasts() {
-        return podcastDao.deletePodcasts()
+        podcastDao.deletePodcasts()
     }
 }

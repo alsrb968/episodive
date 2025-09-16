@@ -10,11 +10,11 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
     private val episodeDao: EpisodeDao
 ) : EpisodeLocalDataSource {
     override suspend fun upsertEpisode(episode: EpisodeEntity) {
-        return episodeDao.upsertEpisode(episode)
+        episodeDao.upsertEpisode(episode)
     }
 
     override suspend fun upsertEpisodes(episodes: List<EpisodeEntity>) {
-        return episodeDao.upsertEpisodes(episodes)
+        episodeDao.upsertEpisodes(episodes)
     }
 
     override fun getEpisodes(): Flow<List<EpisodeEntity>> {
@@ -26,6 +26,6 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
     }
 
     override suspend fun deleteEpisodes() {
-        return episodeDao.deleteEpisodes()
+        episodeDao.deleteEpisodes()
     }
 }
