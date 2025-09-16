@@ -2,8 +2,209 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f082b31f4e1fdfe74878a3fd467c6d55",
+    "identityHash": "236873c8bfd28e796b3cd6cfd32925ab",
     "entities": [
+      {
+        "tableName": "podcasts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `podcastGuid` TEXT NOT NULL, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `originalUrl` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT NOT NULL, `author` TEXT NOT NULL, `ownerName` TEXT NOT NULL, `image` TEXT NOT NULL, `artwork` TEXT NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `lastCrawlTime` INTEGER NOT NULL, `lastParseTime` INTEGER NOT NULL, `lastGoodHttpStatusTime` INTEGER NOT NULL, `lastHttpStatus` INTEGER NOT NULL, `contentType` TEXT NOT NULL, `itunesId` INTEGER, `itunesType` TEXT, `generator` TEXT, `language` TEXT NOT NULL, `explicit` INTEGER, `type` INTEGER NOT NULL, `medium` TEXT, `dead` INTEGER NOT NULL, `chash` TEXT, `episodeCount` INTEGER NOT NULL, `crawlErrors` INTEGER NOT NULL, `parseErrors` INTEGER NOT NULL, `categories` TEXT, `locked` INTEGER NOT NULL, `imageUrlHash` INTEGER, `newestItemPublishTime` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "podcastGuid",
+            "columnName": "podcastGuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originalUrl",
+            "columnName": "originalUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "link",
+            "columnName": "link",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "author",
+            "columnName": "author",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerName",
+            "columnName": "ownerName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "image",
+            "columnName": "image",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "artwork",
+            "columnName": "artwork",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdateTime",
+            "columnName": "lastUpdateTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCrawlTime",
+            "columnName": "lastCrawlTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastParseTime",
+            "columnName": "lastParseTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastGoodHttpStatusTime",
+            "columnName": "lastGoodHttpStatusTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastHttpStatus",
+            "columnName": "lastHttpStatus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentType",
+            "columnName": "contentType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itunesId",
+            "columnName": "itunesId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "itunesType",
+            "columnName": "itunesType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "generator",
+            "columnName": "generator",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "explicit",
+            "columnName": "explicit",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "medium",
+            "columnName": "medium",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dead",
+            "columnName": "dead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chash",
+            "columnName": "chash",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "episodeCount",
+            "columnName": "episodeCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "crawlErrors",
+            "columnName": "crawlErrors",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parseErrors",
+            "columnName": "parseErrors",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categories",
+            "columnName": "categories",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "locked",
+            "columnName": "locked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageUrlHash",
+            "columnName": "imageUrlHash",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "newestItemPublishTime",
+            "columnName": "newestItemPublishTime",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
       {
         "tableName": "episodes",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `guid` TEXT NOT NULL, `title` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT NOT NULL, `datePublished` INTEGER NOT NULL, `dateCrawled` INTEGER NOT NULL, `enclosureUrl` TEXT NOT NULL, `enclosureType` TEXT NOT NULL, `enclosureLength` INTEGER NOT NULL, `startTime` INTEGER NOT NULL, `endTime` INTEGER NOT NULL, `status` TEXT NOT NULL, `contentLink` TEXT, `duration` INTEGER, `explicit` INTEGER NOT NULL, `episode` INTEGER, `episodeType` TEXT, `season` INTEGER, `image` TEXT NOT NULL, `podcastGuid` TEXT, `feedItunesId` INTEGER, `feedImage` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `feedUrl` TEXT, `feedAuthor` TEXT, `feedTitle` TEXT, `feedLanguage` TEXT NOT NULL, `feedDuplicateOf` INTEGER, `chaptersUrl` TEXT, `transcriptUrl` TEXT, `transcripts` TEXT, `soundbites` TEXT, `persons` TEXT, `categories` TEXT, PRIMARY KEY(`id`))",
@@ -210,8 +411,8 @@
         }
       },
       {
-        "tableName": "podcasts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `podcastGuid` TEXT NOT NULL, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `originalUrl` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT NOT NULL, `author` TEXT NOT NULL, `ownerName` TEXT NOT NULL, `image` TEXT NOT NULL, `artwork` TEXT NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `lastCrawlTime` INTEGER NOT NULL, `lastParseTime` INTEGER NOT NULL, `lastGoodHttpStatusTime` INTEGER NOT NULL, `lastHttpStatus` INTEGER NOT NULL, `contentType` TEXT NOT NULL, `itunesId` INTEGER, `itunesType` TEXT, `generator` TEXT, `language` TEXT NOT NULL, `explicit` INTEGER, `type` INTEGER NOT NULL, `medium` TEXT, `dead` INTEGER NOT NULL, `chash` TEXT, `episodeCount` INTEGER NOT NULL, `crawlErrors` INTEGER NOT NULL, `parseErrors` INTEGER NOT NULL, `categories` TEXT, `locked` INTEGER NOT NULL, `imageUrlHash` INTEGER, `newestItemPublishTime` INTEGER, PRIMARY KEY(`id`))",
+        "tableName": "liked_episodes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `likedAt` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`id`) REFERENCES `episodes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -220,187 +421,10 @@
             "notNull": true
           },
           {
-            "fieldPath": "podcastGuid",
-            "columnName": "podcastGuid",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "title",
-            "columnName": "title",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "url",
-            "columnName": "url",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "originalUrl",
-            "columnName": "originalUrl",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "link",
-            "columnName": "link",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "description",
-            "columnName": "description",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "author",
-            "columnName": "author",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "ownerName",
-            "columnName": "ownerName",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "image",
-            "columnName": "image",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "artwork",
-            "columnName": "artwork",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastUpdateTime",
-            "columnName": "lastUpdateTime",
+            "fieldPath": "likedAt",
+            "columnName": "likedAt",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "lastCrawlTime",
-            "columnName": "lastCrawlTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastParseTime",
-            "columnName": "lastParseTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastGoodHttpStatusTime",
-            "columnName": "lastGoodHttpStatusTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastHttpStatus",
-            "columnName": "lastHttpStatus",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "contentType",
-            "columnName": "contentType",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "itunesId",
-            "columnName": "itunesId",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "itunesType",
-            "columnName": "itunesType",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "generator",
-            "columnName": "generator",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "language",
-            "columnName": "language",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "explicit",
-            "columnName": "explicit",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "type",
-            "columnName": "type",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "medium",
-            "columnName": "medium",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "dead",
-            "columnName": "dead",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "chash",
-            "columnName": "chash",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "episodeCount",
-            "columnName": "episodeCount",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "crawlErrors",
-            "columnName": "crawlErrors",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "parseErrors",
-            "columnName": "parseErrors",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "categories",
-            "columnName": "categories",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "locked",
-            "columnName": "locked",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "imageUrlHash",
-            "columnName": "imageUrlHash",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "newestItemPublishTime",
-            "columnName": "newestItemPublishTime",
-            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -408,12 +432,25 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "foreignKeys": [
+          {
+            "table": "episodes",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f082b31f4e1fdfe74878a3fd467c6d55')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '236873c8bfd28e796b3cd6cfd32925ab')"
     ]
   }
 }

@@ -5,8 +5,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.database.PodcastIndexDatabase
-import io.jacob.episodive.core.database.dao.EpisodeDao
-import io.jacob.episodive.core.database.dao.PodcastDao
 import javax.inject.Singleton
 
 @Module
@@ -14,17 +12,13 @@ import javax.inject.Singleton
 object DaoModule {
     @Provides
     @Singleton
-    fun providePodcastDao(
-        database: PodcastIndexDatabase
-    ): PodcastDao {
-        return database.podcastDao()
-    }
+    fun providePodcastDao(database: PodcastIndexDatabase) = database.podcastDao()
 
     @Provides
     @Singleton
-    fun provideEpisodeDao(
-        database: PodcastIndexDatabase
-    ): EpisodeDao {
-        return database.episodeDao()
-    }
+    fun provideEpisodeDao(database: PodcastIndexDatabase) = database.episodeDao()
+
+    @Provides
+    @Singleton
+    fun provideLikedEpisodeDao(database: PodcastIndexDatabase) = database.likedEpisodeDao()
 }

@@ -4,8 +4,10 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import io.jacob.episodive.core.database.dao.EpisodeDao
+import io.jacob.episodive.core.database.dao.LikedEpisodeDao
 import io.jacob.episodive.core.database.dao.PodcastDao
 import io.jacob.episodive.core.database.model.EpisodeEntity
+import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.database.util.CategoryConverter
 import io.jacob.episodive.core.database.util.DurationConverter
@@ -18,8 +20,9 @@ import io.jacob.episodive.core.database.util.TranscriptConverter
 
 @Database(
     entities = [
-        EpisodeEntity::class,
         PodcastEntity::class,
+        EpisodeEntity::class,
+        LikedEpisodeEntity::class,
     ],
     version = 1,
     exportSchema = true
@@ -37,4 +40,5 @@ import io.jacob.episodive.core.database.util.TranscriptConverter
 abstract class PodcastIndexDatabase : RoomDatabase() {
     abstract fun podcastDao(): PodcastDao
     abstract fun episodeDao(): EpisodeDao
+    abstract fun likedEpisodeDao(): LikedEpisodeDao
 }
