@@ -37,7 +37,7 @@ import io.jacob.episodive.core.database.util.TranscriptConverter
     SoundbiteConverter::class,
     TranscriptConverter::class,
 )
-abstract class PodcastIndexDatabase : RoomDatabase() {
+abstract class EpisodiveDatabase : RoomDatabase() {
     abstract fun podcastDao(): PodcastDao
     abstract fun episodeDao(): EpisodeDao
     abstract fun likedEpisodeDao(): LikedEpisodeDao
