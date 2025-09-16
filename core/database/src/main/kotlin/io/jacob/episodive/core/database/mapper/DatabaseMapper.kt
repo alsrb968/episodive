@@ -170,5 +170,5 @@ fun Episode.toEpisodeEntity(): EpisodeEntity =
 fun List<Episode>.toEpisodeEntities(): List<EpisodeEntity> =
     map { it.toEpisodeEntity() }
 
-fun Long.toInstant(): Instant = Instant.fromEpochMilliseconds(this)
-fun Instant.toLong(): Long = this.toEpochMilliseconds()
+fun Long.toInstant(): Instant = Instant.fromEpochSeconds(this)
+fun Instant.toLong(): Long = this.epochSeconds
