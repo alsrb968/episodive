@@ -5,7 +5,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import java.security.MessageDigest
 
-class PodcastIndexInterceptor(
+class EpisodiveInterceptor(
     private val apiKey: String = BuildConfig.API_KEY,
     private val apiSecret: String = BuildConfig.SECRET_KEY,
 ) : Interceptor {

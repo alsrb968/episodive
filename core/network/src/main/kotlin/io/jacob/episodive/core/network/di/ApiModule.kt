@@ -4,8 +4,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.jacob.episodive.core.network.api.PodcastIndexApi
-import io.jacob.episodive.core.network.PodcastIndexClient
+import io.jacob.episodive.core.network.api.EpisodeApi
+import io.jacob.episodive.core.network.api.FeedApi
+import io.jacob.episodive.core.network.api.PodcastApi
+import retrofit2.Retrofit
 import javax.inject.Singleton
 
 @Module
@@ -13,7 +15,13 @@ import javax.inject.Singleton
 object ApiModule {
     @Provides
     @Singleton
-    fun providePodcastIndexApi(): PodcastIndexApi {
-        return PodcastIndexClient.retrofit.create(PodcastIndexApi::class.java)
-    }
+    fun providePodcastApi(retrofit: Retrofit): PodcastApi = retrofit.create(PodcastApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideEpisodeApi(retrofit: Retrofit): EpisodeApi = retrofit.create(EpisodeApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideFeedApi(retrofit: Retrofit): FeedApi = retrofit.create(FeedApi::class.java)
 }

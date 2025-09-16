@@ -10,7 +10,9 @@ import io.jacob.episodive.core.data.repository.PodcastRepositoryImpl
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.FeedRepository
 import io.jacob.episodive.core.domain.repository.PodcastRepository
-import io.jacob.episodive.core.network.NetworkDataSource
+import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
+import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
+import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
 import javax.inject.Singleton
 
 @Module
@@ -19,30 +21,30 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun providePodcastRepository(
-        networkDataSource: NetworkDataSource
+        podcastRemoteDataSource: PodcastRemoteDataSource,
     ): PodcastRepository {
         return PodcastRepositoryImpl(
-            networkDataSource = networkDataSource
+            podcastRemoteDataSource = podcastRemoteDataSource,
         )
     }
 
     @Provides
     @Singleton
     fun provideEpisodeRepository(
-        networkDataSource: NetworkDataSource
+        episodeRemoteDataSource: EpisodeRemoteDataSource,
     ): EpisodeRepository {
         return EpisodeRepositoryImpl(
-            networkDataSource = networkDataSource
+            episodeRemoteDataSource = episodeRemoteDataSource,
         )
     }
 
     @Provides
     @Singleton
     fun provideFeedRepository(
-        networkDataSource: NetworkDataSource
+        feedRemoteDataSource: FeedRemoteDataSource,
     ): FeedRepository {
         return FeedRepositoryImpl(
-            networkDataSource = networkDataSource
+            feedRemoteDataSource = feedRemoteDataSource,
         )
     }
 }

@@ -10,13 +10,13 @@ class RoomDatabaseRule : TestWatcher() {
     lateinit var db: EpisodiveDatabase
         private set
 
-    override fun starting(description: Description) {
+    override fun starting(description: Description?) {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, EpisodiveDatabase::class.java)
             .build()
     }
 
-    override fun finished(description: Description) {
+    override fun finished(description: Description?) {
         db.close()
     }
 }
