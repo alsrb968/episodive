@@ -1,8 +1,6 @@
 package io.jacob.episodive.core.domain.repository
 
-import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Podcast
-import kotlin.time.Instant
 
 interface PodcastRepository {
     suspend fun searchPodcasts(
@@ -19,13 +17,5 @@ interface PodcastRepository {
     suspend fun getPodcastsByMedium(
         medium: String,
         max: Int? = null,
-    ): List<Podcast>
-
-    suspend fun getTrendingPodcasts(
-        max: Int? = null,
-        since: Instant? = null,
-        language: String? = null,
-        includeCategories: List<Category>? = null,
-        excludeCategories: List<Category>? = null,
     ): List<Podcast>
 }

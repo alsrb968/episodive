@@ -6,7 +6,7 @@ data class RecentFeedResponse(
     @SerializedName("id") val id: Long,
     @SerializedName("url") val url: String,
     @SerializedName("title") val title: String,
-    @SerializedName("newestItemPublishTime") val newestItemPublishTime: Long,
+    @SerializedName(value = "newestItemPubdate", alternate = ["newestItemPublishTime"]) val newestItemPublishTime: Long,
     @SerializedName("oldestItemPublishTime") val oldestItemPublishTime: Long? = null,
     @SerializedName("description") val description: String? = null,
     @SerializedName("author") val author: String? = null,

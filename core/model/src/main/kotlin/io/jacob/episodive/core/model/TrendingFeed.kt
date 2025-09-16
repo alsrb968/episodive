@@ -2,7 +2,7 @@ package io.jacob.episodive.core.model
 
 import kotlin.time.Instant
 
-data class Trending(
+data class TrendingFeed(
     val id: Long,
     val url: String,
     val title: String,

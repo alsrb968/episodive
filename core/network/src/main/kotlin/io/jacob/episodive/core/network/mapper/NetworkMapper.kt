@@ -11,6 +11,7 @@ import io.jacob.episodive.core.model.RecentNewFeed
 import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.Transcript
+import io.jacob.episodive.core.model.TrendingFeed
 import io.jacob.episodive.core.network.model.EpisodeResponse
 import io.jacob.episodive.core.network.model.PersonResponse
 import io.jacob.episodive.core.network.model.PodcastResponse
@@ -19,6 +20,8 @@ import io.jacob.episodive.core.network.model.RecentNewFeedResponse
 import io.jacob.episodive.core.network.model.RecentNewValueFeedResponse
 import io.jacob.episodive.core.network.model.SoundbiteResponse
 import io.jacob.episodive.core.network.model.TranscriptResponse
+import io.jacob.episodive.core.network.model.TrendingFeedResponse
+import kotlin.collections.joinToString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -105,62 +108,24 @@ fun EpisodeResponse.toEpisode(): Episode =
 fun List<EpisodeResponse>.toEpisodes(): List<Episode> =
     map { it.toEpisode() }
 
-fun Long.toInstant(): Instant =
-    Instant.fromEpochSeconds(this)
-
-fun Instant.toLong(): Long = epochSeconds
-
-fun String.toMedium(): Medium? = Medium.entries.find { it.value == this }
-
-fun Map<Int, String>.toCategories(): List<Category> =
-    this.mapNotNull { (id, _) ->
-        Category.entries.find { it.id == id }
-    }.toList()
-
-fun List<Category>.toCommaString(): String =
-    this.joinToString(",") { it.label }
-
-fun Int.toDuration(): Duration = this.seconds
-
-fun String.toEpisodeType(): EpisodeType = EpisodeType.valueOf(this)
-
-fun TranscriptResponse.toTranscript(): Transcript =
-    Transcript(
-        url = url,
-        type = type,
-    )
-
-fun List<TranscriptResponse>.toTranscripts(): List<Transcript> =
-    map { it.toTranscript() }
-
-fun SoundbiteResponse.toSoundbite(): Soundbite =
-    Soundbite(
-        enclosureUrl = enclosureUrl,
-        title = title,
-        startTime = startTime.toInstant(),
-        duration = duration.toDuration(),
-        episodeId = episodeId,
-        episodeTitle = episodeTitle,
-        feedTitle = feedTitle,
-        feedUrl = feedUrl,
-        feedId = feedId,
-    )
-
-fun List<SoundbiteResponse>.toSoundbites(): List<Soundbite> =
-    map { it.toSoundbite() }
-
-fun PersonResponse.toPerson(): Person =
-    Person(
+fun TrendingFeedResponse.toTrendingFeed(): TrendingFeed =
+    TrendingFeed(
         id = id,
-        name = name,
-        role = role,
-        group = group,
-        href = href,
+        url = url,
+        title = title,
+        description = description,
+        author = author,
         image = image,
+        artwork = artwork,
+        newestItemPublishTime = newestItemPublishTime.toInstant(),
+        itunesId = itunesId,
+        trendScore = trendScore,
+        language = language,
+        categories = categories?.toCategories(),
     )
 
-fun List<PersonResponse>.toPersons(): List<Person> =
-    map { it.toPerson() }
+fun List<TrendingFeedResponse>.toTrendingFeeds(): List<TrendingFeed> =
+    map { it.toTrendingFeed() }
 
 fun RecentFeedResponse.toRecentFeed(): RecentFeed =
     RecentFeed(
@@ -209,3 +174,60 @@ fun RecentNewValueFeedResponse.toRecentNewValueFeed(): RecentNewValueFeed =
 
 fun List<RecentNewValueFeedResponse>.toRecentNewValueFeeds(): List<RecentNewValueFeed> =
     map { it.toRecentNewValueFeed() }
+
+fun SoundbiteResponse.toSoundbite(): Soundbite =
+    Soundbite(
+        enclosureUrl = enclosureUrl,
+        title = title,
+        startTime = startTime.toInstant(),
+        duration = duration.toDuration(),
+        episodeId = episodeId,
+        episodeTitle = episodeTitle,
+        feedTitle = feedTitle,
+        feedUrl = feedUrl,
+        feedId = feedId,
+    )
+
+fun List<SoundbiteResponse>.toSoundbites(): List<Soundbite> =
+    map { it.toSoundbite() }
+
+fun Long.toInstant(): Instant =
+    Instant.fromEpochSeconds(this)
+
+fun Instant.toLong(): Long = epochSeconds
+
+fun String.toMedium(): Medium? = Medium.entries.find { it.value == this }
+
+fun Map<Int, String>.toCategories(): List<Category> =
+    this.mapNotNull { (id, _) ->
+        Category.entries.find { it.id == id }
+    }.toList()
+
+fun List<Category>.toCommaString(): String =
+    this.joinToString(",") { it.label }
+
+fun Int.toDuration(): Duration = this.seconds
+
+fun String.toEpisodeType(): EpisodeType = EpisodeType.valueOf(this)
+
+fun TranscriptResponse.toTranscript(): Transcript =
+    Transcript(
+        url = url,
+        type = type,
+    )
+
+fun List<TranscriptResponse>.toTranscripts(): List<Transcript> =
+    map { it.toTranscript() }
+
+fun PersonResponse.toPerson(): Person =
+    Person(
+        id = id,
+        name = name,
+        role = role,
+        group = group,
+        href = href,
+        image = image,
+    )
+
+fun List<PersonResponse>.toPersons(): List<Person> =
+    map { it.toPerson() }

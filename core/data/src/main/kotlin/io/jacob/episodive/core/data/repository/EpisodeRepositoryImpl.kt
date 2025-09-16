@@ -1,24 +1,24 @@
 package io.jacob.episodive.core.data.repository
 
+import io.jacob.episodive.core.domain.repository.EpisodeRepository
+import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toCommaString
 import io.jacob.episodive.core.network.mapper.toEpisode
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import io.jacob.episodive.core.network.mapper.toLong
-import io.jacob.episodive.core.domain.repository.EpisodeRepository
-import io.jacob.episodive.core.model.Category
-import io.jacob.episodive.core.model.Episode
-import io.jacob.episodive.core.network.NetworkDataSource
 import javax.inject.Inject
 import kotlin.time.Instant
 
 class EpisodeRepositoryImpl @Inject constructor(
-    private val networkDataSource: NetworkDataSource,
+    private val episodeRemoteDataSource: EpisodeRemoteDataSource,
 ) : EpisodeRepository {
     override suspend fun searchEpisodesByPerson(
         person: String,
         max: Int?
     ): List<Episode> {
-        return networkDataSource.searchEpisodesByPerson(
+        return episodeRemoteDataSource.searchEpisodesByPerson(
             person = person,
             max = max,
         ).toEpisodes()
@@ -29,7 +29,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?
     ): Pair<List<Episode>?, List<Episode>> {
-        val ret = networkDataSource.getEpisodesByFeedId(
+        val ret = episodeRemoteDataSource.getEpisodesByFeedId(
             feedId = feedId,
             max = max,
             since = since?.toLong(),
@@ -45,7 +45,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?
     ): List<Episode> {
-        return networkDataSource.getEpisodesByFeedUrl(
+        return episodeRemoteDataSource.getEpisodesByFeedUrl(
             feedUrl = feedUrl,
             max = max,
             since = since?.toLong(),
@@ -57,7 +57,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?
     ): List<Episode> {
-        return networkDataSource.getEpisodesByPodcastGuid(
+        return episodeRemoteDataSource.getEpisodesByPodcastGuid(
             guid = guid,
             max = max,
             since = since?.toLong(),
@@ -65,11 +65,11 @@ class EpisodeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getEpisodeById(id: Long): Episode? {
-        return networkDataSource.getEpisodeById(id = id)?.toEpisode()
+        return episodeRemoteDataSource.getEpisodeById(id = id)?.toEpisode()
     }
 
     override suspend fun getLiveEpisodes(max: Int?): List<Episode> {
-        return networkDataSource.getLiveEpisodes(max = max).toEpisodes()
+        return episodeRemoteDataSource.getLiveEpisodes(max = max).toEpisodes()
     }
 
     override suspend fun getRandomEpisodes(
@@ -78,7 +78,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         includeCategories: List<Category>?,
         excludeCategories: List<Category>?
     ): List<Episode> {
-        return networkDataSource.getRandomEpisodes(
+        return episodeRemoteDataSource.getRandomEpisodes(
             max = max,
             language = language,
             includeCategories = includeCategories?.toCommaString(),
@@ -90,7 +90,7 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         excludeString: String?
     ): List<Episode> {
-        return networkDataSource.getRecentEpisodes(
+        return episodeRemoteDataSource.getRecentEpisodes(
             max = max,
             excludeString = excludeString
         ).toEpisodes()

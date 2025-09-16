@@ -8,7 +8,7 @@ data class RecentNewValueFeedResponse(
     @SerializedName("title") val title: String,
     @SerializedName("author") val author: String,
     @SerializedName("image") val image: String,
-    @SerializedName("newestItemPublishTime") val newestItemPublishTime: Long,
+    @SerializedName(value = "newestItemPubdate", alternate = ["newestItemPublishTime"]) val newestItemPublishTime: Long,
     @SerializedName("itunesId") val itunesId: Long? = null,
     @SerializedName("trendScore") val trendScore: Int,
     @SerializedName("language") val language: String,

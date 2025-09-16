@@ -5,9 +5,18 @@ import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.RecentNewFeed
 import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
+import io.jacob.episodive.core.model.TrendingFeed
 import kotlin.time.Instant
 
 interface FeedRepository {
+    suspend fun getTrendingFeeds(
+        max: Int? = null,
+        since: Instant? = null,
+        language: String? = null,
+        includeCategories: List<Category>? = null,
+        excludeCategories: List<Category>? = null,
+    ): List<TrendingFeed>
+
     suspend fun getRecentFeeds(
         max: Int? = null,
         since: Instant? = null,
