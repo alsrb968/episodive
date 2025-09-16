@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.jacob.episodive.core.database.EpisodiveDatabase
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSourceImpl
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.dao.LikedEpisodeDao
@@ -41,9 +42,11 @@ object DataSourceModule {
     @Provides
     @Singleton
     fun provideLikedEpisodeLocalDataSource(
+        database: EpisodiveDatabase,
         likedEpisodeDao: LikedEpisodeDao,
     ): LikedEpisodeLocalDataSource {
         return LikedEpisodeLocalDataSourceImpl(
+            database = database,
             likedEpisodeDao = likedEpisodeDao,
         )
     }
