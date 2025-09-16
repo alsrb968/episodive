@@ -7,12 +7,12 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
 class RoomDatabaseRule : TestWatcher() {
-    lateinit var db: PodcastIndexDatabase
+    lateinit var db: EpisodiveDatabase
         private set
 
     override fun starting(description: Description) {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, PodcastIndexDatabase::class.java)
+        db = Room.inMemoryDatabaseBuilder(context, EpisodiveDatabase::class.java)
             .build()
     }
 

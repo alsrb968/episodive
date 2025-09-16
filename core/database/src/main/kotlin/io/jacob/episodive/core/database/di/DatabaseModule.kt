@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.jacob.episodive.core.database.PodcastIndexDatabase
+import io.jacob.episodive.core.database.EpisodiveDatabase
 import javax.inject.Singleton
 
 @Module
@@ -15,13 +15,13 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Provides
     @Singleton
-    fun provideDatabase(
+    fun provideEpisodiveDatabase(
         @ApplicationContext context: Context
-    ): PodcastIndexDatabase {
+    ): EpisodiveDatabase {
         return Room.databaseBuilder(
             context,
-            PodcastIndexDatabase::class.java,
-            "podcast-index-database",
+            EpisodiveDatabase::class.java,
+            "episodive-database",
         ).build()
     }
 }
