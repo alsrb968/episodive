@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Clock
 
 class EpisodeLocalDataSourceTest {
     @get:Rule
@@ -151,6 +152,37 @@ class EpisodeLocalDataSourceTest {
 
             // Then
             coVerify { episodeDao.isLiked(episodeEntity.id) }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given default parameters, When toggleLike is called, Then addLike is called with current time`() =
+        runTest {
+            // Given
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val transactionSlot = slot<suspend () -> Unit>()
+            val fixedInstant = Clock.System.now()
+            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
+            coEvery {
+                database.withTransaction(capture(transactionSlot))
+            } coAnswers {
+                transactionSlot.captured.invoke()
+            }
+            coEvery { episodeDao.addLike(any()) } just Runs
+            coEvery { episodeDao.removeLike(any()) } just Runs
+
+            // When
+            dataSource.toggleLike(episodeEntity.id, fixedInstant)
+
+            // Then
+            coVerifySequence {
+                episodeDao.isLiked(episodeEntity.id)
+                database.withTransaction(any<suspend () -> Unit>())
+                episodeDao.addLike(match { it.id == episodeEntity.id && it.likedAt == fixedInstant })
+            }
             confirmVerified(
                 database,
                 episodeDao,
