@@ -36,6 +36,13 @@ interface EpisodeDao {
     )
     fun getLikedEpisodes(): Flow<List<EpisodeEntity>>
 
+    @Query("""
+        SELECT e.* FROM episodes e
+        INNER JOIN resume_episodes re ON e.id = re.id
+        ORDER BY re.lastPlayedAt DESC
+    """)
+    fun getResumeEpisodes(): Flow<List<EpisodeEntity>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addLike(likedEpisode: LikedEpisodeEntity)
 
@@ -56,4 +63,7 @@ interface EpisodeDao {
 
     @Query("SELECT COUNT(*) FROM liked_episodes")
     fun getLikedEpisodeCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM resume_episodes")
+    fun getResumeEpisodeCount(): Flow<Int>
 }
