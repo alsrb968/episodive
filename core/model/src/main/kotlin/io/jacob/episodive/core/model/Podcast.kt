@@ -32,7 +32,7 @@ data class Podcast(
     val episodeCount: Int,
     val crawlErrors: Int,
     val parseErrors: Int,
-    val categories: List<Category>? = null,
+    val categories: List<Category> = emptyList(),
     val locked: Int,
     val imageUrlHash: Long? = null,
 //    val value: Value4Value? = null,

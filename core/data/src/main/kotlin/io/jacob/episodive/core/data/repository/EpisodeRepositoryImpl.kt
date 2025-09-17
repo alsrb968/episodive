@@ -75,14 +75,14 @@ class EpisodeRepositoryImpl @Inject constructor(
     override suspend fun getRandomEpisodes(
         max: Int?,
         language: String?,
-        includeCategories: List<Category>?,
-        excludeCategories: List<Category>?
+        includeCategories: List<Category>,
+        excludeCategories: List<Category>
     ): List<Episode> {
         return episodeRemoteDataSource.getRandomEpisodes(
             max = max,
             language = language,
-            includeCategories = includeCategories?.toCommaString(),
-            excludeCategories = excludeCategories?.toCommaString()
+            includeCategories = includeCategories.toCommaString(),
+            excludeCategories = excludeCategories.toCommaString()
         ).toEpisodes()
     }
 

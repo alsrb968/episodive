@@ -25,15 +25,15 @@ class FeedRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?,
         language: String?,
-        includeCategories: List<Category>?,
-        excludeCategories: List<Category>?,
+        includeCategories: List<Category>,
+        excludeCategories: List<Category>,
     ): List<TrendingFeed> {
         return feedRemoteDataSource.getTrendingFeeds(
             max = max,
             since = since?.toLong(),
             language = language,
-            includeCategories = includeCategories?.toCommaString(),
-            excludeCategories = excludeCategories?.toCommaString()
+            includeCategories = includeCategories.toCommaString(),
+            excludeCategories = excludeCategories.toCommaString()
         ).toTrendingFeeds()
     }
 
@@ -41,15 +41,15 @@ class FeedRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?,
         language: String?,
-        includeCategories: List<Category>?,
-        excludeCategories: List<Category>?,
+        includeCategories: List<Category>,
+        excludeCategories: List<Category>,
     ): List<RecentFeed> {
         return feedRemoteDataSource.getRecentFeeds(
             max = max,
             since = since?.toLong(),
             language = language,
-            includeCategories = includeCategories?.toCommaString(),
-            excludeCategories = excludeCategories?.toCommaString()
+            includeCategories = includeCategories.toCommaString(),
+            excludeCategories = excludeCategories.toCommaString()
         ).toRecentFeeds()
     }
 

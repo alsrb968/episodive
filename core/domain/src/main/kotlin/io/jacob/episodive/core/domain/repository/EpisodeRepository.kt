@@ -35,8 +35,8 @@ interface EpisodeRepository {
     suspend fun getRandomEpisodes(
         max: Int? = null,
         language: String? = null,
-        includeCategories: List<Category>? = null,
-        excludeCategories: List<Category>? = null,
+        includeCategories: List<Category> = emptyList(),
+        excludeCategories: List<Category> = emptyList(),
     ): List<Episode>
 
     suspend fun getRecentEpisodes(

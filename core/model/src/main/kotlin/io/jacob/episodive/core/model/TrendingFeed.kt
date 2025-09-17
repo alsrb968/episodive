@@ -14,5 +14,5 @@ data class TrendingFeed(
     val itunesId: Long? = null,
     val trendScore: Int,
     val language: String,
-    val categories: List<Category>? = null,
+    val categories: List<Category> = emptyList(),
 )

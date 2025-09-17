@@ -14,5 +14,5 @@ data class RecentFeed(
     val itunesId: Long? = null,
     val trendScore: Int? = null,
     val language: String,
-    val categories: List<Category>? = null,
+    val categories: List<Category> = emptyList(),
 )
