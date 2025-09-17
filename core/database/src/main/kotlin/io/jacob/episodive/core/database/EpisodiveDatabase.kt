@@ -14,7 +14,6 @@ import io.jacob.episodive.core.database.util.DurationConverter
 import io.jacob.episodive.core.database.util.EpisodeTypeConverter
 import io.jacob.episodive.core.database.util.InstantConverter
 import io.jacob.episodive.core.database.util.MediumConverter
-import io.jacob.episodive.core.database.util.PersonConverter
 import io.jacob.episodive.core.database.util.SoundbiteConverter
 import io.jacob.episodive.core.database.util.TranscriptConverter
 
@@ -33,7 +32,6 @@ import io.jacob.episodive.core.database.util.TranscriptConverter
     EpisodeTypeConverter::class,
     InstantConverter::class,
     MediumConverter::class,
-    PersonConverter::class,
     SoundbiteConverter::class,
     TranscriptConverter::class,
 )

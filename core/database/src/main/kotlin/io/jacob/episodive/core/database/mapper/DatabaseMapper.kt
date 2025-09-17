@@ -108,7 +108,6 @@ fun EpisodeEntity.toEpisode(): Episode =
         episodeType = episodeType,
         season = season,
         image = image,
-        podcastGuid = podcastGuid,
         feedItunesId = feedItunesId,
         feedImage = feedImage,
         feedId = feedId,
@@ -116,13 +115,10 @@ fun EpisodeEntity.toEpisode(): Episode =
         feedAuthor = feedAuthor,
         feedTitle = feedTitle,
         feedLanguage = feedLanguage,
-        feedDuplicateOf = feedDuplicateOf,
+        categories = categories,
         chaptersUrl = chaptersUrl,
         transcriptUrl = transcriptUrl,
         transcripts = transcripts,
-        soundbites = soundbites,
-        persons = persons,
-        categories = categories,
     )
 
 fun List<EpisodeEntity>.toEpisodes(): List<Episode> =
@@ -150,7 +146,6 @@ fun Episode.toEpisodeEntity(): EpisodeEntity =
         episodeType = episodeType,
         season = season,
         image = image,
-        podcastGuid = podcastGuid,
         feedItunesId = feedItunesId,
         feedImage = feedImage,
         feedId = feedId,
@@ -158,13 +153,10 @@ fun Episode.toEpisodeEntity(): EpisodeEntity =
         feedAuthor = feedAuthor,
         feedTitle = feedTitle,
         feedLanguage = feedLanguage,
-        feedDuplicateOf = feedDuplicateOf,
+        categories = categories,
         chaptersUrl = chaptersUrl,
         transcriptUrl = transcriptUrl,
         transcripts = transcripts,
-        soundbites = soundbites,
-        persons = persons,
-        categories = categories,
     )
 
 fun List<Episode>.toEpisodeEntities(): List<EpisodeEntity> =
