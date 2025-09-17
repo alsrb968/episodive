@@ -55,7 +55,7 @@ fun PodcastResponse.toPodcast(): Podcast =
         episodeCount = episodeCount,
         crawlErrors = crawlErrors,
         parseErrors = parseErrors,
-        categories = categories?.toCategories(),
+        categories = categories.toCategories(),
         locked = locked,
         imageUrlHash = imageUrlHash,
         newestItemPublishTime = newestItemPublishTime?.toInstant(),
@@ -115,7 +115,7 @@ fun TrendingFeedResponse.toTrendingFeed(): TrendingFeed =
         itunesId = itunesId,
         trendScore = trendScore,
         language = language,
-        categories = categories?.toCategories(),
+        categories = categories.toCategories(),
     )
 
 fun List<TrendingFeedResponse>.toTrendingFeeds(): List<TrendingFeed> =
@@ -133,7 +133,7 @@ fun RecentFeedResponse.toRecentFeed(): RecentFeed =
         itunesId = itunesId,
         trendScore = trendScore,
         language = language,
-        categories = categories?.toCategories(),
+        categories = categories.toCategories(),
     )
 
 fun List<RecentFeedResponse>.toRecentFeeds(): List<RecentFeed> =
@@ -163,7 +163,7 @@ fun RecentNewValueFeedResponse.toRecentNewValueFeed(): RecentNewValueFeed =
         itunesId = itunesId,
         trendScore = trendScore,
         language = language,
-        categories = categories?.toCategories(),
+        categories = categories.toCategories(),
     )
 
 fun List<RecentNewValueFeedResponse>.toRecentNewValueFeeds(): List<RecentNewValueFeed> =
@@ -197,8 +197,8 @@ fun Map<Int, String>?.toCategories(): List<Category> =
         Category.entries.find { it.id == id }
     }?.toList() ?: emptyList()
 
-fun List<Category>.toCommaString(): String =
-    this.joinToString(",") { it.label }
+fun List<Category>.toCommaString(): String? =
+    this.takeIf { it.isNotEmpty() }?.joinToString(",") { it.label }
 
 fun Int.toDuration(): Duration = this.seconds
 

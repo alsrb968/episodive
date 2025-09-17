@@ -5,20 +5,16 @@ import io.jacob.episodive.core.model.Category
 
 class CategoryConverter {
     @TypeConverter
-    fun fromCategory(category: Category?): String? =
-        category?.label
+    fun fromCategories(categories: List<Category>): String =
+        categories.joinToString(",") { it.id.toString() }
 
     @TypeConverter
-    fun fromCategories(categories: List<Category>?): String? =
-        categories?.joinToString(",") { it.label }
-
-    @TypeConverter
-    fun toCategory(label: String?): Category? =
-        Category.entries.find { it.label == label }
-
-    @TypeConverter
-    fun toCategories(labels: String?): List<Category>? =
-        labels?.split(",")?.mapNotNull { label ->
-            Category.entries.find { it.label == label }
+    fun toCategories(idsString: String): List<Category> =
+        if (idsString.isEmpty()) {
+            emptyList()
+        } else {
+            idsString.split(",").mapNotNull { id ->
+                Category.entries.find { it.id == id.toIntOrNull() }
+            }
         }
 }

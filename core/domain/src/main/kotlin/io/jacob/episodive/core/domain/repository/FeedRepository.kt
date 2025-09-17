@@ -13,16 +13,16 @@ interface FeedRepository {
         max: Int? = null,
         since: Instant? = null,
         language: String? = null,
-        includeCategories: List<Category>? = null,
-        excludeCategories: List<Category>? = null,
+        includeCategories: List<Category> = emptyList(),
+        excludeCategories: List<Category> = emptyList(),
     ): List<TrendingFeed>
 
     suspend fun getRecentFeeds(
         max: Int? = null,
         since: Instant? = null,
         language: String? = null,
-        includeCategories: List<Category>? = null,
-        excludeCategories: List<Category>? = null,
+        includeCategories: List<Category> = emptyList(),
+        excludeCategories: List<Category> = emptyList(),
     ): List<RecentFeed>
 
     suspend fun getRecentNewFeeds(
