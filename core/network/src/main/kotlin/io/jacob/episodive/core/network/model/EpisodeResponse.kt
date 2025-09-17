@@ -30,6 +30,7 @@ data class EpisodeResponse(
     @SerializedName("feedAuthor") val feedAuthor: String? = null,
     @SerializedName("feedTitle") val feedTitle: String? = null,
     @SerializedName("feedLanguage") val feedLanguage: String,
+    @SerializedName("categories") val categories: Map<Int, String>? = null,
     @SerializedName("chaptersUrl") val chaptersUrl: String? = null,
     @SerializedName("transcriptUrl") val transcriptUrl: String? = null,
     @SerializedName("transcripts") val transcripts: List<TranscriptResponse>? = null,

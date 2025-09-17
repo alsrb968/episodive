@@ -13,7 +13,7 @@ data class Episode(
     val dateCrawled: Instant,
     val enclosureUrl: String,
     val enclosureType: String,
-    val enclosureLength: Long,
+    val enclosureLength: Long, // in bytes, 0 is live
     val startTime: Instant? = null, // for live episodes
     val endTime: Instant? = null, // for live episodes
     val status: String? = null, // for live episodes
@@ -31,6 +31,7 @@ data class Episode(
     val feedAuthor: String? = null,
     val feedTitle: String? = null,
     val feedLanguage: String,
+    val categories: List<Category> = emptyList(),
     val chaptersUrl: String? = null,
     val transcriptUrl: String? = null,
     val transcripts: List<Transcript>? = null,

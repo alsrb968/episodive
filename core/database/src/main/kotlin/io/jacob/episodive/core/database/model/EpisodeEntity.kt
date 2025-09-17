@@ -2,6 +2,7 @@ package io.jacob.episodive.core.database.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.EpisodeType
 import io.jacob.episodive.core.model.Transcript
 import kotlin.time.Duration
@@ -36,6 +37,7 @@ data class EpisodeEntity(
     val feedAuthor: String? = null,
     val feedTitle: String? = null,
     val feedLanguage: String,
+    val categories: List<Category> = emptyList(),
     val chaptersUrl: String? = null,
     val transcriptUrl: String? = null,
     val transcripts: List<Transcript>? = null,

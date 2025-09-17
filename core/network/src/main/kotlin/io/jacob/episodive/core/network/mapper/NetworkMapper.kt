@@ -93,6 +93,7 @@ fun EpisodeResponse.toEpisode(): Episode =
         feedAuthor = feedAuthor,
         feedTitle = feedTitle,
         feedLanguage = feedLanguage,
+        categories = categories.toCategories(),
         chaptersUrl = chaptersUrl,
         transcriptUrl = transcriptUrl,
         transcripts = transcripts?.toTranscripts(),
@@ -191,10 +192,10 @@ fun Instant.toLong(): Long = epochSeconds
 
 fun String.toMedium(): Medium? = Medium.entries.find { it.value == this }
 
-fun Map<Int, String>.toCategories(): List<Category> =
-    this.mapNotNull { (id, _) ->
+fun Map<Int, String>?.toCategories(): List<Category> =
+    this?.mapNotNull { (id, _) ->
         Category.entries.find { it.id == id }
-    }.toList()
+    }?.toList() ?: emptyList()
 
 fun List<Category>.toCommaString(): String =
     this.joinToString(",") { it.label }
