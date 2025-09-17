@@ -4,7 +4,6 @@ import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.EpisodeType
 import io.jacob.episodive.core.model.Medium
-import io.jacob.episodive.core.model.Person
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.RecentNewFeed
@@ -13,7 +12,6 @@ import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.Transcript
 import io.jacob.episodive.core.model.TrendingFeed
 import io.jacob.episodive.core.network.model.EpisodeResponse
-import io.jacob.episodive.core.network.model.PersonResponse
 import io.jacob.episodive.core.network.model.PodcastResponse
 import io.jacob.episodive.core.network.model.RecentFeedResponse
 import io.jacob.episodive.core.network.model.RecentNewFeedResponse
@@ -78,17 +76,16 @@ fun EpisodeResponse.toEpisode(): Episode =
         enclosureUrl = enclosureUrl,
         enclosureType = enclosureType,
         enclosureLength = enclosureLength,
-        startTime = startTime.toInstant(),
-        endTime = endTime.toInstant(),
+        startTime = startTime?.toInstant(),
+        endTime = endTime?.toInstant(),
         status = status,
         contentLink = contentLink,
         duration = duration?.toDuration(),
-        explicit = explicit,
+        explicit = explicit == 1,
         episode = episode,
         episodeType = episodeType?.toEpisodeType(),
         season = season,
         image = image,
-        podcastGuid = podcastGuid,
         feedItunesId = feedItunesId,
         feedImage = feedImage,
         feedId = feedId,
@@ -96,13 +93,9 @@ fun EpisodeResponse.toEpisode(): Episode =
         feedAuthor = feedAuthor,
         feedTitle = feedTitle,
         feedLanguage = feedLanguage,
-        feedDuplicateOf = feedDuplicateOf,
         chaptersUrl = chaptersUrl,
         transcriptUrl = transcriptUrl,
         transcripts = transcripts?.toTranscripts(),
-        soundbites = soundbites?.toSoundbites(),
-        persons = persons?.toPersons(),
-        categories = categories?.toCategories(),
     )
 
 fun List<EpisodeResponse>.toEpisodes(): List<Episode> =
@@ -218,16 +211,3 @@ fun TranscriptResponse.toTranscript(): Transcript =
 
 fun List<TranscriptResponse>.toTranscripts(): List<Transcript> =
     map { it.toTranscript() }
-
-fun PersonResponse.toPerson(): Person =
-    Person(
-        id = id,
-        name = name,
-        role = role,
-        group = group,
-        href = href,
-        image = image,
-    )
-
-fun List<PersonResponse>.toPersons(): List<Person> =
-    map { it.toPerson() }

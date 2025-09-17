@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "236873c8bfd28e796b3cd6cfd32925ab",
+    "identityHash": "ab51ff96da1e57d466f20119ba99596f",
     "entities": [
       {
         "tableName": "podcasts",
@@ -207,18 +207,12 @@
       },
       {
         "tableName": "episodes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `guid` TEXT NOT NULL, `title` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT NOT NULL, `datePublished` INTEGER NOT NULL, `dateCrawled` INTEGER NOT NULL, `enclosureUrl` TEXT NOT NULL, `enclosureType` TEXT NOT NULL, `enclosureLength` INTEGER NOT NULL, `startTime` INTEGER NOT NULL, `endTime` INTEGER NOT NULL, `status` TEXT NOT NULL, `contentLink` TEXT, `duration` INTEGER, `explicit` INTEGER NOT NULL, `episode` INTEGER, `episodeType` TEXT, `season` INTEGER, `image` TEXT NOT NULL, `podcastGuid` TEXT, `feedItunesId` INTEGER, `feedImage` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `feedUrl` TEXT, `feedAuthor` TEXT, `feedTitle` TEXT, `feedLanguage` TEXT NOT NULL, `feedDuplicateOf` INTEGER, `chaptersUrl` TEXT, `transcriptUrl` TEXT, `transcripts` TEXT, `soundbites` TEXT, `persons` TEXT, `categories` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT, `guid` TEXT NOT NULL, `datePublished` INTEGER NOT NULL, `dateCrawled` INTEGER NOT NULL, `enclosureUrl` TEXT NOT NULL, `enclosureType` TEXT NOT NULL, `enclosureLength` INTEGER NOT NULL, `startTime` INTEGER, `endTime` INTEGER, `status` TEXT, `contentLink` TEXT, `duration` INTEGER, `explicit` INTEGER NOT NULL, `episode` INTEGER, `episodeType` TEXT, `season` INTEGER, `image` TEXT NOT NULL, `feedItunesId` INTEGER, `feedImage` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `feedUrl` TEXT, `feedAuthor` TEXT, `feedTitle` TEXT, `feedLanguage` TEXT NOT NULL, `chaptersUrl` TEXT, `transcriptUrl` TEXT, `transcripts` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "guid",
-            "columnName": "guid",
-            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -236,6 +230,11 @@
           {
             "fieldPath": "description",
             "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "guid",
+            "columnName": "guid",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -272,20 +271,17 @@
           {
             "fieldPath": "startTime",
             "columnName": "startTime",
-            "affinity": "INTEGER",
-            "notNull": true
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "endTime",
             "columnName": "endTime",
-            "affinity": "INTEGER",
-            "notNull": true
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "status",
             "columnName": "status",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "contentLink",
@@ -323,11 +319,6 @@
             "columnName": "image",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "podcastGuid",
-            "columnName": "podcastGuid",
-            "affinity": "TEXT"
           },
           {
             "fieldPath": "feedItunesId",
@@ -368,11 +359,6 @@
             "notNull": true
           },
           {
-            "fieldPath": "feedDuplicateOf",
-            "columnName": "feedDuplicateOf",
-            "affinity": "INTEGER"
-          },
-          {
             "fieldPath": "chaptersUrl",
             "columnName": "chaptersUrl",
             "affinity": "TEXT"
@@ -385,21 +371,6 @@
           {
             "fieldPath": "transcripts",
             "columnName": "transcripts",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "soundbites",
-            "columnName": "soundbites",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "persons",
-            "columnName": "persons",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "categories",
-            "columnName": "categories",
             "affinity": "TEXT"
           }
         ],
@@ -450,7 +421,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '236873c8bfd28e796b3cd6cfd32925ab')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ab51ff96da1e57d466f20119ba99596f')"
     ]
   }
 }
