@@ -17,8 +17,4 @@ object DaoModule {
     @Provides
     @Singleton
     fun provideEpisodeDao(database: EpisodiveDatabase) = database.episodeDao()
-
-    @Provides
-    @Singleton
-    fun provideLikedEpisodeDao(database: EpisodiveDatabase) = database.likedEpisodeDao()
 }

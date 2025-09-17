@@ -15,11 +15,17 @@ interface PodcastDao {
     @Upsert
     suspend fun upsertPodcasts(podcasts: List<PodcastEntity>)
 
+    @Query("SELECT * FROM podcasts WHERE id = :id")
+    fun getPodcast(id: Long): Flow<PodcastEntity?>
+
     @Query("SELECT * FROM podcasts")
     fun getPodcasts(): Flow<List<PodcastEntity>>
 
     @Query("SELECT * FROM podcasts")
     fun getPodcastsPaging(): PagingSource<Int, PodcastEntity>
+
+    @Query("DELETE FROM podcasts WHERE id = :id")
+    suspend fun deletePodcast(id: Long)
 
     @Query("DELETE FROM podcasts")
     suspend fun deletePodcasts()

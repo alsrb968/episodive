@@ -4,7 +4,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import io.jacob.episodive.core.database.dao.EpisodeDao
-import io.jacob.episodive.core.database.dao.LikedEpisodeDao
 import io.jacob.episodive.core.database.dao.PodcastDao
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
@@ -38,5 +37,4 @@ import io.jacob.episodive.core.database.util.TranscriptConverter
 abstract class EpisodiveDatabase : RoomDatabase() {
     abstract fun podcastDao(): PodcastDao
     abstract fun episodeDao(): EpisodeDao
-    abstract fun likedEpisodeDao(): LikedEpisodeDao
 }

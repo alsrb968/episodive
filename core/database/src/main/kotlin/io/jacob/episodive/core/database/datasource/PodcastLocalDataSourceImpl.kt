@@ -16,12 +16,20 @@ class PodcastLocalDataSourceImpl(
         podcastDao.upsertPodcasts(podcasts)
     }
 
+    override fun getPodcast(id: Long): Flow<PodcastEntity?> {
+        return podcastDao.getPodcast(id)
+    }
+
     override fun getPodcasts(): Flow<List<PodcastEntity>> {
         return podcastDao.getPodcasts()
     }
 
     override fun getPodcastsPaging(): PagingSource<Int, PodcastEntity> {
         return podcastDao.getPodcastsPaging()
+    }
+
+    override suspend fun deletePodcast(id: Long) {
+        podcastDao.deletePodcast(id)
     }
 
     override suspend fun deletePodcasts() {
