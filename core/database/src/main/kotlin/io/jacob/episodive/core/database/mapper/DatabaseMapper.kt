@@ -4,6 +4,7 @@ import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 fun PodcastEntity.toPodcast(): Podcast =
@@ -124,7 +125,10 @@ fun EpisodeEntity.toEpisode(): Episode =
 fun List<EpisodeEntity>.toEpisodes(): List<Episode> =
     map { it.toEpisode() }
 
-fun Episode.toEpisodeEntity(): EpisodeEntity =
+fun Episode.toEpisodeEntity(
+    cacheKey: String,
+    cachedAt: Instant = Clock.System.now(),
+): EpisodeEntity =
     EpisodeEntity(
         id = id,
         guid = guid,
@@ -157,10 +161,20 @@ fun Episode.toEpisodeEntity(): EpisodeEntity =
         chaptersUrl = chaptersUrl,
         transcriptUrl = transcriptUrl,
         transcripts = transcripts,
+        cacheKey = cacheKey,
+        cachedAt = cachedAt,
     )
 
-fun List<Episode>.toEpisodeEntities(): List<EpisodeEntity> =
-    map { it.toEpisodeEntity() }
+fun List<Episode>.toEpisodeEntities(
+    cacheKey: String,
+    cachedAt: Instant = Clock.System.now(),
+): List<EpisodeEntity> =
+    map {
+        it.toEpisodeEntity(
+            cacheKey = cacheKey,
+            cachedAt = cachedAt,
+        )
+    }
 
 fun Long.toInstant(): Instant = Instant.fromEpochSeconds(this)
 fun Instant.toLong(): Long = this.epochSeconds

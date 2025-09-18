@@ -1,7 +1,5 @@
 package io.jacob.episodive.core.database.datasource
 
-import androidx.paging.PagingSource
-import androidx.room.Transaction
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeDto
@@ -9,9 +7,7 @@ import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeDto
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import kotlin.time.Instant
 
 class EpisodeLocalDataSourceImpl @Inject constructor(
     private val episodeDao: EpisodeDao,
@@ -32,14 +28,12 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
         episodeDao.deleteEpisodes()
     }
 
-    @Transaction
-    override suspend fun toggleLiked(id: Long, likedAt: Instant) {
-        val isLiked = episodeDao.isLiked(id).first()
-        if (isLiked) {
-            episodeDao.removeLiked(id)
-        } else {
-            episodeDao.addLiked(LikedEpisodeEntity(id, likedAt))
-        }
+    override suspend fun addLiked(likedEpisode: LikedEpisodeEntity) {
+        episodeDao.addLiked(likedEpisode)
+    }
+
+    override suspend fun removeLiked(id: Long) {
+        episodeDao.removeLiked(id)
     }
 
     override suspend fun upsertPlayed(playedEpisode: PlayedEpisodeEntity) {
@@ -58,8 +52,8 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
         return episodeDao.getEpisodes()
     }
 
-    override fun getEpisodesPaging(): PagingSource<Int, EpisodeEntity> {
-        return episodeDao.getEpisodesPaging()
+    override fun getEpisodesByCacheKey(cacheKey: String): Flow<List<EpisodeEntity>> {
+        return episodeDao.getEpisodesByCacheKey(cacheKey)
     }
 
     override fun getLikedEpisodes(): Flow<List<LikedEpisodeDto>> {

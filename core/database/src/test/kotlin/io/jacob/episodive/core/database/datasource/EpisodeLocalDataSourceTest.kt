@@ -3,6 +3,7 @@ package io.jacob.episodive.core.database.datasource
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.mapper.toEpisodeEntity
+import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.testing.data.episodeTestData
 import io.jacob.episodive.core.testing.data.episodeTestDataList
@@ -14,7 +15,6 @@ import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
 import io.mockk.just
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -27,13 +27,13 @@ class EpisodeLocalDataSourceTest {
 
     private val episodeDao = mockk<EpisodeDao>(relaxed = true)
 
-    private val dataSource: EpisodeLocalDataSource =
-        EpisodeLocalDataSourceImpl(
-            episodeDao = episodeDao,
-        )
+    private val dataSource: EpisodeLocalDataSource = EpisodeLocalDataSourceImpl(
+        episodeDao = episodeDao,
+    )
 
-    private val episodeEntity = episodeTestData.toEpisodeEntity()
-    private val episodeEntities = episodeTestDataList.toEpisodeEntities()
+    private val cacheKey = "test_cache"
+    private val episodeEntity = episodeTestData.toEpisodeEntity(cacheKey = cacheKey)
+    private val episodeEntities = episodeTestDataList.toEpisodeEntities(cacheKey = cacheKey)
 
     @Test
     fun `Given dependencies, When upsertEpisode is called, Then upsertEpisode of dao is called`() =
@@ -100,41 +100,21 @@ class EpisodeLocalDataSourceTest {
         }
 
     @Test
-    fun `Given default parameters, When toggleLiked is called, Then addLiked is called with current time`() =
+    fun `Given dependencies, When addLiked is called, Then addLiked of dao is called`() =
         runTest {
             // Given
-            val fixedInstant = Clock.System.now()
-            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
             coEvery { episodeDao.addLiked(any()) } just Runs
-            coEvery { episodeDao.removeLiked(any()) } just Runs
 
             // When
-            dataSource.toggleLiked(episodeEntity.id, fixedInstant)
-
-            // Then
-            coVerifySequence {
-                episodeDao.isLiked(episodeEntity.id)
-                episodeDao.addLiked(match { it.id == episodeEntity.id && it.likedAt == fixedInstant })
-            }
-            confirmVerified(
-                episodeDao,
+            dataSource.addLiked(
+                LikedEpisodeEntity(
+                    id = episodeEntity.id,
+                    likedAt = Clock.System.now()
+                )
             )
-        }
-
-    @Test
-    fun `Given isLiked return false, When toggleLiked is called, Then addLiked is called`() =
-        runTest {
-            // Given
-            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
-            coEvery { episodeDao.addLiked(any()) } just Runs
-            coEvery { episodeDao.removeLiked(any()) } just Runs
-
-            // When
-            dataSource.toggleLiked(episodeEntity.id)
 
             // Then
             coVerifySequence {
-                episodeDao.isLiked(episodeEntity.id)
                 episodeDao.addLiked(any())
             }
             confirmVerified(
@@ -143,20 +123,17 @@ class EpisodeLocalDataSourceTest {
         }
 
     @Test
-    fun `Given isLiked return true, When toggleLiked is called, Then removeLiked is called`() =
+    fun `Given dependencies, When removeLiked is called, Then removeLiked of dao is called`() =
         runTest {
             // Given
-            coEvery { episodeDao.isLiked(any()) } returns flowOf(true)
-            coEvery { episodeDao.addLiked(any()) } just Runs
             coEvery { episodeDao.removeLiked(any()) } just Runs
 
             // When
-            dataSource.toggleLiked(episodeEntity.id)
+            dataSource.removeLiked(episodeEntity.id)
 
             // Then
             coVerifySequence {
-                episodeDao.isLiked(episodeEntity.id)
-                episodeDao.removeLiked(episodeEntity.id)
+                episodeDao.removeLiked(any())
             }
             confirmVerified(
                 episodeDao,
@@ -234,16 +211,16 @@ class EpisodeLocalDataSourceTest {
         }
 
     @Test
-    fun `Given dependencies, When getEpisodesPaging is called, Then getEpisodesPaging of dao is called`() =
+    fun `Given dependencies, When getEpisodesByCacheKey is called, Then getEpisodesByCacheKey of dao is called`() =
         runTest {
             // Given
-            coEvery { episodeDao.getEpisodesPaging() } returns mockk()
+            coEvery { episodeDao.getEpisodesByCacheKey(any()) } returns mockk()
 
             // When
-            dataSource.getEpisodesPaging()
+            dataSource.getEpisodesByCacheKey(cacheKey)
 
             // Then
-            coVerify { episodeDao.getEpisodesPaging() }
+            coVerify { episodeDao.getEpisodesByCacheKey(cacheKey) }
             confirmVerified(
                 episodeDao,
             )

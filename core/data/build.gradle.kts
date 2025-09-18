@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.episodive.android.library)
     alias(libs.plugins.episodive.android.library.jacoco)
-    alias(libs.plugins.episodive.android.room)
     alias(libs.plugins.episodive.android.hilt)
     alias(libs.plugins.episodive.android.test)
 }
@@ -16,8 +15,12 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.network)
 
-    implementation(libs.androidx.media3.exoplayer)
-
     //----- Paging
     implementation(libs.androidx.paging.runtime)
+
+    //----- Room
+    implementation(libs.androidx.room.runtime)
+
+    //----- Exoplayer
+    implementation(libs.androidx.media3.exoplayer)
 }

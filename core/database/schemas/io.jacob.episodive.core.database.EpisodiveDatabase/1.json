@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8f72a227ccb7373cf02d2a2a8831f5de",
+    "identityHash": "4256f9fb7138de623f12f75943a7112d",
     "entities": [
       {
         "tableName": "podcasts",
@@ -208,7 +208,7 @@
       },
       {
         "tableName": "episodes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT, `guid` TEXT NOT NULL, `datePublished` INTEGER NOT NULL, `dateCrawled` INTEGER NOT NULL, `enclosureUrl` TEXT NOT NULL, `enclosureType` TEXT NOT NULL, `enclosureLength` INTEGER NOT NULL, `startTime` INTEGER, `endTime` INTEGER, `status` TEXT, `contentLink` TEXT, `duration` INTEGER, `explicit` INTEGER NOT NULL, `episode` INTEGER, `episodeType` TEXT, `season` INTEGER, `image` TEXT NOT NULL, `feedItunesId` INTEGER, `feedImage` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `feedUrl` TEXT, `feedAuthor` TEXT, `feedTitle` TEXT, `feedLanguage` TEXT NOT NULL, `categories` TEXT NOT NULL, `chaptersUrl` TEXT, `transcriptUrl` TEXT, `transcripts` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `link` TEXT NOT NULL, `description` TEXT, `guid` TEXT NOT NULL, `datePublished` INTEGER NOT NULL, `dateCrawled` INTEGER NOT NULL, `enclosureUrl` TEXT NOT NULL, `enclosureType` TEXT NOT NULL, `enclosureLength` INTEGER NOT NULL, `startTime` INTEGER, `endTime` INTEGER, `status` TEXT, `contentLink` TEXT, `duration` INTEGER, `explicit` INTEGER NOT NULL, `episode` INTEGER, `episodeType` TEXT, `season` INTEGER, `image` TEXT NOT NULL, `feedItunesId` INTEGER, `feedImage` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `feedUrl` TEXT, `feedAuthor` TEXT, `feedTitle` TEXT, `feedLanguage` TEXT NOT NULL, `categories` TEXT NOT NULL, `chaptersUrl` TEXT, `transcriptUrl` TEXT, `transcripts` TEXT, `cacheKey` TEXT NOT NULL, `cachedAt` INTEGER NOT NULL, PRIMARY KEY(`id`, `cacheKey`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -379,12 +379,25 @@
             "fieldPath": "transcripts",
             "columnName": "transcripts",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "cacheKey",
+            "columnName": "cacheKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cachedAt",
+            "columnName": "cachedAt",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "id"
+            "id",
+            "cacheKey"
           ]
         }
       },
@@ -451,7 +464,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8f72a227ccb7373cf02d2a2a8831f5de')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4256f9fb7138de623f12f75943a7112d')"
     ]
   }
 }

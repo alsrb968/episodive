@@ -1,6 +1,5 @@
 package io.jacob.episodive.core.database.dao
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -8,8 +7,8 @@ import androidx.room.Query
 import androidx.room.Upsert
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeDto
-import io.jacob.episodive.core.database.model.PlayedEpisodeDto
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
+import io.jacob.episodive.core.database.model.PlayedEpisodeDto
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -45,8 +44,8 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes")
     fun getEpisodes(): Flow<List<EpisodeEntity>>
 
-    @Query("SELECT * FROM episodes")
-    fun getEpisodesPaging(): PagingSource<Int, EpisodeEntity>
+    @Query("SELECT * FROM episodes WHERE cacheKey = :cacheKey")
+    fun getEpisodesByCacheKey(cacheKey: String): Flow<List<EpisodeEntity>>
 
     @Query(
         """
@@ -55,6 +54,9 @@ interface EpisodeDao {
             le.likedAt
         FROM liked_episodes le
         LEFT JOIN episodes e ON le.id = e.id
+        WHERE e.cachedAt = (
+            SELECT MAX(cachedAt) FROM episodes WHERE id = le.id
+        )
         ORDER BY le.likedAt DESC
     """
     )
@@ -70,6 +72,9 @@ interface EpisodeDao {
         FROM played_episodes pe
         LEFT JOIN episodes e ON pe.id = e.id
         WHERE pe.isCompleted = 0
+            AND e.cachedAt = (
+                SELECT MAX(cachedAt) FROM episodes WHERE id = pe.id
+            )
         ORDER BY pe.playedAt DESC
     """
     )
@@ -85,6 +90,9 @@ interface EpisodeDao {
         FROM played_episodes pe
         LEFT JOIN episodes e ON pe.id = e.id
         WHERE pe.isCompleted = 1
+            AND e.cachedAt = (
+                SELECT MAX(cachedAt) FROM episodes WHERE id = pe.id
+            )
         ORDER BY pe.playedAt DESC
     """
     )

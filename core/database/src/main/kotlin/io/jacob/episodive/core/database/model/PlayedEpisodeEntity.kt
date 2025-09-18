@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-@Entity("played_episodes")
+@Entity(tableName = "played_episodes")
 data class PlayedEpisodeEntity(
     @PrimaryKey val id: Long,
     val playedAt: Instant,
