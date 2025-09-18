@@ -1,8 +1,7 @@
 package io.jacob.episodive.core.database.datasource
 
 import androidx.paging.PagingSource
-import androidx.room.withTransaction
-import io.jacob.episodive.core.database.EpisodiveDatabase
+import androidx.room.Transaction
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeDto
@@ -15,7 +14,6 @@ import javax.inject.Inject
 import kotlin.time.Instant
 
 class EpisodeLocalDataSourceImpl @Inject constructor(
-    private val database: EpisodiveDatabase,
     private val episodeDao: EpisodeDao,
 ) : EpisodeLocalDataSource {
     override suspend fun upsertEpisode(episode: EpisodeEntity) {
@@ -34,14 +32,13 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
         episodeDao.deleteEpisodes()
     }
 
+    @Transaction
     override suspend fun toggleLiked(id: Long, likedAt: Instant) {
         val isLiked = episodeDao.isLiked(id).first()
-        database.withTransaction {
-            if (isLiked) {
-                episodeDao.removeLiked(id)
-            } else {
-                episodeDao.addLiked(LikedEpisodeEntity(id, likedAt))
-            }
+        if (isLiked) {
+            episodeDao.removeLiked(id)
+        } else {
+            episodeDao.addLiked(LikedEpisodeEntity(id, likedAt))
         }
     }
 

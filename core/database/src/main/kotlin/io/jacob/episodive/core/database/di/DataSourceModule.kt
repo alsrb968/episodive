@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.jacob.episodive.core.database.EpisodiveDatabase
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.dao.PodcastDao
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
@@ -29,11 +28,9 @@ object DataSourceModule {
     @Provides
     @Singleton
     fun provideEpisodeLocalDataSource(
-        database: EpisodiveDatabase,
         episodeDao: EpisodeDao,
     ): EpisodeLocalDataSource {
         return EpisodeLocalDataSourceImpl(
-            database = database,
             episodeDao = episodeDao,
         )
     }

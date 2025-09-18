@@ -1,7 +1,5 @@
 package io.jacob.episodive.core.database.datasource
 
-import androidx.room.withTransaction
-import io.jacob.episodive.core.database.EpisodiveDatabase
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.mapper.toEpisodeEntity
@@ -16,8 +14,6 @@ import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -29,12 +25,10 @@ class EpisodeLocalDataSourceTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val database = mockk<EpisodiveDatabase>(relaxed = true)
     private val episodeDao = mockk<EpisodeDao>(relaxed = true)
 
     private val dataSource: EpisodeLocalDataSource =
         EpisodeLocalDataSourceImpl(
-            database = database,
             episodeDao = episodeDao,
         )
 
@@ -53,7 +47,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.upsertEpisode(episodeEntity) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -70,7 +63,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.upsertEpisodes(episodeEntities) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -87,7 +79,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.deleteEpisode(episodeEntity.id) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -104,7 +95,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.deleteEpisodes() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -113,15 +103,8 @@ class EpisodeLocalDataSourceTest {
     fun `Given default parameters, When toggleLiked is called, Then addLiked is called with current time`() =
         runTest {
             // Given
-            mockkStatic("androidx.room.RoomDatabaseKt")
-            val transactionSlot = slot<suspend () -> Unit>()
             val fixedInstant = Clock.System.now()
             coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
-            coEvery {
-                database.withTransaction(capture(transactionSlot))
-            } coAnswers {
-                transactionSlot.captured.invoke()
-            }
             coEvery { episodeDao.addLiked(any()) } just Runs
             coEvery { episodeDao.removeLiked(any()) } just Runs
 
@@ -131,11 +114,9 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerifySequence {
                 episodeDao.isLiked(episodeEntity.id)
-                database.withTransaction(any<suspend () -> Unit>())
                 episodeDao.addLiked(match { it.id == episodeEntity.id && it.likedAt == fixedInstant })
             }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -144,14 +125,7 @@ class EpisodeLocalDataSourceTest {
     fun `Given isLiked return false, When toggleLiked is called, Then addLiked is called`() =
         runTest {
             // Given
-            mockkStatic("androidx.room.RoomDatabaseKt")
-            val transactionSlot = slot<suspend () -> Unit>()
             coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
-            coEvery {
-                database.withTransaction(capture(transactionSlot))
-            } coAnswers {
-                transactionSlot.captured.invoke()
-            }
             coEvery { episodeDao.addLiked(any()) } just Runs
             coEvery { episodeDao.removeLiked(any()) } just Runs
 
@@ -161,11 +135,9 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerifySequence {
                 episodeDao.isLiked(episodeEntity.id)
-                database.withTransaction(any<suspend () -> Unit>())
                 episodeDao.addLiked(any())
             }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -174,14 +146,7 @@ class EpisodeLocalDataSourceTest {
     fun `Given isLiked return true, When toggleLiked is called, Then removeLiked is called`() =
         runTest {
             // Given
-            mockkStatic("androidx.room.RoomDatabaseKt")
-            val transactionSlot = slot<suspend () -> Unit>()
             coEvery { episodeDao.isLiked(any()) } returns flowOf(true)
-            coEvery {
-                database.withTransaction(capture(transactionSlot))
-            } coAnswers {
-                transactionSlot.captured.invoke()
-            }
             coEvery { episodeDao.addLiked(any()) } just Runs
             coEvery { episodeDao.removeLiked(any()) } just Runs
 
@@ -191,11 +156,9 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerifySequence {
                 episodeDao.isLiked(episodeEntity.id)
-                database.withTransaction(any<suspend () -> Unit>())
                 episodeDao.removeLiked(episodeEntity.id)
             }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -218,7 +181,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.upsertPlayed(any()) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -235,7 +197,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.removePlayed(episodeEntity.id) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -252,7 +213,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getEpisode(episodeEntity.id) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -269,7 +229,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getEpisodes() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -286,7 +245,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getEpisodesPaging() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -303,7 +261,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getLikedEpisodes() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -320,7 +277,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getPlayingEpisodes() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -337,7 +293,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getPlayedEpisodes() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -354,7 +309,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.isLiked(episodeEntity.id) }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -371,7 +325,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getEpisodeCount() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -388,7 +341,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getLikedEpisodeCount() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -405,7 +357,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getPlayingEpisodeCount() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
@@ -422,7 +373,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify { episodeDao.getPlayedEpisodeCount() }
             confirmVerified(
-                database,
                 episodeDao,
             )
         }
