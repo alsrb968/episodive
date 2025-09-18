@@ -38,7 +38,15 @@ interface EpisodeDao {
     @Query("DELETE FROM played_episodes WHERE id = :id")
     suspend fun removePlayed(id: Long)
 
-    @Query("SELECT * FROM episodes WHERE id = :id")
+    @Query(
+        """
+        SELECT *
+        FROM episodes
+        WHERE id = :id
+        AND cachedAt = (SELECT MAX(cachedAt) FROM episodes WHERE id = :id)
+        LIMIT 1
+    """
+    )
     fun getEpisode(id: Long): Flow<EpisodeEntity?>
 
     @Query("SELECT * FROM episodes")

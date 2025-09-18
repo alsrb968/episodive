@@ -1,10 +1,12 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.data.model.CacheKey
-import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
-import io.jacob.episodive.core.database.mapper.toEpisodeEntities
-import io.jacob.episodive.core.database.mapper.toEpisodes
+import io.jacob.episodive.core.data.model.EpisodeQuery
 import io.jacob.episodive.core.data.model.isExpired
+import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
+import io.jacob.episodive.core.database.mapper.toEpisode
+import io.jacob.episodive.core.database.mapper.toEpisodeEntities
+import io.jacob.episodive.core.database.mapper.toEpisodeEntity
+import io.jacob.episodive.core.database.mapper.toEpisodes
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
@@ -17,8 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 class EpisodeRepositoryImpl @Inject constructor(
@@ -29,10 +29,10 @@ class EpisodeRepositoryImpl @Inject constructor(
         person: String,
         max: Int?
     ): Flow<List<Episode>> = flow {
-        val key = CacheKey.Person(person).key
+        val query = EpisodeQuery.Person(person)
 
-        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(key).first()
-        if (cachedEpisodes.isNotEmpty() && !cachedEpisodes.isExpired(30.minutes)) {
+        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(query.key).first()
+        if (!cachedEpisodes.isExpired(query.timeToLive)) {
             emit(cachedEpisodes.toEpisodes())
         } else {
             try {
@@ -42,12 +42,12 @@ class EpisodeRepositoryImpl @Inject constructor(
                 ).toEpisodes()
 
                 emit(episodes)
-                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(cacheKey = key))
+                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
             } catch (e: Exception) {
                 if (cachedEpisodes.isNotEmpty()) {
                     emit(cachedEpisodes.toEpisodes())
                 } else {
-                    throw e
+                    e.printStackTrace()
                 }
             }
         }
@@ -58,10 +58,10 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?
     ): Flow<List<Episode>> = flow {
-        val key = CacheKey.FeedId(feedId).key
+        val query = EpisodeQuery.FeedId(feedId)
 
-        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(key).first()
-        if (cachedEpisodes.isNotEmpty() && !cachedEpisodes.isExpired()) {
+        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(query.key).first()
+        if (!cachedEpisodes.isExpired(query.timeToLive)) {
             emit(cachedEpisodes.toEpisodes())
         } else {
             try {
@@ -73,7 +73,7 @@ class EpisodeRepositoryImpl @Inject constructor(
                 val episodes = (live?.plus(normal) ?: normal).toEpisodes()
 
                 emit(episodes)
-                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(cacheKey = key))
+                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
             } catch (e: Exception) {
                 if (cachedEpisodes.isNotEmpty()) {
                     emit(cachedEpisodes.toEpisodes())
@@ -89,10 +89,10 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?
     ): Flow<List<Episode>> = flow {
-        val key = CacheKey.FeedUrl(feedUrl).key
+        val query = EpisodeQuery.FeedUrl(feedUrl)
 
-        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(key).first()
-        if (cachedEpisodes.isNotEmpty() && !cachedEpisodes.isExpired()) {
+        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(query.key).first()
+        if (!cachedEpisodes.isExpired(query.timeToLive)) {
             emit(cachedEpisodes.toEpisodes())
         } else {
             try {
@@ -103,7 +103,7 @@ class EpisodeRepositoryImpl @Inject constructor(
                 ).toEpisodes()
 
                 emit(episodes)
-                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(cacheKey = key))
+                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
             } catch (e: Exception) {
                 if (cachedEpisodes.isNotEmpty()) {
                     emit(cachedEpisodes.toEpisodes())
@@ -119,10 +119,10 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         since: Instant?
     ): Flow<List<Episode>> = flow {
-        val key = CacheKey.PodcastGuid(guid).key
+        val query = EpisodeQuery.PodcastGuid(guid)
 
-        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(key).first()
-        if (cachedEpisodes.isNotEmpty() && !cachedEpisodes.isExpired()) {
+        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(query.key).first()
+        if (!cachedEpisodes.isExpired(query.timeToLive)) {
             emit(cachedEpisodes.toEpisodes())
         } else {
             try {
@@ -133,7 +133,7 @@ class EpisodeRepositoryImpl @Inject constructor(
                 ).toEpisodes()
 
                 emit(episodes)
-                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(cacheKey = key))
+                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
             } catch (e: Exception) {
                 if (cachedEpisodes.isNotEmpty()) {
                     emit(cachedEpisodes.toEpisodes())
@@ -145,23 +145,55 @@ class EpisodeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getEpisodeById(id: Long): Flow<Episode> = flow {
-        val episode = remoteDataSource.getEpisodeById(
-            id = id
-        )?.toEpisode()
-
-        if (episode != null) {
-            emit(episode)
+        val cachedEpisode = localDataSource.getEpisode(id).first()
+        if (cachedEpisode != null && !cachedEpisode.isExpired()) {
+            emit(cachedEpisode.toEpisode())
         } else {
-            throw NoSuchElementException("No episode found with id: $id")
+            try {
+                val episode = remoteDataSource.getEpisodeById(
+                    id = id
+                )?.toEpisode()
+
+                if (episode != null) {
+                    emit(episode)
+                    if (cachedEpisode != null) {
+                        localDataSource.upsertEpisode(episode.toEpisodeEntity(cachedEpisode.cacheKey))
+                    }
+                } else {
+                    throw NoSuchElementException("No episode found with id: $id")
+                }
+            } catch (e: Exception) {
+                if (cachedEpisode != null) {
+                    emit(cachedEpisode.toEpisode())
+                } else {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 
     override suspend fun getLiveEpisodes(max: Int?): Flow<List<Episode>> = flow {
-        val episodes = remoteDataSource.getLiveEpisodes(
-            max = max
-        ).toEpisodes()
+        val query = EpisodeQuery.Live
 
-        emit(episodes)
+        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(query.key).first()
+        if (!cachedEpisodes.isExpired(query.timeToLive)) {
+            emit(cachedEpisodes.toEpisodes())
+        } else {
+            try {
+                val episodes = remoteDataSource.getLiveEpisodes(
+                    max = max
+                ).toEpisodes()
+
+                emit(episodes)
+                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
+            } catch (e: Exception) {
+                if (cachedEpisodes.isNotEmpty()) {
+                    emit(cachedEpisodes.toEpisodes())
+                } else {
+                    throw e
+                }
+            }
+        }
     }
 
     override suspend fun getRandomEpisodes(
@@ -184,11 +216,27 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int?,
         excludeString: String?
     ): Flow<List<Episode>> = flow {
-        val episodes = remoteDataSource.getRecentEpisodes(
-            max = max,
-            excludeString = excludeString
-        ).toEpisodes()
+        val query = EpisodeQuery.Recent
 
-        emit(episodes)
+        val cachedEpisodes = localDataSource.getEpisodesByCacheKey(query.key).first()
+        if (!cachedEpisodes.isExpired(query.timeToLive)) {
+            emit(cachedEpisodes.toEpisodes())
+        } else {
+            try {
+                val episodes = remoteDataSource.getRecentEpisodes(
+                    max = max,
+                    excludeString = excludeString
+                ).toEpisodes()
+
+                emit(episodes)
+                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
+            } catch (e: Exception) {
+                if (cachedEpisodes.isNotEmpty()) {
+                    emit(cachedEpisodes.toEpisodes())
+                } else {
+                    throw e
+                }
+            }
+        }
     }
 }
