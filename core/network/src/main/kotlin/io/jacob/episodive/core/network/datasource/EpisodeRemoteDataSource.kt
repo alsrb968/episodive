@@ -12,7 +12,7 @@ interface EpisodeRemoteDataSource {
         feedId: Long,
         max: Int? = null,
         since: Long? = null,
-    ): Pair<List<EpisodeResponse>?, List<EpisodeResponse>>
+    ): List<EpisodeResponse>
 
     suspend fun getEpisodesByFeedUrl(
         feedUrl: String,

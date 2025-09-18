@@ -21,13 +21,13 @@ class EpisodeRemoteDataSourceImpl @Inject constructor(
         feedId: Long,
         max: Int?,
         since: Long?,
-    ): Pair<List<EpisodeResponse>?, List<EpisodeResponse>> {
+    ): List<EpisodeResponse> {
         val response = episodeApi.getEpisodesByFeedId(
             feedId = feedId,
             max = max,
             since = since,
         )
-        return response.liveEpisodes to response.dataList
+        return response.liveEpisodes?.plus(response.dataList) ?: response.dataList
     }
 
     override suspend fun getEpisodesByFeedUrl(

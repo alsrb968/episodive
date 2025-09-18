@@ -23,17 +23,17 @@ sealed interface EpisodeQuery {
         override val timeToLive = 24.hours
     }
 
-    data class PodcastGuid(val guid: String) : EpisodeQuery {
-        override val key = "podcastGuid:$guid"
+    data class PodcastGuid(val podcastGuid: String) : EpisodeQuery {
+        override val key = "podcastGuid:$podcastGuid"
         override val timeToLive = 24.hours
     }
 
-    object Live : EpisodeQuery {
+    data object Live : EpisodeQuery {
         override val key = "live"
         override val timeToLive = 2.minutes
     }
 
-    object Recent : EpisodeQuery {
+    data object Recent : EpisodeQuery {
         override val key = "recent"
         override val timeToLive = 10.minutes
     }
