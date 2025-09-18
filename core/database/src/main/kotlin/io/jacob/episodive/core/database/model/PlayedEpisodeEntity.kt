@@ -5,9 +5,10 @@ import androidx.room.PrimaryKey
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-@Entity("resume_episodes")
-data class ResumeEpisodeEntity(
+@Entity("played_episodes")
+data class PlayedEpisodeEntity(
     @PrimaryKey val id: Long,
-    val lastPlayedAt: Instant,
+    val playedAt: Instant,
     val position: Duration,
+    val isCompleted: Boolean = false,
 )

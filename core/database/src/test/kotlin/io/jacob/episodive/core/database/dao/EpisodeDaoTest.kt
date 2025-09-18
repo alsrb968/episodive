@@ -6,6 +6,7 @@ import io.jacob.episodive.core.database.RoomDatabaseRule
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.mapper.toEpisodeEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
+import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.testing.data.episodeTestData
 import io.jacob.episodive.core.testing.data.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
@@ -21,6 +22,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(RobolectricTestRunner::class)
 class EpisodeDaoTest {
@@ -109,13 +111,30 @@ class EpisodeDaoTest {
         }
 
     @Test
+    fun `Given some episode entities, When deleteEpisodes is called, Then all episodes are deleted`() =
+        runTest {
+            // Given
+            dao.upsertEpisodes(episodeEntities)
+
+            // When
+            dao.deleteEpisodes()
+            dao.getEpisodes().test {
+                val episodes = awaitItem()
+                // Then
+                assertTrue(episodes.isEmpty())
+                cancel()
+            }
+            assertEquals(0, dao.getEpisodeCount().first())
+        }
+
+    @Test
     fun `Given some episode entity liked and some episode entities, When getLikedEpisodes is called, Then liked episodes are returned`() =
         runTest {
             // Given
             val likedAt = Clock.System.now()
-            dao.addLike(LikedEpisodeEntity(episodeEntities[0].id, likedAt))
-            dao.addLike(LikedEpisodeEntity(episodeEntities[1].id, likedAt.plus(1.minutes)))
-            dao.addLike(LikedEpisodeEntity(episodeEntities[2].id, likedAt.plus(2.minutes)))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[0].id, likedAt))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[1].id, likedAt.plus(1.minutes)))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[2].id, likedAt.plus(2.minutes)))
             dao.upsertEpisodes(episodeEntities)
 
             // When
@@ -123,9 +142,9 @@ class EpisodeDaoTest {
 
             // Then
             assertEquals(3, likedEpisodes.size)
-            assertEquals(episodeEntities[2], likedEpisodes[0])
-            assertEquals(episodeEntities[1], likedEpisodes[1])
-            assertEquals(episodeEntities[0], likedEpisodes[2])
+            assertEquals(episodeEntities[2].id, likedEpisodes[0].episode?.id)
+            assertEquals(episodeEntities[1].id, likedEpisodes[1].episode?.id)
+            assertEquals(episodeEntities[0].id, likedEpisodes[2].episode?.id)
         }
 
     @Test
@@ -133,7 +152,7 @@ class EpisodeDaoTest {
         runTest {
             // Given
             val likedAt = Clock.System.now()
-            dao.addLike(LikedEpisodeEntity(episodeEntity.id, likedAt))
+            dao.addLiked(LikedEpisodeEntity(episodeEntity.id, likedAt))
             dao.upsertEpisode(episodeEntity)
 
             // When
@@ -148,22 +167,104 @@ class EpisodeDaoTest {
         runTest {
             // Given
             val likedAt = Clock.System.now()
-            dao.addLike(LikedEpisodeEntity(episodeEntities[0].id, likedAt))
-            dao.addLike(LikedEpisodeEntity(episodeEntities[1].id, likedAt.plus(1.minutes)))
-            dao.addLike(LikedEpisodeEntity(episodeEntities[2].id, likedAt.plus(2.minutes)))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[0].id, likedAt))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[1].id, likedAt.plus(1.minutes)))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[2].id, likedAt.plus(2.minutes)))
             dao.upsertEpisodes(episodeEntities)
             assertEquals(3, dao.getLikedEpisodeCount().first())
 
             // When
-            dao.removeLike(episodeEntities[0].id)
+            dao.removeLiked(episodeEntities[0].id)
             assertEquals(2, dao.getLikedEpisodeCount().first())
 
             // When
-            dao.removeLike(episodeEntities[1].id)
+            dao.removeLiked(episodeEntities[1].id)
             assertEquals(1, dao.getLikedEpisodeCount().first())
 
             // When
-            dao.removeLike(episodeEntities[2].id)
+            dao.removeLiked(episodeEntities[2].id)
             assertEquals(0, dao.getLikedEpisodeCount().first())
+        }
+
+    @Test
+    fun `Given some episode entities, When getPlayingEpisodes is called, Then playing episodes are returned`() =
+        runTest {
+            // Given
+            val now = Clock.System.now()
+            dao.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntities[0].id,
+                    playedAt = now,
+                    position = 1000.seconds,
+                    isCompleted = false
+                )
+            )
+            dao.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntities[1].id,
+                    playedAt = now.plus(1.minutes),
+                    position = 2000.seconds,
+                    isCompleted = false
+                )
+            )
+            dao.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntities[2].id,
+                    playedAt = now.plus(2.minutes),
+                    position = 3000.seconds,
+                    isCompleted = true
+                )
+            )
+            dao.upsertEpisodes(episodeEntities)
+
+            // When
+            val playingEpisodes = dao.getPlayingEpisodes().first()
+
+            // Then
+            assertEquals(2, playingEpisodes.size)
+            assertEquals(episodeEntities[1].id, playingEpisodes[0].episode?.id)
+            assertEquals(2000.seconds, playingEpisodes[0].position)
+            assertEquals(episodeEntities[0].id, playingEpisodes[1].episode?.id)
+            assertEquals(1000.seconds, playingEpisodes[1].position)
+        }
+
+    @Test
+    fun `Given some episode entities, When getPlayedEpisodes is called, Then played episodes are returned`() =
+        runTest {
+            // Given
+            val now = Clock.System.now()
+            dao.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntities[0].id,
+                    playedAt = now,
+                    position = 1000.seconds,
+                    isCompleted = false
+                )
+            )
+            dao.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntities[1].id,
+                    playedAt = now.plus(1.minutes),
+                    position = 2000.seconds,
+                    isCompleted = false
+                )
+            )
+            dao.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntities[2].id,
+                    playedAt = now.plus(2.minutes),
+                    position = 3000.seconds,
+                    isCompleted = true
+                )
+            )
+            dao.upsertEpisodes(episodeEntities)
+
+            // When
+            val playedEpisodes = dao.getPlayedEpisodes().first()
+
+            // Then
+            assertEquals(1, playedEpisodes.size)
+            assertEquals(episodeEntities[2].id, playedEpisodes[0].episode?.id)
+            assertEquals(3000.seconds, playedEpisodes[0].position)
         }
 }

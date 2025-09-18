@@ -7,7 +7,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import io.jacob.episodive.core.database.model.EpisodeEntity
+import io.jacob.episodive.core.database.model.LikedEpisodeDto
+import io.jacob.episodive.core.database.model.PlayedEpisodeDto
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
+import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,6 +20,24 @@ interface EpisodeDao {
 
     @Upsert
     suspend fun upsertEpisodes(episodes: List<EpisodeEntity>)
+
+    @Query("DELETE FROM episodes WHERE id = :id")
+    suspend fun deleteEpisode(id: Long)
+
+    @Query("DELETE FROM episodes")
+    suspend fun deleteEpisodes()
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addLiked(likedEpisode: LikedEpisodeEntity)
+
+    @Query("DELETE FROM liked_episodes WHERE id = :id")
+    suspend fun removeLiked(id: Long)
+
+    @Upsert
+    suspend fun upsertPlayed(playedEpisode: PlayedEpisodeEntity)
+
+    @Query("DELETE FROM played_episodes WHERE id = :id")
+    suspend fun removePlayed(id: Long)
 
     @Query("SELECT * FROM episodes WHERE id = :id")
     fun getEpisode(id: Long): Flow<EpisodeEntity?>
@@ -29,34 +50,48 @@ interface EpisodeDao {
 
     @Query(
         """
-        SELECT e.* FROM episodes e
-        INNER JOIN liked_episodes le ON e.id = le.id
+        SELECT
+            e.*,
+            le.likedAt
+        FROM liked_episodes le
+        LEFT JOIN episodes e ON le.id = e.id
         ORDER BY le.likedAt DESC
     """
     )
-    fun getLikedEpisodes(): Flow<List<EpisodeEntity>>
+    fun getLikedEpisodes(): Flow<List<LikedEpisodeDto>>
 
-    @Query("""
-        SELECT e.* FROM episodes e
-        INNER JOIN resume_episodes re ON e.id = re.id
-        ORDER BY re.lastPlayedAt DESC
-    """)
-    fun getResumeEpisodes(): Flow<List<EpisodeEntity>>
+    @Query(
+        """
+        SELECT
+            e.*,
+            pe.playedAt,
+            pe.position,
+            pe.isCompleted
+        FROM played_episodes pe
+        LEFT JOIN episodes e ON pe.id = e.id
+        WHERE pe.isCompleted = 0
+        ORDER BY pe.playedAt DESC
+    """
+    )
+    fun getPlayingEpisodes(): Flow<List<PlayedEpisodeDto>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addLike(likedEpisode: LikedEpisodeEntity)
-
-    @Query("DELETE FROM liked_episodes WHERE id = :id")
-    suspend fun removeLike(id: Long)
+    @Query(
+        """
+        SELECT
+            e.*,
+            pe.playedAt,
+            pe.position,
+            pe.isCompleted
+        FROM played_episodes pe
+        LEFT JOIN episodes e ON pe.id = e.id
+        WHERE pe.isCompleted = 1
+        ORDER BY pe.playedAt DESC
+    """
+    )
+    fun getPlayedEpisodes(): Flow<List<PlayedEpisodeDto>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM liked_episodes WHERE id = :id)")
     fun isLiked(id: Long): Flow<Boolean>
-
-    @Query("DELETE FROM episodes WHERE id = :id")
-    suspend fun deleteEpisode(id: Long)
-
-    @Query("DELETE FROM episodes")
-    suspend fun deleteEpisodes()
 
     @Query("SELECT COUNT(*) FROM episodes")
     fun getEpisodeCount(): Flow<Int>
@@ -64,6 +99,9 @@ interface EpisodeDao {
     @Query("SELECT COUNT(*) FROM liked_episodes")
     fun getLikedEpisodeCount(): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM resume_episodes")
-    fun getResumeEpisodeCount(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM played_episodes WHERE isCompleted = 0")
+    fun getPlayingEpisodeCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM played_episodes WHERE isCompleted = 1")
+    fun getPlayedEpisodeCount(): Flow<Int>
 }

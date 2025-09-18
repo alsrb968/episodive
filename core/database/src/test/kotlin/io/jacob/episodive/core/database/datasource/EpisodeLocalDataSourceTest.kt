@@ -5,6 +5,7 @@ import io.jacob.episodive.core.database.EpisodiveDatabase
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.mapper.toEpisodeEntity
+import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.testing.data.episodeTestData
 import io.jacob.episodive.core.testing.data.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
@@ -22,6 +23,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class EpisodeLocalDataSourceTest {
     @get:Rule
@@ -67,6 +69,171 @@ class EpisodeLocalDataSourceTest {
 
             // Then
             coVerify { episodeDao.upsertEpisodes(episodeEntities) }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When deleteEpisode is called, Then deleteEpisode of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.deleteEpisode(any()) } just Runs
+
+            // When
+            dataSource.deleteEpisode(episodeEntity.id)
+
+            // Then
+            coVerify { episodeDao.deleteEpisode(episodeEntity.id) }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When deleteEpisodes is called, Then deleteEpisodes of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.deleteEpisodes() } just Runs
+
+            // When
+            dataSource.deleteEpisodes()
+
+            // Then
+            coVerify { episodeDao.deleteEpisodes() }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given default parameters, When toggleLiked is called, Then addLiked is called with current time`() =
+        runTest {
+            // Given
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val transactionSlot = slot<suspend () -> Unit>()
+            val fixedInstant = Clock.System.now()
+            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
+            coEvery {
+                database.withTransaction(capture(transactionSlot))
+            } coAnswers {
+                transactionSlot.captured.invoke()
+            }
+            coEvery { episodeDao.addLiked(any()) } just Runs
+            coEvery { episodeDao.removeLiked(any()) } just Runs
+
+            // When
+            dataSource.toggleLiked(episodeEntity.id, fixedInstant)
+
+            // Then
+            coVerifySequence {
+                episodeDao.isLiked(episodeEntity.id)
+                database.withTransaction(any<suspend () -> Unit>())
+                episodeDao.addLiked(match { it.id == episodeEntity.id && it.likedAt == fixedInstant })
+            }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given isLiked return false, When toggleLiked is called, Then addLiked is called`() =
+        runTest {
+            // Given
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val transactionSlot = slot<suspend () -> Unit>()
+            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
+            coEvery {
+                database.withTransaction(capture(transactionSlot))
+            } coAnswers {
+                transactionSlot.captured.invoke()
+            }
+            coEvery { episodeDao.addLiked(any()) } just Runs
+            coEvery { episodeDao.removeLiked(any()) } just Runs
+
+            // When
+            dataSource.toggleLiked(episodeEntity.id)
+
+            // Then
+            coVerifySequence {
+                episodeDao.isLiked(episodeEntity.id)
+                database.withTransaction(any<suspend () -> Unit>())
+                episodeDao.addLiked(any())
+            }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given isLiked return true, When toggleLiked is called, Then removeLiked is called`() =
+        runTest {
+            // Given
+            mockkStatic("androidx.room.RoomDatabaseKt")
+            val transactionSlot = slot<suspend () -> Unit>()
+            coEvery { episodeDao.isLiked(any()) } returns flowOf(true)
+            coEvery {
+                database.withTransaction(capture(transactionSlot))
+            } coAnswers {
+                transactionSlot.captured.invoke()
+            }
+            coEvery { episodeDao.addLiked(any()) } just Runs
+            coEvery { episodeDao.removeLiked(any()) } just Runs
+
+            // When
+            dataSource.toggleLiked(episodeEntity.id)
+
+            // Then
+            coVerifySequence {
+                episodeDao.isLiked(episodeEntity.id)
+                database.withTransaction(any<suspend () -> Unit>())
+                episodeDao.removeLiked(episodeEntity.id)
+            }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When upsertPlayed is called, Then upsertPlayed of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.upsertPlayed(any()) } just Runs
+
+            // When
+            dataSource.upsertPlayed(
+                PlayedEpisodeEntity(
+                    id = episodeEntity.id,
+                    playedAt = Clock.System.now(),
+                    position = 2000.seconds,
+                )
+            )
+
+            // Then
+            coVerify { episodeDao.upsertPlayed(any()) }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When removePlayed is called, Then removePlayed of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.removePlayed(any()) } just Runs
+
+            // When
+            dataSource.removePlayed(episodeEntity.id)
+
+            // Then
+            coVerify { episodeDao.removePlayed(episodeEntity.id) }
             confirmVerified(
                 database,
                 episodeDao,
@@ -142,6 +309,40 @@ class EpisodeLocalDataSourceTest {
         }
 
     @Test
+    fun `Given dependencies, When getPlayingEpisodes is called, Then getPlayingEpisodes of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.getPlayingEpisodes() } returns mockk()
+
+            // When
+            dataSource.getPlayingEpisodes()
+
+            // Then
+            coVerify { episodeDao.getPlayingEpisodes() }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When getPlayedEpisodes is called, Then getPlayedEpisodes of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.getPlayedEpisodes() } returns mockk()
+
+            // When
+            dataSource.getPlayedEpisodes()
+
+            // Then
+            coVerify { episodeDao.getPlayedEpisodes() }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
     fun `Given dependencies, When isLiked is called, Then isLiked of dao is called`() =
         runTest {
             // Given
@@ -152,131 +353,6 @@ class EpisodeLocalDataSourceTest {
 
             // Then
             coVerify { episodeDao.isLiked(episodeEntity.id) }
-            confirmVerified(
-                database,
-                episodeDao,
-            )
-        }
-
-    @Test
-    fun `Given default parameters, When toggleLike is called, Then addLike is called with current time`() =
-        runTest {
-            // Given
-            mockkStatic("androidx.room.RoomDatabaseKt")
-            val transactionSlot = slot<suspend () -> Unit>()
-            val fixedInstant = Clock.System.now()
-            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
-            coEvery {
-                database.withTransaction(capture(transactionSlot))
-            } coAnswers {
-                transactionSlot.captured.invoke()
-            }
-            coEvery { episodeDao.addLike(any()) } just Runs
-            coEvery { episodeDao.removeLike(any()) } just Runs
-
-            // When
-            dataSource.toggleLike(episodeEntity.id, fixedInstant)
-
-            // Then
-            coVerifySequence {
-                episodeDao.isLiked(episodeEntity.id)
-                database.withTransaction(any<suspend () -> Unit>())
-                episodeDao.addLike(match { it.id == episodeEntity.id && it.likedAt == fixedInstant })
-            }
-            confirmVerified(
-                database,
-                episodeDao,
-            )
-        }
-
-    @Test
-    fun `Given isLiked return false, When toggleLike is called, Then addLike is called`() =
-        runTest {
-            // Given
-            mockkStatic("androidx.room.RoomDatabaseKt")
-            val transactionSlot = slot<suspend () -> Unit>()
-            coEvery { episodeDao.isLiked(any()) } returns flowOf(false)
-            coEvery {
-                database.withTransaction(capture(transactionSlot))
-            } coAnswers {
-                transactionSlot.captured.invoke()
-            }
-            coEvery { episodeDao.addLike(any()) } just Runs
-            coEvery { episodeDao.removeLike(any()) } just Runs
-
-            // When
-            dataSource.toggleLike(episodeEntity.id)
-
-            // Then
-            coVerifySequence {
-                episodeDao.isLiked(episodeEntity.id)
-                database.withTransaction(any<suspend () -> Unit>())
-                episodeDao.addLike(any())
-            }
-            confirmVerified(
-                database,
-                episodeDao,
-            )
-        }
-
-    @Test
-    fun `Given isLiked return true, When toggleLike is called, Then removeLike is called`() =
-        runTest {
-            // Given
-            mockkStatic("androidx.room.RoomDatabaseKt")
-            val transactionSlot = slot<suspend () -> Unit>()
-            coEvery { episodeDao.isLiked(any()) } returns flowOf(true)
-            coEvery {
-                database.withTransaction(capture(transactionSlot))
-            } coAnswers {
-                transactionSlot.captured.invoke()
-            }
-            coEvery { episodeDao.addLike(any()) } just Runs
-            coEvery { episodeDao.removeLike(any()) } just Runs
-
-            // When
-            dataSource.toggleLike(episodeEntity.id)
-
-            // Then
-            coVerifySequence {
-                episodeDao.isLiked(episodeEntity.id)
-                database.withTransaction(any<suspend () -> Unit>())
-                episodeDao.removeLike(episodeEntity.id)
-            }
-            confirmVerified(
-                database,
-                episodeDao,
-            )
-        }
-
-    @Test
-    fun `Given dependencies, When deleteEpisode is called, Then deleteEpisode of dao is called`() =
-        runTest {
-            // Given
-            coEvery { episodeDao.deleteEpisode(any()) } just Runs
-
-            // When
-            dataSource.deleteEpisode(episodeEntity.id)
-
-            // Then
-            coVerify { episodeDao.deleteEpisode(episodeEntity.id) }
-            confirmVerified(
-                database,
-                episodeDao,
-            )
-        }
-
-    @Test
-    fun `Given dependencies, When deleteEpisodes is called, Then deleteEpisodes of dao is called`() =
-        runTest {
-            // Given
-            coEvery { episodeDao.deleteEpisodes() } just Runs
-
-            // When
-            dataSource.deleteEpisodes()
-
-            // Then
-            coVerify { episodeDao.deleteEpisodes() }
             confirmVerified(
                 database,
                 episodeDao,
@@ -311,6 +387,40 @@ class EpisodeLocalDataSourceTest {
 
             // Then
             coVerify { episodeDao.getLikedEpisodeCount() }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When getPlayingEpisodeCount is called, Then getPlayingEpisodeCount of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.getPlayingEpisodeCount() } returns mockk()
+
+            // When
+            dataSource.getPlayingEpisodeCount()
+
+            // Then
+            coVerify { episodeDao.getPlayingEpisodeCount() }
+            confirmVerified(
+                database,
+                episodeDao,
+            )
+        }
+
+    @Test
+    fun `Given dependencies, When getPlayedEpisodeCount is called, Then getPlayedEpisodeCount of dao is called`() =
+        runTest {
+            // Given
+            coEvery { episodeDao.getPlayedEpisodeCount() } returns mockk()
+
+            // When
+            dataSource.getPlayedEpisodeCount()
+
+            // Then
+            coVerify { episodeDao.getPlayedEpisodeCount() }
             confirmVerified(
                 database,
                 episodeDao,
