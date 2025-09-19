@@ -1,32 +1,23 @@
-package io.jacob.episode.core.data.repository
+package io.jacob.episodive.core.data.repository
 
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.model.EpisodeQuery
-import io.jacob.episodive.core.data.repository.EpisodeRepositoryImpl
-import io.jacob.episodive.core.data.util.Cacher
 import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
-import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
-import io.jacob.episodive.core.testing.data.episodeTestData
-import io.jacob.episodive.core.testing.data.episodeTestDataList
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkConstructor
-import io.mockk.slot
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.assertEquals
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
@@ -69,8 +60,8 @@ class EpisodeRepositoryTest {
             repository.searchEpisodesByPerson(person, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(10, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(10, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -97,8 +88,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByFeedId(feedId, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -125,8 +116,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByFeedUrl(feedUrl, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -153,8 +144,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByPodcastGuid(guid, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -196,8 +187,8 @@ class EpisodeRepositoryTest {
             repository.getLiveEpisodes(max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -243,8 +234,8 @@ class EpisodeRepositoryTest {
             repository.getRecentEpisodes(max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {

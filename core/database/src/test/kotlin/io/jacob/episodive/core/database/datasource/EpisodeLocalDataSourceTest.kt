@@ -5,8 +5,8 @@ import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.mapper.toEpisodeEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
-import io.jacob.episodive.core.testing.data.episodeTestData
-import io.jacob.episodive.core.testing.data.episodeTestDataList
+import io.jacob.episodive.core.testing.model.episodeTestData
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.Runs
 import io.mockk.coEvery

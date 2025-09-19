@@ -7,9 +7,9 @@ import io.jacob.episodive.core.model.RecentNewFeed
 import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.TrendingFeed
+import io.jacob.episodive.core.model.mapper.toCommaString
+import io.jacob.episodive.core.model.mapper.toSeconds
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
-import io.jacob.episodive.core.network.mapper.toCommaString
-import io.jacob.episodive.core.network.mapper.toLong
 import io.jacob.episodive.core.network.mapper.toRecentFeeds
 import io.jacob.episodive.core.network.mapper.toRecentNewFeeds
 import io.jacob.episodive.core.network.mapper.toRecentNewValueFeeds
@@ -30,7 +30,7 @@ class FeedRepositoryImpl @Inject constructor(
     ): List<TrendingFeed> {
         return feedRemoteDataSource.getTrendingFeeds(
             max = max,
-            since = since?.toLong(),
+            since = since?.toSeconds(),
             language = language,
             includeCategories = includeCategories.toCommaString(),
             excludeCategories = excludeCategories.toCommaString()
@@ -46,7 +46,7 @@ class FeedRepositoryImpl @Inject constructor(
     ): List<RecentFeed> {
         return feedRemoteDataSource.getRecentFeeds(
             max = max,
-            since = since?.toLong(),
+            since = since?.toSeconds(),
             language = language,
             includeCategories = includeCategories.toCommaString(),
             excludeCategories = excludeCategories.toCommaString()
@@ -59,7 +59,7 @@ class FeedRepositoryImpl @Inject constructor(
     ): List<RecentNewFeed> {
         return feedRemoteDataSource.getRecentNewFeeds(
             max = max,
-            since = since?.toLong(),
+            since = since?.toSeconds(),
         ).toRecentNewFeeds()
     }
 
@@ -69,7 +69,7 @@ class FeedRepositoryImpl @Inject constructor(
     ): List<RecentNewValueFeed> {
         return feedRemoteDataSource.getRecentNewValueFeeds(
             max = max,
-            since = since?.toLong(),
+            since = since?.toSeconds(),
         ).toRecentNewValueFeeds()
     }
 

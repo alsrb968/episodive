@@ -8,8 +8,8 @@ import io.jacob.episodive.core.database.mapper.toEpisodes
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.model.mapper.toCommaString
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
-import io.jacob.episodive.core.network.mapper.toCommaString
 import io.jacob.episodive.core.network.mapper.toEpisode
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import kotlinx.coroutines.flow.Flow

@@ -175,6 +175,3 @@ fun List<Episode>.toEpisodeEntities(
             cachedAt = cachedAt,
         )
     }
-
-fun Long.toInstant(): Instant = Instant.fromEpochSeconds(this)
-fun Instant.toLong(): Long = this.epochSeconds
