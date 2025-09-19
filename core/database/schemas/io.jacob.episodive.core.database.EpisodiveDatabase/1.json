@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "4256f9fb7138de623f12f75943a7112d",
+    "identityHash": "dc1584463086eca63befffd96bd864fb",
     "entities": [
       {
         "tableName": "podcasts",
@@ -399,7 +399,19 @@
             "id",
             "cacheKey"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_episodes_id_cachedAt",
+            "unique": false,
+            "columnNames": [
+              "id",
+              "cachedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_id_cachedAt` ON `${TABLE_NAME}` (`id`, `cachedAt`)"
+          }
+        ]
       },
       {
         "tableName": "liked_episodes",
@@ -464,7 +476,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4256f9fb7138de623f12f75943a7112d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dc1584463086eca63befffd96bd864fb')"
     ]
   }
 }

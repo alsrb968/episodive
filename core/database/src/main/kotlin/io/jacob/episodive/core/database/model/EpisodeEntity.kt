@@ -1,7 +1,7 @@
 package io.jacob.episodive.core.database.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.Index
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.EpisodeType
 import io.jacob.episodive.core.model.Transcript
@@ -11,6 +11,7 @@ import kotlin.time.Instant
 @Entity(
     tableName = "episodes",
     primaryKeys = ["id", "cacheKey"],
+    indices = [Index(value = ["id", "cachedAt"])]
 )
 data class EpisodeEntity(
     val id: Long,

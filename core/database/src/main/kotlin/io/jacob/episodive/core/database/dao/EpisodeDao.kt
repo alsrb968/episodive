@@ -43,7 +43,7 @@ interface EpisodeDao {
         SELECT *
         FROM episodes
         WHERE id = :id
-        AND cachedAt = (SELECT MAX(cachedAt) FROM episodes WHERE id = :id)
+        ORDER BY cachedAt DESC
         LIMIT 1
     """
     )
