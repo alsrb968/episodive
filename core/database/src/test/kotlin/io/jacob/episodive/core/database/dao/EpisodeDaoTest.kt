@@ -11,6 +11,7 @@ import io.jacob.episodive.core.testing.data.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.DateTimeUnit
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -20,6 +21,7 @@ import org.robolectric.RobolectricTestRunner
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 class EpisodeDaoTest {
@@ -44,13 +46,19 @@ class EpisodeDaoTest {
     fun `Given a episode entity, When upsertEpisode is called, Then the episode is inserted or updated`() =
         runTest {
             // Given
-            dao.upsertEpisode(episodeEntity)
+            val now = Instant.fromEpochSeconds(Clock.System.now().epochSeconds)
+            dao.upsertEpisode(episodeEntity.copy(cachedAt = now))
+            dao.upsertEpisode(episodeEntity.copy(cachedAt = now.plus(1.minutes)))
+            dao.upsertEpisode(episodeEntity.copy(cachedAt = now.plus(2.minutes)))
 
             // When
             dao.getEpisode(episodeTestData.id).test {
                 val episode = awaitItem()
                 // Then
                 assertEquals(episodeEntity.id, episode?.id)
+                assertEquals(
+                    now.plus(2.minutes), episode?.cachedAt
+                )
                 cancel()
             }
         }

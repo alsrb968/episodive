@@ -10,18 +10,13 @@ class Cacher<T> (
     private val remoteUpdater: RemoteUpdater<T>,
     private val sourceFactory: () -> Flow<List<T>>,
 ) {
-
-    /**
-     * 로컬 데이터를 먼저 내보내고, 만료시 백그라운드에서 갱신
-     */
     val flow: Flow<List<T>> = flow {
         val source = sourceFactory()
 
         // 백그라운드에서 만료 체크 및 갱신
         coroutineScope {
             launch {
-                val cachedData = source.first()
-                remoteUpdater.load(cachedData)
+                remoteUpdater.load(source.first())
             }
         }
 
