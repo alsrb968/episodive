@@ -1,6 +1,5 @@
 package io.jacob.episodive.core.database.dao
 
-import androidx.paging.PagingSource
 import app.cash.turbine.test
 import io.jacob.episodive.core.database.RoomDatabaseRule
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
@@ -9,9 +8,7 @@ import io.jacob.episodive.core.testing.data.podcastTestData
 import io.jacob.episodive.core.testing.data.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,27 +62,6 @@ class PodcastDaoTest {
                 assertTrue(podcasts.containsAll(podcastEntities))
                 cancel()
             }
-        }
-
-    @Test
-    fun `Given some podcast entities, When getPodcastsPaging is called, Then a PagingSource is returned`() =
-        runTest {
-            // Given
-            dao.upsertPodcasts(podcastEntities)
-
-            // When
-            val result = dao.getPodcastsPaging().load(
-                PagingSource.LoadParams.Refresh(
-                    key = null,
-                    loadSize = 20,
-                    placeholdersEnabled = false
-                )
-            )
-
-            val podcasts = (result as PagingSource.LoadResult.Page).data
-            // Then
-            assertEquals(10, podcasts.size)
-            assertTrue(podcasts.containsAll(podcastEntities))
         }
 
     @Test

@@ -1,6 +1,5 @@
 package io.jacob.episodive.core.database.dao
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
@@ -20,9 +19,6 @@ interface PodcastDao {
 
     @Query("SELECT * FROM podcasts")
     fun getPodcasts(): Flow<List<PodcastEntity>>
-
-    @Query("SELECT * FROM podcasts")
-    fun getPodcastsPaging(): PagingSource<Int, PodcastEntity>
 
     @Query("DELETE FROM podcasts WHERE id = :id")
     suspend fun deletePodcast(id: Long)

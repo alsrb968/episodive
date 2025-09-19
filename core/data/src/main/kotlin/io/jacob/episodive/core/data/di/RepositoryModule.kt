@@ -7,6 +7,8 @@ import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.data.repository.EpisodeRepositoryImpl
 import io.jacob.episodive.core.data.repository.FeedRepositoryImpl
 import io.jacob.episodive.core.data.repository.PodcastRepositoryImpl
+import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
+import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.FeedRepository
 import io.jacob.episodive.core.domain.repository.PodcastRepository
@@ -31,10 +33,14 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideEpisodeRepository(
+        episodeLocalDataSource: EpisodeLocalDataSource,
         episodeRemoteDataSource: EpisodeRemoteDataSource,
+        episodeRemoteUpdater: EpisodeRemoteUpdater.Factory,
     ): EpisodeRepository {
         return EpisodeRepositoryImpl(
-            episodeRemoteDataSource = episodeRemoteDataSource,
+            localDataSource = episodeLocalDataSource,
+            remoteDataSource = episodeRemoteDataSource,
+            remoteUpdater = episodeRemoteUpdater,
         )
     }
 

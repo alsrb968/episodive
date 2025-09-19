@@ -35,4 +35,11 @@ data class Episode(
     val chaptersUrl: String? = null,
     val transcriptUrl: String? = null,
     val transcripts: List<Transcript>? = null,
-)
+) {
+    val isLive: Boolean
+        get() = enclosureLength == 0L ||
+                startTime != null ||
+                endTime != null ||
+                status != null ||
+                contentLink != null
+}

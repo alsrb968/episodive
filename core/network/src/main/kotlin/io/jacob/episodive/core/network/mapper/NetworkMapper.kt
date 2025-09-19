@@ -202,7 +202,7 @@ fun List<Category>.toCommaString(): String? =
 
 fun Int.toDuration(): Duration = this.seconds
 
-fun String.toEpisodeType(): EpisodeType = EpisodeType.valueOf(this)
+fun String.toEpisodeType(): EpisodeType? = EpisodeType.entries.find { it.value == this }
 
 fun TranscriptResponse.toTranscript(): Transcript =
     Transcript(

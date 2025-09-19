@@ -1,22 +1,30 @@
 package io.jacob.episodive.core.database.datasource
 
-import androidx.paging.PagingSource
 import io.jacob.episodive.core.database.model.EpisodeEntity
+import io.jacob.episodive.core.database.model.LikedEpisodeDto
+import io.jacob.episodive.core.database.model.LikedEpisodeEntity
+import io.jacob.episodive.core.database.model.PlayedEpisodeDto
+import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import kotlinx.coroutines.flow.Flow
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 interface EpisodeLocalDataSource {
     suspend fun upsertEpisode(episode: EpisodeEntity)
     suspend fun upsertEpisodes(episodes: List<EpisodeEntity>)
-    fun getEpisode(id: Long): Flow<EpisodeEntity?>
-    fun getEpisodes(): Flow<List<EpisodeEntity>>
-    fun getEpisodesPaging(): PagingSource<Int, EpisodeEntity>
-    fun getLikedEpisodes(): Flow<List<EpisodeEntity>>
-    fun isLiked(id: Long): Flow<Boolean>
-    suspend fun toggleLike(id: Long, likedAt: Instant = Clock.System.now())
     suspend fun deleteEpisode(id: Long)
     suspend fun deleteEpisodes()
+    suspend fun addLiked(likedEpisode: LikedEpisodeEntity)
+    suspend fun removeLiked(id: Long)
+    suspend fun upsertPlayed(playedEpisode: PlayedEpisodeEntity)
+    suspend fun removePlayed(id: Long)
+    fun getEpisode(id: Long): Flow<EpisodeEntity?>
+    fun getEpisodes(): Flow<List<EpisodeEntity>>
+    fun getEpisodesByCacheKey(cacheKey: String): Flow<List<EpisodeEntity>>
+    fun getLikedEpisodes(): Flow<List<LikedEpisodeDto>>
+    fun getPlayingEpisodes(): Flow<List<PlayedEpisodeDto>>
+    fun getPlayedEpisodes(): Flow<List<PlayedEpisodeDto>>
+    fun isLiked(id: Long): Flow<Boolean>
     fun getEpisodeCount(): Flow<Int>
     fun getLikedEpisodeCount(): Flow<Int>
+    fun getPlayingEpisodeCount(): Flow<Int>
+    fun getPlayedEpisodeCount(): Flow<Int>
 }

@@ -95,22 +95,6 @@ class PodcastLocalDataSourceTest {
         }
 
     @Test
-    fun `Given dependencies, When getPodcastsPaging is called, Then getPodcastsPaging of dao is called`() =
-        runTest {
-            // Given
-            coEvery { podcastDao.getPodcastsPaging() } returns mockk()
-
-            // When
-            dataSource.getPodcastsPaging()
-
-            // Then
-            coVerify { podcastDao.getPodcastsPaging() }
-            confirmVerified(
-                podcastDao,
-            )
-        }
-
-    @Test
     fun `Given dependencies, When deletePodcast is called, Then deletePodcast of dao is called`() =
         runTest {
             // Given
