@@ -20,6 +20,9 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class EpisodeRepositoryTest {
     @get:Rule
@@ -241,6 +244,114 @@ class EpisodeRepositoryTest {
             coVerifySequence {
                 remoteUpdater.create(expectedQuery)
                 localDataSource.getEpisodesByCacheKey(expectedQuery.key)
+            }
+        }
+
+    @Test
+    fun `When getLikedEpisodes, Then calls localDataSource directly`() =
+        runTest {
+            // Given
+            coEvery { localDataSource.getLikedEpisodes() } returns flowOf(mockk(relaxed = true))
+
+            // When
+            repository.getLikedEpisodes().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            // Then
+            coVerify { localDataSource.getLikedEpisodes() }
+        }
+
+    @Test
+    fun `When getPlayingEpisodes, Then calls localDataSource directly`() =
+        runTest {
+            // Given
+            coEvery { localDataSource.getPlayingEpisodes() } returns flowOf(mockk(relaxed = true))
+
+            // When
+            repository.getPlayingEpisodes().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            // Then
+            coVerify { localDataSource.getPlayingEpisodes() }
+        }
+
+    @Test
+    fun `When getPlayedEpisodes, Then calls localDataSource directly`() =
+        runTest {
+            // Given
+            coEvery { localDataSource.getPlayedEpisodes() } returns flowOf(mockk(relaxed = true))
+
+            // When
+            repository.getPlayedEpisodes().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            // Then
+            coVerify { localDataSource.getPlayedEpisodes() }
+        }
+
+    @Test
+    fun `Given episode is liked, When toggleLiked, Then removes liked and returns false`() =
+        runTest {
+            // Given
+            val episodeId = 123L
+            coEvery { localDataSource.isLiked(episodeId) } returns flowOf(true)
+            coEvery { localDataSource.removeLiked(episodeId) } returns Unit
+
+            // When
+            val result = repository.toggleLiked(episodeId)
+
+            // Then
+            Assert.assertFalse(result)
+            coVerifySequence {
+                localDataSource.isLiked(episodeId)
+                localDataSource.removeLiked(episodeId)
+            }
+        }
+
+    @Test
+    fun `Given episode is not liked, When toggleLiked, Then adds liked and returns true`() =
+        runTest {
+            // Given
+            val episodeId = 123L
+            coEvery { localDataSource.isLiked(episodeId) } returns flowOf(false)
+            coEvery { localDataSource.addLiked(any()) } returns Unit
+
+            // When
+            val result = repository.toggleLiked(episodeId)
+
+            // Then
+            Assert.assertTrue(result)
+            coVerifySequence {
+                localDataSource.isLiked(episodeId)
+                localDataSource.addLiked(any())
+            }
+        }
+
+    @Test
+    fun `When updatePlayed, Then calls localDataSource upsertPlayed`() =
+        runTest {
+            // Given
+            val episodeId = 123L
+            val position = 30.seconds
+            val isCompleted = false
+            coEvery { localDataSource.upsertPlayed(any()) } returns Unit
+
+            // When
+            repository.updatePlayed(episodeId, position, isCompleted)
+
+            // Then
+            coVerify {
+                localDataSource.upsertPlayed(
+                    match {
+                        it.id == episodeId && it.position == position && it.isCompleted == isCompleted
+                    }
+                )
             }
         }
 }
