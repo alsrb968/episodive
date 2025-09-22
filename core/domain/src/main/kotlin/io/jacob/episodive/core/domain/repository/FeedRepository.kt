@@ -3,37 +3,32 @@ package io.jacob.episodive.core.domain.repository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.RecentNewFeed
-import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.TrendingFeed
+import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
 
 interface FeedRepository {
-    suspend fun getTrendingFeeds(
+    fun getTrendingFeeds(
         max: Int? = null,
         since: Instant? = null,
         language: String? = null,
         includeCategories: List<Category> = emptyList(),
         excludeCategories: List<Category> = emptyList(),
-    ): List<TrendingFeed>
+    ): Flow<List<TrendingFeed>>
 
-    suspend fun getRecentFeeds(
+    fun getRecentFeeds(
         max: Int? = null,
         since: Instant? = null,
         language: String? = null,
         includeCategories: List<Category> = emptyList(),
         excludeCategories: List<Category> = emptyList(),
-    ): List<RecentFeed>
+    ): Flow<List<RecentFeed>>
 
-    suspend fun getRecentNewFeeds(
+    fun getRecentNewFeeds(
         max: Int? = null,
         since: Instant? = null,
-    ): List<RecentNewFeed>
+    ): Flow<List<RecentNewFeed>>
 
-    suspend fun getRecentNewValueFeeds(
-        max: Int? = null,
-        since: Instant? = null,
-    ): List<RecentNewValueFeed>
-
-    suspend fun getRecentSoundbites(max: Int? = null): List<Soundbite>
+    fun getRecentSoundbites(max: Int? = null): Flow<List<Soundbite>>
 }

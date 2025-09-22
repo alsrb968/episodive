@@ -1,10 +1,10 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.data.util.Cacher
-import io.jacob.episodive.core.data.util.PodcastQuery
-import io.jacob.episodive.core.data.util.PodcastRemoteUpdater
+import io.jacob.episodive.core.data.util.cache.Cacher
+import io.jacob.episodive.core.data.util.query.PodcastQuery
+import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
-import io.jacob.episodive.core.database.mapper.toFollowedPodcast
+import io.jacob.episodive.core.database.mapper.toFollowedPodcasts
 import io.jacob.episodive.core.database.mapper.toPodcasts
 import io.jacob.episodive.core.database.model.FollowedPodcastEntity
 import io.jacob.episodive.core.domain.repository.PodcastRepository
@@ -12,7 +12,6 @@ import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toPodcast
-import io.jacob.episodive.core.network.mapper.toPodcasts
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -78,9 +77,7 @@ class PodcastRepositoryImpl @Inject constructor(
     }
 
     override fun getFollowedPodcasts(): Flow<List<FollowedPodcast>> {
-        return localDataSource.getFollowedPodcasts().map { dtos ->
-            dtos.map { it.toFollowedPodcast() }
-        }
+        return localDataSource.getFollowedPodcasts().map { it.toFollowedPodcasts() }
     }
 
     override suspend fun toggleFollowed(id: Long): Boolean {

@@ -1,12 +1,9 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.query
 
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
-sealed interface EpisodeQuery {
-    val key: String
-    val timeToLive: Duration
+sealed interface EpisodeQuery : CacheableQuery {
 
     data class Person(val person: String) : EpisodeQuery {
         override val key = "person:$person"

@@ -4,13 +4,13 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 
 data class Soundbite(
-    val enclosureUrl: String? = null,
+    val enclosureUrl: String,
     val title: String,
     val startTime: Instant,
     val duration: Duration,
-    val episodeId: Long? = null,
-    val episodeTitle: String? = null,
-    val feedTitle: String? = null,
-    val feedUrl: String? = null,
-    val feedId: Long? = null,
+    val episodeId: Long,
+    val episodeTitle: String,
+    val feedTitle: String,
+    val feedUrl: String,
+    val feedId: Long,
 )

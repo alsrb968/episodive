@@ -1,4 +1,4 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.updater
 
 interface RemoteUpdater<T> {
     suspend fun load(cached: List<T>)

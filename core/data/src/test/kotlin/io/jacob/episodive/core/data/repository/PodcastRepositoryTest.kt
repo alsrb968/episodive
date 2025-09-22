@@ -1,13 +1,12 @@
 package io.jacob.episodive.core.data.repository
 
 import app.cash.turbine.test
-import io.jacob.episodive.core.data.util.PodcastQuery
-import io.jacob.episodive.core.data.util.PodcastRemoteUpdater
+import io.jacob.episodive.core.data.util.query.PodcastQuery
+import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.domain.repository.PodcastRepository
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
-import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
