@@ -1,6 +1,8 @@
 package io.jacob.episodive.core.database.datasource
 
 import io.jacob.episodive.core.database.dao.PodcastDao
+import io.jacob.episodive.core.database.model.FollowedPodcastDto
+import io.jacob.episodive.core.database.model.FollowedPodcastEntity
 import io.jacob.episodive.core.database.model.PodcastEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +17,22 @@ class PodcastLocalDataSourceImpl(
         podcastDao.upsertPodcasts(podcasts)
     }
 
+    override suspend fun deletePodcast(id: Long) {
+        podcastDao.deletePodcast(id)
+    }
+
+    override suspend fun deletePodcasts() {
+        podcastDao.deletePodcasts()
+    }
+
+    override suspend fun addFollowed(followedPodcastEntity: FollowedPodcastEntity) {
+        podcastDao.addFollowed(followedPodcastEntity)
+    }
+
+    override suspend fun removeFollowed(id: Long) {
+        podcastDao.removeFollowed(id)
+    }
+
     override fun getPodcast(id: Long): Flow<PodcastEntity?> {
         return podcastDao.getPodcast(id)
     }
@@ -23,11 +41,23 @@ class PodcastLocalDataSourceImpl(
         return podcastDao.getPodcasts()
     }
 
-    override suspend fun deletePodcast(id: Long) {
-        podcastDao.deletePodcast(id)
+    override fun getPodcastsByCacheKey(cacheKey: String): Flow<List<PodcastEntity>> {
+        return podcastDao.getPodcastsByCacheKey(cacheKey)
     }
 
-    override suspend fun deletePodcasts() {
-        podcastDao.deletePodcasts()
+    override fun getFollowedPodcasts(): Flow<List<FollowedPodcastDto>> {
+        return podcastDao.getFollowedPodcasts()
+    }
+
+    override fun isFollowed(id: Long): Flow<Boolean> {
+        return podcastDao.isFollowed(id)
+    }
+
+    override fun getPodcastCount(): Flow<Int> {
+        return podcastDao.getPodcastCount()
+    }
+
+    override fun getFollowedPodcastCount(): Flow<Int> {
+        return podcastDao.getFollowedPodcastCount()
     }
 }

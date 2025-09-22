@@ -1,10 +1,12 @@
 package io.jacob.episodive.core.database.mapper
 
 import io.jacob.episodive.core.database.model.EpisodeEntity
+import io.jacob.episodive.core.database.model.FollowedPodcastDto
 import io.jacob.episodive.core.database.model.LikedEpisodeDto
 import io.jacob.episodive.core.database.model.PlayedEpisodeDto
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.LikedEpisode
 import io.jacob.episodive.core.model.PlayedEpisode
 import io.jacob.episodive.core.model.Podcast
@@ -51,7 +53,10 @@ fun PodcastEntity.toPodcast(): Podcast =
 fun List<PodcastEntity>.toPodcasts(): List<Podcast> =
     map { it.toPodcast() }
 
-fun Podcast.toPodcastEntity(): PodcastEntity =
+fun Podcast.toPodcastEntity(
+    cacheKey: String,
+    cachedAt: Instant = Clock.System.now(),
+): PodcastEntity =
     PodcastEntity(
         id = id,
         podcastGuid = podcastGuid,
@@ -86,10 +91,20 @@ fun Podcast.toPodcastEntity(): PodcastEntity =
         locked = locked,
         imageUrlHash = imageUrlHash,
         newestItemPublishTime = newestItemPublishTime,
+        cacheKey = cacheKey,
+        cachedAt = cachedAt,
     )
 
-fun List<Podcast>.toPodcastEntities(): List<PodcastEntity> =
-    map { it.toPodcastEntity() }
+fun List<Podcast>.toPodcastEntities(
+    cacheKey: String,
+    cachedAt: Instant = Clock.System.now()
+): List<PodcastEntity> =
+    map {
+        it.toPodcastEntity(
+            cacheKey = cacheKey,
+            cachedAt = cachedAt,
+        )
+    }
 
 fun EpisodeEntity.toEpisode(): Episode =
     Episode(
@@ -179,6 +194,17 @@ fun List<Episode>.toEpisodeEntities(
             cachedAt = cachedAt,
         )
     }
+
+fun FollowedPodcastDto.toFollowedPodcast(): FollowedPodcast =
+    FollowedPodcast(
+        podcast = podcast?.toPodcast()
+            ?: throw IllegalStateException("FollowedPodcastDto.podcast is null"),
+        followedAt = followedAt,
+        isNotificationEnabled = isNotificationEnabled,
+    )
+
+fun List<FollowedPodcastDto>.toFollowedPodcasts(): List<FollowedPodcast> =
+    map { it.toFollowedPodcast() }
 
 fun LikedEpisodeDto.toLikedEpisode(): LikedEpisode =
     LikedEpisode(
