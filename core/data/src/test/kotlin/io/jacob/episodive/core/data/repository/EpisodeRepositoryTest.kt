@@ -1,8 +1,8 @@
 package io.jacob.episodive.core.data.repository
 
 import app.cash.turbine.test
-import io.jacob.episodive.core.data.util.EpisodeQuery
-import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
+import io.jacob.episodive.core.data.util.query.EpisodeQuery
+import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.domain.repository.EpisodeRepository

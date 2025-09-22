@@ -1,4 +1,6 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.updater
+
+import io.jacob.episodive.core.data.util.query.CacheableQuery
 
 abstract class BaseRemoteUpdater<Entity, Query : CacheableQuery, Response>(
     protected open val query: Query,

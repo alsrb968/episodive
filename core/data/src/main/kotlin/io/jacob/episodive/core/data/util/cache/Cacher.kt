@@ -1,5 +1,6 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.cache
 
+import io.jacob.episodive.core.data.util.updater.RemoteUpdater
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

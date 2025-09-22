@@ -1,5 +1,7 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.updater
 
+import io.jacob.episodive.core.data.util.query.FeedQuery
+import io.jacob.episodive.core.data.util.cache.isSoundbitesExpired
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.mapper.toSoundbiteEntities
 import io.jacob.episodive.core.database.model.SoundbiteEntity

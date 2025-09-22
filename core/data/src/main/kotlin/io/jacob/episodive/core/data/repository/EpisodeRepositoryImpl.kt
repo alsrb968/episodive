@@ -1,14 +1,12 @@
 package io.jacob.episodive.core.data.repository
 
 import androidx.room.Transaction
-import io.jacob.episodive.core.data.util.EpisodeQuery
-import io.jacob.episodive.core.data.util.Cacher
-import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
+import io.jacob.episodive.core.data.util.query.EpisodeQuery
+import io.jacob.episodive.core.data.util.cache.Cacher
+import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodes
-import io.jacob.episodive.core.database.mapper.toLikedEpisode
 import io.jacob.episodive.core.database.mapper.toLikedEpisodes
-import io.jacob.episodive.core.database.mapper.toPlayedEpisode
 import io.jacob.episodive.core.database.mapper.toPlayedEpisodes
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity

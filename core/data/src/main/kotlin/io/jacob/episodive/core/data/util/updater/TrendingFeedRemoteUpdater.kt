@@ -1,5 +1,7 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.updater
 
+import io.jacob.episodive.core.data.util.query.FeedQuery
+import io.jacob.episodive.core.data.util.cache.isTrendingFeedsExpired
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.mapper.toTrendingFeedEntities
 import io.jacob.episodive.core.database.model.TrendingFeedEntity

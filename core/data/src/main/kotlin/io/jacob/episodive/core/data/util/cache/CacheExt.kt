@@ -1,4 +1,4 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.cache
 
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.PodcastEntity

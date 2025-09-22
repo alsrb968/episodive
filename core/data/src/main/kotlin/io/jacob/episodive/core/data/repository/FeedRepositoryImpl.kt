@@ -1,11 +1,11 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.data.util.Cacher
-import io.jacob.episodive.core.data.util.FeedQuery
-import io.jacob.episodive.core.data.util.RecentFeedRemoteUpdater
-import io.jacob.episodive.core.data.util.RecentNewFeedRemoteUpdater
-import io.jacob.episodive.core.data.util.SoundbiteRemoteUpdater
-import io.jacob.episodive.core.data.util.TrendingFeedRemoteUpdater
+import io.jacob.episodive.core.data.util.cache.Cacher
+import io.jacob.episodive.core.data.util.query.FeedQuery
+import io.jacob.episodive.core.data.util.updater.RecentFeedRemoteUpdater
+import io.jacob.episodive.core.data.util.updater.RecentNewFeedRemoteUpdater
+import io.jacob.episodive.core.data.util.updater.SoundbiteRemoteUpdater
+import io.jacob.episodive.core.data.util.updater.TrendingFeedRemoteUpdater
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.mapper.toRecentFeeds
 import io.jacob.episodive.core.database.mapper.toRecentNewFeeds

@@ -1,4 +1,4 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.query
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.mapper.toCommaString

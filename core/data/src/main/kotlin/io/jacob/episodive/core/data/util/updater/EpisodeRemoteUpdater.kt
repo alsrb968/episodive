@@ -1,8 +1,10 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.updater
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.jacob.episodive.core.data.util.query.EpisodeQuery
+import io.jacob.episodive.core.data.util.cache.isEpisodesExpired
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.model.EpisodeEntity

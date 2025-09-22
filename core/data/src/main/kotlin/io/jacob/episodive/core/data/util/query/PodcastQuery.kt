@@ -1,4 +1,4 @@
-package io.jacob.episodive.core.data.util
+package io.jacob.episodive.core.data.util.query
 
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
