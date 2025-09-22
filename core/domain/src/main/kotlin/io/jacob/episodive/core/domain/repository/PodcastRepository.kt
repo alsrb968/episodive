@@ -1,21 +1,27 @@
 package io.jacob.episodive.core.domain.repository
 
+import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.Podcast
+import kotlinx.coroutines.flow.Flow
 
 interface PodcastRepository {
-    suspend fun searchPodcasts(
+    fun searchPodcasts(
         query: String,
         max: Int? = null,
-    ): List<Podcast>
+    ): Flow<List<Podcast>>
 
-    suspend fun getPodcastByFeedId(feedId: Long): Podcast?
+    fun getPodcastByFeedId(feedId: Long): Flow<Podcast?>
 
-    suspend fun getPodcastByFeedUrl(feedUrl: String): Podcast?
+    fun getPodcastByFeedUrl(feedUrl: String): Flow<Podcast?>
 
-    suspend fun getPodcastByGuid(guid: String): Podcast?
+    fun getPodcastByGuid(guid: String): Flow<Podcast?>
 
-    suspend fun getPodcastsByMedium(
+    fun getPodcastsByMedium(
         medium: String,
         max: Int? = null,
-    ): List<Podcast>
+    ): Flow<List<Podcast>>
+
+    fun getFollowedPodcasts(): Flow<List<FollowedPodcast>>
+
+    suspend fun toggleFollowed(id: Long): Boolean
 }

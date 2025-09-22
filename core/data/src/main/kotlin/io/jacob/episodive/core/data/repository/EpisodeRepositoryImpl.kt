@@ -1,7 +1,7 @@
 package io.jacob.episodive.core.data.repository
 
 import androidx.room.Transaction
-import io.jacob.episodive.core.data.model.EpisodeQuery
+import io.jacob.episodive.core.data.util.EpisodeQuery
 import io.jacob.episodive.core.data.util.Cacher
 import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
