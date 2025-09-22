@@ -1,34 +1,28 @@
-package io.jacob.episode.core.data.repository
+package io.jacob.episodive.core.data.repository
 
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.model.EpisodeQuery
-import io.jacob.episodive.core.data.repository.EpisodeRepositoryImpl
-import io.jacob.episodive.core.data.util.Cacher
 import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
-import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
-import io.jacob.episodive.core.testing.data.episodeTestData
-import io.jacob.episodive.core.testing.data.episodeTestDataList
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkConstructor
-import io.mockk.slot
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.assertEquals
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class EpisodeRepositoryTest {
     @get:Rule
@@ -69,8 +63,8 @@ class EpisodeRepositoryTest {
             repository.searchEpisodesByPerson(person, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(10, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(10, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -97,8 +91,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByFeedId(feedId, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -125,8 +119,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByFeedUrl(feedUrl, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -153,8 +147,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByPodcastGuid(guid, max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -196,8 +190,8 @@ class EpisodeRepositoryTest {
             repository.getLiveEpisodes(max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -243,13 +237,121 @@ class EpisodeRepositoryTest {
             repository.getRecentEpisodes(max = 10).test {
                 val result = awaitItem()
                 // Then
-                assertEquals(episodeTestDataList.size, result.size)
-                assertEquals(episodeTestDataList, result)
+                Assert.assertEquals(episodeTestDataList.size, result.size)
+                Assert.assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
                 remoteUpdater.create(expectedQuery)
                 localDataSource.getEpisodesByCacheKey(expectedQuery.key)
+            }
+        }
+
+    @Test
+    fun `When getLikedEpisodes, Then calls localDataSource directly`() =
+        runTest {
+            // Given
+            coEvery { localDataSource.getLikedEpisodes() } returns flowOf(mockk(relaxed = true))
+
+            // When
+            repository.getLikedEpisodes().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            // Then
+            coVerify { localDataSource.getLikedEpisodes() }
+        }
+
+    @Test
+    fun `When getPlayingEpisodes, Then calls localDataSource directly`() =
+        runTest {
+            // Given
+            coEvery { localDataSource.getPlayingEpisodes() } returns flowOf(mockk(relaxed = true))
+
+            // When
+            repository.getPlayingEpisodes().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            // Then
+            coVerify { localDataSource.getPlayingEpisodes() }
+        }
+
+    @Test
+    fun `When getPlayedEpisodes, Then calls localDataSource directly`() =
+        runTest {
+            // Given
+            coEvery { localDataSource.getPlayedEpisodes() } returns flowOf(mockk(relaxed = true))
+
+            // When
+            repository.getPlayedEpisodes().test {
+                awaitItem()
+                awaitComplete()
+            }
+
+            // Then
+            coVerify { localDataSource.getPlayedEpisodes() }
+        }
+
+    @Test
+    fun `Given episode is liked, When toggleLiked, Then removes liked and returns false`() =
+        runTest {
+            // Given
+            val episodeId = 123L
+            coEvery { localDataSource.isLiked(episodeId) } returns flowOf(true)
+            coEvery { localDataSource.removeLiked(episodeId) } returns Unit
+
+            // When
+            val result = repository.toggleLiked(episodeId)
+
+            // Then
+            Assert.assertFalse(result)
+            coVerifySequence {
+                localDataSource.isLiked(episodeId)
+                localDataSource.removeLiked(episodeId)
+            }
+        }
+
+    @Test
+    fun `Given episode is not liked, When toggleLiked, Then adds liked and returns true`() =
+        runTest {
+            // Given
+            val episodeId = 123L
+            coEvery { localDataSource.isLiked(episodeId) } returns flowOf(false)
+            coEvery { localDataSource.addLiked(any()) } returns Unit
+
+            // When
+            val result = repository.toggleLiked(episodeId)
+
+            // Then
+            Assert.assertTrue(result)
+            coVerifySequence {
+                localDataSource.isLiked(episodeId)
+                localDataSource.addLiked(any())
+            }
+        }
+
+    @Test
+    fun `When updatePlayed, Then calls localDataSource upsertPlayed`() =
+        runTest {
+            // Given
+            val episodeId = 123L
+            val position = 30.seconds
+            val isCompleted = false
+            coEvery { localDataSource.upsertPlayed(any()) } returns Unit
+
+            // When
+            repository.updatePlayed(episodeId, position, isCompleted)
+
+            // Then
+            coVerify {
+                localDataSource.upsertPlayed(
+                    match {
+                        it.id == episodeId && it.position == position && it.isCompleted == isCompleted
+                    }
+                )
             }
         }
 }

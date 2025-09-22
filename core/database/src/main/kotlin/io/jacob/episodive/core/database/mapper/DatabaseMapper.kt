@@ -1,8 +1,12 @@
 package io.jacob.episodive.core.database.mapper
 
 import io.jacob.episodive.core.database.model.EpisodeEntity
+import io.jacob.episodive.core.database.model.LikedEpisodeDto
+import io.jacob.episodive.core.database.model.PlayedEpisodeDto
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.model.LikedEpisode
+import io.jacob.episodive.core.model.PlayedEpisode
 import io.jacob.episodive.core.model.Podcast
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -176,5 +180,24 @@ fun List<Episode>.toEpisodeEntities(
         )
     }
 
-fun Long.toInstant(): Instant = Instant.fromEpochSeconds(this)
-fun Instant.toLong(): Long = this.epochSeconds
+fun LikedEpisodeDto.toLikedEpisode(): LikedEpisode =
+    LikedEpisode(
+        episode = episode?.toEpisode()
+            ?: throw IllegalStateException("LikedEpisodeDto.episode is null"),
+        likedAt = likedAt,
+    )
+
+fun List<LikedEpisodeDto>.toLikedEpisodes(): List<LikedEpisode> =
+    map { it.toLikedEpisode() }
+
+fun PlayedEpisodeDto.toPlayedEpisode(): PlayedEpisode =
+    PlayedEpisode(
+        episode = episode?.toEpisode()
+            ?: throw IllegalStateException("PlayedEpisodeDto.episode is null"),
+        playedAt = playedAt,
+        position = position,
+        isCompleted = isCompleted,
+    )
+
+fun List<PlayedEpisodeDto>.toPlayedEpisodes(): List<PlayedEpisode> =
+    map { it.toPlayedEpisode() }

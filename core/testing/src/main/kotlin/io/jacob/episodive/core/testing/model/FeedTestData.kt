@@ -1,4 +1,4 @@
-package io.jacob.episodive.core.testing.data
+package io.jacob.episodive.core.testing.model
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.RecentFeed

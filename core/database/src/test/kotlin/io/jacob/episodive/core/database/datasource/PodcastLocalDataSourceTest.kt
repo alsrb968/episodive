@@ -3,8 +3,8 @@ package io.jacob.episodive.core.database.datasource
 import io.jacob.episodive.core.database.dao.PodcastDao
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.database.mapper.toPodcastEntity
-import io.jacob.episodive.core.testing.data.podcastTestData
-import io.jacob.episodive.core.testing.data.podcastTestDataList
+import io.jacob.episodive.core.testing.model.podcastTestData
+import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.Runs
 import io.mockk.coEvery

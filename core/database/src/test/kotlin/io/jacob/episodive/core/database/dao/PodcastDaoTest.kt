@@ -4,8 +4,8 @@ import app.cash.turbine.test
 import io.jacob.episodive.core.database.RoomDatabaseRule
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.database.mapper.toPodcastEntity
-import io.jacob.episodive.core.testing.data.podcastTestData
-import io.jacob.episodive.core.testing.data.podcastTestDataList
+import io.jacob.episodive.core.testing.model.podcastTestData
+import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
