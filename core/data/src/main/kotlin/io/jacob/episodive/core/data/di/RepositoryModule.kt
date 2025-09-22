@@ -8,7 +8,9 @@ import io.jacob.episodive.core.data.repository.EpisodeRepositoryImpl
 import io.jacob.episodive.core.data.repository.FeedRepositoryImpl
 import io.jacob.episodive.core.data.repository.PodcastRepositoryImpl
 import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
+import io.jacob.episodive.core.data.util.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
+import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.FeedRepository
 import io.jacob.episodive.core.domain.repository.PodcastRepository
@@ -23,10 +25,14 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun providePodcastRepository(
+        podcastLocalDataSource: PodcastLocalDataSource,
         podcastRemoteDataSource: PodcastRemoteDataSource,
+        podcastRemoteUpdater: PodcastRemoteUpdater.Factory,
     ): PodcastRepository {
         return PodcastRepositoryImpl(
-            podcastRemoteDataSource = podcastRemoteDataSource,
+            localDataSource = podcastLocalDataSource,
+            remoteDataSource = podcastRemoteDataSource,
+            remoteUpdater = podcastRemoteUpdater,
         )
     }
 

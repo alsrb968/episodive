@@ -3,8 +3,6 @@ package io.jacob.episodive.core.data.util
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.jacob.episodive.core.data.model.EpisodeQuery
-import io.jacob.episodive.core.data.model.isExpired
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.model.EpisodeEntity
@@ -27,7 +25,7 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
      */
     override suspend fun load(cached: List<EpisodeEntity>) {
         try {
-            if (cached.isExpired(query.timeToLive)) {
+            if (cached.isEpisodesExpired(query.timeToLive)) {
                 // 네트워크에서 데이터 로드
                 val networkResult = when (query) {
                     is EpisodeQuery.Person -> remoteDataSource.searchEpisodesByPerson(query.person)

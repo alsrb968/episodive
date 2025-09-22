@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.dao.PodcastDao
 import io.jacob.episodive.core.database.model.EpisodeEntity
+import io.jacob.episodive.core.database.model.FollowedPodcastEntity
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.database.model.PodcastEntity
@@ -20,6 +21,7 @@ import io.jacob.episodive.core.database.util.TranscriptConverter
 @Database(
     entities = [
         PodcastEntity::class,
+        FollowedPodcastEntity::class,
         EpisodeEntity::class,
         LikedEpisodeEntity::class,
         PlayedEpisodeEntity::class,
