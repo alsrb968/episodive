@@ -5,6 +5,7 @@ import io.jacob.episodive.core.data.util.PodcastQuery
 import io.jacob.episodive.core.data.util.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toFollowedPodcast
+import io.jacob.episodive.core.database.mapper.toFollowedPodcasts
 import io.jacob.episodive.core.database.mapper.toPodcasts
 import io.jacob.episodive.core.database.model.FollowedPodcastEntity
 import io.jacob.episodive.core.domain.repository.PodcastRepository
@@ -78,9 +79,7 @@ class PodcastRepositoryImpl @Inject constructor(
     }
 
     override fun getFollowedPodcasts(): Flow<List<FollowedPodcast>> {
-        return localDataSource.getFollowedPodcasts().map { dtos ->
-            dtos.map { it.toFollowedPodcast() }
-        }
+        return localDataSource.getFollowedPodcasts().map { it.toFollowedPodcasts() }
     }
 
     override suspend fun toggleFollowed(id: Long): Boolean {

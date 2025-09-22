@@ -1,5 +1,9 @@
 package io.jacob.episodive.core.data.repository
 
+import io.jacob.episodive.core.data.util.Cacher
+import io.jacob.episodive.core.data.util.FeedQuery
+import io.jacob.episodive.core.data.util.TrendingFeedRemoteUpdater
+import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.domain.repository.FeedRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.RecentFeed
@@ -15,35 +19,43 @@ import io.jacob.episodive.core.network.mapper.toRecentNewFeeds
 import io.jacob.episodive.core.network.mapper.toRecentNewValueFeeds
 import io.jacob.episodive.core.network.mapper.toSoundbites
 import io.jacob.episodive.core.network.mapper.toTrendingFeeds
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import kotlin.time.Instant
 
 class FeedRepositoryImpl @Inject constructor(
-    private val feedRemoteDataSource: FeedRemoteDataSource,
+    private val localDataSource: FeedLocalDataSource,
+    private val remoteDataSource: FeedRemoteDataSource,
+    private val remoteUpdater: TrendingFeedRemoteUpdater.Factory,
 ) : FeedRepository {
-    override suspend fun getTrendingFeeds(
+    override fun getTrendingFeeds(
         max: Int?,
         since: Instant?,
         language: String?,
         includeCategories: List<Category>,
         excludeCategories: List<Category>,
-    ): List<TrendingFeed> {
-        return feedRemoteDataSource.getTrendingFeeds(
-            max = max,
-            since = since?.toSeconds(),
+    ): Flow<List<TrendingFeed>> {
+        val query = FeedQuery.Trending(
             language = language,
-            includeCategories = includeCategories.toCommaString(),
-            excludeCategories = excludeCategories.toCommaString()
-        ).toTrendingFeeds()
+            categories = includeCategories
+        )
+
+        return Cacher(
+            remoteUpdater = remoteUpdater.create(query),
+            sourceFactory = {
+                localDataSource.getTrendingFeedsByCacheKey(query.key)
+            }
+        ).flow.map { it.toTrendingFeeds() }
     }
 
-    override suspend fun getRecentFeeds(
+    override fun getRecentFeeds(
         max: Int?,
         since: Instant?,
         language: String?,
         includeCategories: List<Category>,
         excludeCategories: List<Category>,
-    ): List<RecentFeed> {
+    ): Flow<List<RecentFeed>> {
         return feedRemoteDataSource.getRecentFeeds(
             max = max,
             since = since?.toSeconds(),
@@ -53,27 +65,27 @@ class FeedRepositoryImpl @Inject constructor(
         ).toRecentFeeds()
     }
 
-    override suspend fun getRecentNewFeeds(
+    override fun getRecentNewFeeds(
         max: Int?,
         since: Instant?,
-    ): List<RecentNewFeed> {
+    ): Flow<List<RecentNewFeed>> {
         return feedRemoteDataSource.getRecentNewFeeds(
             max = max,
             since = since?.toSeconds(),
         ).toRecentNewFeeds()
     }
 
-    override suspend fun getRecentNewValueFeeds(
+    override fun getRecentNewValueFeeds(
         max: Int?,
         since: Instant?,
-    ): List<RecentNewValueFeed> {
+    ): Flow<List<RecentNewValueFeed>> {
         return feedRemoteDataSource.getRecentNewValueFeeds(
             max = max,
             since = since?.toSeconds(),
         ).toRecentNewValueFeeds()
     }
 
-    override suspend fun getRecentSoundbites(max: Int?): List<Soundbite> {
+    override fun getRecentSoundbites(max: Int?): Flow<List<Soundbite>> {
         return feedRemoteDataSource.getRecentSoundbites(max = max).toSoundbites()
     }
 }

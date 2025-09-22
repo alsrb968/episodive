@@ -7,7 +7,9 @@ import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodes
 import io.jacob.episodive.core.database.mapper.toLikedEpisode
+import io.jacob.episodive.core.database.mapper.toLikedEpisodes
 import io.jacob.episodive.core.database.mapper.toPlayedEpisode
+import io.jacob.episodive.core.database.mapper.toPlayedEpisodes
 import io.jacob.episodive.core.database.model.LikedEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
@@ -143,21 +145,15 @@ class EpisodeRepositoryImpl @Inject constructor(
     }
 
     override fun getLikedEpisodes(): Flow<List<LikedEpisode>> {
-        return localDataSource.getLikedEpisodes().map { dtos ->
-            dtos.map { it.toLikedEpisode() }
-        }
+        return localDataSource.getLikedEpisodes().map { it.toLikedEpisodes() }
     }
 
     override fun getPlayingEpisodes(): Flow<List<PlayedEpisode>> {
-        return localDataSource.getPlayingEpisodes().map { dtos ->
-            dtos.map { it.toPlayedEpisode() }
-        }
+        return localDataSource.getPlayingEpisodes().map { it.toPlayedEpisodes() }
     }
 
     override fun getPlayedEpisodes(): Flow<List<PlayedEpisode>> {
-        return localDataSource.getPlayedEpisodes().map { dtos ->
-            dtos.map { it.toPlayedEpisode() }
-        }
+        return localDataSource.getPlayedEpisodes().map { it.toPlayedEpisodes() }
     }
 
     @Transaction

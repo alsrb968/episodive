@@ -25,7 +25,7 @@ fun List<Category>.toMap(): Map<Int, String> =
     associateBy({ it.id }, { it.label })
 
 fun List<Category>.toCommaString(): String =
-    joinToString(",") { it.id.toString() }
+    sortedBy { it.id }.joinToString(",") { it.id.toString() }
 
 fun String.toCategories(): List<Category> =
     if (this.isEmpty()) {

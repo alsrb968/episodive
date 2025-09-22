@@ -1,7 +1,5 @@
 package io.jacob.episodive.core.database.mapper
 
-import android.R.attr.author
-import android.R.attr.description
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.FollowedPodcastDto
 import io.jacob.episodive.core.database.model.LikedEpisodeDto
