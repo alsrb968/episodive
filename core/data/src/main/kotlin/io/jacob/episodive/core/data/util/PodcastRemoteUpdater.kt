@@ -8,31 +8,38 @@ import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toPodcasts
+import io.jacob.episodive.core.network.model.PodcastResponse
 
 class PodcastRemoteUpdater @AssistedInject constructor(
     private val localDataSource: PodcastLocalDataSource,
     private val remoteDataSource: PodcastRemoteDataSource,
-    @Assisted("query") private val query: PodcastQuery,
-) : RemoteUpdater<PodcastEntity> {
+    @Assisted("query") override val query: PodcastQuery,
+) : BaseRemoteUpdater<PodcastEntity, PodcastQuery, PodcastResponse>(query) {
 
     @AssistedFactory
     interface Factory {
         fun create(@Assisted("query") query: PodcastQuery): PodcastRemoteUpdater
     }
 
-    override suspend fun load(cached: List<PodcastEntity>) {
-        try {
-            if (cached.isPodcastsExpired(query.timeToLive)) {
-                val networkResult = when (query) {
-                    is PodcastQuery.Search -> remoteDataSource.searchPodcasts(query.query)
-                    is PodcastQuery.Medium -> remoteDataSource.getPodcastsByMedium(query.medium)
-                }
-                val podcasts = networkResult.toPodcasts()
-
-                localDataSource.upsertPodcasts(podcasts.toPodcastEntities(query.key))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+    override suspend fun fetchFromNetwork(query: PodcastQuery): List<PodcastResponse> {
+        return when (query) {
+            is PodcastQuery.Search -> remoteDataSource.searchPodcasts(query.query)
+            is PodcastQuery.Medium -> remoteDataSource.getPodcastsByMedium(query.medium)
         }
+    }
+
+    override suspend fun mapToEntities(
+        responses: List<PodcastResponse>,
+        cacheKey: String
+    ): List<PodcastEntity> {
+        return responses.toPodcasts().toPodcastEntities(cacheKey)
+    }
+
+    override suspend fun saveToLocal(entities: List<PodcastEntity>) {
+        localDataSource.upsertPodcasts(entities)
+    }
+
+    override suspend fun isExpired(cached: List<PodcastEntity>): Boolean {
+        return cached.isPodcastsExpired(query.timeToLive)
     }
 }

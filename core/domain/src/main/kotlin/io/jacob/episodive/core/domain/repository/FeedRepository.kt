@@ -3,7 +3,6 @@ package io.jacob.episodive.core.domain.repository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.RecentNewFeed
-import io.jacob.episodive.core.model.RecentNewValueFeed
 import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.TrendingFeed
 import kotlinx.coroutines.flow.Flow
@@ -30,11 +29,6 @@ interface FeedRepository {
         max: Int? = null,
         since: Instant? = null,
     ): Flow<List<RecentNewFeed>>
-
-    fun getRecentNewValueFeeds(
-        max: Int? = null,
-        since: Instant? = null,
-    ): Flow<List<RecentNewValueFeed>>
 
     fun getRecentSoundbites(max: Int? = null): Flow<List<Soundbite>>
 }

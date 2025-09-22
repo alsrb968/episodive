@@ -10,6 +10,7 @@ import io.jacob.episodive.core.data.repository.PodcastRepositoryImpl
 import io.jacob.episodive.core.data.util.EpisodeRemoteUpdater
 import io.jacob.episodive.core.data.util.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
+import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.FeedRepository
@@ -53,10 +54,12 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideFeedRepository(
+        feedLocalDataSource: FeedLocalDataSource,
         feedRemoteDataSource: FeedRemoteDataSource,
     ): FeedRepository {
         return FeedRepositoryImpl(
-            feedRemoteDataSource = feedRemoteDataSource,
+            localDataSource = feedLocalDataSource,
+            remoteDataSource = feedRemoteDataSource,
         )
     }
 }

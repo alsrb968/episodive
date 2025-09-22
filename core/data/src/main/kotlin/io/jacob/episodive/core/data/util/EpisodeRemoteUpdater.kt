@@ -8,40 +8,42 @@ import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toEpisodes
+import io.jacob.episodive.core.network.model.EpisodeResponse
 
 class EpisodeRemoteUpdater @AssistedInject constructor(
     private val localDataSource: EpisodeLocalDataSource,
     private val remoteDataSource: EpisodeRemoteDataSource,
-    @Assisted("query") private val query: EpisodeQuery,
-) : RemoteUpdater<EpisodeEntity> {
+    @Assisted("query") override val query: EpisodeQuery,
+) : BaseRemoteUpdater<EpisodeEntity, EpisodeQuery, EpisodeResponse>(query) {
 
     @AssistedFactory
     interface Factory {
         fun create(@Assisted("query") query: EpisodeQuery): EpisodeRemoteUpdater
     }
 
-    /**
-     * 네트워크에서 데이터를 가져와 로컬 DB에 업데이트만 담당
-     */
-    override suspend fun load(cached: List<EpisodeEntity>) {
-        try {
-            if (cached.isEpisodesExpired(query.timeToLive)) {
-                // 네트워크에서 데이터 로드
-                val networkResult = when (query) {
-                    is EpisodeQuery.Person -> remoteDataSource.searchEpisodesByPerson(query.person)
-                    is EpisodeQuery.FeedId -> remoteDataSource.getEpisodesByFeedId(query.feedId)
-                    is EpisodeQuery.FeedUrl -> remoteDataSource.getEpisodesByFeedUrl(query.feedUrl)
-                    is EpisodeQuery.PodcastGuid -> remoteDataSource.getEpisodesByPodcastGuid(query.podcastGuid)
-                    is EpisodeQuery.Live -> remoteDataSource.getLiveEpisodes()
-                    is EpisodeQuery.Recent -> remoteDataSource.getRecentEpisodes()
-                }
-                val episodes = networkResult.toEpisodes()
-
-                // 로컬 캐시 업데이트
-                localDataSource.upsertEpisodes(episodes.toEpisodeEntities(query.key))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+    override suspend fun fetchFromNetwork(query: EpisodeQuery): List<EpisodeResponse> {
+        return when (query) {
+            is EpisodeQuery.Person -> remoteDataSource.searchEpisodesByPerson(query.person)
+            is EpisodeQuery.FeedId -> remoteDataSource.getEpisodesByFeedId(query.feedId)
+            is EpisodeQuery.FeedUrl -> remoteDataSource.getEpisodesByFeedUrl(query.feedUrl)
+            is EpisodeQuery.PodcastGuid -> remoteDataSource.getEpisodesByPodcastGuid(query.podcastGuid)
+            is EpisodeQuery.Live -> remoteDataSource.getLiveEpisodes()
+            is EpisodeQuery.Recent -> remoteDataSource.getRecentEpisodes()
         }
+    }
+
+    override suspend fun mapToEntities(
+        responses: List<EpisodeResponse>,
+        cacheKey: String
+    ): List<EpisodeEntity> {
+        return responses.toEpisodes().toEpisodeEntities(cacheKey)
+    }
+
+    override suspend fun saveToLocal(entities: List<EpisodeEntity>) {
+        localDataSource.upsertEpisodes(entities)
+    }
+
+    override suspend fun isExpired(cached: List<EpisodeEntity>): Boolean {
+        return cached.isEpisodesExpired(query.timeToLive)
     }
 }

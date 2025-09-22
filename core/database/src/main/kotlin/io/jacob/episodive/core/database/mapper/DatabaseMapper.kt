@@ -268,6 +268,25 @@ fun List<TrendingFeed>.toTrendingFeedEntities(
         )
     }
 
+fun TrendingFeedEntity.toTrendingFeed(): TrendingFeed =
+    TrendingFeed(
+        id = id,
+        url = url,
+        title = title,
+        description = description,
+        author = author,
+        image = image,
+        artwork = artwork,
+        newestItemPublishTime = newestItemPublishTime,
+        itunesId = itunesId,
+        trendScore = trendScore,
+        language = language,
+        categories = categories,
+    )
+
+fun List<TrendingFeedEntity>.toTrendingFeeds(): List<TrendingFeed> =
+    map { it.toTrendingFeed() }
+
 fun RecentFeed.toRecentFeedEntity(
     cacheKey: String,
     cachedAt: Instant = Clock.System.now(),
@@ -300,6 +319,25 @@ fun List<RecentFeed>.toRecentFeedEntities(
         )
     }
 
+fun RecentFeedEntity.toRecentFeed(): RecentFeed =
+    RecentFeed(
+        id = id,
+        url = url,
+        title = title,
+        newestItemPublishTime = newestItemPublishTime,
+        oldestItemPublishTime = oldestItemPublishTime,
+        description = description,
+        author = author,
+        image = image,
+        itunesId = itunesId,
+        trendScore = trendScore,
+        language = language,
+        categories = categories,
+    )
+
+fun List<RecentFeedEntity>.toRecentFeeds(): List<RecentFeed> =
+    map { it.toRecentFeed() }
+
 fun RecentNewFeed.toRecentNewFeedEntity(
     cacheKey: String,
     cachedAt: Instant = Clock.System.now(),
@@ -325,6 +363,19 @@ fun List<RecentNewFeed>.toRecentNewFeedEntities(
             cachedAt = cachedAt,
         )
     }
+
+fun RecentNewFeedEntity.toRecentNewFeed(): RecentNewFeed =
+    RecentNewFeed(
+        id = id,
+        url = url,
+        timeAdded = timeAdded,
+        status = status,
+        contentHash = contentHash,
+        language = language,
+    )
+
+fun List<RecentNewFeedEntity>.toRecentNewFeeds(): List<RecentNewFeed> =
+    map { it.toRecentNewFeed() }
 
 fun Soundbite.toSoundbiteEntity(
     cacheKey: String,
@@ -354,3 +405,19 @@ fun List<Soundbite>.toSoundbiteEntities(
             cachedAt = cachedAt,
         )
     }
+
+fun SoundbiteEntity.toSoundbite(): Soundbite =
+    Soundbite(
+        enclosureUrl = enclosureUrl,
+        title = title,
+        startTime = startTime,
+        duration = duration,
+        episodeId = episodeId,
+        episodeTitle = episodeTitle,
+        feedTitle = feedTitle,
+        feedUrl = feedUrl,
+        feedId = feedId,
+    )
+
+fun List<SoundbiteEntity>.toSoundbites(): List<Soundbite> =
+    map { it.toSoundbite() }

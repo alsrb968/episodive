@@ -5,9 +5,7 @@ import io.jacob.episodive.core.model.mapper.toCommaString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
-sealed interface FeedQuery {
-    val key: String
-    val timeToLive: Duration
+sealed interface FeedQuery : CacheableQuery {
 
     data class Trending(
         val language: String? = null,
