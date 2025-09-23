@@ -1,13 +1,12 @@
 package io.jacob.episodive.core.datastore.di
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.datastore.datasource.UserPreferencesDataSource
 import io.jacob.episodive.core.datastore.datasource.UserPreferencesDataSourceImpl
+import io.jacob.episodive.core.datastore.store.UserPreferencesStore
 import javax.inject.Singleton
 
 @Module
@@ -16,10 +15,10 @@ object DataSourceModule {
     @Provides
     @Singleton
     fun provideUserPreferencesDataSource(
-        dataStore: DataStore<Preferences>
+        store: UserPreferencesStore
     ): UserPreferencesDataSource {
         return UserPreferencesDataSourceImpl(
-            dataStore = dataStore
+            store = store
         )
     }
 }

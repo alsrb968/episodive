@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.jacob.episodive.core.datastore.store.UserPreferencesStore
 import javax.inject.Singleton
 
 @Module
@@ -23,5 +24,13 @@ object DataStoreModule {
         return PreferenceDataStoreFactory.create(
             produceFile = { context.preferencesDataStoreFile("user_preferences") }
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserPreferencesStore(
+        dataStore: DataStore<Preferences>,
+    ): UserPreferencesStore {
+        return UserPreferencesStore(dataStore)
     }
 }
