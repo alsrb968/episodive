@@ -1,5 +1,8 @@
 package io.jacob.episodive.core.data.repository
 
+import android.text.Html
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.util.query.EpisodeQuery
 import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
@@ -13,11 +16,16 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
@@ -38,9 +46,18 @@ class EpisodeRepositoryTest {
 
     private val episodeEntities = episodeTestDataList.toEpisodeEntities("test_key")
 
+    @Before
+    fun setup() {
+        val mockSpanned = mockk<Spanned>(relaxed = true)
+        every { mockSpanned.toString() } returns "test"
+        mockkStatic(Html::class)
+        every { Html.fromHtml(any<String>(), any<Int>()) } returns mockSpanned
+    }
+
     @After
     fun teardown() {
         confirmVerified(localDataSource, remoteDataSource, remoteUpdater)
+        unmockkStatic(Html::class)
     }
 
     @Test
