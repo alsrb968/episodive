@@ -1,7 +1,6 @@
 package io.jacob.episodive.core.data.repository
 
 import android.text.Html
-import android.text.SpannableStringBuilder
 import android.text.Spanned
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.util.query.EpisodeQuery
@@ -19,7 +18,6 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.unmockkAll
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
