@@ -76,8 +76,8 @@ class PodcastRepositoryImpl @Inject constructor(
         ).flow.map { it.toPodcasts() }
     }
 
-    override fun getFollowedPodcasts(): Flow<List<FollowedPodcast>> {
-        return localDataSource.getFollowedPodcasts().map { it.toFollowedPodcasts() }
+    override fun getFollowedPodcasts(query: String?): Flow<List<FollowedPodcast>> {
+        return localDataSource.getFollowedPodcasts(query).map { it.toFollowedPodcasts() }
     }
 
     override suspend fun toggleFollowed(id: Long): Boolean {

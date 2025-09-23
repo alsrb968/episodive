@@ -65,10 +65,14 @@ interface EpisodeDao {
         WHERE e.cachedAt = (
             SELECT MAX(cachedAt) FROM episodes WHERE id = le.id
         )
+        AND (:query IS NULL OR :query = '' OR 
+            LOWER(e.title) LIKE '%' || LOWER(:query) || '%' OR 
+            (e.description IS NOT NULL AND LOWER(e.description) LIKE '%' || LOWER(:query) || '%') OR
+            (e.feedAuthor IS NOT NULL AND LOWER(e.feedAuthor) LIKE '%' || LOWER(:query) || '%'))
         ORDER BY le.likedAt DESC
     """
     )
-    fun getLikedEpisodes(): Flow<List<LikedEpisodeDto>>
+    fun getLikedEpisodes(query: String? = null): Flow<List<LikedEpisodeDto>>
 
     @Query(
         """
@@ -83,10 +87,14 @@ interface EpisodeDao {
             AND e.cachedAt = (
                 SELECT MAX(cachedAt) FROM episodes WHERE id = pe.id
             )
+        AND (:query IS NULL OR :query = '' OR 
+            LOWER(e.title) LIKE '%' || LOWER(:query) || '%' OR 
+            (e.description IS NOT NULL AND LOWER(e.description) LIKE '%' || LOWER(:query) || '%') OR
+            (e.feedAuthor IS NOT NULL AND LOWER(e.feedAuthor) LIKE '%' || LOWER(:query) || '%'))
         ORDER BY pe.playedAt DESC
     """
     )
-    fun getPlayingEpisodes(): Flow<List<PlayedEpisodeDto>>
+    fun getPlayingEpisodes(query: String? = null): Flow<List<PlayedEpisodeDto>>
 
     @Query(
         """
@@ -101,10 +109,14 @@ interface EpisodeDao {
             AND e.cachedAt = (
                 SELECT MAX(cachedAt) FROM episodes WHERE id = pe.id
             )
+        AND (:query IS NULL OR :query = '' OR 
+            LOWER(e.title) LIKE '%' || LOWER(:query) || '%' OR 
+            (e.description IS NOT NULL AND LOWER(e.description) LIKE '%' || LOWER(:query) || '%') OR
+            (e.feedAuthor IS NOT NULL AND LOWER(e.feedAuthor) LIKE '%' || LOWER(:query) || '%'))
         ORDER BY pe.playedAt DESC
     """
     )
-    fun getPlayedEpisodes(): Flow<List<PlayedEpisodeDto>>
+    fun getPlayedEpisodes(query: String? = null): Flow<List<PlayedEpisodeDto>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM liked_episodes WHERE id = :id)")
     fun isLiked(id: Long): Flow<Boolean>

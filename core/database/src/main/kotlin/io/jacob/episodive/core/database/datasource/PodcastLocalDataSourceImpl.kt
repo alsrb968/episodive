@@ -45,8 +45,8 @@ class PodcastLocalDataSourceImpl(
         return podcastDao.getPodcastsByCacheKey(cacheKey)
     }
 
-    override fun getFollowedPodcasts(): Flow<List<FollowedPodcastDto>> {
-        return podcastDao.getFollowedPodcasts()
+    override fun getFollowedPodcasts(query: String?): Flow<List<FollowedPodcastDto>> {
+        return podcastDao.getFollowedPodcasts(query)
     }
 
     override fun isFollowed(id: Long): Flow<Boolean> {
