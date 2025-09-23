@@ -161,6 +161,31 @@ class PodcastDaoTest {
         }
 
     @Test
+    fun `Given some podcast entities, When getFollowedPodcasts is called with query, Then the correct followed podcasts are returned`() =
+        runTest {
+            // Given
+            dao.upsertPodcasts(podcastEntities)
+            val followedAt = Clock.System.now()
+            podcastEntities.forEach {
+                dao.addFollowed(
+                    FollowedPodcastEntity(
+                        id = it.id,
+                        followedAt = followedAt,
+                        isNotificationEnabled = true
+                    )
+                )
+            }
+
+            // When
+            dao.getFollowedPodcasts(query = "jtbc").test {
+                val podcasts = awaitItem()
+                // Then
+                assertEquals(5, podcasts.size)
+                cancel()
+            }
+        }
+
+    @Test
     fun `Given a followed podcast entity, When removeFollowed is called, Then the podcast is unfollowed`() =
         runTest {
             // Given
