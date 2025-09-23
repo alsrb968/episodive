@@ -4,13 +4,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.jacob.episodive.core.data.util.query.EpisodeQuery
-import io.jacob.episodive.core.data.util.cache.isEpisodesExpired
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import io.jacob.episodive.core.network.model.EpisodeResponse
+import kotlin.time.Clock
 
 class EpisodeRemoteUpdater @AssistedInject constructor(
     private val localDataSource: EpisodeLocalDataSource,
@@ -46,6 +46,10 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
     }
 
     override suspend fun isExpired(cached: List<EpisodeEntity>): Boolean {
-        return cached.isEpisodesExpired(query.timeToLive)
+        if (cached.isEmpty()) return true
+        val oldestCache = cached.minByOrNull { it.cachedAt }?.cachedAt
+            ?: return true
+        val now = Clock.System.now()
+        return now - oldestCache > query.timeToLive
     }
 }

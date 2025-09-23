@@ -1,13 +1,13 @@
 package io.jacob.episodive.core.data.util.updater
 
 import io.jacob.episodive.core.data.util.query.FeedQuery
-import io.jacob.episodive.core.data.util.cache.isRecentNewFeedsExpired
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.mapper.toRecentNewFeedEntities
 import io.jacob.episodive.core.database.model.RecentNewFeedEntity
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toRecentNewFeeds
 import io.jacob.episodive.core.network.model.RecentNewFeedResponse
+import kotlin.time.Clock
 
 class RecentNewFeedRemoteUpdater(
     private val localDataSource: FeedLocalDataSource,
@@ -34,6 +34,10 @@ class RecentNewFeedRemoteUpdater(
     }
 
     override suspend fun isExpired(cached: List<RecentNewFeedEntity>): Boolean {
-        return cached.isRecentNewFeedsExpired(query.timeToLive)
+        if (cached.isEmpty()) return true
+        val oldestCache = cached.minByOrNull { it.cachedAt }?.cachedAt
+            ?: return true
+        val now = Clock.System.now()
+        return now - oldestCache > query.timeToLive
     }
 }

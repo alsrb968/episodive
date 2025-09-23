@@ -1,6 +1,6 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.data.util.cache.Cacher
+import io.jacob.episodive.core.data.util.Cacher
 import io.jacob.episodive.core.data.util.query.PodcastQuery
 import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource

@@ -1,6 +1,6 @@
 package io.jacob.episodive.core.data.repository
 
-import io.jacob.episodive.core.data.util.cache.Cacher
+import io.jacob.episodive.core.data.util.Cacher
 import io.jacob.episodive.core.data.util.query.FeedQuery
 import io.jacob.episodive.core.data.util.updater.RecentFeedRemoteUpdater
 import io.jacob.episodive.core.data.util.updater.RecentNewFeedRemoteUpdater
