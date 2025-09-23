@@ -72,7 +72,6 @@ class ModelMapperTest {
         assertEquals(Medium.AUDIOBOOK, "audiobook".toMedium())
         assertEquals(Medium.NEWSLETTER, "newsletter".toMedium())
         assertEquals(Medium.BLOG, "blog".toMedium())
-        assertEquals(Medium.BLOG, "blog".toMedium())
     }
 
     @Test
@@ -92,7 +91,6 @@ class ModelMapperTest {
         assertEquals("film", Medium.FILM.toValue())
         assertEquals("audiobook", Medium.AUDIOBOOK.toValue())
         assertEquals("newsletter", Medium.NEWSLETTER.toValue())
-        assertEquals("blog", Medium.BLOG.toValue())
         assertEquals("blog", Medium.BLOG.toValue())
     }
 
