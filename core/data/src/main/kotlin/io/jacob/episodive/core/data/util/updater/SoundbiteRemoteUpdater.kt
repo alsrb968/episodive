@@ -1,13 +1,13 @@
 package io.jacob.episodive.core.data.util.updater
 
 import io.jacob.episodive.core.data.util.query.FeedQuery
-import io.jacob.episodive.core.data.util.cache.isSoundbitesExpired
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.mapper.toSoundbiteEntities
 import io.jacob.episodive.core.database.model.SoundbiteEntity
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toSoundbites
 import io.jacob.episodive.core.network.model.SoundbiteResponse
+import kotlin.time.Clock
 
 class SoundbiteRemoteUpdater(
     private val localDataSource: FeedLocalDataSource,
@@ -34,6 +34,10 @@ class SoundbiteRemoteUpdater(
     }
 
     override suspend fun isExpired(cached: List<SoundbiteEntity>): Boolean {
-        return cached.isSoundbitesExpired(query.timeToLive)
+        if (cached.isEmpty()) return true
+        val oldestCache = cached.minByOrNull { it.cachedAt }?.cachedAt
+            ?: return true
+        val now = Clock.System.now()
+        return now - oldestCache > query.timeToLive
     }
 }
