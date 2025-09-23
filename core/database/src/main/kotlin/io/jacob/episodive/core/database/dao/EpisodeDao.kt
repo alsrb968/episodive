@@ -66,9 +66,9 @@ interface EpisodeDao {
             SELECT MAX(cachedAt) FROM episodes WHERE id = le.id
         )
         AND (:query IS NULL OR :query = '' OR 
-            LOWER(e.title) LIKE '%' || LOWER(:query) || '%' OR 
-            (e.description IS NOT NULL AND LOWER(e.description) LIKE '%' || LOWER(:query) || '%') OR
-            (e.feedAuthor IS NOT NULL AND LOWER(e.feedAuthor) LIKE '%' || LOWER(:query) || '%'))
+            e.title LIKE '%' || :query || '%' COLLATE NOCASE OR 
+            (e.description IS NOT NULL AND e.description LIKE '%' || :query || '%' COLLATE NOCASE) OR
+            (e.feedAuthor IS NOT NULL AND e.feedAuthor LIKE '%' || :query || '%' COLLATE NOCASE))
         ORDER BY le.likedAt DESC
     """
     )
@@ -88,9 +88,9 @@ interface EpisodeDao {
                 SELECT MAX(cachedAt) FROM episodes WHERE id = pe.id
             )
         AND (:query IS NULL OR :query = '' OR 
-            LOWER(e.title) LIKE '%' || LOWER(:query) || '%' OR 
-            (e.description IS NOT NULL AND LOWER(e.description) LIKE '%' || LOWER(:query) || '%') OR
-            (e.feedAuthor IS NOT NULL AND LOWER(e.feedAuthor) LIKE '%' || LOWER(:query) || '%'))
+            e.title LIKE '%' || :query || '%' COLLATE NOCASE OR 
+            (e.description IS NOT NULL AND e.description LIKE '%' || :query || '%' COLLATE NOCASE) OR
+            (e.feedAuthor IS NOT NULL AND e.feedAuthor LIKE '%' || :query || '%' COLLATE NOCASE))
         ORDER BY pe.playedAt DESC
     """
     )
@@ -110,9 +110,9 @@ interface EpisodeDao {
                 SELECT MAX(cachedAt) FROM episodes WHERE id = pe.id
             )
         AND (:query IS NULL OR :query = '' OR 
-            LOWER(e.title) LIKE '%' || LOWER(:query) || '%' OR 
-            (e.description IS NOT NULL AND LOWER(e.description) LIKE '%' || LOWER(:query) || '%') OR
-            (e.feedAuthor IS NOT NULL AND LOWER(e.feedAuthor) LIKE '%' || LOWER(:query) || '%'))
+            e.title LIKE '%' || :query || '%' COLLATE NOCASE OR 
+            (e.description IS NOT NULL AND e.description LIKE '%' || :query || '%' COLLATE NOCASE) OR
+            (e.feedAuthor IS NOT NULL AND e.feedAuthor LIKE '%' || :query || '%' COLLATE NOCASE))
         ORDER BY pe.playedAt DESC
     """
     )

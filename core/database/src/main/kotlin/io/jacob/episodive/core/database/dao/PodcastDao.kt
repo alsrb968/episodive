@@ -59,10 +59,10 @@ interface PodcastDao {
             SELECT MAX(cachedAt) FROM podcasts WHERE id = fp.id
         )
         AND (:query IS NULL OR :query = '' OR 
-            LOWER(p.title) LIKE '%' || LOWER(:query) || '%' OR 
-            (p.description IS NOT NULL AND LOWER(p.description) LIKE '%' || LOWER(:query) || '%') OR
-            (p.author IS NOT NULL AND LOWER(p.author) LIKE '%' || LOWER(:query) || '%') OR
-            (p.ownerName IS NOT NULL AND LOWER(p.ownerName) LIKE '%' || LOWER(:query) || '%'))
+            p.title LIKE '%' || :query || '%' COLLATE NOCASE OR 
+            p.description LIKE '%' || :query || '%' COLLATE NOCASE OR
+            p.author LIKE '%' || :query || '%' COLLATE NOCASE OR
+            p.ownerName LIKE '%' || :query || '%' COLLATE NOCASE)
         ORDER BY fp.followedAt DESC
     """
     )
