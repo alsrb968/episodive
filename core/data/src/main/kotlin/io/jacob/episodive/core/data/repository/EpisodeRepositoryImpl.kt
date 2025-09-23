@@ -142,16 +142,16 @@ class EpisodeRepositoryImpl @Inject constructor(
         ).flow.map { it.toEpisodes() }
     }
 
-    override fun getLikedEpisodes(): Flow<List<LikedEpisode>> {
-        return localDataSource.getLikedEpisodes().map { it.toLikedEpisodes() }
+    override fun getLikedEpisodes(query: String?): Flow<List<LikedEpisode>> {
+        return localDataSource.getLikedEpisodes(query).map { it.toLikedEpisodes() }
     }
 
-    override fun getPlayingEpisodes(): Flow<List<PlayedEpisode>> {
-        return localDataSource.getPlayingEpisodes().map { it.toPlayedEpisodes() }
+    override fun getPlayingEpisodes(query: String?): Flow<List<PlayedEpisode>> {
+        return localDataSource.getPlayingEpisodes(query).map { it.toPlayedEpisodes() }
     }
 
-    override fun getPlayedEpisodes(): Flow<List<PlayedEpisode>> {
-        return localDataSource.getPlayedEpisodes().map { it.toPlayedEpisodes() }
+    override fun getPlayedEpisodes(query: String?): Flow<List<PlayedEpisode>> {
+        return localDataSource.getPlayedEpisodes(query).map { it.toPlayedEpisodes() }
     }
 
     @Transaction

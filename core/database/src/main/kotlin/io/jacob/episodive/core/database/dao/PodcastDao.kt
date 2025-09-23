@@ -58,10 +58,15 @@ interface PodcastDao {
         WHERE p.cachedAt = (
             SELECT MAX(cachedAt) FROM podcasts WHERE id = fp.id
         )
+        AND (:query IS NULL OR :query = '' OR 
+            p.title LIKE '%' || :query || '%' COLLATE NOCASE OR 
+            p.description LIKE '%' || :query || '%' COLLATE NOCASE OR
+            p.author LIKE '%' || :query || '%' COLLATE NOCASE OR
+            p.ownerName LIKE '%' || :query || '%' COLLATE NOCASE)
         ORDER BY fp.followedAt DESC
     """
     )
-    fun getFollowedPodcasts(): Flow<List<FollowedPodcastDto>>
+    fun getFollowedPodcasts(query: String? = null): Flow<List<FollowedPodcastDto>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM followed_podcasts WHERE id = :id)")
     fun isFollowed(id: Long): Flow<Boolean>

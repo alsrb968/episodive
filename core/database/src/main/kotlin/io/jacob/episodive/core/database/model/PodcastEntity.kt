@@ -9,7 +9,13 @@ import kotlin.time.Instant
 @Entity(
     tableName = "podcasts",
     primaryKeys = ["id", "cacheKey"],
-    indices = [Index(value = ["id", "cachedAt"])]
+    indices = [
+        Index(value = ["id", "cachedAt"]),
+        Index(value = ["title"]),
+        Index(value = ["description"]),
+        Index(value = ["author"]),
+        Index(value = ["ownerName"]),
+    ],
 )
 data class PodcastEntity(
     val id: Long,

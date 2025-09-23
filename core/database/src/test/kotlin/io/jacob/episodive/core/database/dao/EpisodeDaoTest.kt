@@ -156,6 +156,37 @@ class EpisodeDaoTest {
         }
 
     @Test
+    fun `Given some episode entities, When getLikedEpisodes is called with query, Then liked episodes matching the query are returned`() =
+        runTest {
+            // Given
+            val likedAt = Clock.System.now()
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[0].id, likedAt))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[1].id, likedAt.plus(1.minutes)))
+            dao.addLiked(LikedEpisodeEntity(episodeEntities[2].id, likedAt.plus(2.minutes)))
+            dao.upsertEpisodes(episodeEntities)
+
+            // When
+            dao.getLikedEpisodes(query = "science").test {
+                val likedEpisodes = awaitItem()
+                // Then
+                assertEquals(1, likedEpisodes.size)
+                assertEquals(episodeEntities[1].id, likedEpisodes[0].episode?.id)
+                cancel()
+            }
+
+            // When
+            dao.getLikedEpisodes(query = "1. ").test {
+                val likedEpisodes = awaitItem()
+                // Then
+                assertEquals(3, likedEpisodes.size)
+                assertEquals(episodeEntities[2].id, likedEpisodes[0].episode?.id)
+                assertEquals(episodeEntities[1].id, likedEpisodes[1].episode?.id)
+                assertEquals(episodeEntities[0].id, likedEpisodes[2].episode?.id)
+                cancel()
+            }
+        }
+
+    @Test
     fun `Given some episode entity liked, When isLiked is called, Then true is returned`() =
         runTest {
             // Given

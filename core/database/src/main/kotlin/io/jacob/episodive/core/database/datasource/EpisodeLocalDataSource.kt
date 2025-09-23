@@ -19,9 +19,9 @@ interface EpisodeLocalDataSource {
     fun getEpisode(id: Long): Flow<EpisodeEntity?>
     fun getEpisodes(): Flow<List<EpisodeEntity>>
     fun getEpisodesByCacheKey(cacheKey: String): Flow<List<EpisodeEntity>>
-    fun getLikedEpisodes(): Flow<List<LikedEpisodeDto>>
-    fun getPlayingEpisodes(): Flow<List<PlayedEpisodeDto>>
-    fun getPlayedEpisodes(): Flow<List<PlayedEpisodeDto>>
+    fun getLikedEpisodes(query: String? = null): Flow<List<LikedEpisodeDto>>
+    fun getPlayingEpisodes(query: String? = null): Flow<List<PlayedEpisodeDto>>
+    fun getPlayedEpisodes(query: String? = null): Flow<List<PlayedEpisodeDto>>
     fun isLiked(id: Long): Flow<Boolean>
     fun getEpisodeCount(): Flow<Int>
     fun getLikedEpisodeCount(): Flow<Int>

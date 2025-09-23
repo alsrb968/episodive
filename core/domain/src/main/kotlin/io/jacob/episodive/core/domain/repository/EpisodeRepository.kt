@@ -48,11 +48,11 @@ interface EpisodeRepository {
         excludeString: String? = null,
     ): Flow<List<Episode>>
 
-    fun getLikedEpisodes(): Flow<List<LikedEpisode>>
+    fun getLikedEpisodes(query: String? = null): Flow<List<LikedEpisode>>
 
-    fun getPlayingEpisodes(): Flow<List<PlayedEpisode>>
+    fun getPlayingEpisodes(query: String? = null): Flow<List<PlayedEpisode>>
 
-    fun getPlayedEpisodes(): Flow<List<PlayedEpisode>>
+    fun getPlayedEpisodes(query: String? = null): Flow<List<PlayedEpisode>>
 
     suspend fun toggleLiked(id: Long): Boolean
 

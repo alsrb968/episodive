@@ -2,7 +2,10 @@ package io.jacob.episodive.core.model.mapper
 
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.EpisodeType
+import io.jacob.episodive.core.model.Feed
 import io.jacob.episodive.core.model.Medium
+import io.jacob.episodive.core.model.RecentFeed
+import io.jacob.episodive.core.model.TrendingFeed
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -38,3 +41,37 @@ fun String.toCategories(): List<Category> =
 
 fun String.toEpisodeType(): EpisodeType? = EpisodeType.entries.find { it.value == this }
 fun EpisodeType.toValue(): String = value
+
+fun RecentFeed.toFeedFromRecent(): Feed =
+    Feed(
+        id = id,
+        url = url,
+        title = title,
+        newestItemPublishTime = newestItemPublishTime,
+        description = description,
+        author = author,
+        image = image,
+        itunesId = itunesId,
+        trendScore = trendScore,
+        language = language,
+        categories = categories,
+    )
+
+fun List<RecentFeed>.toFeedsFromRecent(): List<Feed> = map { it.toFeedFromRecent() }
+
+fun TrendingFeed.toFeedFromTrending(): Feed =
+    Feed(
+        id = id,
+        url = url,
+        title = title,
+        newestItemPublishTime = newestItemPublishTime,
+        description = description,
+        author = author,
+        image = artwork,
+        itunesId = itunesId,
+        trendScore = trendScore,
+        language = language,
+        categories = categories,
+    )
+
+fun List<TrendingFeed>.toFeedsFromTrending(): List<Feed> = map { it.toFeedFromTrending() }

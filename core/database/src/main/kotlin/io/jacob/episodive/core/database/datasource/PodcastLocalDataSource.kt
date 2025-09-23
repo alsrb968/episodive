@@ -15,7 +15,7 @@ interface PodcastLocalDataSource {
     fun getPodcast(id: Long): Flow<PodcastEntity?>
     fun getPodcasts(): Flow<List<PodcastEntity>>
     fun getPodcastsByCacheKey(cacheKey: String): Flow<List<PodcastEntity>>
-    fun getFollowedPodcasts(): Flow<List<FollowedPodcastDto>>
+    fun getFollowedPodcasts(query: String? = null): Flow<List<FollowedPodcastDto>>
     fun isFollowed(id: Long): Flow<Boolean>
     fun getPodcastCount(): Flow<Int>
     fun getFollowedPodcastCount(): Flow<Int>

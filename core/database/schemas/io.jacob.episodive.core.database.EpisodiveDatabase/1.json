@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "96a70c998acab10f09bcac0bf06fb055",
+    "identityHash": "36d6ee9add88f1152d3f105c000fdc29",
     "entities": [
       {
         "tableName": "podcasts",
@@ -228,6 +228,42 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_podcasts_id_cachedAt` ON `${TABLE_NAME}` (`id`, `cachedAt`)"
+          },
+          {
+            "name": "index_podcasts_title",
+            "unique": false,
+            "columnNames": [
+              "title"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_podcasts_title` ON `${TABLE_NAME}` (`title`)"
+          },
+          {
+            "name": "index_podcasts_description",
+            "unique": false,
+            "columnNames": [
+              "description"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_podcasts_description` ON `${TABLE_NAME}` (`description`)"
+          },
+          {
+            "name": "index_podcasts_author",
+            "unique": false,
+            "columnNames": [
+              "author"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_podcasts_author` ON `${TABLE_NAME}` (`author`)"
+          },
+          {
+            "name": "index_podcasts_ownerName",
+            "unique": false,
+            "columnNames": [
+              "ownerName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_podcasts_ownerName` ON `${TABLE_NAME}` (`ownerName`)"
           }
         ]
       },
@@ -465,6 +501,33 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_id_cachedAt` ON `${TABLE_NAME}` (`id`, `cachedAt`)"
+          },
+          {
+            "name": "index_episodes_title",
+            "unique": false,
+            "columnNames": [
+              "title"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_title` ON `${TABLE_NAME}` (`title`)"
+          },
+          {
+            "name": "index_episodes_description",
+            "unique": false,
+            "columnNames": [
+              "description"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_description` ON `${TABLE_NAME}` (`description`)"
+          },
+          {
+            "name": "index_episodes_feedAuthor",
+            "unique": false,
+            "columnNames": [
+              "feedAuthor"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_episodes_feedAuthor` ON `${TABLE_NAME}` (`feedAuthor`)"
           }
         ]
       },
@@ -906,7 +969,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '96a70c998acab10f09bcac0bf06fb055')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '36d6ee9add88f1152d3f105c000fdc29')"
     ]
   }
 }
