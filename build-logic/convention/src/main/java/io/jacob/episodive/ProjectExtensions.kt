@@ -11,5 +11,6 @@ val Project.libs
 val freeCompilerOptIns = listOf(
     "-opt-in=kotlin.time.ExperimentalTime",
     "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+    "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
     "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
 )
