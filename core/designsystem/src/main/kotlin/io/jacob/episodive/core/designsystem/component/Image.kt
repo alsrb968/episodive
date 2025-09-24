@@ -39,7 +39,7 @@ fun StateImage(
     fallbackIcon: ImageVector = EpisodiveIcons.Place,
 ) {
     if (LocalInspectionMode.current) {
-        Box(modifier = modifier.background(MaterialTheme.colorScheme.secondary))
+        Box(modifier = modifier.background(placeholderBrush))
         return
     }
 
@@ -92,7 +92,7 @@ fun StateImage(
 
 @Composable
 internal fun thumbnailPlaceholderDefaultBrush(
-    color: Color = MaterialTheme.colorScheme.surfaceVariant
+    color: Color = MaterialTheme.colorScheme.primaryContainer
 ): Brush {
     return SolidColor(color)
 }
