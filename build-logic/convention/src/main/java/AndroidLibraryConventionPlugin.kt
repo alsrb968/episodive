@@ -1,5 +1,6 @@
 import com.android.build.gradle.LibraryExtension
 import io.jacob.episodive.configureKotlinAndroid
+import io.jacob.episodive.freeCompilerOptIns
 import io.jacob.episodive.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -30,9 +31,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
 
             tasks.withType<KotlinCompile>().configureEach {
                 compilerOptions {
-                    freeCompilerArgs.addAll(
-                        "-opt-in=kotlin.time.ExperimentalTime"
-                    )
+                    freeCompilerArgs.addAll(freeCompilerOptIns)
                 }
             }
 

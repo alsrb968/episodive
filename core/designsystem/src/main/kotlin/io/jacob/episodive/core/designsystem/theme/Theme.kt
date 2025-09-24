@@ -29,7 +29,7 @@ fun EpisodiveTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = IgozogoTypography,
+        typography = EpisodiveTypography,
         content = content
     )
 }
