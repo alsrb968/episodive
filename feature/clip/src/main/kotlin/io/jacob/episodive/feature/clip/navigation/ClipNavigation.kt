@@ -41,11 +41,9 @@ private fun ClipNavHost(
         navController = navController,
         startDestination = ClipRoute
     ) {
-        composable<ClipRoute> {
-            ClipRoute(
-                onShowSnackbar = onShowSnackbar
-            )
-        }
+        clipScreen(
+            onShowSnackbar = onShowSnackbar,
+        )
 
         destination(navController)
     }
