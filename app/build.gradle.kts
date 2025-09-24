@@ -34,7 +34,13 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.model)
 
+    implementation(projects.feature.home)
+    implementation(projects.feature.search)
+    implementation(projects.feature.library)
+    implementation(projects.feature.clip)
+
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.kotlinx.serialization.json)
 
     //----- Compose

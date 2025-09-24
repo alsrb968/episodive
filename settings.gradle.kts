@@ -33,4 +33,9 @@ include(":core:model")
 include(":core:network")
 include(":core:testing")
 
+include(":feature:home")
+include(":feature:search")
+include(":feature:library")
+include(":feature:clip")
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
