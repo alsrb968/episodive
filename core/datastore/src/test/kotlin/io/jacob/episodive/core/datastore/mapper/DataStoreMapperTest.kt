@@ -17,6 +17,7 @@ class DataStoreMapperTest {
     fun `toUserData converts UserPreferences to UserData correctly`() {
         // Given
         val userPreferences = UserPreferences(
+            isFirstLaunch = false,
             language = "en-US",
             categories = listOf(Category.ARTS, Category.BUSINESS, Category.COMEDY)
         )
@@ -25,6 +26,7 @@ class DataStoreMapperTest {
         val userData = userPreferences.toUserData()
 
         // Then
+        assertEquals(userPreferences.isFirstLaunch, userData.isFirstLaunch)
         assertEquals(userPreferences.language, userData.language)
         assertEquals(userPreferences.categories, userData.categories)
         assertEquals(3, userData.categories.size)
@@ -37,6 +39,7 @@ class DataStoreMapperTest {
     fun `toUserPreferences converts UserData to UserPreferences correctly`() {
         // Given
         val userData = UserData(
+            isFirstLaunch = true,
             language = "ko-KR",
             categories = listOf(Category.NEWS, Category.EDUCATION, Category.TECHNOLOGY)
         )
@@ -45,6 +48,7 @@ class DataStoreMapperTest {
         val userPreferences = userData.toUserPreferences()
 
         // Then
+        assertEquals(userData.isFirstLaunch, userPreferences.isFirstLaunch)
         assertEquals(userData.language, userPreferences.language)
         assertEquals(userData.categories, userPreferences.categories)
         assertEquals(3, userPreferences.categories.size)
@@ -57,6 +61,7 @@ class DataStoreMapperTest {
     fun `toUserData handles empty categories list correctly`() {
         // Given
         val userPreferences = UserPreferences(
+            isFirstLaunch = true,
             language = "fr-FR",
             categories = emptyList()
         )
@@ -65,6 +70,7 @@ class DataStoreMapperTest {
         val userData = userPreferences.toUserData()
 
         // Then
+        assertEquals(userPreferences.isFirstLaunch, userData.isFirstLaunch)
         assertEquals(userPreferences.language, userData.language)
         assertEquals(userPreferences.categories, userData.categories)
         assertEquals(0, userData.categories.size)
@@ -74,6 +80,7 @@ class DataStoreMapperTest {
     fun `toUserPreferences handles empty categories list correctly`() {
         // Given
         val userData = UserData(
+            isFirstLaunch = false,
             language = "de-DE",
             categories = emptyList()
         )
@@ -82,6 +89,7 @@ class DataStoreMapperTest {
         val userPreferences = userData.toUserPreferences()
 
         // Then
+        assertEquals(userData.isFirstLaunch, userPreferences.isFirstLaunch)
         assertEquals(userData.language, userPreferences.language)
         assertEquals(userData.categories, userPreferences.categories)
         assertEquals(0, userPreferences.categories.size)
@@ -91,6 +99,7 @@ class DataStoreMapperTest {
     fun `round trip conversion works correctly`() {
         // Given
         val originalUserData = UserData(
+            isFirstLaunch = true,
             language = "ja-JP",
             categories = listOf(
                 Category.ARTS,
@@ -124,6 +133,7 @@ class DataStoreMapperTest {
         val backToUserData = userPreferences.toUserData()
 
         // Then
+        assertEquals(originalUserData.isFirstLaunch, backToUserData.isFirstLaunch)
         assertEquals(originalUserData.language, backToUserData.language)
         assertEquals(originalUserData.categories, backToUserData.categories)
         assertEquals(originalUserData.categories.size, backToUserData.categories.size)
@@ -138,6 +148,7 @@ class DataStoreMapperTest {
     fun `round trip conversion with UserPreferences as starting point works correctly`() {
         // Given
         val originalUserPreferences = UserPreferences(
+            isFirstLaunch = false,
             language = "es-ES",
             categories = listOf(
                 Category.POLITICS,
@@ -170,6 +181,7 @@ class DataStoreMapperTest {
         val backToUserPreferences = userData.toUserPreferences()
 
         // Then
+        assertEquals(originalUserPreferences.isFirstLaunch, backToUserPreferences.isFirstLaunch)
         assertEquals(originalUserPreferences.language, backToUserPreferences.language)
         assertEquals(originalUserPreferences.categories, backToUserPreferences.categories)
         assertEquals(originalUserPreferences.categories.size, backToUserPreferences.categories.size)
@@ -211,6 +223,7 @@ class DataStoreMapperTest {
         languageCodes.forEach { languageCode ->
             // Given
             val userData = UserData(
+                isFirstLaunch = true,
                 language = languageCode,
                 categories = listOf(Category.NEWS)
             )
@@ -230,6 +243,7 @@ class DataStoreMapperTest {
         Category.entries.forEach { category ->
             // Given
             val userData = UserData(
+                isFirstLaunch = false,
                 language = "en-US",
                 categories = listOf(category)
             )

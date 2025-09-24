@@ -9,8 +9,8 @@ import javax.inject.Inject
 class UserPreferencesDataSourceImpl @Inject constructor(
     private val store: UserPreferencesStore
 ) : UserPreferencesDataSource {
-    override suspend fun setLanguage(language: String) {
-        store.setLanguage(language)
+    override suspend fun setFirstLaunch(isFirstLaunch: Boolean) {
+        store.setFirstLaunch(isFirstLaunch)
     }
 
     override suspend fun setCategories(categories: List<Category>) {

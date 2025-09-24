@@ -9,14 +9,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.Locale
 
 class UserPreferencesStoreTest {
     @get:Rule
@@ -43,16 +42,17 @@ class UserPreferencesStoreTest {
     fun getUserPreferences_withDefaultValues_returnsDefaults() = runTest {
         val result = userPreferencesStore.getUserPreferences().first()
 
-        assertEquals("en", result.language)
+        assertTrue(result.isFirstLaunch)
+        assertEquals(Locale.getDefault().language, result.language)
         assertTrue(result.categories.isEmpty())
     }
 
     @Test
-    fun setLanguage_updatesLanguagePreference() = runTest {
-        userPreferencesStore.setLanguage("ko")
+    fun setFirstLaunch_updatesFirstLaunchPreference() = runTest {
+        userPreferencesStore.setFirstLaunch(false)
 
         val result = userPreferencesStore.getUserPreferences().first()
-        assertEquals("ko", result.language)
+        assertFalse(result.isFirstLaunch)
     }
 
     @Test

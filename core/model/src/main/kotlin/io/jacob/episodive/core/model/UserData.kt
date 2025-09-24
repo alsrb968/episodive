@@ -1,6 +1,9 @@
 package io.jacob.episodive.core.model
 
+import java.util.Locale
+
 data class UserData(
-    val language: String,
-    val categories: List<Category>,
+    val isFirstLaunch: Boolean = true,
+    val language: String = Locale.getDefault().language,
+    val categories: List<Category> = emptyList(),
 )

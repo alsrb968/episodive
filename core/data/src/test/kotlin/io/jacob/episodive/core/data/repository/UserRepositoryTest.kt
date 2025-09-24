@@ -30,16 +30,16 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun `Given dependencies, When setLanguage, Then call data source's method`() =
+    fun `Given dependencies, When setFirstLaunch, Then call data source's method`() =
         runTest {
             // Given
-            coEvery { userPreferencesDataSource.setLanguage(any()) } just Runs
+            coEvery { userPreferencesDataSource.setFirstLaunch(any()) } just Runs
 
             // When
-            repository.setLanguage("en")
+            repository.setFirstLaunch(false)
 
             // Then
-            coVerify { userPreferencesDataSource.setLanguage("en") }
+            coVerify { userPreferencesDataSource.setFirstLaunch(false) }
         }
 
     @Test

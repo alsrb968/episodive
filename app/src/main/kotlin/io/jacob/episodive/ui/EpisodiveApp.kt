@@ -63,41 +63,44 @@ fun EpisodiveApp(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState,
 ) {
+    val userData by appState.userData.collectAsStateWithLifecycle()
     val currentDestination by appState.currentDestination
         .collectAsStateWithLifecycle(initialValue = null)
 
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            EpisodiveNavigationBar {
-                appState.bottomBarDestinations.forEach { destination ->
-                    val selected = currentDestination
-                        .isRouteInHierarchy(destination.baseRoute)
-                    val text = stringResource(destination.iconTextId)
+            if (!userData.isFirstLaunch) {
+                EpisodiveNavigationBar {
+                    appState.bottomBarDestinations.forEach { destination ->
+                        val selected = currentDestination
+                            .isRouteInHierarchy(destination.baseRoute)
+                        val text = stringResource(destination.iconTextId)
 
-                    EpisodiveNavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = destination.unselectedIcon,
-                                contentDescription = text
-                            )
-                        },
-                        selectedIcon = {
-                            Icon(
-                                imageVector = destination.selectedIcon,
-                                contentDescription = text
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = text,
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines = 1
-                            )
-                        },
-                        selected = selected,
-                        onClick = { appState.navigateToBottomBarDestination(destination) },
-                    )
+                        EpisodiveNavigationBarItem(
+                            icon = {
+                                Icon(
+                                    imageVector = destination.unselectedIcon,
+                                    contentDescription = text
+                                )
+                            },
+                            selectedIcon = {
+                                Icon(
+                                    imageVector = destination.selectedIcon,
+                                    contentDescription = text
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = text,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    maxLines = 1
+                                )
+                            },
+                            selected = selected,
+                            onClick = { appState.navigateToBottomBarDestination(destination) },
+                        )
+                    }
                 }
             }
         },

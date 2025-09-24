@@ -12,8 +12,8 @@ import javax.inject.Inject
 class UserRepositoryImpl @Inject constructor(
     private val userPreferencesDataSource: UserPreferencesDataSource
 ) : UserRepository {
-    override suspend fun setLanguage(language: String) {
-        userPreferencesDataSource.setLanguage(language)
+    override suspend fun setFirstLaunch(isFirstLaunch: Boolean) {
+        userPreferencesDataSource.setFirstLaunch(isFirstLaunch)
     }
 
     override suspend fun setCategories(categories: List<Category>) {

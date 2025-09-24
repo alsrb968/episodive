@@ -10,18 +10,19 @@ import io.jacob.episodive.core.model.mapper.toCategories
 import io.jacob.episodive.core.model.mapper.toCommaString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Locale
 import javax.inject.Inject
 
 class UserPreferencesStore @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     object UserPreferencesKeys {
-        val language = stringPreferencesKey("language")
+        val isFirstLaunch = stringPreferencesKey("is_first_launch")
         val categories = stringPreferencesKey("categories")
     }
 
-    suspend fun setLanguage(language: String) {
-        dataStore.edit { it[UserPreferencesKeys.language] = language }
+    suspend fun setFirstLaunch(isFirstLaunch: Boolean) {
+        dataStore.edit { it[UserPreferencesKeys.isFirstLaunch] = isFirstLaunch.toString() }
     }
 
     suspend fun setCategories(categories: List<Category>) {
@@ -31,8 +32,9 @@ class UserPreferencesStore @Inject constructor(
     fun getUserPreferences(): Flow<UserPreferences> =
         dataStore.data.map { preferences ->
             UserPreferences(
-                language = preferences[UserPreferencesKeys.language]
-                    ?: "en",
+                isFirstLaunch = preferences[UserPreferencesKeys.isFirstLaunch]?.toBoolean()
+                    ?: true,
+                language = Locale.getDefault().language,
                 categories = preferences[UserPreferencesKeys.categories]?.toCategories()
                     ?: emptyList(),
             )

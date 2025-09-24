@@ -30,16 +30,16 @@ class UserPreferencesDataSourceTest {
     }
 
     @Test
-    fun `Given dependencies, When setLanguage, Then call store's method`() =
+    fun `Given dependencies, When setFirstLaunch, Then call store's method`() =
         runTest {
             // Given
-            coEvery { store.setLanguage(any()) } just Runs
+            coEvery { store.setFirstLaunch(any()) } just Runs
 
             // When
-            dataSource.setLanguage("en")
+            dataSource.setFirstLaunch(false)
 
             // Then
-            coVerify { store.setLanguage("en") }
+            coVerify { store.setFirstLaunch(false) }
         }
 
     @Test
