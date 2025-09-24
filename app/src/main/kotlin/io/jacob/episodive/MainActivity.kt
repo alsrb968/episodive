@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import io.jacob.episodive.core.data.util.NetworkMonitor
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -22,8 +23,13 @@ class MainActivity : ComponentActivity() {
     lateinit var userRepository: UserRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+//        splashScreen.setKeepOnScreenCondition {
+//            isDone.value
+//        }
         setContent {
             val appState = rememberEpisodiveAppState(
                 networkMonitor = networkMonitor,

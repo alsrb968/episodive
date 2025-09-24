@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -121,11 +122,11 @@ private fun CategorySelection(
         }
         lazyGridState.DecorativeScrollbar(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .align(Alignment.BottomStart),
+                .fillMaxHeight()
+                .padding(vertical = 12.dp)
+                .align(Alignment.TopEnd),
             state = lazyGridState.scrollbarState(itemsAvailable = categories.size),
-            orientation = Orientation.Horizontal,
+            orientation = Orientation.Vertical,
         )
     }
 }
