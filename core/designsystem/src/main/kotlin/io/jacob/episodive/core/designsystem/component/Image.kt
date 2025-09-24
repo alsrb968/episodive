@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +39,7 @@ fun StateImage(
     fallbackIcon: ImageVector = EpisodiveIcons.Place,
 ) {
     if (LocalInspectionMode.current) {
-        Box(modifier = modifier.background(MaterialTheme.colorScheme.onPrimary))
+        Box(modifier = modifier.background(MaterialTheme.colorScheme.secondary))
         return
     }
 
@@ -104,8 +105,7 @@ private fun StateImagePreview() {
             imageUrl = "https://www.example.com/image.jpg",
             contentDescription = "Example Image",
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp)
+                .size(16.dp)
         )
     }
 }
