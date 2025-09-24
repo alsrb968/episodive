@@ -3,6 +3,8 @@ package io.jacob.episodive.core.designsystem.icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.ShortText
@@ -39,16 +41,18 @@ import androidx.compose.material.icons.rounded.ViewDay
 object EpisodiveIcons {
     val Add = Icons.Rounded.Add
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
-    val Check = Icons.Rounded.Check
     val AutoAwesome = Icons.Rounded.AutoAwesome
     val AutoAwesomeBorder = Icons.Outlined.AutoAwesome
+    val Check = Icons.Rounded.Check
     val Close = Icons.Rounded.Close
-    val KeyboardArrowDown = Icons.Rounded.KeyboardArrowDown
     val FileDownload = Icons.Rounded.FileDownload
     val Forward10 = Icons.Rounded.Forward10
     val History = Icons.Rounded.History
     val Home = Icons.Rounded.Home
     val HomeBorder = Icons.Outlined.Home
+    val KeyboardArrowDown = Icons.Rounded.KeyboardArrowDown
+    val KeyboardArrowLeft = Icons.AutoMirrored.Rounded.KeyboardArrowLeft
+    val KeyboardArrowRight = Icons.AutoMirrored.Rounded.KeyboardArrowRight
     val LibraryBooks = Icons.AutoMirrored.Rounded.LibraryBooks
     val LibraryBooksBorder = Icons.AutoMirrored.Outlined.LibraryBooks
     val MoreVert = Icons.Rounded.MoreVert
