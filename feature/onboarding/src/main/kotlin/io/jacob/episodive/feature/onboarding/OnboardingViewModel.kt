@@ -116,6 +116,7 @@ class OnboardingViewModel @Inject constructor(
         }
 
         _page.value.next()?.let { _page.emit(it) }
+        _effect.emit(OnboardingEffect.MoveToPage(_page.value))
     }
 
     private fun previousPage() = viewModelScope.launch {
@@ -127,6 +128,7 @@ class OnboardingViewModel @Inject constructor(
         }
 
         _page.value.previous()?.let { _page.emit(it) }
+        _effect.emit(OnboardingEffect.MoveToPage(_page.value))
     }
 
     private fun chooseCategory(category: Category) = viewModelScope.launch {
@@ -160,6 +162,7 @@ sealed interface OnboardingAction {
 sealed interface OnboardingEffect {
     data object ToastMoreCategories : OnboardingEffect
     data object NavigateToMain : OnboardingEffect
+    data class MoveToPage(val page: OnboardingPage) : OnboardingEffect
 }
 
 enum class OnboardingPage {

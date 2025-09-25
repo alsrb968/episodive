@@ -1,23 +1,31 @@
 package io.jacob.episodive.feature.onboarding
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -29,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +52,7 @@ import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
+import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Category
 import kotlinx.coroutines.flow.collectLatest
 
@@ -54,6 +64,7 @@ fun OnboardingRoute(
     onCompleted: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val pagerState = rememberPagerState(pageCount = { OnboardingPage.count })
 
     val moreCategories = stringResource(R.string.feature_onboarding_category_more_categories)
     LaunchedEffect(Unit) {
@@ -61,97 +72,43 @@ fun OnboardingRoute(
             when (effect) {
                 is OnboardingEffect.ToastMoreCategories -> onShowSnackbar(moreCategories, null)
                 is OnboardingEffect.NavigateToMain -> onCompleted()
+                is OnboardingEffect.MoveToPage -> {
+                    pagerState.animateScrollToPage(effect.page.ordinal)
+                }
             }
         }
     }
 
-//    when (val s = state) {
-//        is OnboardingState.Welcome -> {
-//            WelcomeScreen(
-//                modifier = modifier,
-//                onNextClick = { viewModel.sendAction(OnboardingAction.NextPage) },
-//            )
-//        }
-//
-//        is OnboardingState.PreferredCategories -> {
-//            CategoryScreen(
-//                modifier = modifier,
-//                categories = s.categories,
-//                onCategoryCheckedChanged = { category, isSelected ->
-//                    viewModel.sendAction(OnboardingAction.ChooseCategory(category, isSelected))
-//                },
-//                onNextClick = { viewModel.sendAction(OnboardingAction.NextPage) },
-//            )
-//        }
-//
-//        is OnboardingState.PreferredFeeds -> {}
-//        is OnboardingState.Completed -> {}
-//    }
-}
-
-//@Composable
-//private fun OnboardingScreen(
-//    modifier: Modifier = Modifier,
-//    onNextClick: () -> Unit,
-//) {
-//    val pagerState = rememberPagerState(pageCount = { 4 })
-//
-//    Box(
-//        modifier = modifier
-//            .fillMaxSize()
-//    ) {
-//        HorizontalPager(
-//            state = pagerState,
-//            modifier = Modifier.fillMaxSize()
-//        ) { page ->
-//            when (page) {
-//                0 -> WelcomeScreen()
-//                1 -> CategorySelectionScreen()
-//                2 -> PodcastSelectionScreen()
-//            }
-//        }
-//
-//        // 인디케이터
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//            repeat(3) { iteration ->
-//                val color = if (pagerState.currentPage == iteration)
-//                    Color.Blue else Color.Gray
-//                Box(
-//                    modifier = Modifier
-//                        .padding(2.dp)
-//                        .clip(CircleShape)
-//                        .background(color)
-//                        .size(8.dp)
-//                )
-//            }
-//        }
-//
-//        EpisodiveButton(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//                .align(Alignment.BottomCenter),
-//            shape = RoundedCornerShape(12.dp),
-//            onClick = onNextClick,
-//            text = { Text(text = stringResource(R.string.feature_onboarding_next)) },
-//            enabled = true,
-//        )
-//    }
-//}
-
-@Composable
-private fun WelcomeScreen(
-    modifier: Modifier = Modifier,
-    onNextClick: () -> Unit,
-) {
     Box(
         modifier = modifier
-            .fillMaxSize(),
+            .fillMaxSize()
     ) {
-        Text(text = "Welcome Screen")
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            when (page) {
+                0 -> WelcomeScreen()
+
+                1 -> CategorySelectionScreen(
+                    modifier = modifier,
+                    categories = state.categories,
+                    onCategoryCheckedChanged = { category ->
+                        viewModel.sendAction(OnboardingAction.ChooseCategory(category))
+                    },
+                )
+
+                2 -> Box {}
+                3 -> Box {}
+            }
+        }
+
+        PagerIndicator(
+            modifier = Modifier
+                .align(Alignment.BottomCenter),
+            pageCount = OnboardingPage.count,
+            currentPage = pagerState.currentPage
+        )
 
         EpisodiveButton(
             modifier = Modifier
@@ -159,7 +116,7 @@ private fun WelcomeScreen(
                 .padding(16.dp)
                 .align(Alignment.BottomCenter),
             shape = RoundedCornerShape(12.dp),
-            onClick = onNextClick,
+            onClick = { viewModel.sendAction(OnboardingAction.NextPage) },
             text = { Text(text = stringResource(R.string.feature_onboarding_next)) },
             enabled = true,
         )
@@ -167,18 +124,28 @@ private fun WelcomeScreen(
 }
 
 @Composable
-private fun CategoryScreen(
+private fun WelcomeScreen(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+    ) {
+        Text(text = "Welcome Screen")
+    }
+}
+
+@Composable
+private fun CategorySelectionScreen(
     modifier: Modifier = Modifier,
     categories: List<CategoryUiModel>,
-    onCategoryCheckedChanged: (Category, Boolean) -> Unit,
-    onNextClick: () -> Unit,
+    onCategoryCheckedChanged: (Category) -> Unit,
 ) {
     CategorySelection(
         modifier = modifier
             .fillMaxSize(),
         categories = categories,
         onCategoryCheckedChanged = onCategoryCheckedChanged,
-        onNextClick = onNextClick,
     )
 }
 
@@ -186,8 +153,7 @@ private fun CategoryScreen(
 private fun CategorySelection(
     modifier: Modifier = Modifier,
     categories: List<CategoryUiModel>,
-    onCategoryCheckedChanged: (Category, Boolean) -> Unit,
-    onNextClick: () -> Unit,
+    onCategoryCheckedChanged: (Category) -> Unit,
 ) {
     val lazyGridState = rememberLazyGridState()
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
@@ -250,17 +216,6 @@ private fun CategorySelection(
             state = lazyGridState.scrollbarState(itemsAvailable = categories.size),
             orientation = Orientation.Vertical,
         )
-
-        EpisodiveButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .align(Alignment.BottomCenter),
-            shape = RoundedCornerShape(12.dp),
-            onClick = onNextClick,
-            text = { Text(text = stringResource(R.string.feature_onboarding_next)) },
-            enabled = true,
-        )
     }
 }
 
@@ -269,7 +224,7 @@ private fun CategoryButton(
     modifier: Modifier = Modifier,
     category: Category,
     isSelected: Boolean,
-    onClick: (Category, Boolean) -> Unit,
+    onClick: (Category) -> Unit,
 ) {
     Surface(
         modifier = modifier
@@ -277,7 +232,7 @@ private fun CategoryButton(
         shape = RoundedCornerShape(corner = CornerSize(16.dp)),
         selected = isSelected,
         onClick = {
-            onClick(category, !isSelected)
+            onClick(category)
         },
     ) {
         StateImage(
@@ -303,7 +258,7 @@ private fun CategoryButton(
                     .size(24.dp)
                     .align(Alignment.TopEnd),
                 checked = isSelected,
-                onCheckedChange = { checked -> onClick(category, checked) },
+                onCheckedChange = { checked -> onClick(category) },
                 icon = {
                     Icon(
                         imageVector = EpisodiveIcons.Add,
@@ -321,24 +276,62 @@ private fun CategoryButton(
     }
 }
 
-@DevicePreviews
 @Composable
-private fun WelcomeScreenPreview() {
+private fun PagerIndicator(
+    pageCount: Int,
+    currentPage: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        repeat(pageCount) { page ->
+            Box(
+                modifier = Modifier
+                    .width(if (page == currentPage) 24.dp else 8.dp)
+                    .height(8.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (page == currentPage)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    )
+            )
+            if (page < pageCount - 1) {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun PagerIndicatorPreview() {
     EpisodiveTheme {
-        WelcomeScreen(
-            onNextClick = {},
+        PagerIndicator(
+            pageCount = 3,
+            currentPage = 1,
         )
     }
 }
 
 @DevicePreviews
 @Composable
-private fun CategoryScreenPreview() {
+private fun WelcomeScreenPreview() {
     EpisodiveTheme {
-        CategoryScreen(
+        WelcomeScreen()
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun CategorySelectionScreenPreview() {
+    EpisodiveTheme {
+        CategorySelectionScreen(
             categories = Category.entries.map { CategoryUiModel(it, false) },
-            onCategoryCheckedChanged = { _, _ -> },
-            onNextClick = {},
+            onCategoryCheckedChanged = {},
         )
     }
 }
