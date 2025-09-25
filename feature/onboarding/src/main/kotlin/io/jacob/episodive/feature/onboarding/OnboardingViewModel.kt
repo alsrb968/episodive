@@ -3,9 +3,10 @@ package io.jacob.episodive.feature.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.jacob.episodive.core.domain.repository.UserRepository
 import io.jacob.episodive.core.domain.usecase.feed.GetRecommendedFeedsUseCase
-import io.jacob.episodive.core.domain.usecase.podcast.AddFollowedsUseCase
+import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
+import io.jacob.episodive.core.domain.usecase.user.SetFirstLaunchOffUseCase
+import io.jacob.episodive.core.domain.usecase.user.ToggleCategoryUseCase
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Feed
 import kotlinx.coroutines.delay
@@ -23,8 +24,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val addFollowedsUseCase: AddFollowedsUseCase,
+    private val setFirstLaunchOffUseCase: SetFirstLaunchOffUseCase,
+    private val toggleCategoryUseCase: ToggleCategoryUseCase,
+    private val toggleFollowedUseCase: ToggleFollowedUseCase,
     private val getRecommendedFeedsUseCase: GetRecommendedFeedsUseCase,
 ) : ViewModel() {
 
@@ -100,11 +102,11 @@ class OnboardingViewModel @Inject constructor(
                     _effect.emit(OnboardingEffect.ToastMoreCategories)
                     return@launch
                 }
-                userRepository.setCategories(selectedCategories.toList())
+//                userRepository.setCategories(selectedCategories.toList())
             }
 
             OnboardingPage.FeedSelection -> {
-                addFollowedsUseCase(selectedFeeds.map { it.id })
+//                addFollowedsUseCase(selectedFeeds.map { it.id })
                 finishOnboarding()
             }
 
@@ -160,7 +162,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun finishOnboarding() = viewModelScope.launch {
-        userRepository.setFirstLaunch(false)
+        setFirstLaunchOffUseCase()
         delay(3000L)
         _effect.emit(OnboardingEffect.NavigateToMain)
     }

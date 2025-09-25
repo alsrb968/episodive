@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserPreferencesDataSource {
     suspend fun setFirstLaunch(isFirstLaunch: Boolean)
-    suspend fun setCategories(categories: List<Category>)
+    suspend fun addCategory(category: Category)
+    suspend fun addCategories(categories: List<Category>)
+    suspend fun removeCategory(category: Category)
+    fun getCategories(): Flow<List<Category>>
     fun getUserPreferences(): Flow<UserPreferences>
 }

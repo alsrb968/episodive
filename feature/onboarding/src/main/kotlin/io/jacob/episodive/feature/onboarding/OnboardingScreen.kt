@@ -65,28 +65,28 @@ fun OnboardingRoute(
         }
     }
 
-    when (val s = state) {
-        is OnboardingState.Welcome -> {
-            WelcomeScreen(
-                modifier = modifier,
-                onNextClick = { viewModel.sendAction(OnboardingAction.NextPage) },
-            )
-        }
-
-        is OnboardingState.PreferredCategories -> {
-            CategoryScreen(
-                modifier = modifier,
-                categories = s.categories,
-                onCategoryCheckedChanged = { category, isSelected ->
-                    viewModel.sendAction(OnboardingAction.ChooseCategory(category, isSelected))
-                },
-                onNextClick = { viewModel.sendAction(OnboardingAction.NextPage) },
-            )
-        }
-
-        is OnboardingState.PreferredFeeds -> {}
-        is OnboardingState.Completed -> {}
-    }
+//    when (val s = state) {
+//        is OnboardingState.Welcome -> {
+//            WelcomeScreen(
+//                modifier = modifier,
+//                onNextClick = { viewModel.sendAction(OnboardingAction.NextPage) },
+//            )
+//        }
+//
+//        is OnboardingState.PreferredCategories -> {
+//            CategoryScreen(
+//                modifier = modifier,
+//                categories = s.categories,
+//                onCategoryCheckedChanged = { category, isSelected ->
+//                    viewModel.sendAction(OnboardingAction.ChooseCategory(category, isSelected))
+//                },
+//                onNextClick = { viewModel.sendAction(OnboardingAction.NextPage) },
+//            )
+//        }
+//
+//        is OnboardingState.PreferredFeeds -> {}
+//        is OnboardingState.Completed -> {}
+//    }
 }
 
 //@Composable

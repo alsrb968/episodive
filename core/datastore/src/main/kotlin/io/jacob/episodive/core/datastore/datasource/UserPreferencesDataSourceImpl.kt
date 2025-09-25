@@ -13,8 +13,20 @@ class UserPreferencesDataSourceImpl @Inject constructor(
         store.setFirstLaunch(isFirstLaunch)
     }
 
-    override suspend fun setCategories(categories: List<Category>) {
-        store.setCategories(categories)
+    override suspend fun addCategory(category: Category) {
+        store.addCategory(category)
+    }
+
+    override suspend fun addCategories(categories: List<Category>) {
+        store.addCategories(categories)
+    }
+
+    override suspend fun removeCategory(category: Category) {
+        store.removeCategory(category)
+    }
+
+    override fun getCategories(): Flow<List<Category>> {
+        return store.getCategories()
     }
 
     override fun getUserPreferences(): Flow<UserPreferences> {

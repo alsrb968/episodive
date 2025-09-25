@@ -43,16 +43,55 @@ class UserPreferencesDataSourceTest {
         }
 
     @Test
-    fun `Given dependencies, When setCategories, Then call store's method`() =
+    fun `Given dependencies, When addCategory, Then call store's method`() =
         runTest {
             // Given
-            coEvery { store.setCategories(any()) } just Runs
+            coEvery { store.addCategory(any()) } just Runs
 
             // When
-            dataSource.setCategories(listOf(Category.CAREERS, Category.SCIENCE))
+            dataSource.addCategory(Category.ARTS)
 
             // Then
-            coVerify { store.setCategories(listOf(Category.CAREERS, Category.SCIENCE)) }
+            coVerify { store.addCategory(Category.ARTS) }
+        }
+
+    @Test
+    fun `Given dependencies, When removeCategory, Then call store's method`() =
+        runTest {
+            // Given
+            coEvery { store.removeCategory(any()) } just Runs
+
+            // When
+            dataSource.removeCategory(Category.ARTS)
+
+            // Then
+            coVerify { store.removeCategory(Category.ARTS) }
+        }
+
+    @Test
+    fun `Given dependencies, When addCategories, Then call store's method`() =
+        runTest {
+            // Given
+            coEvery { store.addCategories(any()) } just Runs
+
+            // When
+            dataSource.addCategories(listOf(Category.CAREERS, Category.SCIENCE))
+
+            // Then
+            coVerify { store.addCategories(listOf(Category.CAREERS, Category.SCIENCE)) }
+        }
+
+    @Test
+    fun `Given dependencies, When getCategories, Then call store's method`() =
+        runTest {
+            // Given
+            coEvery { store.getCategories() } returns mockk()
+
+            // When
+            dataSource.getCategories()
+
+            // Then
+            coVerify { store.getCategories() }
         }
 
     @Test
