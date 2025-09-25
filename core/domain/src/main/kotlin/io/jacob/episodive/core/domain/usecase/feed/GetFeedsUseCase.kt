@@ -7,7 +7,6 @@ import io.jacob.episodive.core.model.mapper.toFeedsFromRecent
 import io.jacob.episodive.core.model.mapper.toFeedsFromTrending
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import timber.log.Timber
 import javax.inject.Inject
 
 class GetFeedsUseCase @Inject constructor(
@@ -27,13 +26,6 @@ class GetFeedsUseCase @Inject constructor(
                 includeCategories = categories
             ),
         ) { trending, recent ->
-            trending.forEachIndexed { index, feed ->
-                Timber.v("[$index] trending feed: ${feed.title}, image: ${feed.image}")
-            }
-            Timber.v("-----")
-            recent.forEachIndexed { index, feed ->
-                Timber.v("[$index] recent feed: ${feed.title}, image: ${feed.image}")
-            }
             (trending.toFeedsFromTrending() + recent.toFeedsFromRecent())
                 .distinctBy { it.id }
                 .sortedByDescending { it.newestItemPublishTime }

@@ -6,7 +6,6 @@ import io.jacob.episodive.core.network.model.RecentNewFeedResponse
 import io.jacob.episodive.core.network.model.RecentNewValueFeedResponse
 import io.jacob.episodive.core.network.model.SoundbiteResponse
 import io.jacob.episodive.core.network.model.TrendingFeedResponse
-import timber.log.Timber
 import javax.inject.Inject
 
 class FeedRemoteDataSourceImpl @Inject constructor(
@@ -19,17 +18,13 @@ class FeedRemoteDataSourceImpl @Inject constructor(
         includeCategories: String?,
         excludeCategories: String?,
     ): List<TrendingFeedResponse> {
-        val ret = feedApi.getTrendingFeeds(
+        return feedApi.getTrendingFeeds(
             max = max,
             since = since,
             language = language,
             includeCategories = includeCategories,
             excludeCategories = excludeCategories,
         ).dataList
-        ret.forEachIndexed { index, response ->
-            Timber.w("[$index] title: ${response.title}, image: ${response.image}" )
-        }
-        return ret
     }
 
     override suspend fun getRecentFeeds(
@@ -39,17 +34,13 @@ class FeedRemoteDataSourceImpl @Inject constructor(
         includeCategories: String?,
         excludeCategories: String?,
     ): List<RecentFeedResponse> {
-        val ret = feedApi.getRecentFeeds(
+        return feedApi.getRecentFeeds(
             max = max,
             since = since,
             language = language,
             includeCategories = includeCategories,
             excludeCategories = excludeCategories,
         ).dataList
-        ret.forEachIndexed { index, response ->
-            Timber.w("[$index] title: ${response.title}, image: ${response.image}" )
-        }
-        return ret
     }
 
     override suspend fun getRecentNewFeeds(

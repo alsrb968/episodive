@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,6 +39,7 @@ class OnboardingViewModel @Inject constructor(
     private val _page = MutableStateFlow(OnboardingPage.Welcome)
     private val _categories: Flow<List<CategoryUiModel>> =
         getPreferredCategoriesUseCase().flatMapLatest { preferredCategories ->
+            Timber.d("preferredCategories: $preferredCategories")
             Category.entries.map { category ->
                 CategoryUiModel(
                     category = category,
@@ -47,6 +49,7 @@ class OnboardingViewModel @Inject constructor(
         }
     private val _feeds: Flow<List<FeedUiModel>> =
         getRecommendedFeedsUseCase().flatMapLatest { recommendedFeeds ->
+            Timber.d("recommendedFeeds: ${recommendedFeeds.size}")
             recommendedFeeds.map { feed ->
                 FeedUiModel(
                     feed = feed,
