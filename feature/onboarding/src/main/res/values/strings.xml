@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_onboarding_category_title">Choose your taste</string>
+    <string name="feature_onboarding_category_description">Please select three or more podcast\ngenres that you enjoy</string>
+    <string name="feature_onboarding_category_more_categories">Please select three or more</string>
+    <string name="feature_onboarding_next">Next</string>
+</resources>

@@ -82,7 +82,7 @@ fun EpisodiveFilterChip(
 
 @ThemePreviews
 @Composable
-fun ChipPreview() {
+private fun ChipPreview() {
     EpisodiveTheme {
         EpisodiveFilterChip(selected = true, onSelectedChange = {}) {
             Text("Chip")

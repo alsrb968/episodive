@@ -43,20 +43,20 @@ fun EpisodiveIconToggleButton(
 
 @ThemePreviews
 @Composable
-fun IconButtonPreview() {
+private fun IconButtonPreview() {
     EpisodiveTheme {
         EpisodiveIconToggleButton(
             checked = true,
             onCheckedChange = { },
             icon = {
                 Icon(
-                    imageVector = EpisodiveIcons.AutoAwesomeBorder,
+                    imageVector = EpisodiveIcons.Add,
                     contentDescription = null,
                 )
             },
             checkedIcon = {
                 Icon(
-                    imageVector = EpisodiveIcons.AutoAwesome,
+                    imageVector = EpisodiveIcons.Check,
                     contentDescription = null,
                 )
             },
@@ -66,20 +66,20 @@ fun IconButtonPreview() {
 
 @ThemePreviews
 @Composable
-fun IconButtonPreviewUnchecked() {
+private fun IconButtonPreviewUnchecked() {
     EpisodiveTheme {
         EpisodiveIconToggleButton(
             checked = false,
             onCheckedChange = { },
             icon = {
                 Icon(
-                    imageVector = EpisodiveIcons.AutoAwesomeBorder,
+                    imageVector = EpisodiveIcons.Add,
                     contentDescription = null,
                 )
             },
             checkedIcon = {
                 Icon(
-                    imageVector = EpisodiveIcons.AutoAwesome,
+                    imageVector = EpisodiveIcons.Check,
                     contentDescription = null,
                 )
             },

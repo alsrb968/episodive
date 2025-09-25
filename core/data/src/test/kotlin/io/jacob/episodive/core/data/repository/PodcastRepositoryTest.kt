@@ -22,9 +22,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -221,5 +219,20 @@ class PodcastRepositoryTest {
                 localDataSource.isFollowed(podcastId)
                 localDataSource.addFollowed(match { it.id == podcastId })
             }
+        }
+
+    @Test
+    fun `Given ids, When addFolloweds is called, Then call addFolloweds of localDataSource`() =
+        runTest {
+            // Given
+            val ids = listOf(1L, 2L, 3L)
+            coEvery { localDataSource.addFolloweds(any()) } returns Unit
+
+            // When
+            val result = repository.addFolloweds(ids)
+
+            // Then
+            assertTrue(result)
+            coVerify { localDataSource.addFolloweds(match { it.size == ids.size }) }
         }
 }

@@ -3,7 +3,6 @@ package io.jacob.episodive.core.database.datasource
 import io.jacob.episodive.core.database.dao.PodcastDao
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.database.mapper.toPodcastEntity
-import io.jacob.episodive.core.database.model.FollowedPodcastDto
 import io.jacob.episodive.core.database.model.FollowedPodcastEntity
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
@@ -216,5 +215,26 @@ class PodcastLocalDataSourceTest {
 
             // Then
             coVerify { podcastDao.getFollowedPodcastCount() }
+        }
+
+    @Test
+    fun `Given dependencies, When addFolloweds is called, Then addFolloweds of dao is called`() =
+        runTest {
+            // Given
+            coEvery { podcastDao.addFolloweds(any()) } just Runs
+
+            // When
+            dataSource.addFolloweds(
+                listOf(
+                    FollowedPodcastEntity(
+                        id = podcastEntity.id,
+                        followedAt = Clock.System.now(),
+                        isNotificationEnabled = true,
+                    )
+                )
+            )
+
+            // Then
+            coVerify { podcastDao.addFolloweds(any()) }
         }
 }

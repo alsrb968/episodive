@@ -48,7 +48,7 @@ fun EpisodiveTopicTag(
 
 @ThemePreviews
 @Composable
-fun TagPreview() {
+private fun TagPreview() {
     EpisodiveTheme {
         EpisodiveTopicTag(followed = true, onClick = {}) {
             Text("Topic".uppercase())

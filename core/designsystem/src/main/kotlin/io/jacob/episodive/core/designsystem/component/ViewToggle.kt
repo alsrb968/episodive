@@ -76,7 +76,7 @@ private fun EpisodiveViewToggleButtonContent(
 
 @ThemePreviews
 @Composable
-fun ViewTogglePreviewExpanded() {
+private fun ViewTogglePreviewExpanded() {
     EpisodiveTheme {
         Surface {
             EpisodiveViewToggleButton(
@@ -91,7 +91,7 @@ fun ViewTogglePreviewExpanded() {
 
 @ThemePreviews
 @Composable
-fun ViewTogglePreviewCompact() {
+private fun ViewTogglePreviewCompact() {
     EpisodiveTheme {
         Surface {
             EpisodiveViewToggleButton(

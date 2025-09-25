@@ -58,7 +58,7 @@ fun EpisodiveNavigationBar(
 
 @DevicePreviews
 @Composable
-fun EpisodiveNavigationBarPreview() {
+private fun EpisodiveNavigationBarPreview() {
     val items = listOf("Home", "Search", "Library", "Clip")
     val selectedIcons = listOf(
         EpisodiveIcons.Home,

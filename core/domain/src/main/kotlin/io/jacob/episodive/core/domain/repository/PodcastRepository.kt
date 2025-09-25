@@ -24,4 +24,6 @@ interface PodcastRepository {
     fun getFollowedPodcasts(query: String? = null): Flow<List<FollowedPodcast>>
 
     suspend fun toggleFollowed(id: Long): Boolean
+
+    suspend fun addFolloweds(ids: List<Long>): Boolean
 }

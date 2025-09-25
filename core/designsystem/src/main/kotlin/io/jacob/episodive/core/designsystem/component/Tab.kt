@@ -68,7 +68,7 @@ fun EpisodiveTabRow(
 
 @ThemePreviews
 @Composable
-fun TabsPreview() {
+private fun TabsPreview() {
     EpisodiveTheme {
         val titles = listOf("Topics", "People")
         EpisodiveTabRow(selectedTabIndex = 0) {

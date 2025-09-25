@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -51,6 +51,9 @@ fun StateImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(imageUrl)
             .crossfade(true)
+            .size(300)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
             .build(),
         contentScale = contentScale,
         onState = { state -> imagePainterState = state }
@@ -62,15 +65,15 @@ fun StateImage(
     ) {
         when (imagePainterState) {
 //            is AsyncImagePainter.State.Loading,
-            is AsyncImagePainter.State.Error -> {
-                Image(
-                    imageVector = fallbackIcon,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp)
-                )
-            }
+//            is AsyncImagePainter.State.Error -> {
+//                Image(
+//                    imageVector = fallbackIcon,
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(24.dp)
+//                )
+//            }
 
             else -> {
                 Box(
@@ -92,7 +95,7 @@ fun StateImage(
 
 @Composable
 internal fun thumbnailPlaceholderDefaultBrush(
-    color: Color = MaterialTheme.colorScheme.primaryContainer
+    color: Color = MaterialTheme.colorScheme.secondaryContainer
 ): Brush {
     return SolidColor(color)
 }

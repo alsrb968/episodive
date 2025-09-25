@@ -27,6 +27,9 @@ interface PodcastDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addFollowed(followedPodcastEntity: FollowedPodcastEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addFolloweds(followedPodcastEntities: List<FollowedPodcastEntity>)
+
     @Query("DELETE FROM followed_podcasts WHERE id = :id")
     suspend fun removeFollowed(id: Long)
 

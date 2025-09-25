@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -22,6 +23,7 @@ import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 fun EpisodiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = ButtonDefaults.shape,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
@@ -29,6 +31,7 @@ fun EpisodiveButton(
     Button(
         onClick = onClick,
         modifier = modifier,
+        shape = shape,
         enabled = enabled,
 //        colors = ButtonDefaults.buttonColors(
 //            containerColor = MaterialTheme.colorScheme.onBackground,
@@ -42,6 +45,7 @@ fun EpisodiveButton(
 fun EpisodiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = ButtonDefaults.shape,
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -49,6 +53,7 @@ fun EpisodiveButton(
     EpisodiveButton(
         onClick = onClick,
         modifier = modifier,
+        shape = shape,
         enabled = enabled,
         contentPadding = if (leadingIcon != null) {
             ButtonDefaults.ButtonWithIconContentPadding
@@ -67,6 +72,7 @@ fun EpisodiveButton(
 fun EpisodiveOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = ButtonDefaults.shape,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
@@ -74,6 +80,7 @@ fun EpisodiveOutlinedButton(
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,
+        shape = shape,
         enabled = enabled,
 //        colors = ButtonDefaults.outlinedButtonColors(
 //            contentColor = MaterialTheme.colorScheme.primary,
@@ -97,6 +104,7 @@ fun EpisodiveOutlinedButton(
 fun EpisodiveOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = ButtonDefaults.shape,
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -104,6 +112,7 @@ fun EpisodiveOutlinedButton(
     EpisodiveOutlinedButton(
         onClick = onClick,
         modifier = modifier,
+        shape = shape,
         enabled = enabled,
         contentPadding = if (leadingIcon != null) {
             ButtonDefaults.ButtonWithIconContentPadding
@@ -122,12 +131,14 @@ fun EpisodiveOutlinedButton(
 fun EpisodiveTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = ButtonDefaults.shape,
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
     TextButton(
         onClick = onClick,
         modifier = modifier,
+        shape = shape,
         enabled = enabled,
 //        colors = ButtonDefaults.textButtonColors(
 //            contentColor = MaterialTheme.colorScheme.onBackground,
@@ -140,6 +151,7 @@ fun EpisodiveTextButton(
 fun EpisodiveTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = ButtonDefaults.shape,
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -147,6 +159,7 @@ fun EpisodiveTextButton(
     EpisodiveTextButton(
         onClick = onClick,
         modifier = modifier,
+        shape = shape,
         enabled = enabled,
     ) {
         EpisodiveButtonContent(
@@ -187,7 +200,7 @@ object EpisodiveButtonDefaults {
 
 @ThemePreviews
 @Composable
-fun EpisodiveButtonPreview() {
+private fun EpisodiveButtonPreview() {
     EpisodiveTheme {
         EpisodiveButton(onClick = {}, text = { Text("Test button") })
     }
@@ -195,7 +208,7 @@ fun EpisodiveButtonPreview() {
 
 @ThemePreviews
 @Composable
-fun EpisodiveOutlinedButtonPreview() {
+private fun EpisodiveOutlinedButtonPreview() {
     EpisodiveTheme {
         EpisodiveOutlinedButton(onClick = {}, text = { Text("Test button") })
     }
@@ -203,12 +216,20 @@ fun EpisodiveOutlinedButtonPreview() {
 
 @ThemePreviews
 @Composable
-fun EpisodiveButtonLeadingIconPreview() {
+private fun EpisodiveButtonLeadingIconPreview() {
     EpisodiveTheme {
         EpisodiveButton(
             onClick = {},
             text = { Text("Test button") },
             leadingIcon = { Icon(imageVector = EpisodiveIcons.Add, contentDescription = null) },
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun EpisodiveTextButtonPreview() {
+    EpisodiveTheme {
+        EpisodiveTextButton(onClick = {}, text = { Text("Test button") })
     }
 }

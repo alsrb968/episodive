@@ -1,5 +1,6 @@
 package io.jacob.episodive.core.data.repository
 
+import androidx.room.Transaction
 import io.jacob.episodive.core.data.util.Cacher
 import io.jacob.episodive.core.data.util.query.PodcastQuery
 import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
@@ -80,6 +81,7 @@ class PodcastRepositoryImpl @Inject constructor(
         return localDataSource.getFollowedPodcasts(query).map { it.toFollowedPodcasts() }
     }
 
+    @Transaction
     override suspend fun toggleFollowed(id: Long): Boolean {
         return if (localDataSource.isFollowed(id).first()) {
             localDataSource.removeFollowed(id)
@@ -93,6 +95,24 @@ class PodcastRepositoryImpl @Inject constructor(
                 )
             )
             true
+        }
+    }
+
+    override suspend fun addFolloweds(ids: List<Long>): Boolean {
+        return try {
+            val now = Clock.System.now()
+            val followedPodcastEntities = ids.map {
+                FollowedPodcastEntity(
+                    id = it,
+                    followedAt = now,
+                    isNotificationEnabled = true,
+                )
+            }
+            localDataSource.addFolloweds(followedPodcastEntities)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 }

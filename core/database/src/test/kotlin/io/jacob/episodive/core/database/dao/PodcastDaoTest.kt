@@ -255,4 +255,34 @@ class PodcastDaoTest {
                 cancel()
             }
         }
+
+    @Test
+    fun `Given some followed podcast entities, When getFollowedPodcastCount is called, Then the correct count is returned`() =
+        runTest {
+            // Given
+            dao.upsertPodcasts(podcastEntities)
+            val followed = listOf(
+                podcastEntities[1].id,
+                podcastEntities[3].id,
+                podcastEntities[5].id,
+            )
+            val followedAt = Clock.System.now()
+            val entities = mutableListOf<FollowedPodcastEntity>()
+            followed.forEach {
+                entities.add(
+                    FollowedPodcastEntity(
+                        id = it,
+                        followedAt = followedAt,
+                        isNotificationEnabled = true
+                    )
+                )
+            }
+            dao.addFolloweds(entities)
+
+            // When
+            val count = dao.getFollowedPodcastCount().first()
+
+            // Then
+            assertEquals(followed.size, count)
+        }
 }
