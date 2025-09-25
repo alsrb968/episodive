@@ -1,5 +1,6 @@
 package io.jacob.episodive.feature.onboarding
 
+import android.R.attr.category
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,7 @@ import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.Feed
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -98,7 +100,14 @@ fun OnboardingRoute(
                     },
                 )
 
-                2 -> Box {}
+                2 -> FeedSelectionScreen(
+                    modifier = modifier,
+                    feeds = state.feeds,
+                    onFeedCheckedChanged = { feed ->
+                        viewModel.sendAction(OnboardingAction.ChooseFeed(feed))
+                    },
+                )
+
                 3 -> Box {}
             }
         }
@@ -137,20 +146,6 @@ private fun WelcomeScreen(
 
 @Composable
 private fun CategorySelectionScreen(
-    modifier: Modifier = Modifier,
-    categories: List<CategoryUiModel>,
-    onCategoryCheckedChanged: (Category) -> Unit,
-) {
-    CategorySelection(
-        modifier = modifier
-            .fillMaxSize(),
-        categories = categories,
-        onCategoryCheckedChanged = onCategoryCheckedChanged,
-    )
-}
-
-@Composable
-private fun CategorySelection(
     modifier: Modifier = Modifier,
     categories: List<CategoryUiModel>,
     onCategoryCheckedChanged: (Category) -> Unit,
@@ -220,6 +215,76 @@ private fun CategorySelection(
 }
 
 @Composable
+private fun FeedSelectionScreen(
+    modifier: Modifier = Modifier,
+    feeds: List<FeedUiModel>,
+    onFeedCheckedChanged: (Feed) -> Unit,
+) {
+    val lazyGridState = rememberLazyGridState()
+    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+    ) {
+        LazyVerticalGrid(
+            state = lazyGridState,
+            columns = GridCells.Fixed(2),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp + systemBarsPadding.calculateTopPadding(),
+                bottom = 32.dp + systemBarsPadding.calculateBottomPadding()
+            ),
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("onboarding:feedSelection"),
+        ) {
+            item(span = { GridItemSpan(2) }) {
+                Text(
+                    text = stringResource(R.string.feature_onboarding_category_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            item(span = { GridItemSpan(2) }) {
+                Text(
+                    text = stringResource(R.string.feature_onboarding_category_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            items(
+                items = feeds,
+                key = { it.feed.id },
+            ) {
+                FeedButton(
+                    modifier = Modifier
+                        .aspectRatio(1f),
+                    feed = it.feed,
+                    isSelected = it.isSelected,
+                    onClick = onFeedCheckedChanged
+                )
+            }
+        }
+        lazyGridState.DecorativeScrollbar(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(vertical = 12.dp)
+                .align(Alignment.TopEnd),
+            state = lazyGridState.scrollbarState(itemsAvailable = feeds.size),
+            orientation = Orientation.Vertical,
+        )
+    }
+}
+
+@Composable
 private fun CategoryButton(
     modifier: Modifier = Modifier,
     category: Category,
@@ -269,6 +334,63 @@ private fun CategoryButton(
                     Icon(
                         imageVector = EpisodiveIcons.Check,
                         contentDescription = category.label,
+                    )
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun FeedButton(
+    modifier: Modifier = Modifier,
+    feed: Feed,
+    isSelected: Boolean,
+    onClick: (Feed) -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .size(140.dp),
+        shape = RoundedCornerShape(corner = CornerSize(16.dp)),
+        selected = isSelected,
+        onClick = {
+            onClick(feed)
+        },
+    ) {
+        StateImage(
+            modifier = Modifier
+                .fillMaxSize(),
+            imageUrl = feed.image ?: "",
+            contentDescription = feed.title,
+        )
+
+        Box(
+            modifier = Modifier.padding(12.dp),
+        ) {
+            Text(
+                text = feed.title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
+                    .align(Alignment.BottomCenter),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            EpisodiveIconToggleButton(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.TopEnd),
+                checked = isSelected,
+                onCheckedChange = { checked -> onClick(feed) },
+                icon = {
+                    Icon(
+                        imageVector = EpisodiveIcons.Add,
+                        contentDescription = feed.title,
+                    )
+                },
+                checkedIcon = {
+                    Icon(
+                        imageVector = EpisodiveIcons.Check,
+                        contentDescription = feed.title,
                     )
                 },
             )
