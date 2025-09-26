@@ -125,7 +125,7 @@ class OnboardingViewModel @Inject constructor(
     private fun previousPage() = viewModelScope.launch {
         when (_page.value) {
             OnboardingPage.Welcome,
-            OnboardingPage.Completed -> return@launch
+            OnboardingPage.Completion -> return@launch
 
             else -> {}
         }
@@ -169,7 +169,7 @@ sealed interface OnboardingEffect {
 }
 
 enum class OnboardingPage {
-    Welcome, CategorySelection, FeedSelection, Completed;
+    Welcome, CategorySelection, FeedSelection, Completion;
 
     fun next() = entries.getOrNull(ordinal.plus(1))
     fun previous() = entries.getOrNull(ordinal.minus(1))

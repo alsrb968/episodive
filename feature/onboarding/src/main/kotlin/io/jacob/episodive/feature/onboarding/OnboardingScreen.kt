@@ -35,15 +35,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -102,26 +107,32 @@ fun OnboardingRoute(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            when (page) {
-                0 -> WelcomeScreen()
+            when (OnboardingPage.fromIndex(page)) {
+                OnboardingPage.Welcome ->
+                    WelcomeScreen()
 
-                1 -> CategorySelectionScreen(
-                    modifier = modifier,
-                    categories = state.categories,
-                    onCategoryCheckedChanged = { category ->
-                        viewModel.sendAction(OnboardingAction.ChooseCategory(category))
-                    },
-                )
+                OnboardingPage.CategorySelection ->
+                    CategorySelectionScreen(
+                        modifier = modifier,
+                        categories = state.categories,
+                        onCategoryCheckedChanged = { category ->
+                            viewModel.sendAction(OnboardingAction.ChooseCategory(category))
+                        },
+                    )
 
-                2 -> FeedSelectionScreen(
-                    modifier = modifier,
-                    feeds = state.feeds,
-                    onFeedCheckedChanged = { feed ->
-                        viewModel.sendAction(OnboardingAction.ChooseFeed(feed))
-                    },
-                )
+                OnboardingPage.FeedSelection ->
+                    FeedSelectionScreen(
+                        modifier = modifier,
+                        feeds = state.feeds,
+                        onFeedCheckedChanged = { feed ->
+                            viewModel.sendAction(OnboardingAction.ChooseFeed(feed))
+                        },
+                    )
 
-                3 -> Box {}
+                OnboardingPage.Completion ->
+                    CompletionScreen()
+
+                null -> {}
             }
         }
 
@@ -186,7 +197,7 @@ private fun WelcomeScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp),
                 text = stringResource(R.string.feature_onboarding_welcome_title),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
             )
@@ -328,6 +339,45 @@ private fun FeedSelectionScreen(
             state = lazyListState.scrollbarState(itemsAvailable = feeds.size),
             orientation = Orientation.Vertical,
         )
+    }
+}
+
+@Composable
+private fun CompletionScreen(
+    modifier: Modifier = Modifier,
+) {
+    val thickStrokeWidth = with(LocalDensity.current) { 6.dp.toPx() }
+    val thickStroke =
+        remember(thickStrokeWidth) { Stroke(width = thickStrokeWidth, cap = StrokeCap.Round) }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = modifier
+                .padding(horizontal = 50.dp),
+            verticalArrangement = Arrangement.spacedBy(30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = stringResource(R.string.feature_onboarding_completion_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+
+            LinearWavyProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                stroke = thickStroke,
+                trackColor = MaterialTheme.colorScheme.outline,
+                trackStroke = thickStroke,
+            )
+        }
     }
 }
 
@@ -588,5 +638,13 @@ private fun FeedSelectionScreenPreview() {
             feeds = trendingFeedTestDataList.map { FeedUiModel(it.toFeedFromTrending(), true) },
             onFeedCheckedChanged = {},
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun CompletionScreenPreview() {
+    EpisodiveTheme {
+        CompletionScreen()
     }
 }
