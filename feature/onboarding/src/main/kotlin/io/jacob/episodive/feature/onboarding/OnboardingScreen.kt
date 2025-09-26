@@ -105,7 +105,8 @@ fun OnboardingRoute(
     ) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            userScrollEnabled = false,
         ) { page ->
             when (OnboardingPage.fromIndex(page)) {
                 OnboardingPage.Welcome ->
