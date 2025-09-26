@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,6 +30,7 @@ import coil.request.ImageRequest
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
+import timber.log.Timber
 
 @Composable
 fun StateImage(
@@ -36,7 +39,7 @@ fun StateImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(),
-    fallbackIcon: ImageVector = EpisodiveIcons.Place,
+    fallbackIcon: ImageVector = EpisodiveIcons.ErrorOutline,
 ) {
     if (LocalInspectionMode.current) {
         Box(modifier = modifier.background(placeholderBrush))
@@ -49,7 +52,7 @@ fun StateImage(
 
     val imageLoader = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(imageUrl)
+            .data(imageUrl.replace("http://", "https://"))
             .addHeader("User-Agent", "Episodive/1.0")
             .crossfade(true)
             .size(300)
@@ -66,15 +69,21 @@ fun StateImage(
     ) {
         when (imagePainterState) {
 //            is AsyncImagePainter.State.Loading,
-//            is AsyncImagePainter.State.Error -> {
-//                Image(
-//                    imageVector = fallbackIcon,
-//                    contentDescription = null,
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(24.dp)
-//                )
-//            }
+            is AsyncImagePainter.State.Error -> {
+                Timber.w("Image load error: ${(imagePainterState as? AsyncImagePainter.State.Error)?.result?.throwable.toString()}")
+                Box(
+                    modifier = Modifier
+                        .background(placeholderBrush)
+                        .fillMaxSize()
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(8.dp),
+                        imageVector = fallbackIcon,
+                        contentDescription = null,
+                    )
+                }
+            }
 
             else -> {
                 Box(

@@ -6,12 +6,36 @@ import io.jacob.episodive.core.model.Feed
 import io.jacob.episodive.core.model.Medium
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.TrendingFeed
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 fun Long.toInstant(): Instant = Instant.fromEpochSeconds(this)
 fun Instant.toSeconds(): Long = epochSeconds
+fun Instant.toHumanReadable(): String {
+    val localDateTime = this.toLocalDateTime(TimeZone.currentSystemDefault())
+
+    // kotlinx-datetime → java.time 변환
+    val javaLocalDateTime = java.time.LocalDateTime.of(
+        localDateTime.year,
+        localDateTime.month.number,
+        localDateTime.day,
+        localDateTime.hour,
+        localDateTime.minute,
+        localDateTime.second
+    )
+
+    val outputFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+        .withLocale(Locale.getDefault())
+
+    return javaLocalDateTime.format(outputFormatter)
+}
 
 fun Int.toDurationSeconds(): Duration = seconds
 fun Duration.toIntSeconds(): Int = inWholeSeconds.toInt()
@@ -29,6 +53,9 @@ fun List<Category>.toMap(): Map<Int, String> =
 
 fun List<Category>.toCommaString(): String =
     sortedBy { it.id }.joinToString(",") { it.id.toString() }
+
+fun List<Category>.toLabels(): String =
+    sortedBy { it.id }.joinToString(", ") { it.label }
 
 fun String.toCategories(): List<Category> =
     if (this.isEmpty()) {

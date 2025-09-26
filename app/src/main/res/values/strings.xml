@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">Episodive</string>
+    <string name="tag_name" translatable="false">EpisodiveTag</string>
     <string name="not_connected">⚠️ You aren’t connected to the internet</string>
 </resources>
