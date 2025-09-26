@@ -192,7 +192,7 @@ private fun WelcomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Image(
-                    painter = painterResource(R.drawable.core_designsystem_undraw_relax_mode),
+                    painter = painterResource(R.drawable.feature_onboarding_undraw_relax_mode),
                     contentDescription = "Welcome Image",
                 )
 
@@ -366,7 +366,7 @@ private fun CompletionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
-                painter = painterResource(R.drawable.core_designsystem_undraw_to_the_moon),
+                painter = painterResource(R.drawable.feature_onboarding_undraw_to_the_moon),
                 contentDescription = "Welcome Image",
             )
 
