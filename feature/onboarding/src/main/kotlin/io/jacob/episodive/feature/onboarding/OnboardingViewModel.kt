@@ -59,12 +59,10 @@ class OnboardingViewModel @Inject constructor(
         }
 
     val state: StateFlow<OnboardingState> = combine(
-        _page,
         _categories,
         _feeds
-    ) { page, categories, feeds ->
+    ) { categories, feeds ->
         OnboardingState(
-            page = page,
             categories = categories,
             feeds = feeds
         )
@@ -72,7 +70,6 @@ class OnboardingViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = OnboardingState(
-            page = OnboardingPage.Welcome,
             categories = emptyList(),
             feeds = emptyList(),
         )
@@ -150,7 +147,6 @@ class OnboardingViewModel @Inject constructor(
 }
 
 data class OnboardingState(
-    val page: OnboardingPage,
     val categories: List<CategoryUiModel>,
     val feeds: List<FeedUiModel>,
 )
