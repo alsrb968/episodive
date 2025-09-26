@@ -9,12 +9,24 @@ import javax.inject.Inject
 class UserPreferencesDataSourceImpl @Inject constructor(
     private val store: UserPreferencesStore
 ) : UserPreferencesDataSource {
-    override suspend fun setLanguage(language: String) {
-        store.setLanguage(language)
+    override suspend fun setFirstLaunch(isFirstLaunch: Boolean) {
+        store.setFirstLaunch(isFirstLaunch)
     }
 
-    override suspend fun setCategories(categories: List<Category>) {
-        store.setCategories(categories)
+    override suspend fun addCategory(category: Category) {
+        store.addCategory(category)
+    }
+
+    override suspend fun addCategories(categories: List<Category>) {
+        store.addCategories(categories)
+    }
+
+    override suspend fun removeCategory(category: Category) {
+        store.removeCategory(category)
+    }
+
+    override fun getCategories(): Flow<List<Category>> {
+        return store.getCategories()
     }
 
     override fun getUserPreferences(): Flow<UserPreferences> {

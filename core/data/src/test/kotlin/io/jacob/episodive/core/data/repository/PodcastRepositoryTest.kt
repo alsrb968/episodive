@@ -9,6 +9,7 @@ import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.domain.repository.PodcastRepository
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
+import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
@@ -22,9 +23,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,18 +89,26 @@ class PodcastRepositoryTest {
     fun `Given feedId, When getPodcastByFeedId is called, Then calls methods of dataSources`() =
         runTest {
             // Given
+            val feedId = 12345L
+            val query = PodcastQuery.FeedId(feedId)
             coEvery {
-                remoteDataSource.getPodcastByFeedId(any())
-            } returns mockk(relaxed = true)
+                remoteUpdater.create(query)
+            } returns mockk<PodcastRemoteUpdater>(relaxed = true)
+            coEvery {
+                localDataSource.getPodcast(feedId)
+            } returns flowOf(podcastEntities.first())
 
             // When
-            repository.getPodcastByFeedId(12345).test {
-                awaitItem()
+            repository.getPodcastByFeedId(feedId).test {
+                val result = awaitItem()
+                // Then
+                assertEquals(podcastTestData.id, result?.id)
                 awaitComplete()
             }
-
-            // Then
-            coVerify { remoteDataSource.getPodcastByFeedId(any()) }
+            coVerifySequence {
+                remoteUpdater.create(query)
+                localDataSource.getPodcast(feedId)
+            }
         }
 
     @Test
@@ -221,5 +228,20 @@ class PodcastRepositoryTest {
                 localDataSource.isFollowed(podcastId)
                 localDataSource.addFollowed(match { it.id == podcastId })
             }
+        }
+
+    @Test
+    fun `Given ids, When addFolloweds is called, Then call addFolloweds of localDataSource`() =
+        runTest {
+            // Given
+            val ids = listOf(1L, 2L, 3L)
+            coEvery { localDataSource.addFolloweds(any()) } returns Unit
+
+            // When
+            val result = repository.addFolloweds(ids)
+
+            // Then
+            assertTrue(result)
+            coVerify { localDataSource.addFolloweds(match { it.size == ids.size }) }
         }
 }

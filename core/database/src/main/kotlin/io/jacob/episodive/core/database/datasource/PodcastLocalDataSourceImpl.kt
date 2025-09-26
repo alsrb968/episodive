@@ -29,6 +29,10 @@ class PodcastLocalDataSourceImpl(
         podcastDao.addFollowed(followedPodcastEntity)
     }
 
+    override suspend fun addFolloweds(followedPodcastEntities: List<FollowedPodcastEntity>) {
+        podcastDao.addFolloweds(followedPodcastEntities)
+    }
+
     override suspend fun removeFollowed(id: Long) {
         podcastDao.removeFollowed(id)
     }

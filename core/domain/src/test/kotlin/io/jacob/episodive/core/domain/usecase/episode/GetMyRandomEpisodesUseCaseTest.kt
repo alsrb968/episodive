@@ -39,7 +39,7 @@ class GetMyRandomEpisodesUseCaseTest {
             // Given
             coEvery {
                 userRepository.getUserData()
-            } returns flowOf(UserData("ko", listOf(Category.CAREERS)))
+            } returns flowOf(UserData(true, "ko", listOf(Category.CAREERS)))
             coEvery {
                 episodeRepository.getRandomEpisodes(any(), any(), any(), any())
             } returns mockk(relaxed = true)

@@ -10,29 +10,64 @@ import io.jacob.episodive.core.model.mapper.toCategories
 import io.jacob.episodive.core.model.mapper.toCommaString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Locale
 import javax.inject.Inject
 
 class UserPreferencesStore @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     object UserPreferencesKeys {
-        val language = stringPreferencesKey("language")
+        val isFirstLaunch = stringPreferencesKey("is_first_launch")
         val categories = stringPreferencesKey("categories")
     }
 
-    suspend fun setLanguage(language: String) {
-        dataStore.edit { it[UserPreferencesKeys.language] = language }
+    suspend fun setFirstLaunch(isFirstLaunch: Boolean) {
+        dataStore.edit { it[UserPreferencesKeys.isFirstLaunch] = isFirstLaunch.toString() }
     }
 
-    suspend fun setCategories(categories: List<Category>) {
-        dataStore.edit { it[UserPreferencesKeys.categories] = categories.toCommaString() }
+    suspend fun addCategory(category: Category) {
+        dataStore.edit { preferences ->
+            val currentCategories =
+                preferences[UserPreferencesKeys.categories]?.toCategories()?.toMutableList()
+                    ?: mutableListOf()
+            if (!currentCategories.contains(category)) {
+                currentCategories.add(category)
+                preferences[UserPreferencesKeys.categories] = currentCategories.toCommaString()
+            }
+        }
     }
+
+    suspend fun addCategories(categories: List<Category>) {
+        dataStore.edit { preferences ->
+            val currentCategories =
+                preferences[UserPreferencesKeys.categories]?.toCategories() ?: emptyList()
+            val mergedCategories = (currentCategories + categories).distinct()
+            preferences[UserPreferencesKeys.categories] = mergedCategories.toCommaString()
+        }
+    }
+
+    suspend fun removeCategory(category: Category) {
+        dataStore.edit { preferences ->
+            val currentCategories =
+                preferences[UserPreferencesKeys.categories]?.toCategories()?.toMutableList()
+                    ?: mutableListOf()
+            if (currentCategories.remove(category)) {
+                preferences[UserPreferencesKeys.categories] = currentCategories.toCommaString()
+            }
+        }
+    }
+
+    fun getCategories(): Flow<List<Category>> =
+        dataStore.data.map { preferences ->
+            preferences[UserPreferencesKeys.categories]?.toCategories() ?: emptyList()
+        }
 
     fun getUserPreferences(): Flow<UserPreferences> =
         dataStore.data.map { preferences ->
             UserPreferences(
-                language = preferences[UserPreferencesKeys.language]
-                    ?: "en",
+                isFirstLaunch = preferences[UserPreferencesKeys.isFirstLaunch]?.toBoolean()
+                    ?: true,
+                language = Locale.getDefault().language,
                 categories = preferences[UserPreferencesKeys.categories]?.toCategories()
                     ?: emptyList(),
             )

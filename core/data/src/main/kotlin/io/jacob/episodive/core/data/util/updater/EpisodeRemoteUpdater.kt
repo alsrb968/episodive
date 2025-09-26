@@ -6,8 +6,10 @@ import dagger.assisted.AssistedInject
 import io.jacob.episodive.core.data.util.query.EpisodeQuery
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
+import io.jacob.episodive.core.database.mapper.toEpisodeEntity
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
+import io.jacob.episodive.core.network.mapper.toEpisode
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import io.jacob.episodive.core.network.model.EpisodeResponse
 import kotlin.time.Clock
@@ -34,6 +36,10 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
         }
     }
 
+    override suspend fun fetchFromNetworkSingle(query: EpisodeQuery): EpisodeResponse? {
+        return null
+    }
+
     override suspend fun mapToEntities(
         responses: List<EpisodeResponse>,
         cacheKey: String
@@ -41,8 +47,19 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
         return responses.toEpisodes().toEpisodeEntities(cacheKey)
     }
 
+    override suspend fun mapToEntity(
+        response: EpisodeResponse?,
+        cacheKey: String
+    ): EpisodeEntity? {
+        return response?.toEpisode()?.toEpisodeEntity(cacheKey)
+    }
+
     override suspend fun saveToLocal(entities: List<EpisodeEntity>) {
         localDataSource.upsertEpisodes(entities)
+    }
+
+    override suspend fun saveToLocal(entity: EpisodeEntity?) {
+        entity?.let { localDataSource.upsertEpisode(it) }
     }
 
     override suspend fun isExpired(cached: List<EpisodeEntity>): Boolean {
@@ -51,5 +68,12 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
             ?: return true
         val now = Clock.System.now()
         return now - oldestCache > query.timeToLive
+    }
+
+    override suspend fun isExpired(cached: EpisodeEntity?): Boolean {
+        if (cached == null) return true
+        val oldCached = cached.cachedAt
+        val now = Clock.System.now()
+        return now - oldCached > query.timeToLive
     }
 }

@@ -10,6 +10,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import io.jacob.episodive.MainActivityViewModel
 import io.jacob.episodive.core.data.util.NetworkMonitor
 import io.jacob.episodive.feature.clip.navigation.navigateToClip
 import io.jacob.episodive.feature.home.navigation.navigateToHome
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 @Composable
 fun rememberEpisodiveAppState(
     networkMonitor: NetworkMonitor,
+    viewModel: MainActivityViewModel,
     navController: NavHostController = rememberNavController(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) = remember(
@@ -34,6 +36,7 @@ fun rememberEpisodiveAppState(
 ) {
     EpisodiveAppState(
         networkMonitor = networkMonitor,
+        viewModel = viewModel,
         navController = navController,
         coroutineScope = coroutineScope,
     )
@@ -41,6 +44,7 @@ fun rememberEpisodiveAppState(
 
 class EpisodiveAppState(
     networkMonitor: NetworkMonitor,
+    val viewModel: MainActivityViewModel,
     val navController: NavHostController,
     coroutineScope: CoroutineScope,
 ) {
@@ -99,6 +103,22 @@ class EpisodiveAppState(
         }
 
         when (destination) {
+            BottomBarDestination.HOME -> navController.navigateToHome(bottomBarNavOptions)
+            BottomBarDestination.SEARCH -> navController.navigateToSearch(bottomBarNavOptions)
+            BottomBarDestination.LIBRARY -> navController.navigateToLibrary(bottomBarNavOptions)
+            BottomBarDestination.CLIP -> navController.navigateToClip(bottomBarNavOptions)
+        }
+    }
+
+    fun navigateToBottomBarStartDestination() {
+        val bottomBarNavOptions = navOptions {
+            popUpTo(navController.graph.id) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+
+        when (startDestination) {
             BottomBarDestination.HOME -> navController.navigateToHome(bottomBarNavOptions)
             BottomBarDestination.SEARCH -> navController.navigateToSearch(bottomBarNavOptions)
             BottomBarDestination.LIBRARY -> navController.navigateToLibrary(bottomBarNavOptions)

@@ -8,7 +8,7 @@ import timber.log.Timber
 class EpisodiveApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        Timber.plant(TimberTree(getString(R.string.app_name)))
+        Timber.plant(TimberTree(getString(R.string.tag_name)))
     }
 
     private inner class TimberTree(private val tag: String) : Timber.DebugTree() {

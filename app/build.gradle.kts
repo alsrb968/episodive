@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.model)
 
+    implementation(projects.feature.onboarding)
     implementation(projects.feature.home)
     implementation(projects.feature.search)
     implementation(projects.feature.library)

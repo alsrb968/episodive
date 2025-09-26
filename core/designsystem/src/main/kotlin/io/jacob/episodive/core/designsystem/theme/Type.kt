@@ -16,7 +16,7 @@ val Pretendard = FontFamily(
 // Default Material 3 typography values
 val baseline = Typography()
 
-val IgozogoTypography = Typography(
+val EpisodiveTypography = Typography(
     displayLarge = baseline.displayLarge.copy(fontFamily = Pretendard, fontWeight = FontWeight.Bold),
     displayMedium = baseline.displayMedium.copy(fontFamily = Pretendard, fontWeight = FontWeight.Bold),
     displaySmall = baseline.displaySmall.copy(fontFamily = Pretendard, fontWeight = FontWeight.Bold),

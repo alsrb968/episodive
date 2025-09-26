@@ -33,6 +33,7 @@ include(":core:model")
 include(":core:network")
 include(":core:testing")
 
+include(":feature:onboarding")
 include(":feature:home")
 include(":feature:search")
 include(":feature:library")

@@ -9,14 +9,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.Locale
 
 class UserPreferencesStoreTest {
     @get:Rule
@@ -40,25 +39,56 @@ class UserPreferencesStoreTest {
     }
 
     @Test
-    fun getUserPreferences_withDefaultValues_returnsDefaults() = runTest {
-        val result = userPreferencesStore.getUserPreferences().first()
+    fun setFirstLaunch_updatesFirstLaunchPreference() = runTest {
+        userPreferencesStore.setFirstLaunch(false)
 
-        assertEquals("en", result.language)
-        assertTrue(result.categories.isEmpty())
+        val result = userPreferencesStore.getUserPreferences().first()
+        assertFalse(result.isFirstLaunch)
     }
 
     @Test
-    fun setLanguage_updatesLanguagePreference() = runTest {
-        userPreferencesStore.setLanguage("ko")
+    fun addCategory_withSingleCategory_storesCorrectly() = runTest {
+        userPreferencesStore.addCategory(Category.ARTS)
 
-        val result = userPreferencesStore.getUserPreferences().first()
-        assertEquals("ko", result.language)
+        val result1 = userPreferencesStore.getUserPreferences().first()
+        assertEquals(1, result1.categories.size)
+        assertEquals(Category.ARTS, result1.categories.first())
+
+
+        userPreferencesStore.addCategory(Category.TECHNOLOGY)
+
+        val result2 = userPreferencesStore.getUserPreferences().first()
+        assertEquals(2, result2.categories.size)
+        assertTrue(result2.categories.contains(Category.ARTS))
+        assertTrue(result2.categories.contains(Category.TECHNOLOGY))
     }
 
     @Test
-    fun setCategories_withSingleCategory_storesCorrectly() = runTest {
+    fun removeCategory_removesCorrectly() = runTest {
+        userPreferencesStore.addCategories(
+            listOf(
+                Category.ARTS,
+                Category.TECHNOLOGY,
+                Category.SCIENCE
+            )
+        )
+
+        var result = userPreferencesStore.getUserPreferences().first()
+        assertEquals(3, result.categories.size)
+
+        userPreferencesStore.removeCategory(Category.TECHNOLOGY)
+
+        result = userPreferencesStore.getUserPreferences().first()
+        assertEquals(2, result.categories.size)
+        assertTrue(result.categories.contains(Category.ARTS))
+        assertTrue(result.categories.contains(Category.SCIENCE))
+        assertFalse(result.categories.contains(Category.TECHNOLOGY))
+    }
+
+    @Test
+    fun addCategories_withSingleCategory_storesCorrectly() = runTest {
         val categories = listOf(Category.TECHNOLOGY)
-        userPreferencesStore.setCategories(categories)
+        userPreferencesStore.addCategories(categories)
 
         val result = userPreferencesStore.getUserPreferences().first()
         assertEquals(1, result.categories.size)
@@ -66,14 +96,48 @@ class UserPreferencesStoreTest {
     }
 
     @Test
-    fun setCategories_withMultipleCategories_storesCorrectly() = runTest {
+    fun addCategories_withMultipleCategories_storesCorrectly() = runTest {
         val categories = listOf(Category.TECHNOLOGY, Category.SCIENCE, Category.HEALTH)
-        userPreferencesStore.setCategories(categories)
+        userPreferencesStore.addCategories(categories)
 
         val result = userPreferencesStore.getUserPreferences().first()
         assertEquals(3, result.categories.size)
         assertTrue(result.categories.contains(Category.TECHNOLOGY))
         assertTrue(result.categories.contains(Category.SCIENCE))
         assertTrue(result.categories.contains(Category.HEALTH))
+    }
+
+    @Test
+    fun addCategories_withDuplicateCategories_storesDistinctly() = runTest {
+        userPreferencesStore.addCategories(
+            listOf(
+                Category.TECHNOLOGY,
+                Category.SCIENCE,
+                Category.HEALTH
+            )
+        )
+        userPreferencesStore.addCategories(listOf(Category.TECHNOLOGY, Category.ARTS))
+
+        val result = userPreferencesStore.getUserPreferences().first()
+        assertEquals(4, result.categories.size)
+        assertTrue(result.categories.contains(Category.TECHNOLOGY))
+        assertTrue(result.categories.contains(Category.SCIENCE))
+        assertTrue(result.categories.contains(Category.HEALTH))
+        assertTrue(result.categories.contains(Category.ARTS))
+    }
+
+    @Test
+    fun getCategories_withNoCategories_returnsEmptyList() = runTest {
+        val result = userPreferencesStore.getCategories().first()
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun getUserPreferences_withDefaultValues_returnsDefaults() = runTest {
+        val result = userPreferencesStore.getUserPreferences().first()
+
+        assertTrue(result.isFirstLaunch)
+        assertEquals(Locale.getDefault().language, result.language)
+        assertTrue(result.categories.isEmpty())
     }
 }

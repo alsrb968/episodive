@@ -1,4 +1,5 @@
 import io.jacob.episodive.configureKotlinJvm
+import io.jacob.episodive.freeCompilerOptIns
 import io.jacob.episodive.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -16,9 +17,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
 
             tasks.withType<KotlinCompile>().configureEach {
                 compilerOptions {
-                    freeCompilerArgs.addAll(
-                        "-opt-in=kotlin.time.ExperimentalTime"
-                    )
+                    freeCompilerArgs.addAll(freeCompilerOptIns)
                 }
             }
 

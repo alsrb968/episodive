@@ -14,4 +14,9 @@ sealed interface PodcastQuery : CacheableQuery {
         override val key = "medium:$medium"
         override val timeToLive = 1.hours
     }
+
+    data class FeedId(val feedId: Long) : PodcastQuery {
+        override val key = "feedId:$feedId"
+        override val timeToLive = 1.hours
+    }
 }

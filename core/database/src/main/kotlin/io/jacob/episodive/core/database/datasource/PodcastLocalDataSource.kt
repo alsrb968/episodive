@@ -11,6 +11,7 @@ interface PodcastLocalDataSource {
     suspend fun deletePodcast(id: Long)
     suspend fun deletePodcasts()
     suspend fun addFollowed(followedPodcastEntity: FollowedPodcastEntity)
+    suspend fun addFolloweds(followedPodcastEntities: List<FollowedPodcastEntity>)
     suspend fun removeFollowed(id: Long)
     fun getPodcast(id: Long): Flow<PodcastEntity?>
     fun getPodcasts(): Flow<List<PodcastEntity>>

@@ -1,10 +1,13 @@
 package io.jacob.episodive.core.data.repository
 
+import androidx.room.Transaction
 import io.jacob.episodive.core.data.util.Cacher
+import io.jacob.episodive.core.data.util.CacherSingle
 import io.jacob.episodive.core.data.util.query.PodcastQuery
 import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toFollowedPodcasts
+import io.jacob.episodive.core.database.mapper.toPodcast
 import io.jacob.episodive.core.database.mapper.toPodcasts
 import io.jacob.episodive.core.database.model.FollowedPodcastEntity
 import io.jacob.episodive.core.domain.repository.PodcastRepository
@@ -38,12 +41,15 @@ class PodcastRepositoryImpl @Inject constructor(
         ).flow.map { it.toPodcasts() }
     }
 
-    override fun getPodcastByFeedId(feedId: Long): Flow<Podcast?> = flow {
-        val podcast = remoteDataSource.getPodcastByFeedId(
-            feedId = feedId
-        )?.toPodcast()
+    override fun getPodcastByFeedId(feedId: Long): Flow<Podcast?> {
+        val query = PodcastQuery.FeedId(feedId)
 
-        emit(podcast)
+        return CacherSingle(
+            remoteUpdater = remoteUpdater.create(query),
+            sourceFactory = {
+                localDataSource.getPodcast(feedId)
+            }
+        ).flow.map { it?.toPodcast() }
     }
 
     override fun getPodcastByFeedUrl(feedUrl: String): Flow<Podcast?> = flow {
@@ -80,6 +86,7 @@ class PodcastRepositoryImpl @Inject constructor(
         return localDataSource.getFollowedPodcasts(query).map { it.toFollowedPodcasts() }
     }
 
+    @Transaction
     override suspend fun toggleFollowed(id: Long): Boolean {
         return if (localDataSource.isFollowed(id).first()) {
             localDataSource.removeFollowed(id)
@@ -93,6 +100,24 @@ class PodcastRepositoryImpl @Inject constructor(
                 )
             )
             true
+        }
+    }
+
+    override suspend fun addFolloweds(ids: List<Long>): Boolean {
+        return try {
+            val now = Clock.System.now()
+            val followedPodcastEntities = ids.map {
+                FollowedPodcastEntity(
+                    id = it,
+                    followedAt = now,
+                    isNotificationEnabled = true,
+                )
+            }
+            localDataSource.addFolloweds(followedPodcastEntities)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 }

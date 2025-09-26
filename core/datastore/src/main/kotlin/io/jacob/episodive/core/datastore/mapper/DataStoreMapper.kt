@@ -5,12 +5,14 @@ import io.jacob.episodive.core.model.UserData
 
 fun UserPreferences.toUserData(): UserData =
     UserData(
+        isFirstLaunch = isFirstLaunch,
         language = language,
         categories = categories,
     )
 
 fun UserData.toUserPreferences(): UserPreferences =
     UserPreferences(
+        isFirstLaunch = isFirstLaunch,
         language = language,
         categories = categories,
     )
