@@ -112,7 +112,7 @@ class EpisodiveAppState(
     }
 
     fun navigateToBottomBarStartDestination() {
-        val onboardingCompleteNavOptions = navOptions {
+        val bottomBarNavOptions = navOptions {
             popUpTo(navController.graph.id) {
                 inclusive = true
             }
@@ -120,16 +120,10 @@ class EpisodiveAppState(
         }
 
         when (startDestination) {
-            BottomBarDestination.HOME -> navController.navigateToHome(onboardingCompleteNavOptions)
-            BottomBarDestination.SEARCH -> navController.navigateToSearch(
-                onboardingCompleteNavOptions
-            )
-
-            BottomBarDestination.LIBRARY -> navController.navigateToLibrary(
-                onboardingCompleteNavOptions
-            )
-
-            BottomBarDestination.CLIP -> navController.navigateToClip(onboardingCompleteNavOptions)
+            BottomBarDestination.HOME -> navController.navigateToHome(bottomBarNavOptions)
+            BottomBarDestination.SEARCH -> navController.navigateToSearch(bottomBarNavOptions)
+            BottomBarDestination.LIBRARY -> navController.navigateToLibrary(bottomBarNavOptions)
+            BottomBarDestination.CLIP -> navController.navigateToClip(bottomBarNavOptions)
         }
     }
 
