@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.usecase.feed.GetRecommendedFeedsUseCase
+import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.SetFirstLaunchOffUseCase
@@ -34,6 +35,7 @@ class OnboardingViewModel @Inject constructor(
     private val toggleFollowedUseCase: ToggleFollowedUseCase,
     private val getPreferredCategoriesUseCase: GetPreferredCategoriesUseCase,
     private val getRecommendedFeedsUseCase: GetRecommendedFeedsUseCase,
+    private val getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
 ) : ViewModel() {
 
     private val _page = MutableStateFlow(OnboardingPage.Welcome)
@@ -48,14 +50,18 @@ class OnboardingViewModel @Inject constructor(
             }.let { flowOf(it) }
         }
     private val _feeds: Flow<List<FeedUiModel>> =
-        getRecommendedFeedsUseCase().flatMapLatest { recommendedFeeds ->
-            Timber.d("recommendedFeeds: ${recommendedFeeds.size}")
+        combine(
+            getRecommendedFeedsUseCase(),
+            getFollowedPodcastsUseCase(),
+        ) { recommendedFeeds, followedPodcasts ->
+            val followedIds = followedPodcasts.map { it.podcast.id }.toSet()
+            Timber.d("recommendedFeeds: ${recommendedFeeds.size}, followedIds: $followedIds")
             recommendedFeeds.map { feed ->
                 FeedUiModel(
                     feed = feed,
-                    isSelected = false,
+                    isSelected = followedIds.contains(feed.id),
                 )
-            }.let { flowOf(it) }
+            }
         }
 
     val state: StateFlow<OnboardingState> = combine(

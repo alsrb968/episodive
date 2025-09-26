@@ -30,8 +30,8 @@ fun EpisodiveIconToggleButton(
         enabled = enabled,
         shape = shape,
         colors = IconButtonDefaults.iconToggleButtonColors(
-            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            checkedContainerColor = MaterialTheme.colorScheme.primary,
+            checkedContentColor = MaterialTheme.colorScheme.onPrimary,
             disabledContainerColor = if (checked) {
                 MaterialTheme.colorScheme.onBackground.copy(
                     alpha = EpisodiveIconButtonDefaults.DISABLED_ICON_BUTTON_CONTAINER_ALPHA,

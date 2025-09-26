@@ -6,8 +6,10 @@ import dagger.assisted.AssistedInject
 import io.jacob.episodive.core.data.util.query.PodcastQuery
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
+import io.jacob.episodive.core.database.mapper.toPodcastEntity
 import io.jacob.episodive.core.database.model.PodcastEntity
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
+import io.jacob.episodive.core.network.mapper.toPodcast
 import io.jacob.episodive.core.network.mapper.toPodcasts
 import io.jacob.episodive.core.network.model.PodcastResponse
 import kotlin.time.Clock
@@ -27,6 +29,14 @@ class PodcastRemoteUpdater @AssistedInject constructor(
         return when (query) {
             is PodcastQuery.Search -> remoteDataSource.searchPodcasts(query.query)
             is PodcastQuery.Medium -> remoteDataSource.getPodcastsByMedium(query.medium)
+            else -> emptyList()
+        }
+    }
+
+    override suspend fun fetchFromNetworkSingle(query: PodcastQuery): PodcastResponse? {
+        return when (query) {
+            is PodcastQuery.FeedId -> remoteDataSource.getPodcastByFeedId(query.feedId)
+            else -> null
         }
     }
 
@@ -37,8 +47,19 @@ class PodcastRemoteUpdater @AssistedInject constructor(
         return responses.toPodcasts().toPodcastEntities(cacheKey)
     }
 
+    override suspend fun mapToEntity(
+        response: PodcastResponse?,
+        cacheKey: String
+    ): PodcastEntity? {
+        return response?.toPodcast()?.toPodcastEntity(cacheKey)
+    }
+
     override suspend fun saveToLocal(entities: List<PodcastEntity>) {
         localDataSource.upsertPodcasts(entities)
+    }
+
+    override suspend fun saveToLocal(entity: PodcastEntity?) {
+        entity?.let { localDataSource.upsertPodcast(it) }
     }
 
     override suspend fun isExpired(cached: List<PodcastEntity>): Boolean {
@@ -47,5 +68,12 @@ class PodcastRemoteUpdater @AssistedInject constructor(
             ?: return true
         val now = Clock.System.now()
         return now - oldestCache > query.timeToLive
+    }
+
+    override suspend fun isExpired(cached: PodcastEntity?): Boolean {
+        if (cached == null) return true
+        val oldCached = cached.cachedAt
+        val now = Clock.System.now()
+        return now - oldCached > query.timeToLive
     }
 }
