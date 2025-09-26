@@ -7,6 +7,10 @@ import io.jacob.episodive.core.data.util.updater.RecentNewFeedRemoteUpdater
 import io.jacob.episodive.core.data.util.updater.SoundbiteRemoteUpdater
 import io.jacob.episodive.core.data.util.updater.TrendingFeedRemoteUpdater
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
+import io.jacob.episodive.core.database.model.RecentFeedEntity
+import io.jacob.episodive.core.database.model.RecentNewFeedEntity
+import io.jacob.episodive.core.database.model.SoundbiteEntity
+import io.jacob.episodive.core.database.model.TrendingFeedEntity
 import io.jacob.episodive.core.domain.repository.FeedRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
@@ -51,7 +55,10 @@ class FeedRepositoryTest {
             )
             mockkConstructor(TrendingFeedRemoteUpdater::class)
             coEvery {
-                anyConstructed<TrendingFeedRemoteUpdater>().load(any())
+                anyConstructed<TrendingFeedRemoteUpdater>().load(any<List<TrendingFeedEntity>>())
+            } returns Unit
+            coEvery {
+                anyConstructed<TrendingFeedRemoteUpdater>().load(null as TrendingFeedEntity?)
             } returns Unit
             coEvery {
                 localDataSource.getTrendingFeedsByCacheKey(any())
@@ -82,7 +89,10 @@ class FeedRepositoryTest {
             )
             mockkConstructor(RecentFeedRemoteUpdater::class)
             coEvery {
-                anyConstructed<RecentFeedRemoteUpdater>().load(any())
+                anyConstructed<RecentFeedRemoteUpdater>().load(any<List<RecentFeedEntity>>())
+            } returns Unit
+            coEvery {
+                anyConstructed<RecentFeedRemoteUpdater>().load(null as RecentFeedEntity?)
             } returns Unit
             coEvery {
                 localDataSource.getRecentFeedsByCacheKey(any())
@@ -110,7 +120,10 @@ class FeedRepositoryTest {
             val query = FeedQuery.RecentNew
             mockkConstructor(RecentNewFeedRemoteUpdater::class)
             coEvery {
-                anyConstructed<RecentNewFeedRemoteUpdater>().load(any())
+                anyConstructed<RecentNewFeedRemoteUpdater>().load(any<List<RecentNewFeedEntity>>())
+            } returns Unit
+            coEvery {
+                anyConstructed<RecentNewFeedRemoteUpdater>().load(null as RecentNewFeedEntity?)
             } returns Unit
             coEvery {
                 localDataSource.getRecentNewFeedsByCacheKey(any())
@@ -135,7 +148,10 @@ class FeedRepositoryTest {
             val query = FeedQuery.Soundbite
             mockkConstructor(SoundbiteRemoteUpdater::class)
             coEvery {
-                anyConstructed<SoundbiteRemoteUpdater>().load(any())
+                anyConstructed<SoundbiteRemoteUpdater>().load(any<List<SoundbiteEntity>>())
+            } returns Unit
+            coEvery {
+                anyConstructed<SoundbiteRemoteUpdater>().load(null as SoundbiteEntity?)
             } returns Unit
             coEvery {
                 localDataSource.getSoundbitesByCacheKey(any())
