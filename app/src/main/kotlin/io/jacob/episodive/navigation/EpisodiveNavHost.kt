@@ -28,9 +28,8 @@ fun EpisodiveNavHost(
     ) {
         onboardingScreen(
             onShowSnackbar = onShowSnackbar,
-        ) {
-            appState.navigateToBottomBarDestination(appState.startDestination)
-        }
+            onCompleted = appState::navigateToBottomBarStartDestination
+        )
 
         homeSection(
             onRegisterNestedNavController = { navController ->
