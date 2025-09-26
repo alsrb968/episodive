@@ -10,9 +10,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import io.jacob.episodive.MainActivityViewModel
 import io.jacob.episodive.core.data.util.NetworkMonitor
-import io.jacob.episodive.core.domain.repository.UserRepository
-import io.jacob.episodive.core.model.UserData
 import io.jacob.episodive.feature.clip.navigation.navigateToClip
 import io.jacob.episodive.feature.home.navigation.navigateToHome
 import io.jacob.episodive.feature.library.navigation.navigateToLibrary
@@ -27,7 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 @Composable
 fun rememberEpisodiveAppState(
     networkMonitor: NetworkMonitor,
-    userRepository: UserRepository,
+    viewModel: MainActivityViewModel,
     navController: NavHostController = rememberNavController(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) = remember(
@@ -37,7 +36,7 @@ fun rememberEpisodiveAppState(
 ) {
     EpisodiveAppState(
         networkMonitor = networkMonitor,
-        userRepository = userRepository,
+        viewModel = viewModel,
         navController = navController,
         coroutineScope = coroutineScope,
     )
@@ -45,7 +44,7 @@ fun rememberEpisodiveAppState(
 
 class EpisodiveAppState(
     networkMonitor: NetworkMonitor,
-    userRepository: UserRepository,
+    val viewModel: MainActivityViewModel,
     val navController: NavHostController,
     coroutineScope: CoroutineScope,
 ) {
@@ -133,12 +132,5 @@ class EpisodiveAppState(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = false,
-        )
-
-    val userData = userRepository.getUserData()
-        .stateIn(
-            scope = coroutineScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = UserData(),
         )
 }

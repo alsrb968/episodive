@@ -27,8 +27,10 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import io.jacob.episodive.R
+import io.jacob.episodive.core.designsystem.component.EpisodiveBackground
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBar
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBarItem
+import io.jacob.episodive.feature.onboarding.OnboardingScreen
 import io.jacob.episodive.navigation.EpisodiveNavHost
 import kotlin.reflect.KClass
 
@@ -50,11 +52,12 @@ fun EpisodiveApp(
         }
     }
 
-    EpisodiveApp(
-        appState = appState,
-        modifier = modifier,
-        snackbarHostState = snackbarHostState,
-    )
+    EpisodiveBackground(modifier = modifier) {
+        EpisodiveApp(
+            appState = appState,
+            snackbarHostState = snackbarHostState,
+        )
+    }
 }
 
 @Composable
@@ -63,44 +66,50 @@ fun EpisodiveApp(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState,
 ) {
-    val userData by appState.userData.collectAsStateWithLifecycle()
+    val state by appState.viewModel.state.collectAsStateWithLifecycle()
+
     val currentDestination by appState.currentDestination
         .collectAsStateWithLifecycle(initialValue = null)
+
+    if (state.isFirstLaunch()) {
+        OnboardingScreen(
+            onShowSnackbar = { _, _ -> false },
+        )
+        return
+    }
 
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            if (!userData.isFirstLaunch) {
-                EpisodiveNavigationBar {
-                    appState.bottomBarDestinations.forEach { destination ->
-                        val selected = currentDestination
-                            .isRouteInHierarchy(destination.baseRoute)
-                        val text = stringResource(destination.iconTextId)
+            EpisodiveNavigationBar {
+                appState.bottomBarDestinations.forEach { destination ->
+                    val selected = currentDestination
+                        .isRouteInHierarchy(destination.baseRoute)
+                    val text = stringResource(destination.iconTextId)
 
-                        EpisodiveNavigationBarItem(
-                            icon = {
-                                Icon(
-                                    imageVector = destination.unselectedIcon,
-                                    contentDescription = text
-                                )
-                            },
-                            selectedIcon = {
-                                Icon(
-                                    imageVector = destination.selectedIcon,
-                                    contentDescription = text
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = text,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    maxLines = 1
-                                )
-                            },
-                            selected = selected,
-                            onClick = { appState.navigateToBottomBarDestination(destination) },
-                        )
-                    }
+                    EpisodiveNavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = destination.unselectedIcon,
+                                contentDescription = text
+                            )
+                        },
+                        selectedIcon = {
+                            Icon(
+                                imageVector = destination.selectedIcon,
+                                contentDescription = text
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1
+                            )
+                        },
+                        selected = selected,
+                        onClick = { appState.navigateToBottomBarDestination(destination) },
+                    )
                 }
             }
         },

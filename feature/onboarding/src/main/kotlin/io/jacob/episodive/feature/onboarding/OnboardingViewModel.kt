@@ -34,8 +34,8 @@ class OnboardingViewModel @Inject constructor(
     private val toggleCategoryUseCase: ToggleCategoryUseCase,
     private val toggleFollowedUseCase: ToggleFollowedUseCase,
     private val getPreferredCategoriesUseCase: GetPreferredCategoriesUseCase,
-    private val getRecommendedFeedsUseCase: GetRecommendedFeedsUseCase,
-    private val getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
+    getRecommendedFeedsUseCase: GetRecommendedFeedsUseCase,
+    getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
 ) : ViewModel() {
 
     private val _page = MutableStateFlow(OnboardingPage.Welcome)
@@ -146,9 +146,8 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun finishOnboarding() = viewModelScope.launch {
-        setFirstLaunchOffUseCase()
         delay(3000L)
-        _effect.emit(OnboardingEffect.NavigateToMain)
+        setFirstLaunchOffUseCase()
     }
 }
 
@@ -166,7 +165,6 @@ sealed interface OnboardingAction {
 
 sealed interface OnboardingEffect {
     data object ToastMoreCategories : OnboardingEffect
-    data object NavigateToMain : OnboardingEffect
     data class MoveToPage(val page: OnboardingPage) : OnboardingEffect
 }
 
@@ -179,6 +177,8 @@ enum class OnboardingPage {
     companion object {
         val count = entries.size
         fun fromIndex(index: Int) = entries.getOrNull(index)
+        fun firstIndex() = entries.first().ordinal
+        fun lastIndex() = entries.last().ordinal
     }
 }
 

@@ -77,11 +77,10 @@ import kotlinx.coroutines.flow.collectLatest
 import java.util.Locale
 
 @Composable
-fun OnboardingRoute(
+fun OnboardingScreen(
     modifier: Modifier = Modifier,
     viewModel: OnboardingViewModel = hiltViewModel(),
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
-    onCompleted: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.count })
@@ -91,10 +90,8 @@ fun OnboardingRoute(
         viewModel.effect.collectLatest { effect ->
             when (effect) {
                 is OnboardingEffect.ToastMoreCategories -> onShowSnackbar(moreCategories, null)
-                is OnboardingEffect.NavigateToMain -> onCompleted()
-                is OnboardingEffect.MoveToPage -> {
+                is OnboardingEffect.MoveToPage ->
                     pagerState.animateScrollToPage(effect.page.ordinal)
-                }
             }
         }
     }
@@ -137,35 +134,37 @@ fun OnboardingRoute(
             }
         }
 
-        EpisodiveGradientBackground(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.BottomCenter)
-        ) {
-            Column(
+        if (pagerState.currentPage != OnboardingPage.lastIndex()) {
+            EpisodiveGradientBackground(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .padding(top = 100.dp)
-                    .align(Alignment.BottomCenter),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .wrapContentHeight()
+                    .align(Alignment.BottomCenter)
             ) {
-                PagerIndicator(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    pageCount = OnboardingPage.count,
-                    currentPage = pagerState.currentPage
-                )
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .padding(top = 100.dp)
+                        .align(Alignment.BottomCenter),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PagerIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        pageCount = OnboardingPage.count,
+                        currentPage = pagerState.currentPage
+                    )
 
-                EpisodiveButton(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    onClick = { viewModel.sendAction(OnboardingAction.NextPage) },
-                    text = { Text(text = stringResource(R.string.feature_onboarding_next)) },
-                    enabled = true,
-                )
+                    EpisodiveButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        onClick = { viewModel.sendAction(OnboardingAction.NextPage) },
+                        text = { Text(text = stringResource(R.string.feature_onboarding_next)) },
+                        enabled = true,
+                    )
+                }
             }
         }
     }
@@ -179,29 +178,33 @@ private fun WelcomeScreen(
         modifier = modifier
             .fillMaxSize(),
         gradientColors = GradientColors(
-            top = MaterialTheme.colorScheme.primaryContainer
+            top = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         )
     ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize(),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(50.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Image(
-                modifier = Modifier
-                    .padding(100.dp),
-                painter = painterResource(R.drawable.undraw_skateboard_w3bz),
-                contentDescription = "Welcome Image",
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(30.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.core_designsystem_undraw_relax_mode),
+                    contentDescription = "Welcome Image",
+                )
 
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
-                text = stringResource(R.string.feature_onboarding_welcome_title),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-            )
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    text = stringResource(R.string.feature_onboarding_welcome_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
@@ -362,13 +365,9 @@ private fun CompletionScreen(
             verticalArrangement = Arrangement.spacedBy(30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = stringResource(R.string.feature_onboarding_completion_title),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+            Image(
+                painter = painterResource(R.drawable.core_designsystem_undraw_to_the_moon),
+                contentDescription = "Welcome Image",
             )
 
             LinearWavyProgressIndicator(
@@ -378,6 +377,16 @@ private fun CompletionScreen(
                 trackColor = MaterialTheme.colorScheme.outline,
                 trackStroke = thickStroke,
             )
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = stringResource(R.string.feature_onboarding_completion_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+
         }
     }
 }
