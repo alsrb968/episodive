@@ -10,7 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
     locale = "ko",
     uiMode = Configuration.UI_MODE_NIGHT_NO,
     showBackground = true,
-    backgroundColor = 0xFFFFFFFF
+    backgroundColor = 0xFFFFFBFF
 )
 @Preview(
     name = "night en",
@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
     locale = "en",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     showBackground = true,
-    backgroundColor = 0xFF000000
+    backgroundColor = 0xFF1A1414
 )
 annotation class DevicePreviews
 

@@ -1,5 +1,6 @@
 package io.jacob.episodive.feature.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -44,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,6 +61,7 @@ import io.jacob.episodive.core.designsystem.component.scrollbar.DecorativeScroll
 import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.GradientColors
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Feed
@@ -160,11 +163,34 @@ fun OnboardingRoute(
 private fun WelcomeScreen(
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    EpisodiveGradientBackground(
         modifier = modifier
             .fillMaxSize(),
+        gradientColors = GradientColors(
+            top = MaterialTheme.colorScheme.primaryContainer
+        )
     ) {
-        Text(text = "Welcome Screen")
+        Column(
+            modifier = modifier
+                .fillMaxSize(),
+        ) {
+            Image(
+                modifier = Modifier
+                    .padding(100.dp),
+                painter = painterResource(R.drawable.undraw_skateboard_w3bz),
+                contentDescription = "Welcome Image",
+            )
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                text = stringResource(R.string.feature_onboarding_welcome_title),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -535,36 +561,24 @@ private fun PagerIndicator(
     }
 }
 
-//@ThemePreviews
-//@Composable
-//private fun FeedButtonPreview() {
-//    EpisodiveTheme {
-//        FeedButton(
-//            feed = trendingFeedTestDataList[1].toFeedFromTrending(),
-//            isSelected = true,
-//            onClick = {},
-//        )
-//    }
-//}
+@DevicePreviews
+@Composable
+private fun WelcomeScreenPreview() {
+    EpisodiveTheme {
+        WelcomeScreen()
+    }
+}
 
-//@DevicePreviews
-//@Composable
-//private fun WelcomeScreenPreview() {
-//    EpisodiveTheme {
-//        WelcomeScreen()
-//    }
-//}
-//
-//@DevicePreviews
-//@Composable
-//private fun CategorySelectionScreenPreview() {
-//    EpisodiveTheme {
-//        CategorySelectionScreen(
-//            categories = Category.entries.map { CategoryUiModel(it, false) },
-//            onCategoryCheckedChanged = {},
-//        )
-//    }
-//}
+@DevicePreviews
+@Composable
+private fun CategorySelectionScreenPreview() {
+    EpisodiveTheme {
+        CategorySelectionScreen(
+            categories = Category.entries.map { CategoryUiModel(it, false) },
+            onCategoryCheckedChanged = {},
+        )
+    }
+}
 
 @DevicePreviews
 @Composable
