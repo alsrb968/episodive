@@ -65,11 +65,8 @@ class UserPreferencesStore @Inject constructor(
     fun getUserPreferences(): Flow<UserPreferences> =
         dataStore.data.map { preferences ->
             UserPreferences(
-                isFirstLaunch =
-                    // FIXME
-//                    preferences[UserPreferencesKeys.isFirstLaunch]?.toBoolean()
-//                    ?:
-                    true,
+                isFirstLaunch = preferences[UserPreferencesKeys.isFirstLaunch]?.toBoolean()
+                    ?: true,
                 language = Locale.getDefault().language,
                 categories = preferences[UserPreferencesKeys.categories]?.toCategories()
                     ?: emptyList(),

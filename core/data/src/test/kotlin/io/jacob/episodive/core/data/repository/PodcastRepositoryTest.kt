@@ -9,6 +9,7 @@ import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toPodcastEntities
 import io.jacob.episodive.core.domain.repository.PodcastRepository
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
+import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
@@ -88,18 +89,26 @@ class PodcastRepositoryTest {
     fun `Given feedId, When getPodcastByFeedId is called, Then calls methods of dataSources`() =
         runTest {
             // Given
+            val feedId = 12345L
+            val query = PodcastQuery.FeedId(feedId)
             coEvery {
-                remoteDataSource.getPodcastByFeedId(any())
-            } returns mockk(relaxed = true)
+                remoteUpdater.create(query)
+            } returns mockk<PodcastRemoteUpdater>(relaxed = true)
+            coEvery {
+                localDataSource.getPodcast(feedId)
+            } returns flowOf(podcastEntities.first())
 
             // When
-            repository.getPodcastByFeedId(12345).test {
-                awaitItem()
+            repository.getPodcastByFeedId(feedId).test {
+                val result = awaitItem()
+                // Then
+                assertEquals(podcastTestData.id, result?.id)
                 awaitComplete()
             }
-
-            // Then
-            coVerify { remoteDataSource.getPodcastByFeedId(any()) }
+            coVerifySequence {
+                remoteUpdater.create(query)
+                localDataSource.getPodcast(feedId)
+            }
         }
 
     @Test
