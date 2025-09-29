@@ -49,12 +49,12 @@ class HomeViewModel @Inject constructor(
 
             val playingEpisodes = getPlayingEpisodesUseCase().first()
             val myRecentFeeds = getMyRecentFeedsUseCase().first()
-            val randomEpisodes = getMyRandomEpisodesUseCase().first()
+            val randomEpisodes = getMyRandomEpisodesUseCase().first().take(6)
             val myTrendingFeeds = getMyTrendingFeedsUseCase().first()
             val followedPodcasts = getFollowedPodcastsUseCase().first()
             val localTrendingFeeds = getTrendingFeedsUseCase(language = userData.language).first()
             val foreignTrendingFeeds = getTrendingFeedsUseCase(language = foreignLanguages).first()
-            val liveEpisodes = getLiveEpisodesUseCase().first()
+            val liveEpisodes = getLiveEpisodesUseCase().first().take(6)
 
             _state.emit(
                 HomeState.Success(

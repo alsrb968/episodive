@@ -22,18 +22,18 @@ Podcast Index Api 활용한 팟캐스트 앱
 
 ### 홈
 - [ ] 최근 재생 에피소드 이어듣기 리스트 (horizontal)
-- [ ] 선호 최근 팟캐스트 리스트 (horizontal)
+- [x] 선호 최근 팟캐스트 리스트 (horizontal)
   - /recent/feeds (lang, cat)
-- [ ] 랜덤 에피소드 리스트 (vertical 6)
+- [x] 랜덤 에피소드 리스트 (vertical 6)
   - /episodes/random (lang, cat)
-- [ ] 선호 인기 팟캐스트 리스트 (horizontal)
+- [x] 선호 인기 팟캐스트 리스트 (horizontal)
   - /podcasts/trending (lang, cat)
-- [ ] 구독 팟캐스트 리스트 (horizontal)
-- [ ] 지역 인기 팟캐스트 리스트 (horizontal)
+- [x] 구독 팟캐스트 리스트 (horizontal)
+- [x] 지역 인기 팟캐스트 리스트 (horizontal)
   - /podcasts/trending (lang)
-- [ ] 해외 인기 팟캐스트 리스트 (horizontal)
+- [x] 해외 인기 팟캐스트 리스트 (horizontal)
   - /podcasts/trending (lang)
-- [ ] 라이브 에피소드 리스트 (vertical)
+- [x] 라이브 에피소드 리스트 (vertical)
   - /episodes/live
 - [ ] 채널 리스트 (horizontal)
   - db, /search/byterm

@@ -138,18 +138,20 @@ private fun HomeScreen(
             scaffoldState = sheetState,
             content = {
                 EpisodiveBackground {
-                    SectionHeader(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .padding(top = systemBarsPadding.calculateTopPadding()),
-                        title = stringResource(R.string.feature_home_title),
-                    ) {
-                        PlayingEpisodesSection(
-                            playingEpisodes = playingEpisodes,
-                            onEpisodeClick = { episode ->
-                                // TODO:
-                            }
-                        )
+                    if (playingEpisodes.isNotEmpty()) {
+                        SectionHeader(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .padding(top = systemBarsPadding.calculateTopPadding()),
+                            title = stringResource(R.string.feature_home_title),
+                        ) {
+                            PlayingEpisodesSection(
+                                playingEpisodes = playingEpisodes,
+                                onEpisodeClick = { episode ->
+                                    // TODO:
+                                }
+                            )
+                        }
                     }
                 }
             },
@@ -229,6 +231,16 @@ private fun HomeScreen(
                                 }
                             )
                         }
+
+                        item {
+                            EpisodesSection(
+                                title = stringResource(R.string.feature_home_section_live_episodes),
+                                episodes = liveEpisodes,
+                                onEpisodeClick = { episode ->
+
+                                }
+                            )
+                        }
                     }
                 }
             },
@@ -259,22 +271,6 @@ private fun ErrorScreen(
     ) {
         Text(text = message)
     }
-}
-
-@Composable
-private fun HomeSheetContents(
-    modifier: Modifier = Modifier,
-    playingEpisodes: List<PlayedEpisode>,
-    recentFeeds: List<RecentFeed>,
-) {
-
-}
-
-@Composable
-private fun HomeContents(
-    modifier: Modifier = Modifier,
-) {
-
 }
 
 @Composable
@@ -571,7 +567,7 @@ private fun EpisodeItem(
             modifier = Modifier
                 .size(72.dp)
                 .clip(RoundedCornerShape(16.dp)),
-            imageUrl = episode.image,
+            imageUrl = episode.image.ifEmpty { episode.feedImage },
             contentDescription = episode.title,
         )
 
@@ -589,10 +585,13 @@ private fun EpisodeItem(
                 overflow = TextOverflow.Ellipsis,
             )
 
+            val subTitle = "%s • %s".format(
+                episode.datePublished.toHumanReadable(),
+                episode.duration?.toHumanReadable() ?: episode.feedTitle
+            ).trim()
+
             Text(
-                text = "${episode.datePublished.toHumanReadable()}${
-                    episode.duration?.toHumanReadable()?.let { "• $it" } ?: ""
-                }",
+                text = subTitle,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
