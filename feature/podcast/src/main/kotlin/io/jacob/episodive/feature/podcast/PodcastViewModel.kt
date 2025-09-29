@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.usecase.episode.GetEpisodesByPodcastIdUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
@@ -13,10 +14,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel(assistedFactory = PodcastViewModel.Factory::class)
-class PodcastViewModel @Inject constructor(
+class PodcastViewModel @AssistedInject constructor(
     getPodcastUseCase: GetPodcastUseCase,
     getEpisodesByPodcastIdUseCase: GetEpisodesByPodcastIdUseCase,
     @Assisted("id") val id: Long,
