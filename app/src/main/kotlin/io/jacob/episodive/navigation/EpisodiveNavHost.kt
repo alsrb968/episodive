@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import io.jacob.episodive.feature.clip.navigation.clipSection
 import io.jacob.episodive.feature.home.navigation.homeSection
 import io.jacob.episodive.feature.library.navigation.librarySection
+import io.jacob.episodive.feature.podcast.navigation.navigateToPodcast
 import io.jacob.episodive.feature.podcast.navigation.podcastScreen
 import io.jacob.episodive.feature.search.navigation.searchSection
 import io.jacob.episodive.ui.EpisodiveAppState
@@ -27,7 +28,7 @@ fun EpisodiveNavHost(
             onRegisterNestedNavController = { navController ->
                 appState.registerNestedNavController(BottomBarDestination.HOME, navController)
             },
-//            navigateToPlaceDetail = { navigateToPlaceDetail(it) },
+            navigateToPodcast = { navigateToPodcast(it) },
 //            navigateToStoryDetail = { navigateToStoryDetail(it) },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
