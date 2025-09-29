@@ -1,4 +1,4 @@
-package io.jacob.episodive.feature.home.navigation
+package io.jacob.episodive.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
