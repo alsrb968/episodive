@@ -14,6 +14,7 @@ class GetMyRandomEpisodesUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Episode>> {
         return userRepository.getUserData().flatMapLatest { userData ->
             episodeRepository.getRandomEpisodes(
+                max = 6,
                 language = userData.language,
                 includeCategories = userData.categories,
             )

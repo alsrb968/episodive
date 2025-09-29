@@ -35,8 +35,8 @@ fun EpisodiveTheme(
     // Gradient colors
     val emptyGradientColors = GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
     val defaultGradientColors = GradientColors(
-        top = Color.Transparent,//colorScheme.inverseOnSurface,
-        bottom = colorScheme.primaryContainer,
+        top = colorScheme.primaryContainer,
+        bottom = Color.Transparent,//colorScheme.inverseOnSurface,
         container = Color.Transparent,//colorScheme.surface,
     )
     val gradientColors = defaultGradientColors
