@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -30,9 +32,11 @@ import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 @Composable
 fun SectionHeader(
     modifier: Modifier = Modifier,
-    text: String,
-    onMore: (() -> Unit)? = null,
-    content: @Composable () -> Unit = {}
+    title: String,
+    actionIcon: ImageVector? = null,
+    actionIconContentDescription: String? = null,
+    onActionClick: () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -41,28 +45,52 @@ fun SectionHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = text,
+                modifier = Modifier.weight(1f),
+                text = title,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            onMore?.let {
+            if (actionIcon != null && actionIconContentDescription != null) {
                 IconButton(
-                    onClick = it
+                    onClick = onActionClick
                 ) {
                     Icon(
-                        imageVector = EpisodiveIcons.KeyboardArrowRight,
+                        imageVector = actionIcon,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = "more"
+                        contentDescription = actionIconContentDescription
                     )
                 }
             }
         }
+
+        content()
+    }
+}
+
+@Composable
+fun SubSectionHeader(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: @Composable ColumnScope.() -> Unit = {}
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
         content()
     }
@@ -125,8 +153,20 @@ fun FadeTopBarLayout(
 private fun SectionHeaderPreview() {
     EpisodiveTheme {
         SectionHeader(
-            text = "Preview",
-            onMore = {}
+            title = "Preview",
+            actionIcon = EpisodiveIcons.KeyboardArrowRight,
+            actionIconContentDescription = "See All",
+            onActionClick = {}
+        )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun SubSectionHeaderPreview() {
+    EpisodiveTheme {
+        SubSectionHeader(
+            title = "Preview",
         )
     }
 }
