@@ -138,13 +138,13 @@ private fun HomeScreen(
             scaffoldState = sheetState,
             content = {
                 EpisodiveBackground {
-                    if (playingEpisodes.isNotEmpty()) {
-                        SectionHeader(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .padding(top = systemBarsPadding.calculateTopPadding()),
-                            title = stringResource(R.string.feature_home_title),
-                        ) {
+                    SectionHeader(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .padding(top = systemBarsPadding.calculateTopPadding()),
+                        title = stringResource(R.string.feature_home_title),
+                    ) {
+                        if (playingEpisodes.isNotEmpty()) {
                             PlayingEpisodesSection(
                                 playingEpisodes = playingEpisodes,
                                 onEpisodeClick = { episode ->
