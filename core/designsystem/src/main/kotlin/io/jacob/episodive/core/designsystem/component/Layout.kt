@@ -11,11 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -117,7 +117,7 @@ fun FadeTopBarLayout(
     Box(modifier = modifier) {
         content()
 
-        TopAppBar(
+        EpisodiveTopAppBar(
             modifier = Modifier,
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (showTopBar) 1f else 0f)
@@ -134,16 +134,9 @@ fun FadeTopBarLayout(
                     )
                 }
             },
-            navigationIcon = {
-                IconButton(
-                    onClick = onBack
-                ) {
-                    Icon(
-                        imageVector = EpisodiveIcons.ArrowBack,
-                        contentDescription = "Back",
-                    )
-                }
-            },
+            navigationIcon = EpisodiveIcons.ArrowBack,
+            navigationIconContentDescription = "Back",
+            onNavigationClick = onBack,
         )
     }
 }
@@ -168,5 +161,17 @@ private fun SubSectionHeaderPreview() {
         SubSectionHeader(
             title = "Preview",
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun FadeTopBarLayoutPreview() {
+    EpisodiveTheme {
+        FadeTopBarLayout(
+            state = rememberLazyListState(),
+            title = "Title",
+            onBack = {},
+        ) {}
     }
 }

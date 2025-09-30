@@ -49,7 +49,7 @@ class HomeViewModel @Inject constructor(
 
             val playingEpisodes = getPlayingEpisodesUseCase().first().take(10)
             val myRecentFeeds = getMyRecentFeedsUseCase().first().take(10)
-            val randomEpisodes = getMyRandomEpisodesUseCase().first().take(6)
+            val randomEpisodes = emptyList<Episode>() //getMyRandomEpisodesUseCase().first().take(6)
             val myTrendingFeeds = getMyTrendingFeedsUseCase().first().take(10)
             val followedPodcasts = getFollowedPodcastsUseCase().first().take(10)
             val localTrendingFeeds =

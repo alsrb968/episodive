@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -24,6 +25,7 @@ fun EpisodiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = ButtonDefaults.shape,
+    buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
@@ -32,10 +34,8 @@ fun EpisodiveButton(
         onClick = onClick,
         modifier = modifier,
         shape = shape,
+        colors = buttonColors,
         enabled = enabled,
-//        colors = ButtonDefaults.buttonColors(
-//            containerColor = MaterialTheme.colorScheme.onBackground,
-//        ),
         contentPadding = contentPadding,
         content = content,
     )
@@ -46,6 +46,7 @@ fun EpisodiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = ButtonDefaults.shape,
+    buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -54,6 +55,7 @@ fun EpisodiveButton(
         onClick = onClick,
         modifier = modifier,
         shape = shape,
+        buttonColors = buttonColors,
         enabled = enabled,
         contentPadding = if (leadingIcon != null) {
             ButtonDefaults.ButtonWithIconContentPadding

@@ -9,6 +9,6 @@ class GetEpisodesByPodcastIdUseCase @Inject constructor(
     private val episodeRepository: EpisodeRepository
 ) {
     operator fun invoke(podcastId: Long): Flow<List<Episode>> {
-        return episodeRepository.getEpisodesByFeedId(podcastId)
+        return episodeRepository.getEpisodesByFeedId(podcastId, max = 1000)
     }
 }

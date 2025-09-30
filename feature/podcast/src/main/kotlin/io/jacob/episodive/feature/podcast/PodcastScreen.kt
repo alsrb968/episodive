@@ -1,21 +1,19 @@
 package io.jacob.episodive.feature.podcast
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,14 +21,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodeItem
+import io.jacob.episodive.core.designsystem.component.EpisodiveButton
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
 import io.jacob.episodive.core.designsystem.component.LoadingWheel
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
@@ -54,6 +55,8 @@ internal fun PodcastRoute(
                 modifier = modifier,
                 podcast = s.podcast,
                 episodes = s.episodes,
+                isFollowed = s.isFollowed,
+                onFollowClick = { viewModel.sendAction(PodcastAction.ToggleFollowed) },
                 onEpisodeClick = { episode ->
                     // TODO
                 },
@@ -71,6 +74,8 @@ private fun PodcastScreen(
     modifier: Modifier = Modifier,
     podcast: Podcast,
     episodes: List<Episode>,
+    isFollowed: Boolean,
+    onFollowClick: () -> Unit,
     onEpisodeClick: (Episode) -> Unit,
     onBackClick: () -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
@@ -80,6 +85,7 @@ private fun PodcastScreen(
     FadeTopBarLayout(
         modifier = modifier,
         state = listState,
+        offset = 900,
         title = podcast.title,
         onBack = onBackClick
     ) {
@@ -88,87 +94,14 @@ private fun PodcastScreen(
                 .fillMaxSize(),
             state = listState,
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(8.dp)
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 80.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    StateImage(
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(shape = RoundedCornerShape(8.dp)),
-                        imageUrl = podcast.image,
-                        contentDescription = podcast.title,
-                    )
-
-                    Text(
-                        modifier = Modifier
-                            .padding(vertical = 16.dp),
-                        text = podcast.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    Row(
-                        modifier = Modifier,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = CircleShape
-                                ),
-                            onClick = { /* TODO */ }
-                        ) {
-                            Icon(
-                                imageVector = EpisodiveIcons.FileDownload,
-                                contentDescription = null
-                            )
-                        }
-
-                        IconButton(
-                            modifier = Modifier
-                                .size(70.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = CircleShape
-                                ),
-                            onClick = {
-//                                onEpisodeClick(episodes)
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .size(48.dp),
-                                imageVector = EpisodiveIcons.PlayArrow,
-                                contentDescription = null
-                            )
-                        }
-
-                        IconButton(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    shape = CircleShape
-                                ),
-                            onClick = { /* TODO */ }
-                        ) {
-                            Icon(
-                                imageVector = EpisodiveIcons.Share,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                }
+                PodcastHeader(
+                    podcast = podcast,
+                    isFollowed = isFollowed,
+                    onFollowClick = onFollowClick,
+                )
             }
 
             items(
@@ -184,6 +117,74 @@ private fun PodcastScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PodcastHeader(
+    modifier: Modifier = Modifier,
+    podcast: Podcast,
+    isFollowed: Boolean,
+    onFollowClick: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 110.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StateImage(
+            modifier = Modifier
+                .size(220.dp)
+                .clip(shape = RoundedCornerShape(24.dp)),
+            imageUrl = podcast.image,
+            contentDescription = podcast.title,
+        )
+
+        Text(
+            text = podcast.author,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+
+        Text(
+            text = podcast.title,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+
+        EpisodiveButton(
+            onClick = onFollowClick,
+            shape = RoundedCornerShape(16.dp),
+            buttonColors = ButtonDefaults.buttonColors(
+                containerColor = if (isFollowed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
+            ),
+            text = { Text(stringResource(if (isFollowed) R.string.feature_podcast_unfollow else R.string.feature_podcast_follow)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = if (isFollowed) EpisodiveIcons.PersonRemove else EpisodiveIcons.PersonAdd,
+                    contentDescription = null
+                )
+            },
+        )
+
+        Text(
+            text = podcast.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+
+    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+    Text(
+        modifier = Modifier
+            .padding(vertical = 8.dp),
+        text = "All episodes (${podcast.episodeCount})",
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
+
 }
 
 @Composable
@@ -216,11 +217,15 @@ private fun ErrorScreen(
 @DevicePreviews
 @Composable
 private fun PodcastScreenPreview() {
-    PodcastScreen(
-        podcast = podcastTestData,
-        episodes = episodeTestDataList,
-        onEpisodeClick = {},
-        onBackClick = {},
-        onShowSnackbar = { _, _ -> false }
-    )
+    EpisodiveTheme {
+        PodcastScreen(
+            podcast = podcastTestData,
+            episodes = episodeTestDataList,
+            isFollowed = false,
+            onFollowClick = {},
+            onEpisodeClick = {},
+            onBackClick = {},
+            onShowSnackbar = { _, _ -> false }
+        )
+    }
 }
