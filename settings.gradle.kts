@@ -38,5 +38,6 @@ include(":feature:home")
 include(":feature:search")
 include(":feature:library")
 include(":feature:clip")
+include(":feature:podcast")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

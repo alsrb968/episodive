@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.feature.search)
     implementation(projects.feature.library)
     implementation(projects.feature.clip)
+    implementation(projects.feature.podcast)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)

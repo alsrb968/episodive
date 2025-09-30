@@ -1,6 +1,5 @@
 package io.jacob.episodive.core.designsystem.component
 
-import androidx.annotation.StringRes
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,25 +11,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 
 @Composable
 fun EpisodiveTopAppBar(
-    @StringRes titleRes: Int,
+    modifier: Modifier = Modifier,
+    title: @Composable () -> Unit,
     navigationIcon: ImageVector,
     navigationIconContentDescription: String,
-    actionIcon: ImageVector,
-    actionIconContentDescription: String,
-    modifier: Modifier = Modifier,
+    actionIcon: ImageVector? = null,
+    actionIconContentDescription: String? = null,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
 ) {
     CenterAlignedTopAppBar(
-        title = { Text(text = stringResource(id = titleRes)) },
+        title = title,
         navigationIcon = {
             IconButton(onClick = onNavigationClick) {
                 Icon(
@@ -41,6 +39,9 @@ fun EpisodiveTopAppBar(
             }
         },
         actions = {
+            if (actionIcon == null) return@CenterAlignedTopAppBar
+            if (actionIconContentDescription == null) return@CenterAlignedTopAppBar
+
             IconButton(onClick = onActionClick) {
                 Icon(
                     imageVector = actionIcon,
@@ -59,7 +60,7 @@ fun EpisodiveTopAppBar(
 private fun EpisodiveTopAppBarPreview() {
     EpisodiveTheme {
         EpisodiveTopAppBar(
-            titleRes = android.R.string.untitled,
+            title = { Text(text = "Title") },
             navigationIcon = EpisodiveIcons.Search,
             navigationIconContentDescription = "Navigation icon",
             actionIcon = EpisodiveIcons.MoreVert,

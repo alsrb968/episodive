@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -41,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.jacob.episodive.core.designsystem.component.EpisodesSection
 import io.jacob.episodive.core.designsystem.component.EpisodiveBackground
 import io.jacob.episodive.core.designsystem.component.LoadingWheel
 import io.jacob.episodive.core.designsystem.component.SectionHeader
@@ -57,15 +56,12 @@ import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.TrendingFeed
 import io.jacob.episodive.core.model.mapper.toFeedsFromRecent
 import io.jacob.episodive.core.model.mapper.toFeedsFromTrending
-import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.model.mapper.toIntSeconds
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.liveEpisodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.model.recentFeedTestDataList
 import io.jacob.episodive.core.testing.model.trendingFeedTestDataList
-import io.jacob.episodive.feature.home.navigation.HomeState
-import io.jacob.episodive.feature.home.navigation.HomeViewModel
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
@@ -73,17 +69,13 @@ import kotlin.time.Duration.Companion.seconds
 internal fun HomeRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
+    onPodcastClick: (Long) -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
 
     when (val s = state) {
-        is HomeState.Loading -> LoadingScreen(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(vertical = systemBarsPadding.calculateTopPadding())
-        )
+        is HomeState.Loading -> LoadingScreen()
 
         is HomeState.Success -> HomeScreen(
             modifier = modifier
@@ -96,14 +88,10 @@ internal fun HomeRoute(
             localTrendingFeeds = s.localTrendingFeeds,
             foreignTrendingFeeds = s.foreignTrendingFeeds,
             liveEpisodes = s.liveEpisodes,
+            onPodcastClick = onPodcastClick,
         )
 
-        is HomeState.Error -> ErrorScreen(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(vertical = systemBarsPadding.calculateTopPadding()),
-            message = s.message
-        )
+        is HomeState.Error -> ErrorScreen(message = s.message)
     }
 }
 
@@ -118,6 +106,7 @@ private fun HomeScreen(
     localTrendingFeeds: List<TrendingFeed>,
     foreignTrendingFeeds: List<TrendingFeed>,
     liveEpisodes: List<Episode>,
+    onPodcastClick: (Long) -> Unit,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenWidth = this.maxWidth
@@ -174,7 +163,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_my_recent_feeds),
                                 feeds = myRecentFeeds.toFeedsFromRecent(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -194,7 +183,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_my_trending_feeds),
                                 feeds = myTrendingFeeds.toFeedsFromTrending(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -207,7 +196,7 @@ private fun HomeScreen(
 
                                 },
                                 onFollowedPodcastClick = { followedPodcast ->
-
+                                    onPodcastClick(followedPodcast.podcast.id)
                                 }
                             )
                         }
@@ -217,7 +206,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_trending_in_local),
                                 feeds = localTrendingFeeds.toFeedsFromTrending(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -227,7 +216,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_trending_in_foreign),
                                 feeds = foreignTrendingFeeds.toFeedsFromTrending(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -254,7 +243,8 @@ private fun LoadingScreen(
 ) {
     Box(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
         LoadingWheel()
     }
@@ -267,7 +257,8 @@ private fun ErrorScreen(
 ) {
     Box(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
         Text(text = message)
     }
@@ -523,123 +514,6 @@ private fun FollowedPodcastItem(
     }
 }
 
-@Composable
-private fun EpisodesSection(
-    modifier: Modifier = Modifier,
-    title: String,
-    episodes: List<Episode>,
-    onEpisodeClick: (Episode) -> Unit,
-) {
-    SectionHeader(
-        modifier = modifier,
-        title = title,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            episodes.forEach { episode ->
-                EpisodeItem(
-                    episode = episode,
-                    onClick = { onEpisodeClick(episode) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EpisodeItem(
-    modifier: Modifier = Modifier,
-    episode: Episode,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(72.dp)
-            .clickable { onClick() },
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        StateImage(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(RoundedCornerShape(16.dp)),
-            imageUrl = episode.image.ifEmpty { episode.feedImage },
-            contentDescription = episode.title,
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceAround
-        ) {
-            Text(
-                text = episode.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            val subTitle = "%s • %s".format(
-                episode.datePublished.toHumanReadable(),
-                episode.duration?.toHumanReadable() ?: episode.feedTitle
-            ).trim()
-
-            Text(
-                text = subTitle,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = EpisodiveIcons.PlayArrow,
-                tint = MaterialTheme.colorScheme.primary,
-                contentDescription = "Play episode",
-            )
-        }
-    }
-}
-
-//@DevicePreviews
-//@Composable
-//private fun EpisodesSectionPreview() {
-//    EpisodiveTheme {
-//        EpisodesSection(
-//            title = "You might like this",
-//            episodes = episodeTestDataList,
-//            onEpisodeClick = {},
-//        )
-//    }
-//}
-
-
-//@DevicePreviews
-//@Composable
-//private fun FeedsSectionPreview() {
-//    EpisodiveTheme {
-//        FeedsSection(
-//            modifier = Modifier.padding(16.dp),
-//            title = "Made for you",
-//            feeds = recentFeedTestDataList.toFeedsFromRecent(),
-//            onFeedClick = {},
-//        )
-//    }
-//}
-
 @DevicePreviews
 @Composable
 private fun HomeScreenPreview() {
@@ -667,6 +541,15 @@ private fun HomeScreenPreview() {
             localTrendingFeeds = trendingFeedTestDataList,
             foreignTrendingFeeds = trendingFeedTestDataList,
             liveEpisodes = liveEpisodeTestDataList,
+            onPodcastClick = {},
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun LoadingScreenPreview() {
+    EpisodiveTheme {
+        LoadingScreen()
     }
 }

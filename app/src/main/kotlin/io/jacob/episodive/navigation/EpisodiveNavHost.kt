@@ -2,10 +2,14 @@ package io.jacob.episodive.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import io.jacob.episodive.feature.clip.navigation.clipSection
 import io.jacob.episodive.feature.home.navigation.homeSection
 import io.jacob.episodive.feature.library.navigation.librarySection
+import io.jacob.episodive.feature.podcast.navigation.navigateToPodcast
+import io.jacob.episodive.feature.podcast.navigation.podcastScreen
 import io.jacob.episodive.feature.search.navigation.searchSection
 import io.jacob.episodive.ui.EpisodiveAppState
 
@@ -24,14 +28,14 @@ fun EpisodiveNavHost(
             onRegisterNestedNavController = { navController ->
                 appState.registerNestedNavController(BottomBarDestination.HOME, navController)
             },
-//            navigateToPlaceDetail = { navigateToPlaceDetail(it) },
+            navigateToPodcast = { navigateToPodcast(it) },
 //            navigateToStoryDetail = { navigateToStoryDetail(it) },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-//            addDetailsGraph(
-//                navController = nestedNavController,
-//                onShowSnackbar = onShowSnackbar
-//            )
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
 
         searchSection(
@@ -42,10 +46,10 @@ fun EpisodiveNavHost(
 //            navigateToStoryDetail = { navigateToStoryDetail(it) },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-//            addDetailsGraph(
-//                navController = nestedNavController,
-//                onShowSnackbar = onShowSnackbar
-//            )
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
 
         librarySection(
@@ -54,7 +58,10 @@ fun EpisodiveNavHost(
             },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
 
         clipSection(
@@ -63,7 +70,20 @@ fun EpisodiveNavHost(
             },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
     }
+}
+
+fun NavGraphBuilder.addDetailsGraph(
+    navController: NavController,
+    onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
+) {
+    podcastScreen(
+        onBackClick = navController::popBackStack,
+        onShowSnackbar = onShowSnackbar
+    )
 }
