@@ -124,7 +124,7 @@ class PlayerDataSourceImpl @Inject constructor(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Timber.e("error: $error")
+            Timber.e("errorCode: ${error.errorCode}, errorCodeName: ${error.errorCodeName}, message: ${error.message}, cause: ${error.cause}")
         }
     }
 
