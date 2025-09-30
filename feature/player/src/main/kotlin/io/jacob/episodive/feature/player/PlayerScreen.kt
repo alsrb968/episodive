@@ -81,7 +81,7 @@ fun PlayerBottomSheet(
         }
     }
 
-    val s = state as? PlayerState.Ready ?: return
+    val s = state as? PlayerState.Success ?: return
 
     ModalBottomSheet(
         modifier = modifier,
@@ -99,9 +99,9 @@ fun PlayerBottomSheet(
         PlayerScreen(
             modifier = Modifier
                 .padding(WindowInsets.statusBars.asPaddingValues()),
-            nowPlaying = s.content.nowPlaying,
-            progress = s.content.progress,
-            isPlaying = s.meta.isPlaying,
+            nowPlaying = s.nowPlaying,
+            progress = s.progress,
+            isPlaying = s.isPlaying,
             isFavorite = false,
 //                dominantColor = s.dominantColor,
             actions = PlayerScreenActions(

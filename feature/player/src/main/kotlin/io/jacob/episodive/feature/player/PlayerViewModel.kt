@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.util.combine
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,57 +22,35 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     private val playerRepository: PlayerRepository,
 ) : ViewModel() {
-
-    private val content = combine(
+    val state: StateFlow<PlayerState> = combine(
         playerRepository.nowPlaying,
         playerRepository.playlist,
         playerRepository.indexOfList,
-        playerRepository.progress
-    ) { nowPlaying, playlist, indexOfList, progress ->
-//        Timber.i("nowPlaying=$nowPlaying, indexOfList=$indexOfList, progress=$progress")
-        nowPlaying?.let { np ->
-            PlayerContentState(
-                nowPlaying = np,
-                playlist = playlist,
-                indexOfList = indexOfList,
-                progress = progress,
-            )
-        }
-    }
-
-    private val meta = combine(
+        playerRepository.progress,
         playerRepository.isPlaying,
         playerRepository.isShuffle,
         playerRepository.repeat,
-        playerRepository.speed
-    ) { isPlaying, isShuffle, repeat, speed ->
-//        Timber.i("isPlaying=$isPlaying, isShuffle=$isShuffle, repeat=$repeat, speed=$speed")
-        PlayerMetaState(
-            isPlaying = isPlaying,
-            isShuffle = isShuffle,
-            repeat = repeat,
-            speed = speed,
-        )
-    }
-
-    val state: StateFlow<PlayerState> = combine(
-        content, meta
-    ) { content, meta ->
-        content?.let {
-            PlayerState.Ready(
-                content = it,
-                meta = meta,
+        playerRepository.speed,
+    ) { nowPlaying, playlist, indexOfList, progress, isPlaying, isShuffle, repeat, speed ->
+        nowPlaying?.let {
+            PlayerState.Success(
+                nowPlaying = it,
+                playlist = playlist,
+                indexOfList = indexOfList,
+                progress = progress,
+                isPlaying = isPlaying,
+                isShuffle = isShuffle,
+                repeat = repeat,
+                speed = speed,
             ) as PlayerState
-        } ?: PlayerState.Loading
-    }
-//        .catch { e ->
-//        emit(PlayerState.Error(e.message ?: "Unknown Error"))
-//    }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = PlayerState.Loading
-        )
+        } ?: PlayerState.Error("content is null")
+    }.catch { e ->
+        emit(PlayerState.Error(e.message ?: "Unknown error"))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PlayerState.Loading
+    )
 
     private val _action = MutableSharedFlow<PlayerAction>(extraBufferCapacity = 1)
 
@@ -80,11 +59,6 @@ class PlayerViewModel @Inject constructor(
 
     init {
         handleActions()
-//        viewModelScope.launch {
-//            state.collectLatest {
-//                Timber.i("Player State: $it")
-//            }
-//        }
     }
 
     private fun handleActions() = viewModelScope.launch {
@@ -164,25 +138,17 @@ class PlayerViewModel @Inject constructor(
     }
 }
 
-data class PlayerContentState(
-    val nowPlaying: Episode,
-    val playlist: List<Episode>,
-    val indexOfList: Int,
-    val progress: Progress,
-)
-
-data class PlayerMetaState(
-    val isPlaying: Boolean,
-    val isShuffle: Boolean,
-    val repeat: Repeat,
-    val speed: Float,
-)
-
 sealed interface PlayerState {
     data object Loading : PlayerState
-    data class Ready(
-        val content: PlayerContentState,
-        val meta: PlayerMetaState,
+    data class Success(
+        val nowPlaying: Episode,
+        val playlist: List<Episode>,
+        val indexOfList: Int,
+        val progress: Progress,
+        val isPlaying: Boolean,
+        val isShuffle: Boolean,
+        val repeat: Repeat,
+        val speed: Float,
     ) : PlayerState
 
     data class Error(val message: String) : PlayerState

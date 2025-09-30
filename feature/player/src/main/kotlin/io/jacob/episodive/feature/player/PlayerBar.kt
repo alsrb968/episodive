@@ -83,7 +83,7 @@ fun PlayerBar(
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
-            visible = state is PlayerState.Ready,
+            visible = state is PlayerState.Success,
             modifier = Modifier.align(Alignment.BottomCenter), // 위치 유지
             enter = slideInVertically(
                 initialOffsetY = { it }, // 자기 키만큼 아래에서 등장
@@ -94,13 +94,13 @@ fun PlayerBar(
                 animationSpec = tween(300)
             )
         ) {
-            val s = state as? PlayerState.Ready ?: return@AnimatedVisibility
+            val s = state as? PlayerState.Success ?: return@AnimatedVisibility
 
             PlayerBar(
                 modifier = modifier,
-                nowPlaying = s.content.nowPlaying,
-                progress = s.content.progress,
-                isPlaying = s.meta.isPlaying,
+                nowPlaying = s.nowPlaying,
+                progress = s.progress,
+                isPlaying = s.isPlaying,
                 isFavorite = false,
                 actions = PlayerBarActions(
                     onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
