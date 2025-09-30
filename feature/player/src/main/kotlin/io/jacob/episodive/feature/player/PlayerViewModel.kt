@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.util.combine
 import io.jacob.episodive.core.model.Episode
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -23,9 +25,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+    private val updatePlayedEpisodeUseCase: UpdatePlayedEpisodeUseCase,
     private val getPodcastUseCase: GetPodcastUseCase,
     private val playerRepository: PlayerRepository,
 ) : ViewModel() {
+    private val playingEpisode = combine(
+        playerRepository.nowPlaying,
+        playerRepository.progress,
+    ) { episode, progress ->
+        episode?.id to progress
+    }
 
     private val podcast = playerRepository.nowPlaying.mapNotNull { it?.feedId }
         .flatMapLatest { feedId -> getPodcastUseCase(feedId) }
@@ -71,6 +80,13 @@ class PlayerViewModel @Inject constructor(
 
     init {
         handleActions()
+        viewModelScope.launch {
+            playingEpisode.collect { (episodeId, progress) ->
+                if (episodeId != null) {
+                    updatePlayedEpisodeUseCase(episodeId, progress)
+                }
+            }
+        }
     }
 
     private fun handleActions() = viewModelScope.launch {
