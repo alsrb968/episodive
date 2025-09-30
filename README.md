@@ -18,10 +18,12 @@ Podcast Index Api 활용한 팟캐스트 앱
   - 홈
   - 검색
   - 라이브러리
-  - 미리듣기
+  - 설정
 
 ### 홈
 - [ ] 최근 재생 에피소드 이어듣기 리스트 (horizontal)
+- [ ] 미리 듣기 리스트 (horizontal)
+    - /recent/soundbites
 - [x] 선호 최근 팟캐스트 리스트 (horizontal)
   - /recent/feeds (lang, cat)
 - [x] 랜덤 에피소드 리스트 (vertical 6)
@@ -78,14 +80,23 @@ local db
    - [ ] Liked, 좋아요 표시한 에피소드 리스트 (horizontal)
    - [ ] Followed, 구독한 팟캐스트 리스트 (horizontal)
 
-### 미리듣기
-- [ ] 최근 Soundbite 리스트 (horizontal)
-    - /recent/soundbites
-
 ### 설정
 - [ ] 테마
 
-### 플레이어
+## 공통 화면
+
+### 팟캐스트 상세
+
+- [x] image
+- [x] title
+- [x] description
+- [x] episodes
+
+### 에피소드 플레이어
 - [ ] image
 - [ ] title
+- [ ] description
+- [ ] progress bar
+- [ ] controls
+- [ ] timestamp
 - [ ] ...
