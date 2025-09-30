@@ -9,7 +9,7 @@ import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.ShortText
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
@@ -57,7 +57,7 @@ object EpisodiveIcons {
     val Close = Icons.Rounded.Close
     val ErrorOutline = Icons.Rounded.ErrorOutline
     val Favorite = Icons.Rounded.Favorite
-    val FavoriteBorder = Icons.Outlined.Favorite
+    val FavoriteBorder = Icons.Outlined.FavoriteBorder
     val FileDownload = Icons.Rounded.FileDownload
     val Forward30 = Icons.Rounded.Forward30
     val History = Icons.Rounded.History

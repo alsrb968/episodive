@@ -9,18 +9,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,18 +32,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.testing.model.episodeTestData
+import io.jacob.episodive.core.testing.model.podcastTestData
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.seconds
 
@@ -98,15 +98,14 @@ fun PlayerBar(
 
             PlayerBar(
                 modifier = modifier,
+                podcast = s.podcast,
                 nowPlaying = s.nowPlaying,
                 progress = s.progress,
                 isPlaying = s.isPlaying,
-                isFavorite = false,
-                actions = PlayerBarActions(
-                    onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
-                    onFavorite = {},
-                ),
+                isLike = false,
                 onExpand = { viewModel.sendAction(PlayerAction.ExpandPlayer) },
+                onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
+                onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
             )
         }
     }
@@ -117,14 +116,16 @@ fun PlayerBar(
 }
 
 @Composable
-fun PlayerBar(
+private fun PlayerBar(
     modifier: Modifier = Modifier,
+    podcast: Podcast,
     nowPlaying: Episode,
     progress: Progress,
     isPlaying: Boolean,
-    isFavorite: Boolean,
-    actions: PlayerBarActions,
+    isLike: Boolean,
     onExpand: () -> Unit,
+    onToggleLike: () -> Unit,
+    onPlayOrPause: () -> Unit,
 ) {
     Card(
         modifier = modifier
@@ -132,9 +133,9 @@ fun PlayerBar(
             .height(PLAYER_BAR_HEIGHT)
             .padding(horizontal = 6.dp)
             .padding(bottom = 6.dp),
-        shape = RoundedCornerShape(6.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
         ),
         elevation = CardDefaults.cardElevation(4.dp),
         onClick = onExpand
@@ -142,29 +143,22 @@ fun PlayerBar(
         Box {
             Row(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Box(
+                StateImage(
                     modifier = Modifier
                         .size(44.dp)
-                        .clip(RoundedCornerShape(5.dp))
-                ) {
-                    StateImage(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        imageUrl = nowPlaying.feedImage,
-                        contentDescription = nowPlaying.title
-                    )
-                }
+                        .clip(RoundedCornerShape(6.dp)),
+                    imageUrl = nowPlaying.feedImage,
+                    contentDescription = nowPlaying.title
+                )
 
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .height(34.dp)
-                        .padding(horizontal = 10.dp),
+                        .padding(start = 8.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -172,110 +166,133 @@ fun PlayerBar(
                             .fillMaxWidth()
                             .basicMarquee(),
                         text = nowPlaying.title,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .basicMarquee(),
+                        text = podcast.title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
 
-                ControlBar(
-                    modifier = Modifier
-                        .padding(end = 16.dp),
-                    isFavorite = isFavorite,
-                    isPlaying = isPlaying,
-                    actions = actions,
+                EpisodiveIconToggleButton(
+                    checked = isLike,
+                    onCheckedChange = { onToggleLike() },
+                    colors = IconButtonDefaults.iconToggleButtonColors(
+                        checkedContainerColor = Color.Transparent,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    icon = {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            imageVector = EpisodiveIcons.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    checkedIcon = {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            imageVector = EpisodiveIcons.Favorite,
+                            contentDescription = "Unlike",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                )
+
+                EpisodiveIconToggleButton(
+                    checked = isPlaying,
+                    onCheckedChange = { onPlayOrPause() },
+                    colors = IconButtonDefaults.iconToggleButtonColors(
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    icon = {
+                        Icon(
+                            imageVector = EpisodiveIcons.PlayArrow,
+                            contentDescription = "Play",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    checkedIcon = {
+                        Icon(
+                            imageVector = EpisodiveIcons.Pause,
+                            contentDescription = "Pause",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 )
             }
 
-            LinearProgressIndicator(
-                progress = { progress.bufferedRatio },
+            ProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(3.dp)
-                    .padding(horizontal = 10.dp)
                     .align(Alignment.BottomCenter),
-                color = MaterialTheme.colorScheme.outlineVariant,
-//                gapSize = 0.dp,
-            )
-            LinearProgressIndicator(
-                progress = { progress.positionRatio },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .padding(horizontal = 10.dp)
-                    .align(Alignment.BottomCenter),
-//                color = MaterialTheme.colorScheme.onSurface,
-                trackColor = Color.Transparent,
-//                gapSize = 0.dp,
+                progress = progress,
             )
         }
     }
 }
 
 @Composable
-fun ControlBar(
+private fun ProgressIndicator(
     modifier: Modifier = Modifier,
-    isFavorite: Boolean,
-    isPlaying: Boolean,
-    actions: PlayerBarActions,
+    progress: Progress,
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
     ) {
-
-        IconButton(
+        LinearProgressIndicator(
+            progress = { progress.bufferedRatio },
             modifier = Modifier
-                .size(36.dp),
-            onClick = actions.onFavorite,
-        ) {
-            Icon(
-                imageVector = if (isFavorite) EpisodiveIcons.Favorite else EpisodiveIcons.FavoriteBorder,
-                contentDescription = "Favorite",
-                tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-            )
-        }
+                .fillMaxWidth()
+                .height(3.dp)
+                .padding(horizontal = 10.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
 
-        IconButton(
+        LinearProgressIndicator(
+            progress = { progress.positionRatio },
             modifier = Modifier
-                .size(36.dp),
-            onClick = actions.onPlayOrPause,
-        ) {
-            Icon(
-                modifier = Modifier
-                    .size(32.dp),
-                imageVector = if (isPlaying) EpisodiveIcons.Pause else EpisodiveIcons.PlayArrow,
-                contentDescription = "Play/Pause",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
+                .fillMaxWidth()
+                .height(3.dp)
+                .padding(horizontal = 10.dp),
+            trackColor = Color.Transparent,
+        )
     }
 }
-
-data class PlayerBarActions(
-    val onPlayOrPause: () -> Unit,
-    val onFavorite: () -> Unit,
-)
 
 @DevicePreviews
 @Composable
 private fun PlayerBarPreview() {
     EpisodiveTheme {
         PlayerBar(
+            podcast = podcastTestData,
             nowPlaying = episodeTestData,
             progress = Progress(
                 position = 30.seconds,
                 buffered = 60.seconds,
                 duration = 100.seconds,
             ),
-            isPlaying = true,
-            isFavorite = false,
-            actions = PlayerBarActions(
-                onPlayOrPause = {},
-                onFavorite = {},
-            ),
+            isPlaying = false,
+            isLike = false,
             onExpand = {},
+            onToggleLike = {},
+            onPlayOrPause = {},
         )
     }
 }

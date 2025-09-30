@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.util.combine
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
@@ -14,15 +15,23 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+    private val getPodcastUseCase: GetPodcastUseCase,
     private val playerRepository: PlayerRepository,
 ) : ViewModel() {
+
+    private val podcast = playerRepository.nowPlaying.mapNotNull { it?.feedId }
+        .flatMapLatest { feedId -> getPodcastUseCase(feedId) }
+
     val state: StateFlow<PlayerState> = combine(
+        podcast,
         playerRepository.nowPlaying,
         playerRepository.playlist,
         playerRepository.indexOfList,
@@ -31,10 +40,11 @@ class PlayerViewModel @Inject constructor(
         playerRepository.isShuffle,
         playerRepository.repeat,
         playerRepository.speed,
-    ) { nowPlaying, playlist, indexOfList, progress, isPlaying, isShuffle, repeat, speed ->
-        nowPlaying?.let {
+    ) { podcast, nowPlaying, playlist, indexOfList, progress, isPlaying, isShuffle, repeat, speed ->
+        if (podcast != null && nowPlaying != null) {
             PlayerState.Success(
-                nowPlaying = it,
+                podcast = podcast,
+                nowPlaying = nowPlaying,
                 playlist = playlist,
                 indexOfList = indexOfList,
                 progress = progress,
@@ -43,7 +53,9 @@ class PlayerViewModel @Inject constructor(
                 repeat = repeat,
                 speed = speed,
             ) as PlayerState
-        } ?: PlayerState.Error("content is null")
+        } else {
+            PlayerState.Error("content is null")
+        }
     }.catch { e ->
         emit(PlayerState.Error(e.message ?: "Unknown error"))
     }.stateIn(
@@ -75,6 +87,7 @@ class PlayerViewModel @Inject constructor(
                 is PlayerAction.SeekForward -> seekForward()
                 is PlayerAction.Speed -> speed(action.speed)
                 is PlayerAction.ClickPodcast -> clickPodcast(action.podcast)
+                is PlayerAction.ToggleLike -> {}
                 is PlayerAction.ExpandPlayer -> expandPlayer()
                 is PlayerAction.CollapsePlayer -> collapsePlayer()
             }
@@ -141,6 +154,7 @@ class PlayerViewModel @Inject constructor(
 sealed interface PlayerState {
     data object Loading : PlayerState
     data class Success(
+        val podcast: Podcast,
         val nowPlaying: Episode,
         val playlist: List<Episode>,
         val indexOfList: Int,
@@ -166,6 +180,7 @@ sealed interface PlayerAction {
     data object SeekForward : PlayerAction
     data class Speed(val speed: Float) : PlayerAction
     data class ClickPodcast(val podcast: Podcast) : PlayerAction
+    data object ToggleLike : PlayerAction
     data object ExpandPlayer : PlayerAction
     data object CollapsePlayer : PlayerAction
 }
