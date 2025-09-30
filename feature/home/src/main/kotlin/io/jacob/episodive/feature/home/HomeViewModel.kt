@@ -17,20 +17,12 @@ import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.PlayedEpisode
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.TrendingFeed
-import io.jacob.episodive.core.model.UserData
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-
-data class TrendingFeedsSection(
-    val userData: UserData,
-    val myTrendingFeeds: List<TrendingFeed>,
-    val localTrendingFeeds: List<TrendingFeed>,
-    val foreignTrendingFeeds: List<TrendingFeed>,
-)
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(

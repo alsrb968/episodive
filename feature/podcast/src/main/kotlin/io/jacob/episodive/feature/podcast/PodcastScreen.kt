@@ -94,7 +94,6 @@ private fun PodcastScreen(
                 .fillMaxSize(),
             state = listState,
             verticalArrangement = Arrangement.spacedBy(16.dp),
-//            contentPadding = PaddingValues(16.dp),
         ) {
             item {
                 PodcastHeader(
