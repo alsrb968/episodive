@@ -9,14 +9,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.mapper.toDurationMillis
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -130,12 +126,6 @@ class PlayerDataSourceImpl @Inject constructor(
 
     init {
         player.addListener(listener)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            isPlaying.collectLatest {
-                Timber.i("isPlaying collected: $it")
-            }
-        }
     }
 
     override fun play(episode: Episode) {

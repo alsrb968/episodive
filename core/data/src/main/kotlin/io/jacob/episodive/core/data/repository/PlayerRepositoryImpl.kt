@@ -6,13 +6,8 @@ import io.jacob.episodive.core.model.Playback
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.Repeat
 import io.jacob.episodive.core.player.datasource.PlayerDataSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 class PlayerRepositoryImpl @Inject constructor(
@@ -88,14 +83,6 @@ class PlayerRepositoryImpl @Inject constructor(
 
     override fun release() {
         playerDataSource.release()
-    }
-
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            isPlaying.collectLatest {
-                Timber.i("isPlaying=$it")
-            }
-        }
     }
 
     override val nowPlaying: Flow<Episode?> = playerDataSource.nowPlaying
