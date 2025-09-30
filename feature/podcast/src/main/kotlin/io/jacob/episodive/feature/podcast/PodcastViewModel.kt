@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.usecase.episode.GetEpisodesByPodcastIdUseCase
+import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
@@ -27,6 +28,7 @@ class PodcastViewModel @AssistedInject constructor(
     getEpisodesByPodcastIdUseCase: GetEpisodesByPodcastIdUseCase,
     getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
     private val toggleFollowedUseCase: ToggleFollowedUseCase,
+    private val playEpisodeUseCase: PlayEpisodeUseCase,
     @Assisted("id") val id: Long,
 ) : ViewModel() {
     @AssistedFactory
@@ -62,6 +64,7 @@ class PodcastViewModel @AssistedInject constructor(
         _action.collectLatest { action ->
             when (action) {
                 is PodcastAction.ToggleFollowed -> toggleFollowed()
+                is PodcastAction.PlayEpisode -> playEpisode(action.episode)
             }
         }
     }
@@ -72,6 +75,10 @@ class PodcastViewModel @AssistedInject constructor(
 
     private fun toggleFollowed() = viewModelScope.launch {
         toggleFollowedUseCase(id)
+    }
+
+    private fun playEpisode(episode: Episode) = viewModelScope.launch {
+        playEpisodeUseCase(episode)
     }
 }
 
@@ -88,4 +95,5 @@ sealed interface PodcastState {
 
 sealed interface PodcastAction {
     data object ToggleFollowed : PodcastAction
+    data class PlayEpisode(val episode: Episode) : PodcastAction
 }

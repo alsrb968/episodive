@@ -57,9 +57,7 @@ internal fun PodcastRoute(
                 episodes = s.episodes,
                 isFollowed = s.isFollowed,
                 onFollowClick = { viewModel.sendAction(PodcastAction.ToggleFollowed) },
-                onEpisodeClick = { episode ->
-                    // TODO
-                },
+                onEpisodeClick = { viewModel.sendAction(PodcastAction.PlayEpisode(it)) },
                 onBackClick = onBackClick,
                 onShowSnackbar = onShowSnackbar
             )

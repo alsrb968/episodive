@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.feature.library)
     implementation(projects.feature.clip)
     implementation(projects.feature.podcast)
+    implementation(projects.feature.player)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)

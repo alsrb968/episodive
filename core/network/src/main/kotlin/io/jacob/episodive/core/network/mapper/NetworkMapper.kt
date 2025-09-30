@@ -11,6 +11,7 @@ import io.jacob.episodive.core.model.Soundbite
 import io.jacob.episodive.core.model.Transcript
 import io.jacob.episodive.core.model.TrendingFeed
 import io.jacob.episodive.core.model.mapper.toCategories
+import io.jacob.episodive.core.model.mapper.toDurationSeconds
 import io.jacob.episodive.core.model.mapper.toEpisodeType
 import io.jacob.episodive.core.model.mapper.toInstant
 import io.jacob.episodive.core.model.mapper.toIntSeconds
@@ -25,7 +26,6 @@ import io.jacob.episodive.core.network.model.RecentNewValueFeedResponse
 import io.jacob.episodive.core.network.model.SoundbiteResponse
 import io.jacob.episodive.core.network.model.TranscriptResponse
 import io.jacob.episodive.core.network.model.TrendingFeedResponse
-import kotlin.time.Duration.Companion.seconds
 
 fun PodcastResponse.toPodcast(): Podcast =
     Podcast(
@@ -125,7 +125,7 @@ fun EpisodeResponse.toEpisode(): Episode =
         endTime = endTime?.toInstant(),
         status = status,
         contentLink = contentLink,
-        duration = duration?.seconds,
+        duration = duration?.toDurationSeconds(),
         explicit = explicit == 1,
         episode = episode,
         episodeType = episodeType?.toEpisodeType(),
@@ -336,7 +336,7 @@ fun SoundbiteResponse.toSoundbite(): Soundbite =
         enclosureUrl = enclosureUrl,
         title = title,
         startTime = startTime.toInstant(),
-        duration = duration.seconds,
+        duration = duration.toDurationSeconds(),
         episodeId = episodeId,
         episodeTitle = episodeTitle,
         feedTitle = feedTitle,

@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -39,26 +40,35 @@ fun Instant.toHumanReadable(): String {
 }
 
 fun Int.toDurationSeconds(): Duration = seconds
+fun Long.toDurationMillis(): Duration = milliseconds
 fun Duration.toIntSeconds(): Int = inWholeSeconds.toInt()
 fun Duration.toHumanReadable(): String {
     val locale = Locale.getDefault()
 
-    val hours = inWholeHours
-    val minutes = (inWholeMinutes % 60)
-    val seconds = (inWholeSeconds % 60)
+    return toComponents { hours, minutes, seconds, _ ->
+        when (locale.language) {
+            "ko" -> buildString {
+                if (hours > 0) append("${hours}시간 ")
+                if (minutes > 0) append("${minutes}분 ")
+                if (seconds > 0 || isEmpty()) append("${seconds}초")
+            }.trim()
 
-    return when (locale.language) {
-        "ko" -> buildString {
-            if (hours > 0) append("${hours}시간 ")
-            if (minutes > 0) append("${minutes}분 ")
-            if (seconds > 0 || isEmpty()) append("${seconds}초")
-        }.trim()
+            else -> buildString {
+                if (hours > 0) append("${hours}hr ")
+                if (minutes > 0) append("${minutes}min ")
+                if (seconds > 0 || isEmpty()) append("${seconds}sec")
+            }.trim()
+        }
+    }
+}
 
-        else -> buildString {
-            if (hours > 0) append("${hours}hr ")
-            if (minutes > 0) append("${minutes}min ")
-            if (seconds > 0 || isEmpty()) append("${seconds}sec")
-        }.trim()
+fun Duration.toMediaTime(): String {
+    return toComponents { hours, minutes, seconds, _ ->
+        buildString {
+            if (hours > 0) append("%02d:".format(hours))
+            append("%02d:".format(minutes))
+            append("%02d".format(seconds))
+        }
     }
 }
 

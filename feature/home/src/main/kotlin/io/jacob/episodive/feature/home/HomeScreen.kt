@@ -54,6 +54,7 @@ import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.PlayedEpisode
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.TrendingFeed
+import io.jacob.episodive.core.model.mapper.toDurationSeconds
 import io.jacob.episodive.core.model.mapper.toFeedsFromRecent
 import io.jacob.episodive.core.model.mapper.toFeedsFromTrending
 import io.jacob.episodive.core.model.mapper.toIntSeconds
@@ -63,7 +64,6 @@ import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.model.recentFeedTestDataList
 import io.jacob.episodive.core.testing.model.trendingFeedTestDataList
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun HomeRoute(
@@ -524,7 +524,7 @@ private fun HomeScreenPreview() {
                     episode = it,
                     playedAt = Clock.System.now(),
                     position = (it.duration?.toIntSeconds()?.let { seconds -> seconds / 2 }
-                        ?: 0).seconds,
+                        ?: 0).toDurationSeconds(),
                     isCompleted = false,
                 )
             },

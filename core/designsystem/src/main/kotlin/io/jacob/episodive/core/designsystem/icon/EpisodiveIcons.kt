@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.ShortText
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
@@ -18,8 +19,9 @@ import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FileDownload
-import androidx.compose.material.icons.rounded.Forward10
+import androidx.compose.material.icons.rounded.Forward30
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -54,8 +56,10 @@ object EpisodiveIcons {
     val Check = Icons.Rounded.Check
     val Close = Icons.Rounded.Close
     val ErrorOutline = Icons.Rounded.ErrorOutline
+    val Favorite = Icons.Rounded.Favorite
+    val FavoriteBorder = Icons.Outlined.Favorite
     val FileDownload = Icons.Rounded.FileDownload
-    val Forward10 = Icons.Rounded.Forward10
+    val Forward30 = Icons.Rounded.Forward30
     val History = Icons.Rounded.History
     val Home = Icons.Rounded.Home
     val HomeBorder = Icons.Outlined.Home
