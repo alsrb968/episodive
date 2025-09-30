@@ -46,10 +46,10 @@ fun EpisodiveNavHost(
 //            navigateToStoryDetail = { navigateToStoryDetail(it) },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-//            addDetailsGraph(
-//                navController = nestedNavController,
-//                onShowSnackbar = onShowSnackbar
-//            )
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
 
         librarySection(
@@ -58,7 +58,10 @@ fun EpisodiveNavHost(
             },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
 
         clipSection(
@@ -67,7 +70,10 @@ fun EpisodiveNavHost(
             },
             onShowSnackbar = onShowSnackbar
         ) { nestedNavController ->
-
+            addDetailsGraph(
+                navController = nestedNavController,
+                onShowSnackbar = onShowSnackbar
+            )
         }
     }
 }

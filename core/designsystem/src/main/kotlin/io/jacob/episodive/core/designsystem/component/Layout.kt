@@ -129,7 +129,6 @@ fun FadeTopBarLayout(
                     exit = fadeOut()
                 ) {
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
                         text = title,
                     )
                 }

@@ -3,7 +3,6 @@ package io.jacob.episodive.feature.podcast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +26,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodeItem
 import io.jacob.episodive.core.designsystem.component.EpisodiveButton
+import io.jacob.episodive.core.designsystem.component.EpisodiveGradientBackground
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
 import io.jacob.episodive.core.designsystem.component.LoadingWheel
 import io.jacob.episodive.core.designsystem.component.StateImage
@@ -93,14 +93,28 @@ private fun PodcastScreen(
             modifier = Modifier
                 .fillMaxSize(),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+//            contentPadding = PaddingValues(16.dp),
         ) {
             item {
                 PodcastHeader(
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     podcast = podcast,
                     isFollowed = isFollowed,
                     onFollowClick = onFollowClick,
+                )
+            }
+
+            item {
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            }
+
+            item {
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = "All episodes (${podcast.episodeCount})",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
 
@@ -110,6 +124,7 @@ private fun PodcastScreen(
             ) { index ->
                 episodes[index].let { episode ->
                     EpisodeItem(
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         episode = episode,
                         onClick = { onEpisodeClick(episode) }
                     )
@@ -126,65 +141,56 @@ private fun PodcastHeader(
     isFollowed: Boolean,
     onFollowClick: () -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 110.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        StateImage(
-            modifier = Modifier
-                .size(220.dp)
-                .clip(shape = RoundedCornerShape(24.dp)),
-            imageUrl = podcast.image,
-            contentDescription = podcast.title,
-        )
+    EpisodiveGradientBackground {
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(top = 110.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StateImage(
+                modifier = Modifier
+                    .size(220.dp)
+                    .clip(shape = RoundedCornerShape(24.dp)),
+                imageUrl = podcast.image,
+                contentDescription = podcast.title,
+            )
 
-        Text(
-            text = podcast.author,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+            Text(
+                text = podcast.author,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
+            )
 
-        Text(
-            text = podcast.title,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+            Text(
+                text = podcast.title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
 
-        EpisodiveButton(
-            onClick = onFollowClick,
-            shape = RoundedCornerShape(16.dp),
-            buttonColors = ButtonDefaults.buttonColors(
-                containerColor = if (isFollowed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
-            ),
-            text = { Text(stringResource(if (isFollowed) R.string.feature_podcast_unfollow else R.string.feature_podcast_follow)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = if (isFollowed) EpisodiveIcons.PersonRemove else EpisodiveIcons.PersonAdd,
-                    contentDescription = null
-                )
-            },
-        )
+            EpisodiveButton(
+                onClick = onFollowClick,
+                shape = RoundedCornerShape(16.dp),
+                buttonColors = ButtonDefaults.buttonColors(
+                    containerColor = if (isFollowed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
+                ),
+                text = { Text(stringResource(if (isFollowed) R.string.feature_podcast_unfollow else R.string.feature_podcast_follow)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (isFollowed) EpisodiveIcons.PersonRemove else EpisodiveIcons.PersonAdd,
+                        contentDescription = null
+                    )
+                },
+            )
 
-        Text(
-            text = podcast.description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+            Text(
+                text = podcast.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
-
-    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-    Text(
-        modifier = Modifier
-            .padding(vertical = 8.dp),
-        text = "All episodes (${podcast.episodeCount})",
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
-
 }
 
 @Composable

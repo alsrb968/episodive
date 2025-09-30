@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.feature.podcast.PodcastRoute
 import io.jacob.episodive.feature.podcast.PodcastViewModel
 import kotlinx.serialization.Serializable
@@ -15,8 +14,8 @@ import kotlinx.serialization.Serializable
 data class PodcastRoute(val id: Long)
 
 fun NavController.navigateToPodcast(
-    podcast: Podcast, navOptions: NavOptionsBuilder.() -> Unit = {}
-) = navigate(route = PodcastRoute(podcast.id), navOptions)
+    podcastId: Long, navOptions: NavOptionsBuilder.() -> Unit = {}
+) = navigate(route = PodcastRoute(podcastId), navOptions)
 
 fun NavGraphBuilder.podcastScreen(
     onBackClick: () -> Unit,

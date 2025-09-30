@@ -52,7 +52,6 @@ import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Feed
 import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.PlayedEpisode
-import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.TrendingFeed
 import io.jacob.episodive.core.model.mapper.toFeedsFromRecent
@@ -70,7 +69,7 @@ import kotlin.time.Duration.Companion.seconds
 internal fun HomeRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
-    onPodcastClick: (Podcast) -> Unit,
+    onPodcastClick: (Long) -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -107,7 +106,7 @@ private fun HomeScreen(
     localTrendingFeeds: List<TrendingFeed>,
     foreignTrendingFeeds: List<TrendingFeed>,
     liveEpisodes: List<Episode>,
-    onPodcastClick: (Podcast) -> Unit,
+    onPodcastClick: (Long) -> Unit,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenWidth = this.maxWidth
@@ -164,7 +163,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_my_recent_feeds),
                                 feeds = myRecentFeeds.toFeedsFromRecent(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -184,7 +183,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_my_trending_feeds),
                                 feeds = myTrendingFeeds.toFeedsFromTrending(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -197,7 +196,7 @@ private fun HomeScreen(
 
                                 },
                                 onFollowedPodcastClick = { followedPodcast ->
-                                    onPodcastClick(followedPodcast.podcast)
+                                    onPodcastClick(followedPodcast.podcast.id)
                                 }
                             )
                         }
@@ -207,7 +206,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_trending_in_local),
                                 feeds = localTrendingFeeds.toFeedsFromTrending(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
@@ -217,7 +216,7 @@ private fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_trending_in_foreign),
                                 feeds = foreignTrendingFeeds.toFeedsFromTrending(),
                                 onFeedClick = { feed ->
-
+                                    onPodcastClick(feed.id)
                                 }
                             )
                         }
