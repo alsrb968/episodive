@@ -42,6 +42,7 @@ fun Instant.toHumanReadable(): String {
 fun Int.toDurationSeconds(): Duration = seconds
 fun Long.toDurationMillis(): Duration = milliseconds
 fun Duration.toIntSeconds(): Int = inWholeSeconds.toInt()
+fun Duration.toLongMillis(): Long = inWholeMilliseconds
 fun Duration.toHumanReadable(): String {
     val locale = Locale.getDefault()
 

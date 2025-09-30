@@ -123,9 +123,9 @@ private fun PlayerBar(
     progress: Progress,
     isPlaying: Boolean,
     isLike: Boolean,
-    onExpand: () -> Unit,
-    onToggleLike: () -> Unit,
-    onPlayOrPause: () -> Unit,
+    onExpand: () -> Unit = {},
+    onToggleLike: () -> Unit = {},
+    onPlayOrPause: () -> Unit = {},
 ) {
     Card(
         modifier = modifier
@@ -290,9 +290,6 @@ private fun PlayerBarPreview() {
             ),
             isPlaying = false,
             isLike = false,
-            onExpand = {},
-            onToggleLike = {},
-            onPlayOrPause = {},
         )
     }
 }

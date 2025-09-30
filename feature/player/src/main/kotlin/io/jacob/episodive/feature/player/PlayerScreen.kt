@@ -8,25 +8,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,20 +39,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.jacob.episodive.core.designsystem.component.EpisodiveGradientBackground
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
+import io.jacob.episodive.core.designsystem.component.EpisodiveTopAppBar
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Progress
-import io.jacob.episodive.core.model.mapper.toIntSeconds
+import io.jacob.episodive.core.model.mapper.toLongMillis
 import io.jacob.episodive.core.model.mapper.toMediaTime
 import io.jacob.episodive.core.testing.model.episodeTestData
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
@@ -97,70 +94,69 @@ fun PlayerBottomSheet(
         ),
     ) {
         PlayerScreen(
-            modifier = Modifier
-                .padding(WindowInsets.statusBars.asPaddingValues()),
+            modifier = Modifier,
             nowPlaying = s.nowPlaying,
             progress = s.progress,
             isPlaying = s.isPlaying,
-            isFavorite = false,
+            isLike = false,
 //                dominantColor = s.dominantColor,
-            actions = PlayerScreenActions(
-                isFavorite = { flowOf(false)/*viewModel::isFavoriteTrack*/ },
-                onFavorite = {},
-                onFavoriteIndex = {},
-                onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
-                onPlayIndex = { viewModel.sendAction(PlayerAction.PlayIndex(it)) },
-                onPrevious = { viewModel.sendAction(PlayerAction.Previous) },
-                onNext = { viewModel.sendAction(PlayerAction.Next) },
-                onShuffle = { viewModel.sendAction(PlayerAction.Shuffle) },
-                onRepeat = { viewModel.sendAction(PlayerAction.Repeat) },
-                onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
-                onSeekBackward = { viewModel.sendAction(PlayerAction.SeekBackward) },
-                onSeekForward = { viewModel.sendAction(PlayerAction.SeekForward) },
-            ),
             onCollapse = {
                 scope.launch {
                     sheetState.hide()
                     viewModel.sendAction(PlayerAction.CollapsePlayer)
                 }
             },
+            onToggleLike = { /*viewModel.sendAction(PlayerAction.ToggleLike)*/ },
+            onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
+            onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
+            onBackward = { viewModel.sendAction(PlayerAction.SeekBackward) },
+            onForward = { viewModel.sendAction(PlayerAction.SeekForward) },
+            onPrevious = { viewModel.sendAction(PlayerAction.Previous) },
+            onNext = { viewModel.sendAction(PlayerAction.Next) },
         )
     }
 }
 
 
 @Composable
-fun PlayerScreen(
+private fun PlayerScreen(
     modifier: Modifier = Modifier,
     nowPlaying: Episode,
     progress: Progress,
     isPlaying: Boolean,
-    isFavorite: Boolean,
+    isLike: Boolean,
 //    dominantColor: Color,
-    actions: PlayerScreenActions,
-    onCollapse: () -> Unit,
+    onCollapse: () -> Unit = {},
+    onToggleLike: () -> Unit = {},
+    onSeekTo: (Long) -> Unit = {},
+    onPlayOrPause: () -> Unit = {},
+    onBackward: () -> Unit = {},
+    onForward: () -> Unit = {},
+    onPrevious: () -> Unit = {},
+    onNext: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
 
-    Box(
-        modifier = modifier
-            .padding(horizontal = 16.dp)
-//            .gradientBackground(
-//                ratio = 1f,
-//                startColor = dominantColor,
-//                endColor = MaterialTheme.colorScheme.background
-//            ),
-    ) {
+    EpisodiveGradientBackground {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ControlPanelTop(
-                modifier = Modifier,
-                onCollapse = onCollapse
+            EpisodiveTopAppBar(
+                title = {},
+                navigationIcon = EpisodiveIcons.KeyboardArrowDown,
+                navigationIconContentDescription = "Down",
+                actionIcon = if (isLike) EpisodiveIcons.Favorite else EpisodiveIcons.FavoriteBorder,
+                actionIconContentDescription = "Like",
+                onNavigationClick = onCollapse,
+                onActionClick = onToggleLike,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                )
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -185,118 +181,47 @@ fun PlayerScreen(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .fillMaxWidth()
-                        .padding(end = 50.dp)
                         .basicMarquee(),
                     text = nowPlaying.title,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                 )
-
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd),
-                    onClick = actions.onFavorite,
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) EpisodiveIcons.Favorite else EpisodiveIcons.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                    )
-                }
             }
 
             ControlPanelProgress(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                nowPlaying = nowPlaying,
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                isPlaying = isPlaying,
                 progress = progress,
-                actions = actions
+                onSeekTo = onSeekTo
             )
 
             ControlPanelBottom(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(vertical = 38.dp),
                 isPlaying = isPlaying,
-                actions = actions
+                onPlayOrPause = onPlayOrPause,
+                onBackward = onBackward,
+                onForward = onForward,
+                onPrevious = onPrevious,
+                onNext = onNext,
             )
 
             Spacer(modifier = Modifier.weight(1f))
         }
-//        Text(
-//            text = nowPlaying.script,
-//            style = MaterialTheme.typography.bodyMedium,
-//        )
-
-    }
-}
-
-data class PlayerScreenActions(
-    val isFavorite: (String) -> Flow<Boolean>,
-    val onFavorite: () -> Unit,
-    val onFavoriteIndex: (Int) -> Unit,
-    val onPlayOrPause: () -> Unit,
-    val onPlayIndex: (Int) -> Unit,
-    val onPrevious: () -> Unit,
-    val onNext: () -> Unit,
-    val onShuffle: () -> Unit,
-    val onRepeat: () -> Unit,
-    val onSeekTo: (Long) -> Unit,
-    val onSeekBackward: () -> Unit,
-    val onSeekForward: () -> Unit
-)
-
-@Composable
-fun ControlPanelTop(
-    modifier: Modifier = Modifier,
-    onCollapse: () -> Unit,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth(),
-    ) {
-        IconButton(
-            modifier = Modifier
-                .size(36.dp)
-                .align(Alignment.CenterStart),
-            onClick = onCollapse
-        ) {
-            Icon(
-                modifier = Modifier.size(36.dp),
-                imageVector = EpisodiveIcons.KeyboardArrowDown,
-                contentDescription = "Down",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Now Playing",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Artist Name",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-        }
     }
 }
 
 @Composable
-fun ControlPanelProgress(
+private fun ControlPanelProgress(
     modifier: Modifier = Modifier,
-    nowPlaying: Episode,
+    isPlaying: Boolean,
     progress: Progress,
-    actions: PlayerScreenActions,
+    onSeekTo: (Long) -> Unit = {},
 ) {
     var position by remember { mutableFloatStateOf(progress.positionRatio) }
 
@@ -314,36 +239,39 @@ fun ControlPanelProgress(
                 position = value
             },
             onValueChangeFinished = {
-                actions.onSeekTo((position * progress.duration.toIntSeconds()).toLong())
+                onSeekTo((position * progress.duration.toLongMillis()).toLong())
             },
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            ),
-            thumb = {
+            thumb = { sliderState ->
+                val size = if (sliderState.isDragging) 24.dp else 16.dp
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
+                        .size(size)
                         .clip(CircleShape)
                         .align(Alignment.Center)
-                        .background(MaterialTheme.colorScheme.onSurface)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             },
             track = { sliderState ->
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .height(2.dp)
+                        .height(8.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth(progress.bufferedRatio)
+                        .height(8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
                 Box(
                     Modifier
                         .fillMaxWidth(sliderState.value)
-                        .height(2.dp)
+                        .height(8.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurface)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
         )
@@ -370,10 +298,14 @@ fun ControlPanelProgress(
 }
 
 @Composable
-fun ControlPanelBottom(
+private fun ControlPanelBottom(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
-    actions: PlayerScreenActions,
+    onPlayOrPause: () -> Unit = {},
+    onBackward: () -> Unit = {},
+    onForward: () -> Unit = {},
+    onPrevious: () -> Unit = {},
+    onNext: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -382,9 +314,10 @@ fun ControlPanelBottom(
         verticalAlignment = Alignment.CenterVertically
     ) {
         EpisodiveIconButton(
-            onClick = actions.onSeekBackward,
+            onClick = onBackward,
             icon = {
                 Icon(
+                    modifier = Modifier.size(32.dp),
                     imageVector = EpisodiveIcons.Replay10,
                     contentDescription = "Replay",
                 )
@@ -392,9 +325,10 @@ fun ControlPanelBottom(
         )
 
         EpisodiveIconButton(
-            onClick = actions.onPrevious,
+            onClick = onPrevious,
             icon = {
                 Icon(
+                    modifier = Modifier.size(32.dp),
                     imageVector = EpisodiveIcons.SkipPrevious,
                     contentDescription = "Previous",
                 )
@@ -402,16 +336,19 @@ fun ControlPanelBottom(
         )
 
         EpisodiveIconToggleButton(
+            modifier = Modifier.size(56.dp),
             checked = isPlaying,
-            onCheckedChange = { actions.onPlayOrPause() },
+            onCheckedChange = { onPlayOrPause() },
             icon = {
                 Icon(
+                    modifier = Modifier.size(32.dp),
                     imageVector = EpisodiveIcons.PlayArrow,
                     contentDescription = "Play",
                 )
             },
             checkedIcon = {
                 Icon(
+                    modifier = Modifier.size(32.dp),
                     imageVector = EpisodiveIcons.Pause,
                     contentDescription = "Pause",
                 )
@@ -425,9 +362,10 @@ fun ControlPanelBottom(
         )
 
         EpisodiveIconButton(
-            onClick = actions.onNext,
+            onClick = onNext,
             icon = {
                 Icon(
+                    modifier = Modifier.size(32.dp),
                     imageVector = EpisodiveIcons.SkipNext,
                     contentDescription = "Next",
                 )
@@ -435,9 +373,10 @@ fun ControlPanelBottom(
         )
 
         EpisodiveIconButton(
-            onClick = actions.onSeekForward,
+            onClick = onForward,
             icon = {
                 Icon(
+                    modifier = Modifier.size(32.dp),
                     imageVector = EpisodiveIcons.Forward30,
                     contentDescription = "Forward",
                 )
@@ -454,23 +393,8 @@ private fun PlayerScreenPreview() {
             nowPlaying = episodeTestData,
             progress = Progress(1000.seconds, 2000.seconds, 3000.seconds),
             isPlaying = true,
-            isFavorite = false,
+            isLike = false,
 //            dominantColor = Color.DarkGray,
-            actions = PlayerScreenActions(
-                isFavorite = { flowOf(false) },
-                onFavorite = {},
-                onFavoriteIndex = {},
-                onPlayOrPause = {},
-                onPlayIndex = {},
-                onPrevious = {},
-                onNext = {},
-                onShuffle = {},
-                onRepeat = {},
-                onSeekTo = {},
-                onSeekBackward = {},
-                onSeekForward = {},
-            ),
-            onCollapse = {}
         )
     }
 }
