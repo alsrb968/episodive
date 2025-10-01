@@ -40,6 +40,7 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
@@ -48,8 +49,6 @@ import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.podcastTestData
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.seconds
-
-val PLAYER_BAR_HEIGHT = 70.dp
 
 @Composable
 fun PlayerBar(
@@ -131,7 +130,7 @@ private fun PlayerBar(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(PLAYER_BAR_HEIGHT)
+            .height(LocalDimensionTheme.current.playerBarHeight)
             .padding(horizontal = 6.dp)
             .padding(bottom = 6.dp),
         shape = RoundedCornerShape(12.dp),

@@ -19,8 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.mapper.toHumanReadable
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 
 @Composable
 fun EpisodesSection(
@@ -110,5 +113,17 @@ fun EpisodeItem(
                 contentDescription = "Play episode",
             )
         }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun EpisodeSectionPreview() {
+    EpisodiveTheme {
+        EpisodesSection(
+            title = "Episodes",
+            episodes = episodeTestDataList,
+            onEpisodeClick = {}
+        )
     }
 }

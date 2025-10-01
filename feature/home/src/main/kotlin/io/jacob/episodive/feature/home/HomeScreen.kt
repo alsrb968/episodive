@@ -46,6 +46,7 @@ import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.SubSectionHeader
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Feed
@@ -224,6 +225,10 @@ private fun HomeScreen(
                                 episodes = liveEpisodes,
                                 onEpisodeClick = onPlayEpisode
                             )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
                         }
                     }
                 }
