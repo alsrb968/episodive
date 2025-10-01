@@ -151,7 +151,7 @@ private fun PlayerBar(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(RoundedCornerShape(6.dp)),
-                    imageUrl = nowPlaying.feedImage,
+                    imageUrl = nowPlaying.image,
                     contentDescription = nowPlaying.title
                 )
 
