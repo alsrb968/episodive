@@ -9,6 +9,7 @@ import io.jacob.episodive.core.domain.usecase.episode.GetPlayingEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.feed.GetMyRecentFeedsUseCase
 import io.jacob.episodive.core.domain.usecase.feed.GetMyTrendingFeedsUseCase
 import io.jacob.episodive.core.domain.usecase.feed.GetTrendingFeedsUseCase
+import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetUserDataUseCase
 import io.jacob.episodive.core.domain.util.combine
@@ -17,11 +18,13 @@ import io.jacob.episodive.core.model.FollowedPodcast
 import io.jacob.episodive.core.model.PlayedEpisode
 import io.jacob.episodive.core.model.RecentFeed
 import io.jacob.episodive.core.model.TrendingFeed
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,6 +37,7 @@ class HomeViewModel @Inject constructor(
     getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
     private val getTrendingFeedsUseCase: GetTrendingFeedsUseCase,
     getLiveEpisodesUseCase: GetLiveEpisodesUseCase,
+    private val playEpisodeUseCase: PlayEpisodeUseCase,
 ) : ViewModel() {
 
     private val localTrendingFeeds = getUserDataUseCase().flatMapLatest { userData ->
@@ -81,6 +85,28 @@ class HomeViewModel @Inject constructor(
         initialValue = HomeState.Loading
     )
 
+    private val _action = MutableSharedFlow<HomeAction>(extraBufferCapacity = 1)
+
+    init {
+        handleActions()
+    }
+
+    private fun handleActions() = viewModelScope.launch {
+        _action.collect { action ->
+            when (action) {
+                is HomeAction.PlayEpisode -> playEpisode(action.episode)
+            }
+        }
+    }
+
+    fun sendAction(action: HomeAction) = viewModelScope.launch {
+        _action.emit(action)
+    }
+
+    private fun playEpisode(episode: Episode) = viewModelScope.launch {
+        playEpisodeUseCase(episode)
+    }
+
     companion object {
         private val languages = listOf("en", "es", "fr", "de", "it", "ja", "ko", "pt", "ru", "zh")
     }
@@ -100,4 +126,8 @@ sealed interface HomeState {
     ) : HomeState
 
     data class Error(val message: String) : HomeState
+}
+
+sealed interface HomeAction {
+    data class PlayEpisode(val episode: Episode) : HomeAction
 }

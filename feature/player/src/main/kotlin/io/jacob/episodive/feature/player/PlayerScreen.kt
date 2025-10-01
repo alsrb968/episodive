@@ -2,6 +2,7 @@ package io.jacob.episodive.feature.player
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +65,7 @@ import kotlin.time.Duration.Companion.seconds
 fun PlayerBottomSheet(
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
+    onPodcastClick: (Long) -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -97,6 +99,13 @@ fun PlayerBottomSheet(
             shouldDismissOnBackPress = true,
         ),
     ) {
+        fun collapse() {
+            scope.launch {
+                sheetState.hide()
+                viewModel.sendAction(PlayerAction.CollapsePlayer)
+            }
+        }
+
         PlayerScreen(
             modifier = Modifier,
             podcast = s.podcast,
@@ -105,12 +114,7 @@ fun PlayerBottomSheet(
             isPlaying = s.isPlaying,
             isLike = s.isLiked,
 //                dominantColor = s.dominantColor,
-            onCollapse = {
-                scope.launch {
-                    sheetState.hide()
-                    viewModel.sendAction(PlayerAction.CollapsePlayer)
-                }
-            },
+            onCollapse = { collapse() },
             onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
             onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
             onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
@@ -118,6 +122,10 @@ fun PlayerBottomSheet(
             onForward = { viewModel.sendAction(PlayerAction.SeekForward) },
             onPrevious = { viewModel.sendAction(PlayerAction.Previous) },
             onNext = { viewModel.sendAction(PlayerAction.Next) },
+            onPodcastClick = { podcastId ->
+                onPodcastClick(podcastId)
+                collapse()
+            },
         )
     }
 }
@@ -140,6 +148,7 @@ private fun PlayerScreen(
     onForward: () -> Unit = {},
     onPrevious: () -> Unit = {},
     onNext: () -> Unit = {},
+    onPodcastClick: (Long) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
 
@@ -181,7 +190,7 @@ private fun PlayerScreen(
                         modifier = Modifier
                             .size(300.dp)
                             .clip(RoundedCornerShape(16.dp)),
-                        imageUrl = nowPlaying.image,
+                        imageUrl = nowPlaying.image.ifEmpty { nowPlaying.feedImage },
                         contentDescription = nowPlaying.title
                     )
 
@@ -195,7 +204,8 @@ private fun PlayerScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            modifier = Modifier,
+                            modifier = Modifier
+                                .clickable { onPodcastClick(podcast.id) },
                             text = podcast.title,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

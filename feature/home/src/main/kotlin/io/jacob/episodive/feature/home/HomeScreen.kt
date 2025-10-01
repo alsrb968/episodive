@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodesSection
-import io.jacob.episodive.core.designsystem.component.EpisodiveBackground
 import io.jacob.episodive.core.designsystem.component.LoadingWheel
 import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.StateImage
@@ -88,6 +87,7 @@ internal fun HomeRoute(
             localTrendingFeeds = s.localTrendingFeeds,
             foreignTrendingFeeds = s.foreignTrendingFeeds,
             liveEpisodes = s.liveEpisodes,
+            onPlayEpisode = { viewModel.sendAction(HomeAction.PlayEpisode(it)) },
             onPodcastClick = onPodcastClick,
         )
 
@@ -106,7 +106,8 @@ private fun HomeScreen(
     localTrendingFeeds: List<TrendingFeed>,
     foreignTrendingFeeds: List<TrendingFeed>,
     liveEpisodes: List<Episode>,
-    onPodcastClick: (Long) -> Unit,
+    onPlayEpisode: (Episode) -> Unit = {},
+    onPodcastClick: (Long) -> Unit = {},
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenWidth = this.maxWidth
@@ -126,21 +127,19 @@ private fun HomeScreen(
             modifier = Modifier.fillMaxSize(),
             scaffoldState = sheetState,
             content = {
-                EpisodiveBackground {
-                    SectionHeader(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .padding(top = systemBarsPadding.calculateTopPadding()),
-                        title = stringResource(R.string.feature_home_title),
-                    ) {
-                        if (playingEpisodes.isNotEmpty()) {
-                            PlayingEpisodesSection(
-                                playingEpisodes = playingEpisodes,
-                                onEpisodeClick = { episode ->
-                                    // TODO:
-                                }
-                            )
-                        }
+                SectionHeader(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .padding(top = systemBarsPadding.calculateTopPadding()),
+                    title = stringResource(R.string.feature_home_title),
+                ) {
+                    if (playingEpisodes.isNotEmpty()) {
+                        PlayingEpisodesSection(
+                            playingEpisodes = playingEpisodes,
+                            onEpisodeClick = { episode ->
+                                // TODO:
+                            }
+                        )
                     }
                 }
             },
@@ -172,9 +171,7 @@ private fun HomeScreen(
                             EpisodesSection(
                                 title = stringResource(R.string.feature_home_section_random_episodes),
                                 episodes = randomEpisodes,
-                                onEpisodeClick = { episode ->
-
-                                }
+                                onEpisodeClick = onPlayEpisode
                             )
                         }
 
@@ -225,9 +222,7 @@ private fun HomeScreen(
                             EpisodesSection(
                                 title = stringResource(R.string.feature_home_section_live_episodes),
                                 episodes = liveEpisodes,
-                                onEpisodeClick = { episode ->
-
-                                }
+                                onEpisodeClick = onPlayEpisode
                             )
                         }
                     }
@@ -316,7 +311,7 @@ private fun PlayingEpisodeItem(
                 modifier = Modifier
                     .size(68.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                imageUrl = playedEpisode.episode.image,
+                imageUrl = playedEpisode.episode.image.ifEmpty { playedEpisode.episode.feedImage },
                 contentDescription = playedEpisode.episode.title,
             )
 
@@ -543,13 +538,5 @@ private fun HomeScreenPreview() {
             liveEpisodes = liveEpisodeTestDataList,
             onPodcastClick = {},
         )
-    }
-}
-
-@DevicePreviews
-@Composable
-private fun LoadingScreenPreview() {
-    EpisodiveTheme {
-        LoadingScreen()
     }
 }

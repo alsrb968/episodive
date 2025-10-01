@@ -129,6 +129,7 @@ class PlayerDataSourceImpl @Inject constructor(
     }
 
     override fun play(episode: Episode) {
+        Timber.i("url: ${episode.enclosureUrl}")
         val mediaItem = MediaItem.Builder()
             .setUri(episode.enclosureUrl)
             .setTag(episode)
@@ -140,6 +141,9 @@ class PlayerDataSourceImpl @Inject constructor(
     }
 
     override fun play(episodes: List<Episode>, indexToPlay: Int?) {
+        episodes.forEachIndexed { index, episode ->
+            Timber.i("[$index] url: ${episode.enclosureUrl}")
+        }
         val mediaItems = episodes.map {
             MediaItem.Builder()
                 .setUri(it.enclosureUrl)

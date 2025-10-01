@@ -3,5 +3,7 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">img2.sbs.co.kr</domain>
         <domain includeSubdomains="true">podcastdown.sbs.co.kr</domain>
+        <domain includeSubdomains="true">folkhour.com</domain>
+        <domain includeSubdomains="true">stream.podhome.fm</domain>
     </domain-config>
 </network-security-config>

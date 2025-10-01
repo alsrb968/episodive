@@ -55,6 +55,7 @@ val PLAYER_BAR_HEIGHT = 70.dp
 fun PlayerBar(
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
+    onPodcastClick: (Long) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -111,7 +112,7 @@ fun PlayerBar(
     }
 
     if (isShowPlayer) {
-        PlayerBottomSheet()
+        PlayerBottomSheet(onPodcastClick = onPodcastClick)
     }
 }
 
@@ -151,7 +152,7 @@ private fun PlayerBar(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(RoundedCornerShape(6.dp)),
-                    imageUrl = nowPlaying.image,
+                    imageUrl = nowPlaying.image.ifEmpty { nowPlaying.feedImage },
                     contentDescription = nowPlaying.title
                 )
 
