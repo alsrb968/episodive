@@ -2,24 +2,8 @@
 
 package io.jacob.episodive.core.domain.util
 
-import androidx.paging.PagingData
-import androidx.paging.map
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-
-fun <T : Any, R : Any> PagingData<T>.mapAsync(
-    transform: suspend (T) -> R
-): Flow<PagingData<R>> = flow {
-    val result = map { item ->
-        coroutineScope {
-            async { transform(item) }.await()
-        }
-    }
-    emit(result)
-}
 
 /**
  * Combines 3 flows into a single flow by combining their latest values using the provided transform function.
