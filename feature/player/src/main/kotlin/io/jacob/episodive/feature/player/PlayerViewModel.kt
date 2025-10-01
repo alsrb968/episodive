@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.usecase.episode.GetLikedEpisodesUseCase
+import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedUseCase
 import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.util.combine
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
-import io.jacob.episodive.core.model.Repeat
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+    private val getLikedEpisodesUseCase: GetLikedEpisodesUseCase,
+    private val toggleLikedUseCase: ToggleLikedUseCase,
     private val updatePlayedEpisodeUseCase: UpdatePlayedEpisodeUseCase,
     private val getPodcastUseCase: GetPodcastUseCase,
     private val playerRepository: PlayerRepository,
@@ -39,6 +42,13 @@ class PlayerViewModel @Inject constructor(
     private val podcast = playerRepository.nowPlaying.mapNotNull { it?.feedId }
         .flatMapLatest { feedId -> getPodcastUseCase(feedId) }
 
+    private val isLiked = playerRepository.nowPlaying.mapNotNull { it?.id }
+        .flatMapLatest { episodeId ->
+            getLikedEpisodesUseCase().mapNotNull { likedEpisodes ->
+                likedEpisodes.any { it.episode.id == episodeId }
+            }
+        }
+
     val state: StateFlow<PlayerState> = combine(
         podcast,
         playerRepository.nowPlaying,
@@ -46,10 +56,9 @@ class PlayerViewModel @Inject constructor(
         playerRepository.indexOfList,
         playerRepository.progress,
         playerRepository.isPlaying,
-        playerRepository.isShuffle,
-        playerRepository.repeat,
         playerRepository.speed,
-    ) { podcast, nowPlaying, playlist, indexOfList, progress, isPlaying, isShuffle, repeat, speed ->
+        isLiked,
+    ) { podcast, nowPlaying, playlist, indexOfList, progress, isPlaying, speed, isLiked ->
         if (podcast != null && nowPlaying != null) {
             PlayerState.Success(
                 podcast = podcast,
@@ -58,12 +67,11 @@ class PlayerViewModel @Inject constructor(
                 indexOfList = indexOfList,
                 progress = progress,
                 isPlaying = isPlaying,
-                isShuffle = isShuffle,
-                repeat = repeat,
                 speed = speed,
+                isLiked = isLiked,
             ) as PlayerState
         } else {
-            PlayerState.Error("content is null")
+            PlayerState.Error("podcast or nowPlaying is null")
         }
     }.catch { e ->
         emit(PlayerState.Error(e.message ?: "Unknown error"))
@@ -103,7 +111,7 @@ class PlayerViewModel @Inject constructor(
                 is PlayerAction.SeekForward -> seekForward()
                 is PlayerAction.Speed -> speed(action.speed)
                 is PlayerAction.ClickPodcast -> clickPodcast(action.podcast)
-                is PlayerAction.ToggleLike -> {}
+                is PlayerAction.ToggleLike -> toggleLikedEpisode()
                 is PlayerAction.ExpandPlayer -> expandPlayer()
                 is PlayerAction.CollapsePlayer -> collapsePlayer()
             }
@@ -158,6 +166,16 @@ class PlayerViewModel @Inject constructor(
         _effect.emit(PlayerEffect.NavigateToPodcast(podcast))
     }
 
+    private fun toggleLikedEpisode() = viewModelScope.launch {
+        try {
+            (state.value as PlayerState.Success).nowPlaying.let { episode ->
+                toggleLikedUseCase(episode.id)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun expandPlayer() = viewModelScope.launch {
         _effect.emit(PlayerEffect.ShowPlayerBottomSheet)
     }
@@ -176,9 +194,8 @@ sealed interface PlayerState {
         val indexOfList: Int,
         val progress: Progress,
         val isPlaying: Boolean,
-        val isShuffle: Boolean,
-        val repeat: Repeat,
         val speed: Float,
+        val isLiked: Boolean,
     ) : PlayerState
 
     data class Error(val message: String) : PlayerState

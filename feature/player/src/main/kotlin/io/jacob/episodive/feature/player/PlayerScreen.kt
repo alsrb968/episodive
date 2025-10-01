@@ -103,7 +103,7 @@ fun PlayerBottomSheet(
             nowPlaying = s.nowPlaying,
             progress = s.progress,
             isPlaying = s.isPlaying,
-            isLike = false,
+            isLike = s.isLiked,
 //                dominantColor = s.dominantColor,
             onCollapse = {
                 scope.launch {
@@ -111,7 +111,7 @@ fun PlayerBottomSheet(
                     viewModel.sendAction(PlayerAction.CollapsePlayer)
                 }
             },
-            onToggleLike = { /*viewModel.sendAction(PlayerAction.ToggleLike)*/ },
+            onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
             onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
             onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
             onBackward = { viewModel.sendAction(PlayerAction.SeekBackward) },
@@ -152,7 +152,7 @@ private fun PlayerScreen(
             EpisodiveGradientBackground(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillParentMaxHeight(0.9f),
+                    .fillParentMaxHeight(0.92f),
             ) {
                 Column(
                     modifier = Modifier
@@ -229,8 +229,6 @@ private fun PlayerScreen(
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
-
-
                 }
             }
         }
@@ -240,9 +238,11 @@ private fun PlayerScreen(
                 episode = nowPlaying
             )
         }
+
+        item {
+            Spacer(modifier = Modifier.height(50.dp))
+        }
     }
-
-
 }
 
 @Composable

@@ -102,7 +102,7 @@ fun PlayerBar(
                 nowPlaying = s.nowPlaying,
                 progress = s.progress,
                 isPlaying = s.isPlaying,
-                isLike = false,
+                isLike = s.isLiked,
                 onExpand = { viewModel.sendAction(PlayerAction.ExpandPlayer) },
                 onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
                 onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
