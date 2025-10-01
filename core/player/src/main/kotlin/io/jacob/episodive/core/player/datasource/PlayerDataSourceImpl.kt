@@ -12,6 +12,7 @@ import io.jacob.episodive.core.model.mapper.toDurationMillis
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 import javax.inject.Inject
@@ -294,27 +295,33 @@ class PlayerDataSourceImpl @Inject constructor(
     private val _indexOfList = MutableStateFlow(0)
     override val indexOfList: Flow<Int> = _indexOfList
 
-    override val progress: Flow<Progress> = flow {
-        while (true) {
-            emit(
-                Progress(
-                    position = player.currentPosition.toDurationMillis(),
-                    buffered = player.bufferedPosition.toDurationMillis(),
-                    duration = player.duration.toDurationMillis(),
-                )
-            )
-            delay(500L)
-        }
-    }
-
     private val _playback = MutableStateFlow(Player.STATE_IDLE)
     override val playback: Flow<Int> = _playback
+
     private val _isPlaying = MutableStateFlow(false)
     override val isPlaying: Flow<Boolean> = _isPlaying
+
     private val _isShuffle = MutableStateFlow(false)
     override val isShuffle: Flow<Boolean> = _isShuffle
+
     private val _repeat = MutableStateFlow(Player.REPEAT_MODE_OFF)
     override val repeat: Flow<Int> = _repeat
+
     private val _speed = MutableStateFlow(1.0f)
     override val speed: Flow<Float> = _speed
+
+    override val progress: Flow<Progress> = _isPlaying.flatMapLatest { isPlaying ->
+        flow {
+            while (isPlaying) {
+                emit(
+                    Progress(
+                        position = player.currentPosition.toDurationMillis(),
+                        buffered = player.bufferedPosition.toDurationMillis(),
+                        duration = player.duration.toDurationMillis(),
+                    )
+                )
+                delay(500L)
+            }
+        }
+    }
 }

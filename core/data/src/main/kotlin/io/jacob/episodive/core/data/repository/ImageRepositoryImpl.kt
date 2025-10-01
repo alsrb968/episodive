@@ -73,7 +73,7 @@ class ImageRepositoryImpl @Inject constructor(
         return luminance < threshold
     }
 
-    fun Color.darkenColor(factor: Float): Color {
+    private fun Color.darkenColor(factor: Float): Color {
         return Color(
             red = (this.red * factor).coerceIn(0f, 1f),
             green = (this.green * factor).coerceIn(0f, 1f),

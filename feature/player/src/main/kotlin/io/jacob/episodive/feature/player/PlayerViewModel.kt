@@ -180,12 +180,9 @@ class PlayerViewModel @Inject constructor(
     }
 
     private fun toggleLikedEpisode() = viewModelScope.launch {
-        try {
-            (state.value as PlayerState.Success).nowPlaying.let { episode ->
-                toggleLikedUseCase(episode.id)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val currentState = state.value
+        if (currentState is PlayerState.Success) {
+            toggleLikedUseCase(currentState.nowPlaying.id)
         }
     }
 
