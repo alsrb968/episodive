@@ -165,8 +165,6 @@ private fun PlayerScreen(
                     .fillParentMaxHeight(0.92f),
                 gradientColors = GradientColors(
                     top = dominantColor,
-                    bottom = Color.Transparent,
-                    container = Color.Transparent,
                 )
             ) {
                 Column(

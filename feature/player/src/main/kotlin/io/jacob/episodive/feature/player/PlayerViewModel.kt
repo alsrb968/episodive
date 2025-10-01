@@ -3,11 +3,11 @@ package io.jacob.episodive.feature.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.jacob.episodive.core.domain.repository.ImageRepository
 import io.jacob.episodive.core.domain.repository.PlayerRepository
 import io.jacob.episodive.core.domain.usecase.episode.GetLikedEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedUseCase
 import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
+import io.jacob.episodive.core.domain.usecase.image.GetDominantColorFromUrlUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.util.combine
 import io.jacob.episodive.core.model.Episode
@@ -32,8 +32,8 @@ class PlayerViewModel @Inject constructor(
     private val toggleLikedUseCase: ToggleLikedUseCase,
     private val updatePlayedEpisodeUseCase: UpdatePlayedEpisodeUseCase,
     private val getPodcastUseCase: GetPodcastUseCase,
+    private val getDominantColorFromUrlUseCase: GetDominantColorFromUrlUseCase,
     private val playerRepository: PlayerRepository,
-    private val imageRepository: ImageRepository,
 ) : ViewModel() {
     private val playingEpisode = combine(
         playerRepository.nowPlaying,
@@ -54,7 +54,7 @@ class PlayerViewModel @Inject constructor(
 
     private val dominantColor = playerRepository.nowPlaying.mapNotNull { it }
         .flatMapLatest { episode ->
-            val color = imageRepository.extractDominantColorFromUrl(
+            val color = getDominantColorFromUrlUseCase(
                 episode.image.ifEmpty { episode.feedImage }
             )
             flowOf(color)
