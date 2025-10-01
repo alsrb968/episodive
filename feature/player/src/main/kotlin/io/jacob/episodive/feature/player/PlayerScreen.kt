@@ -49,6 +49,7 @@ import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.GradientColors
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
@@ -113,7 +114,7 @@ fun PlayerBottomSheet(
             progress = s.progress,
             isPlaying = s.isPlaying,
             isLike = s.isLiked,
-//                dominantColor = s.dominantColor,
+            dominantColor = Color(s.dominantColor),
             onCollapse = { collapse() },
             onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
             onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
@@ -139,7 +140,7 @@ private fun PlayerScreen(
     progress: Progress,
     isPlaying: Boolean,
     isLike: Boolean,
-//    dominantColor: Color,
+    dominantColor: Color = MaterialTheme.colorScheme.primaryContainer,
     onCollapse: () -> Unit = {},
     onToggleLike: () -> Unit = {},
     onSeekTo: (Long) -> Unit = {},
@@ -162,6 +163,11 @@ private fun PlayerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillParentMaxHeight(0.92f),
+                gradientColors = GradientColors(
+                    top = dominantColor,
+                    bottom = Color.Transparent,
+                    container = Color.Transparent,
+                )
             ) {
                 Column(
                     modifier = Modifier

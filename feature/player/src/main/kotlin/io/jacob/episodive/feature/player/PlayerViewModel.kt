@@ -3,6 +3,7 @@ package io.jacob.episodive.feature.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.jacob.episodive.core.domain.repository.ImageRepository
 import io.jacob.episodive.core.domain.repository.PlayerRepository
 import io.jacob.episodive.core.domain.usecase.episode.GetLikedEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedUseCase
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,6 +33,7 @@ class PlayerViewModel @Inject constructor(
     private val updatePlayedEpisodeUseCase: UpdatePlayedEpisodeUseCase,
     private val getPodcastUseCase: GetPodcastUseCase,
     private val playerRepository: PlayerRepository,
+    private val imageRepository: ImageRepository,
 ) : ViewModel() {
     private val playingEpisode = combine(
         playerRepository.nowPlaying,
@@ -49,6 +52,14 @@ class PlayerViewModel @Inject constructor(
             }
         }
 
+    private val dominantColor = playerRepository.nowPlaying.mapNotNull { it }
+        .flatMapLatest { episode ->
+            val color = imageRepository.extractDominantColorFromUrl(
+                episode.image.ifEmpty { episode.feedImage }
+            )
+            flowOf(color)
+        }
+
     val state: StateFlow<PlayerState> = combine(
         podcast,
         playerRepository.nowPlaying,
@@ -58,7 +69,8 @@ class PlayerViewModel @Inject constructor(
         playerRepository.isPlaying,
         playerRepository.speed,
         isLiked,
-    ) { podcast, nowPlaying, playlist, indexOfList, progress, isPlaying, speed, isLiked ->
+        dominantColor,
+    ) { podcast, nowPlaying, playlist, indexOfList, progress, isPlaying, speed, isLiked, dominantColor ->
         if (podcast != null && nowPlaying != null) {
             PlayerState.Success(
                 podcast = podcast,
@@ -69,6 +81,7 @@ class PlayerViewModel @Inject constructor(
                 isPlaying = isPlaying,
                 speed = speed,
                 isLiked = isLiked,
+                dominantColor = dominantColor,
             ) as PlayerState
         } else {
             PlayerState.Error("podcast or nowPlaying is null")
@@ -196,6 +209,7 @@ sealed interface PlayerState {
         val isPlaying: Boolean,
         val speed: Float,
         val isLiked: Boolean,
+        val dominantColor: ULong,
     ) : PlayerState
 
     data class Error(val message: String) : PlayerState

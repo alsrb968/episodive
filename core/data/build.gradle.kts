@@ -17,6 +17,12 @@ dependencies {
     implementation(projects.core.network)
     implementation(projects.core.player)
 
+    //----- Coil
+    implementation(libs.coil.compose)
+
+    //----- Palette
+    implementation(libs.androidx.palette.ktx)
+
     //----- Paging
     implementation(libs.androidx.paging.runtime)
 

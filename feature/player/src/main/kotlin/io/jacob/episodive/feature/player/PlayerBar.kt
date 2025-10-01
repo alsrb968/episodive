@@ -75,12 +75,6 @@ fun PlayerBar(
         }
     }
 
-//            val context = LocalContext.current
-//            LaunchedEffect(s.nowPlaying.imageUrl) {
-//                val color = extractDominantColorFromUrl(context, s.nowPlaying.imageUrl)
-//                viewModel.sendIntent(PlayerUiIntent.SetDominantColor(color))
-//            }
-
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = state is PlayerState.Success,
@@ -103,6 +97,7 @@ fun PlayerBar(
                 progress = s.progress,
                 isPlaying = s.isPlaying,
                 isLike = s.isLiked,
+                dominantColor = Color(s.dominantColor),
                 onExpand = { viewModel.sendAction(PlayerAction.ExpandPlayer) },
                 onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
                 onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
@@ -123,6 +118,7 @@ private fun PlayerBar(
     progress: Progress,
     isPlaying: Boolean,
     isLike: Boolean,
+    dominantColor: Color = MaterialTheme.colorScheme.primaryContainer,
     onExpand: () -> Unit = {},
     onToggleLike: () -> Unit = {},
     onPlayOrPause: () -> Unit = {},
@@ -135,7 +131,7 @@ private fun PlayerBar(
             .padding(bottom = 6.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            containerColor = dominantColor,
         ),
         elevation = CardDefaults.cardElevation(4.dp),
         onClick = onExpand
