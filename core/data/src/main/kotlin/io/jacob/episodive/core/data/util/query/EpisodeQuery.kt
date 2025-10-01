@@ -34,4 +34,9 @@ sealed interface EpisodeQuery : CacheableQuery {
         override val key = "recent"
         override val timeToLive = 10.minutes
     }
+
+    data class EpisodeId(val episodeId: Long) : EpisodeQuery {
+        override val key = "episodeId:$episodeId"
+        override val timeToLive = 24.hours
+    }
 }

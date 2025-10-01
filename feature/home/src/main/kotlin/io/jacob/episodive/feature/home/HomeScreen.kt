@@ -88,6 +88,7 @@ internal fun HomeRoute(
             foreignTrendingFeeds = s.foreignTrendingFeeds,
             liveEpisodes = s.liveEpisodes,
             onPlayEpisode = { viewModel.sendAction(HomeAction.PlayEpisode(it)) },
+            onResumeEpisode = { viewModel.sendAction(HomeAction.ResumeEpisode(it)) },
             onPodcastClick = onPodcastClick,
         )
 
@@ -107,6 +108,7 @@ private fun HomeScreen(
     foreignTrendingFeeds: List<TrendingFeed>,
     liveEpisodes: List<Episode>,
     onPlayEpisode: (Episode) -> Unit = {},
+    onResumeEpisode: (PlayedEpisode) -> Unit = {},
     onPodcastClick: (Long) -> Unit = {},
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -136,9 +138,7 @@ private fun HomeScreen(
                     if (playingEpisodes.isNotEmpty()) {
                         PlayingEpisodesSection(
                             playingEpisodes = playingEpisodes,
-                            onEpisodeClick = { episode ->
-                                // TODO:
-                            }
+                            onEpisodeClick = onResumeEpisode
                         )
                     }
                 }

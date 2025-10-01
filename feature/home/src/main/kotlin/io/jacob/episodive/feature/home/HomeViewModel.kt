@@ -10,6 +10,7 @@ import io.jacob.episodive.core.domain.usecase.feed.GetMyRecentFeedsUseCase
 import io.jacob.episodive.core.domain.usecase.feed.GetMyTrendingFeedsUseCase
 import io.jacob.episodive.core.domain.usecase.feed.GetTrendingFeedsUseCase
 import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
+import io.jacob.episodive.core.domain.usecase.player.ResumeEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetUserDataUseCase
 import io.jacob.episodive.core.domain.util.combine
@@ -38,6 +39,7 @@ class HomeViewModel @Inject constructor(
     private val getTrendingFeedsUseCase: GetTrendingFeedsUseCase,
     getLiveEpisodesUseCase: GetLiveEpisodesUseCase,
     private val playEpisodeUseCase: PlayEpisodeUseCase,
+    private val resumeEpisodeUseCase: ResumeEpisodeUseCase,
 ) : ViewModel() {
 
     private val localTrendingFeeds = getUserDataUseCase().flatMapLatest { userData ->
@@ -95,6 +97,7 @@ class HomeViewModel @Inject constructor(
         _action.collect { action ->
             when (action) {
                 is HomeAction.PlayEpisode -> playEpisode(action.episode)
+                is HomeAction.ResumeEpisode -> resumeEpisode(action.playedEpisode)
             }
         }
     }
@@ -105,6 +108,10 @@ class HomeViewModel @Inject constructor(
 
     private fun playEpisode(episode: Episode) = viewModelScope.launch {
         playEpisodeUseCase(episode)
+    }
+
+    private fun resumeEpisode(playedEpisode: PlayedEpisode) = viewModelScope.launch {
+        resumeEpisodeUseCase(playedEpisode)
     }
 
     companion object {
@@ -130,4 +137,5 @@ sealed interface HomeState {
 
 sealed interface HomeAction {
     data class PlayEpisode(val episode: Episode) : HomeAction
+    data class ResumeEpisode(val playedEpisode: PlayedEpisode) : HomeAction
 }

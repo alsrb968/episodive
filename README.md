@@ -93,10 +93,11 @@ local db
 - [x] episodes
 
 ### 에피소드 플레이어
-- [ ] image
-- [ ] title
-- [ ] description
-- [ ] progress bar
-- [ ] controls
+
+- [x] image
+- [x] title
+- [x] description
+- [x] progress bar
+- [x] controls
 - [ ] timestamp
 - [ ] ...
