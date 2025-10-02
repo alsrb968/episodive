@@ -31,12 +31,6 @@ internal fun Project.configureKotlinAndroid(
             targetCompatibility = JavaVersion.VERSION_11
 //            isCoreLibraryDesugaringEnabled = true
         }
-
-        lint {
-            // FIXME: Temporarily disabled, as it is causing issues with the build process.
-            checkReleaseBuilds = false
-            abortOnError = false
-        }
     }
 
     configureKotlin<KotlinAndroidProjectExtension>()
