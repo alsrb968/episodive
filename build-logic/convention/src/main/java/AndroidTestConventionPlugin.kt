@@ -13,11 +13,21 @@ class AndroidTestConventionPlugin : Plugin<Project> {
                     excludes += "/META-INF/LICENSE.md"
                     excludes += "/META-INF/LICENSE-notice.md"
                 }
+                testOptions {
+                    unitTests.all {
+                        it.filter.isFailOnNoMatchingTests = false
+                    }
+                }
             }
             extensions.findByType(LibraryExtension::class.java)?.apply {
                 packaging.resources {
                     excludes += "/META-INF/LICENSE.md"
                     excludes += "/META-INF/LICENSE-notice.md"
+                }
+                testOptions {
+                    unitTests.all {
+                        it.filter.isFailOnNoMatchingTests = false
+                    }
                 }
             }
 
