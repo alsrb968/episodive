@@ -62,7 +62,7 @@ class EpisodiveAppState(
         )
 
     val currentBottomBarDestination: BottomBarDestination?
-        @Composable get() {
+        get() {
             return BottomBarDestination.entries.firstOrNull { bottomBarDestination ->
                 currentDestination.value?.hasRoute(route = bottomBarDestination.baseRoute) == true
             }
@@ -72,6 +72,8 @@ class EpisodiveAppState(
     val startDestination = bottomBarDestinations.first()
 
     private val nestedNavControllers = mutableMapOf<BottomBarDestination, NavHostController>()
+    val currentNestedNavController: NavHostController?
+        get() = currentBottomBarDestination?.let { nestedNavControllers[it] }
 
     fun registerNestedNavController(
         destination: BottomBarDestination,

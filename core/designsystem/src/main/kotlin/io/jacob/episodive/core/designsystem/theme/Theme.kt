@@ -51,10 +51,16 @@ fun EpisodiveTheme(
     // Tint theme
     val tintTheme = TintTheme()
 
+    // Dimension theme
+    val dimensionTheme = DimensionTheme(
+        playerBarHeight = 70.dp,
+    )
+
     CompositionLocalProvider(
         LocalGradientColors provides gradientColors,
         LocalBackgroundTheme provides backgroundTheme,
         LocalTintTheme provides tintTheme,
+        LocalDimensionTheme provides dimensionTheme,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

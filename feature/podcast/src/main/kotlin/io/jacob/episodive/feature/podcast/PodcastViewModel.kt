@@ -7,6 +7,8 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.jacob.episodive.core.domain.usecase.episode.GetEpisodesByPodcastIdUseCase
+import io.jacob.episodive.core.domain.usecase.image.GetDominantColorFromUrlUseCase
+import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
@@ -17,6 +19,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -27,6 +32,8 @@ class PodcastViewModel @AssistedInject constructor(
     getEpisodesByPodcastIdUseCase: GetEpisodesByPodcastIdUseCase,
     getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
     private val toggleFollowedUseCase: ToggleFollowedUseCase,
+    private val playEpisodeUseCase: PlayEpisodeUseCase,
+    private val getDominantColorFromUrlUseCase: GetDominantColorFromUrlUseCase,
     @Assisted("id") val id: Long,
 ) : ViewModel() {
     @AssistedFactory
@@ -34,17 +41,29 @@ class PodcastViewModel @AssistedInject constructor(
         fun create(@Assisted("id") id: Long): PodcastViewModel
     }
 
+    private val dominantColor = getPodcastUseCase(id).mapNotNull { it }
+        .flatMapLatest { podcast ->
+            val color = getDominantColorFromUrlUseCase(podcast.image)
+            flowOf(color)
+        }
+
     val state: StateFlow<PodcastState> = combine(
         getPodcastUseCase(id),
         getEpisodesByPodcastIdUseCase(id),
-        getFollowedPodcastsUseCase()
-    ) { podcast, episodes, followedPodcasts ->
+        getFollowedPodcastsUseCase(),
+        dominantColor,
+    ) { podcast, episodes, followedPodcasts, dominantColor ->
         if (podcast == null) {
             PodcastState.Error("Podcast not found")
         } else {
             val isFollowed = followedPodcasts.any { it.podcast.id == podcast.id }
             Timber.i("episode size=${episodes.size}, isFollowed=$isFollowed")
-            PodcastState.Success(podcast, episodes, isFollowed)
+            PodcastState.Success(
+                podcast = podcast,
+                episodes = episodes,
+                isFollowed = isFollowed,
+                dominantColor = dominantColor,
+            )
         }
     }.stateIn(
         scope = viewModelScope,
@@ -62,6 +81,7 @@ class PodcastViewModel @AssistedInject constructor(
         _action.collectLatest { action ->
             when (action) {
                 is PodcastAction.ToggleFollowed -> toggleFollowed()
+                is PodcastAction.PlayEpisode -> playEpisode(action.episode)
             }
         }
     }
@@ -73,6 +93,10 @@ class PodcastViewModel @AssistedInject constructor(
     private fun toggleFollowed() = viewModelScope.launch {
         toggleFollowedUseCase(id)
     }
+
+    private fun playEpisode(episode: Episode) = viewModelScope.launch {
+        playEpisodeUseCase(episode)
+    }
 }
 
 sealed interface PodcastState {
@@ -80,7 +104,8 @@ sealed interface PodcastState {
     data class Success(
         val podcast: Podcast,
         val episodes: List<Episode>,
-        val isFollowed: Boolean
+        val isFollowed: Boolean,
+        val dominantColor: ULong,
     ) : PodcastState
 
     data class Error(val message: String) : PodcastState
@@ -88,4 +113,5 @@ sealed interface PodcastState {
 
 sealed interface PodcastAction {
     data object ToggleFollowed : PodcastAction
+    data class PlayEpisode(val episode: Episode) : PodcastAction
 }

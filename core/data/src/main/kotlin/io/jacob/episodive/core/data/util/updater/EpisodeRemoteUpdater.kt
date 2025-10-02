@@ -33,11 +33,15 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
             is EpisodeQuery.PodcastGuid -> remoteDataSource.getEpisodesByPodcastGuid(query.podcastGuid)
             is EpisodeQuery.Live -> remoteDataSource.getLiveEpisodes()
             is EpisodeQuery.Recent -> remoteDataSource.getRecentEpisodes()
+            else -> emptyList()
         }
     }
 
     override suspend fun fetchFromNetworkSingle(query: EpisodeQuery): EpisodeResponse? {
-        return null
+        return when (query) {
+            is EpisodeQuery.EpisodeId -> remoteDataSource.getEpisodeById(query.episodeId)
+            else -> null
+        }
     }
 
     override suspend fun mapToEntities(

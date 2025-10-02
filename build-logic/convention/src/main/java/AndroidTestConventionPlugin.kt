@@ -3,7 +3,9 @@ import com.android.build.api.dsl.LibraryExtension
 import io.jacob.episodive.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.withType
 
 class AndroidTestConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -19,6 +21,12 @@ class AndroidTestConventionPlugin : Plugin<Project> {
                     excludes += "/META-INF/LICENSE.md"
                     excludes += "/META-INF/LICENSE-notice.md"
                 }
+            }
+
+            tasks.withType<Test> {
+                // 테스트 소스는 있지만 발견된 테스트가 없을 경우 빌드 실패하지 않도록 설정
+                // Property<Boolean> 타입이므로 set() 메서드를 사용해야 함.
+                failOnNoDiscoveredTests.set(false)
             }
 
             dependencies {

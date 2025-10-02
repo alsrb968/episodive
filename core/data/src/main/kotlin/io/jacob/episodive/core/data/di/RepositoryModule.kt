@@ -1,11 +1,15 @@
 package io.jacob.episodive.core.data.di
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.data.repository.EpisodeRepositoryImpl
 import io.jacob.episodive.core.data.repository.FeedRepositoryImpl
+import io.jacob.episodive.core.data.repository.ImageRepositoryImpl
+import io.jacob.episodive.core.data.repository.PlayerRepositoryImpl
 import io.jacob.episodive.core.data.repository.PodcastRepositoryImpl
 import io.jacob.episodive.core.data.repository.UserRepositoryImpl
 import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
@@ -16,11 +20,14 @@ import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.datastore.datasource.UserPreferencesDataSource
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.FeedRepository
+import io.jacob.episodive.core.domain.repository.ImageRepository
+import io.jacob.episodive.core.domain.repository.PlayerRepository
 import io.jacob.episodive.core.domain.repository.PodcastRepository
 import io.jacob.episodive.core.domain.repository.UserRepository
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
+import io.jacob.episodive.core.player.datasource.PlayerDataSource
 import javax.inject.Singleton
 
 @Module
@@ -73,6 +80,26 @@ object RepositoryModule {
     ): UserRepository {
         return UserRepositoryImpl(
             userPreferencesDataSource = userPreferencesDataSource,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun providePlayerRepository(
+        playerDataSource: PlayerDataSource,
+    ): PlayerRepository {
+        return PlayerRepositoryImpl(
+            playerDataSource = playerDataSource,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideImageRepository(
+        @ApplicationContext context: Context,
+    ): ImageRepository {
+        return ImageRepositoryImpl(
+            context = context,
         )
     }
 }

@@ -21,7 +21,8 @@ Podcast Index Api 활용한 팟캐스트 앱
   - 설정
 
 ### 홈
-- [ ] 최근 재생 에피소드 이어듣기 리스트 (horizontal)
+
+- [x] 최근 재생 에피소드 이어듣기 리스트 (horizontal)
 - [ ] 미리 듣기 리스트 (horizontal)
     - /recent/soundbites
 - [x] 선호 최근 팟캐스트 리스트 (horizontal)
@@ -93,10 +94,11 @@ local db
 - [x] episodes
 
 ### 에피소드 플레이어
-- [ ] image
-- [ ] title
-- [ ] description
-- [ ] progress bar
-- [ ] controls
+
+- [x] image
+- [x] title
+- [x] description
+- [x] progress bar
+- [x] controls
 - [ ] timestamp
 - [ ] ...

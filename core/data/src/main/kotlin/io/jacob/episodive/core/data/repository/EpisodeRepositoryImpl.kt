@@ -1,10 +1,12 @@
 package io.jacob.episodive.core.data.repository
 
 import androidx.room.Transaction
-import io.jacob.episodive.core.data.util.query.EpisodeQuery
 import io.jacob.episodive.core.data.util.Cacher
+import io.jacob.episodive.core.data.util.CacherSingle
+import io.jacob.episodive.core.data.util.query.EpisodeQuery
 import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
+import io.jacob.episodive.core.database.mapper.toEpisode
 import io.jacob.episodive.core.database.mapper.toEpisodes
 import io.jacob.episodive.core.database.mapper.toLikedEpisodes
 import io.jacob.episodive.core.database.mapper.toPlayedEpisodes
@@ -17,7 +19,6 @@ import io.jacob.episodive.core.model.LikedEpisode
 import io.jacob.episodive.core.model.PlayedEpisode
 import io.jacob.episodive.core.model.mapper.toCommaString
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
-import io.jacob.episodive.core.network.mapper.toEpisode
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -93,12 +94,15 @@ class EpisodeRepositoryImpl @Inject constructor(
         ).flow.map { it.toEpisodes() }
     }
 
-    override fun getEpisodeById(id: Long): Flow<Episode?> = flow {
-        val episode = remoteDataSource.getEpisodeById(
-            id = id
-        )?.toEpisode()
+    override fun getEpisodeById(id: Long): Flow<Episode?> {
+        val query = EpisodeQuery.EpisodeId(id)
 
-        emit(episode)
+        return CacherSingle(
+            remoteUpdater = remoteUpdater.create(query),
+            sourceFactory = {
+                localDataSource.getEpisode(id)
+            }
+        ).flow.map { it?.toEpisode() }
     }
 
     override fun getLiveEpisodes(max: Int?): Flow<List<Episode>> {

@@ -9,6 +9,7 @@ import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
+import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
@@ -22,7 +23,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -76,8 +77,8 @@ class EpisodeRepositoryTest {
             repository.searchEpisodesByPerson(person, max = 10).test {
                 val result = awaitItem()
                 // Then
-                Assert.assertEquals(10, result.size)
-                Assert.assertEquals(episodeTestDataList, result)
+                assertEquals(10, result.size)
+                assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -104,8 +105,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByFeedId(feedId, max = 10).test {
                 val result = awaitItem()
                 // Then
-                Assert.assertEquals(episodeTestDataList.size, result.size)
-                Assert.assertEquals(episodeTestDataList, result)
+                assertEquals(episodeTestDataList.size, result.size)
+                assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -132,8 +133,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByFeedUrl(feedUrl, max = 10).test {
                 val result = awaitItem()
                 // Then
-                Assert.assertEquals(episodeTestDataList.size, result.size)
-                Assert.assertEquals(episodeTestDataList, result)
+                assertEquals(episodeTestDataList.size, result.size)
+                assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -160,8 +161,8 @@ class EpisodeRepositoryTest {
             repository.getEpisodesByPodcastGuid(guid, max = 10).test {
                 val result = awaitItem()
                 // Then
-                Assert.assertEquals(episodeTestDataList.size, result.size)
-                Assert.assertEquals(episodeTestDataList, result)
+                assertEquals(episodeTestDataList.size, result.size)
+                assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -174,16 +175,26 @@ class EpisodeRepositoryTest {
     fun `Given episodeId, When getEpisodeById, Then calls remoteDataSource directly`() =
         runTest {
             // Given
-            coEvery { remoteDataSource.getEpisodeById(any()) } returns mockk(relaxed = true)
+            val episodeId = 1234L
+            val query = EpisodeQuery.EpisodeId(episodeId)
+            coEvery {
+                remoteUpdater.create(query)
+            } returns mockk<EpisodeRemoteUpdater>(relaxed = true)
+            coEvery {
+                localDataSource.getEpisode(episodeId)
+            } returns flowOf(episodeEntities.first())
 
             // When
-            repository.getEpisodeById(123).test {
-                awaitItem()
+            repository.getEpisodeById(episodeId).test {
+                val result = awaitItem()
+                // Then
+                assertEquals(episodeTestData.id, result?.id)
                 awaitComplete()
             }
-
-            // Then
-            coVerify { remoteDataSource.getEpisodeById(any()) }
+            coVerifySequence {
+                remoteUpdater.create(query)
+                localDataSource.getEpisode(episodeId)
+            }
         }
 
     @Test
@@ -203,8 +214,8 @@ class EpisodeRepositoryTest {
             repository.getLiveEpisodes(max = 10).test {
                 val result = awaitItem()
                 // Then
-                Assert.assertEquals(episodeTestDataList.size, result.size)
-                Assert.assertEquals(episodeTestDataList, result)
+                assertEquals(episodeTestDataList.size, result.size)
+                assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -250,8 +261,8 @@ class EpisodeRepositoryTest {
             repository.getRecentEpisodes(max = 10).test {
                 val result = awaitItem()
                 // Then
-                Assert.assertEquals(episodeTestDataList.size, result.size)
-                Assert.assertEquals(episodeTestDataList, result)
+                assertEquals(episodeTestDataList.size, result.size)
+                assertEquals(episodeTestDataList, result)
                 awaitComplete()
             }
             coVerifySequence {
@@ -320,7 +331,7 @@ class EpisodeRepositoryTest {
             val result = repository.toggleLiked(episodeId)
 
             // Then
-            Assert.assertFalse(result)
+            assertFalse(result)
             coVerifySequence {
                 localDataSource.isLiked(episodeId)
                 localDataSource.removeLiked(episodeId)
@@ -339,7 +350,7 @@ class EpisodeRepositoryTest {
             val result = repository.toggleLiked(episodeId)
 
             // Then
-            Assert.assertTrue(result)
+            assertTrue(result)
             coVerifySequence {
                 localDataSource.isLiked(episodeId)
                 localDataSource.addLiked(any())

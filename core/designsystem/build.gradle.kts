@@ -17,6 +17,9 @@ dependencies {
     //----- Coil
     implementation(libs.coil.compose)
 
+    //----- Palette
+    implementation(libs.androidx.palette.ktx)
+
     //----- Paging
     implementation(libs.androidx.paging.compose)
 }

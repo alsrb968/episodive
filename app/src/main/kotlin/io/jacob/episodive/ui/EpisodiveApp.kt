@@ -31,6 +31,8 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveBackground
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBar
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBarItem
 import io.jacob.episodive.feature.onboarding.OnboardingScreen
+import io.jacob.episodive.feature.player.PlayerBar
+import io.jacob.episodive.feature.podcast.navigation.navigateToPodcast
 import io.jacob.episodive.navigation.EpisodiveNavHost
 import kotlin.reflect.KClass
 
@@ -137,7 +139,9 @@ fun EpisodiveApp(
                 },
             )
 
-//            PlayerMiniBar()
+            PlayerBar(
+                onPodcastClick = { appState.currentNestedNavController?.navigateToPodcast(it) }
+            )
         }
     }
 }

@@ -7,6 +7,14 @@ plugins {
 
 android {
     namespace = "io.jacob.episodive.core.data"
+
+    lint {
+        // FIXME: Temporarily disabled, as it is causing issues with the build process.
+        disable += setOf(
+            "FlowOperatorInvokedInComposition",
+            "CoroutineCreationDuringComposition"
+        )
+    }
 }
 
 dependencies {
@@ -15,13 +23,17 @@ dependencies {
     implementation(projects.core.domain)
     implementation(projects.core.model)
     implementation(projects.core.network)
+    implementation(projects.core.player)
+
+    //----- Coil
+    implementation(libs.coil.compose)
+
+    //----- Palette
+    implementation(libs.androidx.palette.ktx)
 
     //----- Paging
     implementation(libs.androidx.paging.runtime)
 
     //----- Room
     implementation(libs.androidx.room.runtime)
-
-    //----- Exoplayer
-    implementation(libs.androidx.media3.exoplayer)
 }

@@ -3,8 +3,10 @@ package io.jacob.episodive.feature.podcast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -32,6 +35,8 @@ import io.jacob.episodive.core.designsystem.component.LoadingWheel
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.GradientColors
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
@@ -56,10 +61,9 @@ internal fun PodcastRoute(
                 podcast = s.podcast,
                 episodes = s.episodes,
                 isFollowed = s.isFollowed,
+                dominantColor = Color(s.dominantColor),
                 onFollowClick = { viewModel.sendAction(PodcastAction.ToggleFollowed) },
-                onEpisodeClick = { episode ->
-                    // TODO
-                },
+                onEpisodeClick = { viewModel.sendAction(PodcastAction.PlayEpisode(it)) },
                 onBackClick = onBackClick,
                 onShowSnackbar = onShowSnackbar
             )
@@ -75,9 +79,10 @@ private fun PodcastScreen(
     podcast: Podcast,
     episodes: List<Episode>,
     isFollowed: Boolean,
-    onFollowClick: () -> Unit,
-    onEpisodeClick: (Episode) -> Unit,
-    onBackClick: () -> Unit,
+    dominantColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    onFollowClick: () -> Unit = {},
+    onEpisodeClick: (Episode) -> Unit = {},
+    onBackClick: () -> Unit = {},
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val listState = rememberLazyListState()
@@ -100,6 +105,7 @@ private fun PodcastScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     podcast = podcast,
                     isFollowed = isFollowed,
+                    dominantColor = dominantColor,
                     onFollowClick = onFollowClick,
                 )
             }
@@ -129,6 +135,10 @@ private fun PodcastScreen(
                     )
                 }
             }
+
+            item {
+                Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            }
         }
     }
 }
@@ -137,10 +147,15 @@ private fun PodcastScreen(
 private fun PodcastHeader(
     modifier: Modifier = Modifier,
     podcast: Podcast,
+    dominantColor: Color = MaterialTheme.colorScheme.primaryContainer,
     isFollowed: Boolean,
     onFollowClick: () -> Unit,
 ) {
-    EpisodiveGradientBackground {
+    EpisodiveGradientBackground(
+        gradientColors = GradientColors(
+            top = dominantColor,
+        )
+    ) {
         Column(
             modifier = modifier
                 .fillMaxWidth()
