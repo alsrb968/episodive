@@ -37,7 +37,7 @@ import io.jacob.episodive.feature.widget.R
  * 재생 + 나의 최신 피드 단일 위젯 콘텐츠.
  *
  * - 배경: 썸네일 추출색 솔리드 (16dp 라운드, 그라데이션/스크림 없음)
- * - 1행(now playing): 썸네일 | (제목 최대 2줄 · 팟캐스트명 · 컨트롤). 우상단 브랜드 로고
+ * - 1행(now playing): 썸네일 | (제목 1줄 · 팟캐스트명 · 컨트롤). 우상단 브랜드 로고
  * - 2행(피드): [WidgetLayout] 에 따라 STRIP(썸네일만) / GRID(썸네일+제목) / 없음.
  *   피드 영역만 추출색을 더 어둡게([feedBackgroundColor]).
  */
@@ -60,12 +60,12 @@ internal fun NowPlayingContent(
                 .cornerRadius(16.dp)
                 .clickable(actionRunCallback<OpenAppCallback>()),
         ) {
-            // 피드가 있으면 에피소드 영역 : 피드 영역 = 1:1 (동일 weight 로 높이 균등 분할).
+            // 피드가 있으면 now-playing 은 콘텐츠 높이만 차지하고, 피드가 남는 공간을 채운다(Spotify식 · 1:1 아님).
             NowPlayingHeader(
                 snapshot = snapshot,
                 artwork = artwork,
                 modifier = if (showFeed) {
-                    GlanceModifier.fillMaxWidth().defaultWeight()
+                    GlanceModifier.fillMaxWidth()
                 } else {
                     GlanceModifier.fillMaxSize()
                 },
@@ -113,13 +113,13 @@ private fun NowPlayingHeader(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                 ),
-                maxLines = 2,
+                maxLines = 1,
             )
             val subtitle = snapshot?.feedTitle?.takeIf { it.isNotBlank() }
                 ?: context.getString(R.string.feature_widget_now_playing_empty_hint)
                     .takeIf { snapshot == null }
             subtitle?.let {
-                Spacer(modifier = GlanceModifier.height(2.dp))
+                Spacer(modifier = GlanceModifier.height(4.dp))
                 Text(
                     text = it,
                     style = TextStyle(
@@ -292,7 +292,7 @@ private fun FeedCell(
 }
 
 private const val HEADER_THUMB_DP = 56
-private const val STRIP_THUMB_DP = 40
+private const val STRIP_THUMB_DP = 56
 private const val GRID_THUMB_DP = 44
 
 /**
