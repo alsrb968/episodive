@@ -65,12 +65,14 @@ class WidgetUpdaterTest {
         }
 
     @Test
-    fun `Given repeated same request, when emitted, then distinctUntilChanged collapses to one dispatch`() =
+    fun `Given repeated same request with debounce settle, when emitted, then each dispatches`() =
         runTest(testDispatcher) {
             val dispatched = mutableListOf<WidgetUpdateRequest>()
             val updater = newUpdater(dispatched)
             advanceUntilIdle()
 
+            // 같은 요청 타입이라도 매번 가리키는 에피소드 데이터가 다를 수 있으므로
+            // (distinctUntilChanged 제거), 안정화 사이의 반복 요청은 각각 갱신되어야 한다.
             updater.notifyNowPlayingChanged()
             advanceUntilIdle()
             updater.notifyNowPlayingChanged()
@@ -78,7 +80,7 @@ class WidgetUpdaterTest {
             updater.notifyNowPlayingChanged()
             advanceUntilIdle()
 
-            assertEquals(1, dispatched.size)
+            assertEquals(3, dispatched.size)
             assertEquals(WidgetUpdateRequest.NowPlayingChanged, dispatched[0])
         }
 }

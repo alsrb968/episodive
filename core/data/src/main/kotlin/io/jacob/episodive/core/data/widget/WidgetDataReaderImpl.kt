@@ -8,6 +8,9 @@ import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
 import io.jacob.episodive.core.domain.widget.EpisodeSnapshot
 import io.jacob.episodive.core.domain.widget.NowPlayingSnapshot
 import io.jacob.episodive.core.domain.widget.WidgetDataReader
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,6 +35,23 @@ class WidgetDataReaderImpl @Inject constructor(
             isPlaying = isPlaying,
         )
     }
+
+    override fun nowPlayingFlow(): Flow<NowPlayingSnapshot?> =
+        combine(getNowPlaying(), playerRepository.isPlaying) { episode, isPlaying ->
+            episode?.let {
+                NowPlayingSnapshot(
+                    episodeId = it.id,
+                    podcastId = it.feedId,
+                    title = it.title,
+                    feedTitle = it.feedTitle,
+                    imageUrl = it.image.ifBlank { it.feedImage }.ifBlank { null },
+                    isPlaying = isPlaying,
+                )
+            }
+        }.distinctUntilChanged { old, new ->
+            // 재생 위치(progress) 재방출 폭주 차단: 에피소드/재생상태가 같으면 무시.
+            old?.episodeId == new?.episodeId && old?.isPlaying == new?.isPlaying
+        }
 
     override suspend fun snapshotRecentEpisodes(limit: Int): List<EpisodeSnapshot> =
         getRecentEpisodes(limit).first().map { episode ->

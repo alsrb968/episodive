@@ -13,6 +13,28 @@
                 android:resource="@xml/feature_widget_now_playing_info" />
         </receiver>
         <receiver
+            android:name=".nowplaying.NowPlayingWideWidgetReceiver"
+            android:label="@string/feature_widget_now_playing_wide_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/feature_widget_now_playing_wide_info" />
+        </receiver>
+        <receiver
+            android:name=".nowplaying.NowPlayingSquareWidgetReceiver"
+            android:label="@string/feature_widget_now_playing_square_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/feature_widget_now_playing_square_info" />
+        </receiver>
+        <receiver
             android:name=".recent.RecentEpisodesWidgetReceiver"
             android:label="@string/feature_widget_recent_episodes_label"
             android:exported="false">

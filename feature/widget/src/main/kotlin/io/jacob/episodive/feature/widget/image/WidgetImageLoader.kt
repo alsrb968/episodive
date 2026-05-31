@@ -3,15 +3,14 @@ package io.jacob.episodive.feature.widget.image
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.util.Log
 import coil.ImageLoader
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
+import timber.log.Timber
 
 object WidgetImageLoader {
-    private const val TAG = "WidgetPerf"
     private const val DEFAULT_SIZE_PX = 256
 
     /**
@@ -24,10 +23,7 @@ object WidgetImageLoader {
         url: String?,
         sizePx: Int = DEFAULT_SIZE_PX,
     ): Bitmap? {
-        if (url.isNullOrBlank()) {
-            Log.d(TAG, "loadWidgetBitmap skip: url null/blank")
-            return null
-        }
+        if (url.isNullOrBlank()) return null
         return runCatching {
             val request = ImageRequest.Builder(context)
                 .data(url)
@@ -36,18 +32,14 @@ object WidgetImageLoader {
                 .allowHardware(false)
                 .build()
             when (val result = ImageLoader(context).execute(request)) {
-                is SuccessResult -> {
-                    val bmp = (result.drawable as? BitmapDrawable)?.bitmap
-                    Log.d(TAG, "loadWidgetBitmap OK url=$url bitmap=${bmp != null}")
-                    bmp
-                }
+                is SuccessResult -> (result.drawable as? BitmapDrawable)?.bitmap
                 is ErrorResult -> {
-                    Log.w(TAG, "loadWidgetBitmap ERROR url=$url", result.throwable)
+                    Timber.w(result.throwable, "loadWidgetBitmap ERROR url=%s", url)
                     null
                 }
             }
         }.getOrElse { e ->
-            Log.e(TAG, "loadWidgetBitmap threw for url=$url", e)
+            Timber.e(e, "loadWidgetBitmap threw for url=%s", url)
             null
         }
     }

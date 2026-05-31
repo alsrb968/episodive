@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  아트워크 배경 위 텍스트/컨트롤 가독성 확보용 스크림.
+  하단(start, angle=90)을 강하게 어둡게 깔고 상단으로 갈수록 투명.
+  콘텐츠가 하단 정렬이므로 하단 대비를 우선 확보한다.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="90"
+        android:startColor="#E60D0D0D"
+        android:centerColor="#590D0D0D"
+        android:endColor="#000D0D0D" />
+</shape>

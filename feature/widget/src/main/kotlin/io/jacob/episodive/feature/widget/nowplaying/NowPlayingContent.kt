@@ -2,16 +2,15 @@ package io.jacob.episodive.feature.widget.nowplaying
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
@@ -32,31 +31,31 @@ import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import io.jacob.episodive.core.domain.widget.NowPlayingSnapshot
 import io.jacob.episodive.feature.widget.PlaybackControl
 import io.jacob.episodive.feature.widget.R
-import io.jacob.episodive.feature.widget.action.WidgetActionCallback
-import io.jacob.episodive.feature.widget.theme.WidgetSurfaceContainer
 import io.jacob.episodive.feature.widget.theme.WidgetSurfaceContainerLow
 
 /**
- * 현재 재생 중 위젯 콘텐츠.
+ * 4x2 현재 재생 중 위젯 콘텐츠.
  *
- * Episodive 디자인 시스템 연결:
- * - 배경: `surfaceContainer` 카드 (16dp 라운드)
- * - Play: `primary` 빨강 accent (#F5332C)
- * - Seek: `onSurface` 중성 톤
- * - 타이포: 15sp SemiBold 제목 / 12sp onSurfaceVariant 피드명
+ * - 배경: 썸네일에서 추출한 dominant 색 솔리드 (16dp 라운드) + 하단 가독성 스크림
+ * - 상단: 썸네일 + 제목/피드, 하단: 재생 컨트롤 (-15s · Play · +30s)
+ * - 전경 흰색, 우상단 [BrandBadge], snapshot 없으면 [EmptyNowPlaying]
+ *
+ * @param backgroundColor 썸네일에서 추출·어둡게 보정한 ARGB 배경색
  */
 @Composable
 fun NowPlayingContent(
     snapshot: NowPlayingSnapshot?,
     artwork: Bitmap?,
+    backgroundColor: Int,
 ) {
     if (snapshot == null) {
         EmptyNowPlaying()
     } else {
-        FilledNowPlaying(snapshot, artwork)
+        FilledNowPlaying(snapshot, artwork, backgroundColor)
     }
 }
 
@@ -113,6 +112,7 @@ private fun EmptyNowPlaying() {
 private fun FilledNowPlaying(
     snapshot: NowPlayingSnapshot,
     artwork: Bitmap?,
+    backgroundColor: Int,
 ) {
     val context = LocalContext.current
     Box(
@@ -120,168 +120,101 @@ private fun FilledNowPlaying(
             .fillMaxSize()
             .padding(4.dp),
     ) {
-        Column(
+        Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(WidgetSurfaceContainer)
+                .background(ColorProvider(Color(backgroundColor)))
                 .cornerRadius(16.dp)
-                .padding(14.dp),
+                .clickable(actionRunCallback<OpenAppCallback>()),
         ) {
-            // Row 1: artwork + 제목/피드 (상단 영역, weight=1)
-            Row(
+            // 스크림: 하단 가독성 + 위→아래 의사 그라데이션.
+            Image(
+                provider = ImageProvider(R.drawable.feature_widget_scrim),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .defaultWeight(),
-                verticalAlignment = Alignment.CenterVertically,
+                    .fillMaxSize()
+                    .cornerRadius(16.dp),
+            )
+            Column(
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .padding(14.dp),
             ) {
-                Artwork(
-                    bitmap = artwork,
-                    contentDescription = context.getString(
-                        R.string.feature_widget_now_playing_artwork_desc,
-                    ),
-                )
-                Spacer(modifier = GlanceModifier.width(12.dp))
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    Text(
-                        text = snapshot.title,
-                        style = TextStyle(
-                            color = GlanceTheme.colors.onSurface,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
+                // 상단: 썸네일 + 제목/피드
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    WidgetThumbnail(
+                        bitmap = artwork,
+                        contentDescription = context.getString(
+                            R.string.feature_widget_now_playing_artwork_desc,
                         ),
-                        maxLines = 2,
+                        sizeDp = 56,
                     )
-                    snapshot.feedTitle?.takeIf { it.isNotBlank() }?.let { feed ->
-                        Spacer(modifier = GlanceModifier.height(2.dp))
+                    Spacer(modifier = GlanceModifier.width(12.dp))
+                    Column(modifier = GlanceModifier.defaultWeight()) {
                         Text(
-                            text = feed,
+                            text = snapshot.title,
                             style = TextStyle(
-                                color = GlanceTheme.colors.onSurfaceVariant,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
+                                color = ColorProvider(Color.White),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
                             ),
-                            maxLines = 1,
+                            maxLines = 2,
                         )
+                        snapshot.feedTitle?.takeIf { it.isNotBlank() }?.let { feed ->
+                            Spacer(modifier = GlanceModifier.height(2.dp))
+                            Text(
+                                text = feed,
+                                style = TextStyle(
+                                    color = ColorProvider(WidgetOnArtworkSecondary),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                ),
+                                maxLines = 1,
+                            )
+                        }
                     }
                 }
+                // 컨트롤은 항상 하단 고정 (남는 공간은 weight spacer).
+                Spacer(modifier = GlanceModifier.defaultWeight())
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    WidgetPlayPauseButton(
+                        isPlaying = snapshot.isPlaying,
+                        contentDescription = context.getString(
+                            if (snapshot.isPlaying) {
+                                R.string.feature_widget_now_playing_pause_desc
+                            } else {
+                                R.string.feature_widget_now_playing_play_desc
+                            },
+                        ),
+                    )
+                    Spacer(modifier = GlanceModifier.width(10.dp))
+                    WidgetSeekButton(
+                        iconRes = R.drawable.feature_widget_ic_rewind,
+                        contentDescription = context.getString(
+                            R.string.feature_widget_now_playing_seek_backward_desc,
+                        ),
+                        control = PlaybackControl.SEEK_BWD,
+                    )
+                    Spacer(modifier = GlanceModifier.width(4.dp))
+                    WidgetSeekButton(
+                        iconRes = R.drawable.feature_widget_ic_fast_forward,
+                        contentDescription = context.getString(
+                            R.string.feature_widget_now_playing_seek_forward_desc,
+                        ),
+                        control = PlaybackControl.SEEK_FWD,
+                    )
+                }
             }
-            // Row 2: 재생 컨트롤 (중앙, 하단)
-            Spacer(modifier = GlanceModifier.height(8.dp))
-            Row(
-                modifier = GlanceModifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SeekButton(
-                    iconRes = R.drawable.feature_widget_ic_rewind,
-                    contentDescription = context.getString(
-                        R.string.feature_widget_now_playing_seek_backward_desc,
-                    ),
-                    control = PlaybackControl.SEEK_BWD,
-                )
-                Spacer(modifier = GlanceModifier.width(10.dp))
-                PlayPauseButton(
-                    isPlaying = snapshot.isPlaying,
-                    contentDescription = context.getString(
-                        if (snapshot.isPlaying) {
-                            R.string.feature_widget_now_playing_pause_desc
-                        } else {
-                            R.string.feature_widget_now_playing_play_desc
-                        },
-                    ),
-                )
-                Spacer(modifier = GlanceModifier.width(10.dp))
-                SeekButton(
-                    iconRes = R.drawable.feature_widget_ic_fast_forward,
-                    contentDescription = context.getString(
-                        R.string.feature_widget_now_playing_seek_forward_desc,
-                    ),
-                    control = PlaybackControl.SEEK_FWD,
-                )
-            }
+            BrandBadge()
         }
     }
-}
-
-@Composable
-private fun Artwork(bitmap: Bitmap?, contentDescription: String) {
-    val provider = if (bitmap != null) {
-        ImageProvider(bitmap)
-    } else {
-        ImageProvider(R.drawable.feature_widget_ic_placeholder)
-    }
-    Image(
-        provider = provider,
-        contentDescription = contentDescription,
-        contentScale = ContentScale.Crop,
-        modifier = GlanceModifier
-            .size(52.dp)
-            .cornerRadius(10.dp)
-            .clickable(actionRunCallback<OpenAppCallback>()),
-    )
-}
-
-/**
- * Primary 빨강 accent 를 가진 재생/일시정지 버튼.
- * 아이콘 크기를 컨테이너 중앙에 얹기 위해 Box 로 감싼다.
- */
-@Composable
-private fun PlayPauseButton(
-    isPlaying: Boolean,
-    contentDescription: String,
-) {
-    val iconRes = if (isPlaying) {
-        R.drawable.feature_widget_ic_pause
-    } else {
-        R.drawable.feature_widget_ic_play
-    }
-    Box(
-        modifier = GlanceModifier
-            .size(44.dp)
-            .cornerRadius(22.dp)
-            .background(GlanceTheme.colors.primary)
-            .clickable(
-                actionRunCallback<WidgetActionCallback>(
-                    parameters = actionParametersOf(
-                        PlaybackControl.KEY to PlaybackControl.PLAY_PAUSE.name,
-                    ),
-                ),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Image(
-            provider = ImageProvider(iconRes),
-            contentDescription = contentDescription,
-            colorFilter = ColorFilter.tint(GlanceTheme.colors.onPrimary),
-            modifier = GlanceModifier.size(22.dp),
-        )
-    }
-}
-
-/**
- * 중성 톤의 ±15s / ±30s seek 버튼.
- */
-@Composable
-private fun SeekButton(
-    iconRes: Int,
-    contentDescription: String,
-    control: PlaybackControl,
-) {
-    Image(
-        provider = ImageProvider(iconRes),
-        contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(GlanceTheme.colors.onSurface),
-        modifier = GlanceModifier
-            .size(40.dp)
-            .padding(8.dp)
-            .clickable(
-                actionRunCallback<WidgetActionCallback>(
-                    parameters = actionParametersOf(
-                        PlaybackControl.KEY to control.name,
-                    ),
-                ),
-            ),
-    )
 }
 
 /**

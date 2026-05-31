@@ -16,15 +16,10 @@ import io.jacob.episodive.feature.widget.image.WidgetImageLoader
 import io.jacob.episodive.feature.widget.theme.EpisodiveGlanceTheme
 
 /**
- * 현재 재생 중 위젯 (4x2).
- *
- * 데이터는 반드시 `provideContent` 컴포지션 *안*에서 `collectAsState` 로 구독한다.
- * provideGlance 본문은 세션당 1회만 실행되므로, 거기서 읽으면 updateAll 시 갱신되지 않는다.
- * - 재생 정보: `reader.nowPlayingFlow()` collectAsState (emit 마다 recompose)
- * - 썸네일: imageUrl 을 키로 한 produceState (URL 바뀔 때 재로드)
- * - 배경색: bitmap 으로부터 추출 (remember)
+ * 2x2 정사각 NowPlaying 위젯. 데이터 구독 규약은 [NowPlayingWidget] 과 동일하며
+ * 콘텐츠만 [NowPlayingSquareContent] 를 쓴다.
  */
-class NowPlayingWidget : GlanceAppWidget() {
+class NowPlayingSquareWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val reader = EntryPointAccessors
@@ -42,7 +37,7 @@ class NowPlayingWidget : GlanceAppWidget() {
             val backgroundColor = remember(bitmap) { WidgetColorExtractor.backgroundColor(bitmap) }
 
             EpisodiveGlanceTheme {
-                NowPlayingContent(snapshot, bitmap, backgroundColor)
+                NowPlayingSquareContent(snapshot, bitmap, backgroundColor)
             }
         }
     }

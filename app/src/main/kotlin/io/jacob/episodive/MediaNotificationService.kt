@@ -31,6 +31,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -100,8 +102,19 @@ class MediaNotificationService : MediaSessionService() {
             getNowPlayingUseCase().collectLatest { episode ->
                 episode?.let { nowPlaying = it }
                 updateCustomLayout(episode?.isLiked ?: false)
-                widgetUpdater.notifyNowPlayingChanged()
             }
+        }
+
+        // 위젯 갱신은 "에피소드 변경 또는 재생/일시정지" 시에만 트리거한다.
+        // getNowPlayingUseCase 는 재생 progress 가 DB 에 저장될 때마다 재emit(초당 수십 회)되는데,
+        // 그대로 notify 하면 updateAll 폭주로 provideGlance 가 완주 못 해 위젯이 옛 화면에 고정된다.
+        serviceScope.launch {
+            combine(
+                getNowPlayingUseCase(),
+                playerRepository.isPlaying,
+            ) { episode, playing -> episode?.id to playing }
+                .distinctUntilChanged()
+                .collectLatest { widgetUpdater.notifyNowPlayingChanged() }
         }
     }
 

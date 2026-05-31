@@ -5,6 +5,8 @@ import androidx.glance.appwidget.updateAll
 import androidx.tracing.trace
 import io.jacob.episodive.core.data.widget.WidgetDispatcher
 import io.jacob.episodive.core.data.widget.WidgetUpdateRequest
+import io.jacob.episodive.feature.widget.nowplaying.NowPlayingSquareWidget
+import io.jacob.episodive.feature.widget.nowplaying.NowPlayingWideWidget
 import io.jacob.episodive.feature.widget.nowplaying.NowPlayingWidget
 import io.jacob.episodive.feature.widget.recent.RecentEpisodesWidget
 import javax.inject.Inject
@@ -23,12 +25,16 @@ class GlanceWidgetDispatcher @Inject constructor() : WidgetDispatcher {
             when (request) {
                 is WidgetUpdateRequest.NowPlayingChanged -> {
                     NowPlayingWidget().updateAll(context)
+                    NowPlayingWideWidget().updateAll(context)
+                    NowPlayingSquareWidget().updateAll(context)
                 }
                 is WidgetUpdateRequest.RecentEpisodesChanged -> {
                     RecentEpisodesWidget().updateAll(context)
                 }
                 is WidgetUpdateRequest.All -> {
                     NowPlayingWidget().updateAll(context)
+                    NowPlayingWideWidget().updateAll(context)
+                    NowPlayingSquareWidget().updateAll(context)
                     RecentEpisodesWidget().updateAll(context)
                 }
             }
