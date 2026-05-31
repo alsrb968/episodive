@@ -24,7 +24,7 @@ class EpisodeSyncWorker @AssistedInject constructor(
             val results = syncNewEpisodesUseCase()
             if (results.isNotEmpty()) {
                 notificationHelper.showNewEpisodeNotification(results)
-                widgetUpdater.notifyRecentEpisodesChanged()
+                widgetUpdater.notifyAllWidgets()
             }
             Result.success()
         } catch (e: Exception) {

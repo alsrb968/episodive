@@ -19,7 +19,6 @@ import javax.inject.Singleton
 
 sealed interface WidgetUpdateRequest {
     data object NowPlayingChanged : WidgetUpdateRequest
-    data object RecentEpisodesChanged : WidgetUpdateRequest
     data object All : WidgetUpdateRequest
 }
 
@@ -48,10 +47,6 @@ class WidgetUpdater @Inject constructor(
 
     fun notifyNowPlayingChanged() {
         events.tryEmit(WidgetUpdateRequest.NowPlayingChanged)
-    }
-
-    fun notifyRecentEpisodesChanged() {
-        events.tryEmit(WidgetUpdateRequest.RecentEpisodesChanged)
     }
 
     fun notifyAllWidgets() {

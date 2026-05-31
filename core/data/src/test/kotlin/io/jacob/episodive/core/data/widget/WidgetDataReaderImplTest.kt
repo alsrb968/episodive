@@ -1,13 +1,14 @@
 package io.jacob.episodive.core.data.widget
 
 import io.jacob.episodive.core.domain.repository.PlayerRepository
-import io.jacob.episodive.core.domain.usecase.episode.GetRecentEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
+import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
 import io.jacob.episodive.core.testing.model.episodeTestData
-import io.jacob.episodive.core.testing.model.episodeTestDataList
+import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -20,12 +21,12 @@ class WidgetDataReaderImplTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val getNowPlaying = mockk<GetNowPlayingUseCase>(relaxed = true)
-    private val getRecentEpisodes = mockk<GetRecentEpisodesUseCase>(relaxed = true)
+    private val getUserRecentPodcasts = mockk<GetUserRecentPodcastsUseCase>(relaxed = true)
     private val playerRepository = mockk<PlayerRepository>(relaxed = true)
 
     private val reader = WidgetDataReaderImpl(
         getNowPlaying = getNowPlaying,
-        getRecentEpisodes = getRecentEpisodes,
+        getUserRecentPodcasts = getUserRecentPodcasts,
         playerRepository = playerRepository,
     )
 
@@ -57,24 +58,23 @@ class WidgetDataReaderImplTest {
         }
 
     @Test
-    fun `Given recent episodes flow, when snapshotRecentEpisodes called, then maps provided episodes in order`() =
+    fun `Given user recent podcasts, when userRecentPodcastsFlow collected, then maps to snapshots in order`() =
         runTest {
-            val limit = 3
-            val sourceEpisodes = episodeTestDataList.take(limit)
-            every { getRecentEpisodes(limit) } returns flowOf(sourceEpisodes)
+            val max = 3
+            val sourcePodcasts = podcastTestDataList.take(max)
+            every { getUserRecentPodcasts(max) } returns flowOf(sourcePodcasts)
 
-            val snapshots = reader.snapshotRecentEpisodes(limit)
+            val snapshots = reader.userRecentPodcastsFlow(max).first()
 
-            assertEquals(sourceEpisodes.size, snapshots.size)
-            sourceEpisodes.forEachIndexed { index, episode ->
+            assertEquals(sourcePodcasts.size, snapshots.size)
+            sourcePodcasts.forEachIndexed { index, podcast ->
                 val snapshot = snapshots[index]
-                assertEquals(episode.id, snapshot.id)
-                assertEquals(episode.feedId, snapshot.podcastId)
-                assertEquals(episode.title, snapshot.title)
-                assertEquals(episode.feedTitle, snapshot.feedTitle)
-                assertEquals(episode.image, snapshot.imageUrl)
-                assertEquals(episode.duration?.inWholeMilliseconds ?: 0L, snapshot.duration)
-                assertEquals(episode.datePublished.toEpochMilliseconds(), snapshot.datePublished)
+                assertEquals(podcast.id, snapshot.id)
+                assertEquals(podcast.title, snapshot.title)
+                assertEquals(
+                    podcast.image.ifBlank { podcast.artwork }.ifBlank { null },
+                    snapshot.imageUrl,
+                )
             }
         }
 }

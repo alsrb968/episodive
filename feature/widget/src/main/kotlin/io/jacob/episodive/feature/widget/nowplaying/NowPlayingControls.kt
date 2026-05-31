@@ -25,7 +25,7 @@ import io.jacob.episodive.feature.widget.R
 import io.jacob.episodive.feature.widget.action.WidgetActionCallback
 
 /**
- * NowPlaying 위젯 3종(4x2 / 4x1 / 2x2)이 공유하는 재생 컨트롤·색상.
+ * NowPlaying 위젯의 여러 영역(헤더·피드 셀 등)이 공유하는 재생 컨트롤·색상.
  *
  * 아트워크 배경 위 전경은 day/night 공통 밝은 톤(하단 스크림이 항상 어둡기 때문).
  */

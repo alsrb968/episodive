@@ -14,5 +14,11 @@ interface WidgetDataReader {
      */
     fun nowPlayingFlow(): Flow<NowPlayingSnapshot?>
 
-    suspend fun snapshotRecentEpisodes(limit: Int = 5): List<EpisodeSnapshot>
+    /**
+     * 홈의 "나의 최신 피드"(선호 카테고리 기준 최신 팟캐스트)를 reactive 하게 방출하는 Flow.
+     *
+     * [nowPlayingFlow] 와 동일 규약 — `provideContent` 안에서 `collectAsState` 로 구독해야
+     * 피드 변경 시 갱신된다. now-playing 구독으로 Glance 세션이 유지되는 동안 함께 갱신된다.
+     */
+    fun userRecentPodcastsFlow(max: Int): Flow<List<PodcastSnapshot>>
 }

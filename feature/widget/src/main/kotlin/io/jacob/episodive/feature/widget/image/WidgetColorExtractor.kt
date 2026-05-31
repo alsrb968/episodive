@@ -18,12 +18,26 @@ object WidgetColorExtractor {
     /** 클램프할 목표 최대 휘도(0~255). 색감을 살리기 위해 비교적 높게 둔다. */
     private const val TARGET_MAX_LUMINANCE = 130.0
 
+    /** "나의 최신 피드" 영역 배경을 만들 때 now-playing 배경에 곱하는 추가 어둡기 계수. */
+    private const val FEED_DARKEN_FACTOR = 0.68
+
     fun backgroundColor(bitmap: Bitmap?): Int {
         if (bitmap == null) return FALLBACK
         val rgb = runCatching {
             Palette.from(bitmap).generate().dominantSwatch?.rgb
         }.getOrNull() ?: return FALLBACK
         return darken(rgb)
+    }
+
+    /**
+     * now-playing 배경색([backgroundColor])을 한 단계 더 어둡게 한 피드 영역 배경색.
+     * 같은 색조를 유지하면서 톤만 낮춰 단일 위젯 내 영역 구분을 준다.
+     */
+    fun feedBackgroundColor(backgroundColor: Int): Int {
+        val r = (Color.red(backgroundColor) * FEED_DARKEN_FACTOR).toInt()
+        val g = (Color.green(backgroundColor) * FEED_DARKEN_FACTOR).toInt()
+        val b = (Color.blue(backgroundColor) * FEED_DARKEN_FACTOR).toInt()
+        return Color.rgb(r, g, b)
     }
 
     private fun darken(color: Int): Int {

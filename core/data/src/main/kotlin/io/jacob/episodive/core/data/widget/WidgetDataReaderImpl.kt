@@ -3,22 +3,23 @@ package io.jacob.episodive.core.data.widget
 import io.jacob.episodive.core.common.EpisodivePlayers
 import io.jacob.episodive.core.common.Player
 import io.jacob.episodive.core.domain.repository.PlayerRepository
-import io.jacob.episodive.core.domain.usecase.episode.GetRecentEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
-import io.jacob.episodive.core.domain.widget.EpisodeSnapshot
+import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
 import io.jacob.episodive.core.domain.widget.NowPlayingSnapshot
+import io.jacob.episodive.core.domain.widget.PodcastSnapshot
 import io.jacob.episodive.core.domain.widget.WidgetDataReader
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class WidgetDataReaderImpl @Inject constructor(
     private val getNowPlaying: GetNowPlayingUseCase,
-    private val getRecentEpisodes: GetRecentEpisodesUseCase,
+    private val getUserRecentPodcasts: GetUserRecentPodcastsUseCase,
     @param:Player(EpisodivePlayers.Main) private val playerRepository: PlayerRepository,
 ) : WidgetDataReader {
 
@@ -53,16 +54,16 @@ class WidgetDataReaderImpl @Inject constructor(
             old?.episodeId == new?.episodeId && old?.isPlaying == new?.isPlaying
         }
 
-    override suspend fun snapshotRecentEpisodes(limit: Int): List<EpisodeSnapshot> =
-        getRecentEpisodes(limit).first().map { episode ->
-            EpisodeSnapshot(
-                id = episode.id,
-                podcastId = episode.feedId,
-                title = episode.title,
-                feedTitle = episode.feedTitle,
-                imageUrl = episode.image.ifBlank { episode.feedImage }.ifBlank { null },
-                duration = episode.duration?.inWholeMilliseconds ?: 0L,
-                datePublished = episode.datePublished.toEpochMilliseconds(),
-            )
-        }
+    override fun userRecentPodcastsFlow(max: Int): Flow<List<PodcastSnapshot>> =
+        getUserRecentPodcasts(max = max)
+            .map { podcasts ->
+                podcasts.map { podcast ->
+                    PodcastSnapshot(
+                        id = podcast.id,
+                        title = podcast.title,
+                        imageUrl = podcast.image.ifBlank { podcast.artwork }.ifBlank { null },
+                    )
+                }
+            }
+            .distinctUntilChanged()
 }

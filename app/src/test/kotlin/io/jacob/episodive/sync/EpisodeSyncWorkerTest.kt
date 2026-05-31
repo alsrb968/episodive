@@ -50,7 +50,7 @@ class EpisodeSyncWorkerTest {
 
         assertEquals(Result.success(), result)
         coVerify(exactly = 1) { notificationHelper.showNewEpisodeNotification(results) }
-        verify(exactly = 1) { widgetUpdater.notifyRecentEpisodesChanged() }
+        verify(exactly = 1) { widgetUpdater.notifyAllWidgets() }
     }
 
     @Test
@@ -62,7 +62,7 @@ class EpisodeSyncWorkerTest {
 
         assertEquals(Result.success(), result)
         coVerify(exactly = 0) { notificationHelper.showNewEpisodeNotification(any()) }
-        verify(exactly = 0) { widgetUpdater.notifyRecentEpisodesChanged() }
+        verify(exactly = 0) { widgetUpdater.notifyAllWidgets() }
     }
 
     @Test
@@ -73,7 +73,7 @@ class EpisodeSyncWorkerTest {
         val result = worker.doWork()
 
         assertEquals(Result.retry(), result)
-        verify(exactly = 0) { widgetUpdater.notifyRecentEpisodesChanged() }
+        verify(exactly = 0) { widgetUpdater.notifyAllWidgets() }
     }
 }
 

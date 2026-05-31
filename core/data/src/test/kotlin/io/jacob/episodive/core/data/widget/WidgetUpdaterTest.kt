@@ -53,15 +53,12 @@ class WidgetUpdaterTest {
 
             updater.notifyNowPlayingChanged()
             advanceUntilIdle()
-            updater.notifyRecentEpisodesChanged()
-            advanceUntilIdle()
             updater.notifyAllWidgets()
             advanceUntilIdle()
 
-            assertEquals(3, dispatched.size)
+            assertEquals(2, dispatched.size)
             assertEquals(WidgetUpdateRequest.NowPlayingChanged, dispatched[0])
-            assertEquals(WidgetUpdateRequest.RecentEpisodesChanged, dispatched[1])
-            assertEquals(WidgetUpdateRequest.All, dispatched[2])
+            assertEquals(WidgetUpdateRequest.All, dispatched[1])
         }
 
     @Test
