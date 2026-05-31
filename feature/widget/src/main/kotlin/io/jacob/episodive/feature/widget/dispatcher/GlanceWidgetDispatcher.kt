@@ -5,7 +5,7 @@ import androidx.glance.appwidget.updateAll
 import androidx.tracing.trace
 import io.jacob.episodive.core.data.widget.WidgetDispatcher
 import io.jacob.episodive.core.data.widget.WidgetUpdateRequest
-import io.jacob.episodive.feature.widget.nowplaying.NowPlayingWidget
+import io.jacob.episodive.feature.widget.EpisodiveWidget
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,7 +15,7 @@ import javax.inject.Singleton
  * `:core:data` 가 `:feature:widget` 에 역의존하지 않도록 인터페이스는 `:core:data` 에,
  * 구현은 여기에 두고 Hilt `@Binds` 로 연결한다 (WidgetDispatcherModule).
  *
- * 위젯은 [NowPlayingWidget] 단일 종류이며, 모든 요청은 동일하게 그 위젯을 갱신한다.
+ * 위젯은 [EpisodiveWidget] 단일 종류이며, 모든 요청은 동일하게 그 위젯을 갱신한다.
  */
 @Singleton
 class GlanceWidgetDispatcher @Inject constructor() : WidgetDispatcher {
@@ -24,7 +24,7 @@ class GlanceWidgetDispatcher @Inject constructor() : WidgetDispatcher {
             when (request) {
                 is WidgetUpdateRequest.NowPlayingChanged,
                 is WidgetUpdateRequest.All,
-                -> NowPlayingWidget().updateAll(context)
+                -> EpisodiveWidget().updateAll(context)
             }
         }
     }

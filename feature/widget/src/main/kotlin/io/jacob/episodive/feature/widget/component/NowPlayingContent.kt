@@ -1,4 +1,4 @@
-package io.jacob.episodive.feature.widget.nowplaying
+package io.jacob.episodive.feature.widget.component
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
@@ -25,20 +25,21 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
-import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import io.jacob.episodive.core.domain.widget.NowPlayingSnapshot
 import io.jacob.episodive.core.domain.widget.PodcastSnapshot
+import io.jacob.episodive.feature.widget.EpisodiveWidgetLayout
+import io.jacob.episodive.feature.widget.FeedMode
 import io.jacob.episodive.feature.widget.PlaybackControl
 import io.jacob.episodive.feature.widget.R
 
 /**
- * 재생 + 나의 최신 피드 단일 위젯 콘텐츠.
+ * 재생 + 나의 최신 피드 단일 위젯 콘텐츠(최상위 조합).
  *
  * - 배경: 썸네일 추출색 솔리드 (16dp 라운드, 그라데이션/스크림 없음)
  * - 1행(now playing): 썸네일 | (제목 1줄 · 팟캐스트명 · 컨트롤). 우상단 브랜드 로고
- * - 2행(피드): [WidgetLayout] 에 따라 STRIP(썸네일만) / GRID(썸네일+제목) / 없음.
+ * - 2행(피드): [EpisodiveWidgetLayout] 에 따라 STRIP/GRID/없음. 피드 컴포저블은 FeedContent.kt 참고.
  *   피드 영역만 추출색을 더 어둡게([feedBackgroundColor]).
  */
 @Composable
@@ -49,7 +50,7 @@ internal fun NowPlayingContent(
     feedBackgroundColor: Int,
     feed: List<PodcastSnapshot>,
     feedBitmaps: Map<Long, Bitmap?>,
-    layout: WidgetLayout,
+    layout: EpisodiveWidgetLayout,
 ) {
     val showFeed = layout.feedMode != FeedMode.NONE && feed.isNotEmpty()
     Box(modifier = GlanceModifier.fillMaxSize().padding(4.dp)) {
@@ -176,124 +177,7 @@ private fun NowPlayingControlsRow(snapshot: NowPlayingSnapshot) {
     }
 }
 
-/**
- * 나의 최신 피드 영역. STRIP=썸네일만 1행, GRID=썸네일+제목 2행.
- */
-@Composable
-private fun FeedArea(
-    feed: List<PodcastSnapshot>,
-    feedBitmaps: Map<Long, Bitmap?>,
-    feedBackgroundColor: Int,
-    layout: WidgetLayout,
-    modifier: GlanceModifier,
-) {
-    Box(
-        modifier = modifier.background(ColorProvider(Color(feedBackgroundColor))),
-    ) {
-        when (layout.feedMode) {
-            FeedMode.STRIP -> FeedStrip(feed, feedBitmaps)
-            FeedMode.GRID -> FeedGrid(feed, feedBitmaps, layout.gridColumns)
-            FeedMode.NONE -> Unit
-        }
-    }
-}
-
-@Composable
-private fun FeedStrip(
-    feed: List<PodcastSnapshot>,
-    feedBitmaps: Map<Long, Bitmap?>,
-) {
-    Row(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        feed.forEach { podcast ->
-            Box(
-                modifier = GlanceModifier.defaultWeight(),
-                contentAlignment = Alignment.Center,
-            ) {
-                FeedCell(podcast, feedBitmaps[podcast.id], showTitle = false, thumbDp = STRIP_THUMB_DP)
-            }
-        }
-    }
-}
-
-@Composable
-private fun FeedGrid(
-    feed: List<PodcastSnapshot>,
-    feedBitmaps: Map<Long, Bitmap?>,
-    columns: Int,
-) {
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-    ) {
-        feed.chunked(columns).forEachIndexed { rowIndex, rowItems ->
-            if (rowIndex > 0) {
-                Spacer(modifier = GlanceModifier.height(6.dp))
-            }
-            Row(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
-                rowItems.forEach { podcast ->
-                    Box(
-                        modifier = GlanceModifier.defaultWeight(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        FeedCell(
-                            podcast,
-                            feedBitmaps[podcast.id],
-                            showTitle = true,
-                            thumbDp = GRID_THUMB_DP,
-                        )
-                    }
-                }
-                // 마지막 행이 모자라면 빈 칸으로 정렬 유지.
-                repeat(columns - rowItems.size) {
-                    Box(modifier = GlanceModifier.defaultWeight()) {}
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FeedCell(
-    podcast: PodcastSnapshot,
-    bitmap: Bitmap?,
-    showTitle: Boolean,
-    thumbDp: Int,
-) {
-    Column(
-        modifier = GlanceModifier.clickable(actionRunCallback<OpenAppCallback>()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        WidgetThumbnail(
-            bitmap = bitmap,
-            contentDescription = podcast.title,
-            sizeDp = thumbDp,
-            cornerDp = 8,
-        )
-        if (showTitle) {
-            Spacer(modifier = GlanceModifier.height(4.dp))
-            Text(
-                text = podcast.title,
-                style = TextStyle(
-                    color = ColorProvider(Color.White),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                ),
-                maxLines = 1,
-            )
-        }
-    }
-}
-
 private const val HEADER_THUMB_DP = 56
-private const val STRIP_THUMB_DP = 56
-private const val GRID_THUMB_DP = 44
 
 /**
  * 빈 상태 / 카드·셀 탭 시 MainActivity 를 연다.

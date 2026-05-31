@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <receiver
-            android:name=".nowplaying.NowPlayingWidgetReceiver"
+            android:name=".EpisodiveWidgetReceiver"
             android:label="@string/feature_widget_now_playing_label"
             android:exported="false">
             <intent-filter>

@@ -1,4 +1,4 @@
-package io.jacob.episodive.feature.widget.nowplaying
+package io.jacob.episodive.feature.widget
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -13,6 +13,7 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import dagger.hilt.android.EntryPointAccessors
 import io.jacob.episodive.core.domain.widget.WidgetDataReaderEntryPoint
+import io.jacob.episodive.feature.widget.component.NowPlayingContent
 import io.jacob.episodive.feature.widget.image.WidgetColorExtractor
 import io.jacob.episodive.feature.widget.image.WidgetImageLoader
 import io.jacob.episodive.feature.widget.theme.EpisodiveGlanceTheme
@@ -32,7 +33,7 @@ import kotlinx.coroutines.coroutineScope
  *    페이로드가 배가되어 ~1MB Binder 한도를 쉽게 초과하므로 쓰지 않는다.)
  * - 보이는 피드 항목만 비트맵 로드 + 작은 px → RemoteViews 1MB 한도 보호.
  */
-class NowPlayingWidget : GlanceAppWidget() {
+class EpisodiveWidget : GlanceAppWidget() {
 
     override val sizeMode: SizeMode = SizeMode.Exact
 
@@ -49,7 +50,7 @@ class NowPlayingWidget : GlanceAppWidget() {
             val podcasts by remember { reader.userRecentPodcastsFlow(FEED_MAX) }
                 .collectAsState(emptyList())
             val size = LocalSize.current
-            val layout = WidgetLayout.forSize(size)
+            val layout = EpisodiveWidgetLayout.forSize(size)
 
             val artwork by produceState<Bitmap?>(null, snapshot?.imageUrl) {
                 value = snapshot?.imageUrl?.let {

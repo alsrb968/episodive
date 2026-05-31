@@ -1,4 +1,4 @@
-package io.jacob.episodive.feature.widget.nowplaying
+package io.jacob.episodive.feature.widget.component
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
