@@ -17,4 +17,5 @@ local.properties
 .kotlin
 *.hprof
 .claude/settings.local.json
+.claude/worktrees/
 .omc/
