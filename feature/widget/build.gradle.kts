@@ -9,7 +9,4 @@ android {
 dependencies {
     implementation(libs.androidx.palette.ktx)
     implementation(libs.timber)
-
-    implementation(libs.androidx.glance.preview)
-    debugImplementation(libs.androidx.glance.appwidget.preview)
 }
