@@ -51,10 +51,14 @@ class EpisodiveWidget : GlanceAppWidget() {
                 .collectAsState(emptyList())
             val size = LocalSize.current
             val layout = EpisodiveWidgetLayout.forSize(size)
+            // 표시 크기에 맞춘 비트맵 로드 px (밀도 반영). 작게 고정하면 업스케일로 흐려진다.
+            val density = context.resources.displayMetrics.density
+            val nowPlayingPx = (NOW_PLAYING_THUMB_DP * density).toInt()
+            val feedPx = layout.feedThumbPx(density)
 
             val artwork by produceState<Bitmap?>(null, snapshot?.imageUrl) {
                 value = snapshot?.imageUrl?.let {
-                    WidgetImageLoader.loadWidgetBitmap(context, it, NOW_PLAYING_PX)
+                    WidgetImageLoader.loadWidgetBitmap(context, it, nowPlayingPx)
                 }
             }
             val backgroundColor = remember(artwork) {
@@ -68,7 +72,7 @@ class EpisodiveWidget : GlanceAppWidget() {
             val visibleFeed = remember(podcasts, layout.feedCount) {
                 podcasts.take(layout.feedCount)
             }
-            val feedBitmaps by produceState<Map<Long, Bitmap?>>(emptyMap(), visibleFeed) {
+            val feedBitmaps by produceState<Map<Long, Bitmap?>>(emptyMap(), visibleFeed, feedPx) {
                 value = coroutineScope {
                     visibleFeed
                         .map { snap ->
@@ -76,7 +80,7 @@ class EpisodiveWidget : GlanceAppWidget() {
                                 snap.id to WidgetImageLoader.loadWidgetBitmap(
                                     context,
                                     snap.imageUrl,
-                                    FEED_THUMB_PX,
+                                    feedPx,
                                 )
                             }
                         }
@@ -103,10 +107,7 @@ class EpisodiveWidget : GlanceAppWidget() {
         /** 가장 큰 4x3 GRID 에서 필요한 그리드 항목 수(2×4=8). */
         const val FEED_MAX = 8
 
-        /** now-playing 썸네일 px (1장). */
-        const val NOW_PLAYING_PX = 160
-
-        /** 피드 썸네일 px (최대 8장) — 작게 잡아 RemoteViews 1MB 한도 회피. */
-        const val FEED_THUMB_PX = 72
+        /** now-playing 썸네일 표시 dp. 밀도를 곱해 로드 px 산출(피드 px 는 [EpisodiveWidgetLayout.feedThumbPx]). */
+        const val NOW_PLAYING_THUMB_DP = 56
     }
 }

@@ -15,9 +15,9 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -26,6 +26,7 @@ import androidx.glance.unit.ColorProvider
 import io.jacob.episodive.core.domain.widget.PodcastSnapshot
 import io.jacob.episodive.feature.widget.EpisodiveWidgetLayout
 import io.jacob.episodive.feature.widget.FeedMode
+import io.jacob.episodive.feature.widget.GRID_MARGIN_DP
 
 /**
  * "나의 최신 피드" 영역. STRIP=썸네일만 1행, GRID=썸네일+제목 2행.
@@ -42,10 +43,11 @@ internal fun FeedArea(
 ) {
     Box(
         modifier = modifier.background(ColorProvider(Color(feedBackgroundColor))),
+        contentAlignment = Alignment.Center,
     ) {
         when (layout.feedMode) {
-            FeedMode.STRIP -> FeedStrip(feed, feedBitmaps)
-            FeedMode.GRID -> FeedGrid(feed, feedBitmaps, layout.gridColumns)
+            FeedMode.STRIP -> FeedStrip(feed, feedBitmaps, layout.feedThumbDp)
+            FeedMode.GRID -> FeedGrid(feed, feedBitmaps, layout.gridColumns, layout.feedThumbDp)
             FeedMode.NONE -> Unit
         }
     }
@@ -55,6 +57,7 @@ internal fun FeedArea(
 private fun FeedStrip(
     feed: List<PodcastSnapshot>,
     feedBitmaps: Map<Long, Bitmap?>,
+    thumbDp: Int,
 ) {
     Row(
         modifier = GlanceModifier
@@ -67,7 +70,7 @@ private fun FeedStrip(
                 modifier = GlanceModifier.defaultWeight(),
                 contentAlignment = Alignment.Center,
             ) {
-                FeedCell(podcast, feedBitmaps[podcast.id], showTitle = false, thumbDp = STRIP_THUMB_DP)
+                FeedCell(podcast, feedBitmaps[podcast.id], showTitle = false, thumbDp = thumbDp)
             }
         }
     }
@@ -78,33 +81,27 @@ private fun FeedGrid(
     feed: List<PodcastSnapshot>,
     feedBitmaps: Map<Long, Bitmap?>,
     columns: Int,
+    thumbDp: Int,
 ) {
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-    ) {
+    val margin = GRID_MARGIN_DP.dp
+    // 고정 크기 셀 + 셀 사이 균일 Spacer 로 wrap. 바깥 Box(Center)가 이 Column 을
+    // 가운데 두므로 상하좌우 마진과 셀 간격이 모두 [GRID_MARGIN_DP] 로 균일해진다.
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         feed.chunked(columns).forEachIndexed { rowIndex, rowItems ->
             if (rowIndex > 0) {
-                Spacer(modifier = GlanceModifier.height(6.dp))
+                Spacer(modifier = GlanceModifier.height(margin))
             }
-            Row(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
-                rowItems.forEach { podcast ->
-                    Box(
-                        modifier = GlanceModifier.defaultWeight(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        FeedCell(
-                            podcast,
-                            feedBitmaps[podcast.id],
-                            showTitle = true,
-                            thumbDp = GRID_THUMB_DP,
-                        )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                rowItems.forEachIndexed { colIndex, podcast ->
+                    if (colIndex > 0) {
+                        Spacer(modifier = GlanceModifier.width(margin))
                     }
-                }
-                // 마지막 행이 모자라면 빈 칸으로 정렬 유지.
-                repeat(columns - rowItems.size) {
-                    Box(modifier = GlanceModifier.defaultWeight()) {}
+                    FeedCell(
+                        podcast,
+                        feedBitmaps[podcast.id],
+                        showTitle = true,
+                        thumbDp = thumbDp,
+                    )
                 }
             }
         }
@@ -132,6 +129,8 @@ private fun FeedCell(
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(
                 text = podcast.title,
+                // 제목이 썸네일 폭을 넘지 않도록 폭을 썸네일에 맞춰 클램프(셀 폭 균일화).
+                modifier = GlanceModifier.width(thumbDp.dp),
                 style = TextStyle(
                     color = ColorProvider(Color.White),
                     fontSize = 10.sp,
@@ -144,5 +143,3 @@ private fun FeedCell(
     }
 }
 
-private const val STRIP_THUMB_DP = 56
-private const val GRID_THUMB_DP = 44

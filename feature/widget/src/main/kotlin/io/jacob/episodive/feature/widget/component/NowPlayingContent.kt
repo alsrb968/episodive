@@ -53,7 +53,7 @@ internal fun NowPlayingContent(
     layout: EpisodiveWidgetLayout,
 ) {
     val showFeed = layout.feedMode != FeedMode.NONE && feed.isNotEmpty()
-    Box(modifier = GlanceModifier.fillMaxSize().padding(4.dp)) {
+    Box(modifier = GlanceModifier.fillMaxSize()) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -61,12 +61,12 @@ internal fun NowPlayingContent(
                 .cornerRadius(16.dp)
                 .clickable(actionRunCallback<OpenAppCallback>()),
         ) {
-            // 피드가 있으면 now-playing 은 콘텐츠 높이만 차지하고, 피드가 남는 공간을 채운다(Spotify식 · 1:1 아님).
+            // now-playing 이 남는 세로 공간을 차지(지배)하고, 피드는 모드별 고정 높이의 얇은 띠로 둔다.
             NowPlayingHeader(
                 snapshot = snapshot,
                 artwork = artwork,
                 modifier = if (showFeed) {
-                    GlanceModifier.fillMaxWidth()
+                    GlanceModifier.fillMaxWidth().defaultWeight()
                 } else {
                     GlanceModifier.fillMaxSize()
                 },
@@ -77,7 +77,9 @@ internal fun NowPlayingContent(
                     feedBitmaps = feedBitmaps,
                     feedBackgroundColor = feedBackgroundColor,
                     layout = layout,
-                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .height(layout.feedHeightDp.dp),
                 )
             }
         }
