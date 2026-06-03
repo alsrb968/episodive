@@ -2,7 +2,9 @@ package io.jacob.episodive.core.data.widget
 
 import io.jacob.episodive.core.common.EpisodivePlayers
 import io.jacob.episodive.core.common.Player
+import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.repository.UserRepository
 import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
@@ -24,12 +26,25 @@ class WidgetDataReaderImpl @Inject constructor(
     private val getNowPlaying: GetNowPlayingUseCase,
     private val getPodcast: GetPodcastUseCase,
     private val getUserRecentPodcasts: GetUserRecentPodcastsUseCase,
+    private val userRepository: UserRepository,
+    private val episodeRepository: EpisodeRepository,
     @param:Player(EpisodivePlayers.Main) private val playerRepository: PlayerRepository,
 ) : WidgetDataReader {
 
+    /**
+     * 활성 재생 세션이 없을 때 보여줄 폴백 에피소드 = 미니플레이어가 복원하는 것과 동일한
+     * "마지막 재생" 에피소드. 재생 버튼의 autoplay 도 [UserRepository.getLastPlayState] 출처를
+     * 복원하므로(표시=재생 일치) 같은 소스를 쓴다.
+     */
+    private suspend fun lastPlayedEpisode() =
+        userRepository.getLastPlayState()?.episodeId
+            ?.let { episodeRepository.getEpisodeById(it).first() }
+
     override suspend fun snapshotNowPlaying(): NowPlayingSnapshot? {
-        val episode = getNowPlaying().first() ?: return null
-        val isPlaying = playerRepository.isPlaying.first()
+        val active = getNowPlaying().first()
+        val episode = active ?: lastPlayedEpisode() ?: return null
+        // 폴백(마지막 재생)일 때는 일시정지 상태로 표시.
+        val isPlaying = active != null && playerRepository.isPlaying.first()
         // Episode.feedTitle 이 비어있으면 팟캐스트를 따로 조회해 title 로 대체.
         val podcastName = episode.feedTitle?.takeIf { it.isNotBlank() }
             ?: getPodcast(episode.feedId).first()?.title
@@ -45,7 +60,9 @@ class WidgetDataReaderImpl @Inject constructor(
     }
 
     override fun nowPlayingFlow(): Flow<NowPlayingSnapshot?> =
-        getNowPlaying().flatMapLatest { episode ->
+        getNowPlaying().flatMapLatest { active ->
+            // 활성 재생이 없으면 마지막 재생 에피소드로 폴백(미니플레이어처럼, 일시정지 상태로 표시).
+            val episode = active ?: lastPlayedEpisode()
             if (episode == null) {
                 flowOf(null)
             } else {
@@ -57,7 +74,7 @@ class WidgetDataReaderImpl @Inject constructor(
                         title = episode.title,
                         feedTitle = episode.feedTitle?.takeIf { it.isNotBlank() } ?: podcast?.title,
                         imageUrl = episode.image.ifBlank { episode.feedImage }.ifBlank { null },
-                        isPlaying = isPlaying,
+                        isPlaying = active != null && isPlaying,
                     )
                 }
             }
