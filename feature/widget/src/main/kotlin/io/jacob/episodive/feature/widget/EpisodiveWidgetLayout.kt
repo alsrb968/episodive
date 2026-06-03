@@ -32,17 +32,15 @@ internal data class EpisodiveWidgetLayout(
     val gridColumns: Int,
     /** GRID 썸네일 한 변(dp). 가용 폭에서 균일 마진을 빼고 산출한 가변값. STRIP/NONE 은 미사용(0). */
     val feedThumbDp: Int,
+    /** now-playing 썸네일 한 변(dp). now-playing 영역 높이에 맞춰 가변하며, 항상 피드 썸네일보다 크다. */
+    val nowPlayingThumbDp: Int,
 ) {
     /**
      * 피드 영역 고정 높이(dp). now-playing 이 나머지 세로 공간을 차지한다.
      * GRID 는 썸네일 크기에 맞춰 가변(상하좌우·셀 간 균일 마진 [GRID_MARGIN_DP] 포함).
      */
     val feedHeightDp: Int
-        get() = when (feedMode) {
-            FeedMode.STRIP -> STRIP_FEED_HEIGHT_DP
-            FeedMode.GRID -> 2 * (feedThumbDp + GRID_TITLE_BLOCK_DP) + 3 * GRID_MARGIN_DP
-            FeedMode.NONE -> 0
-        }
+        get() = feedHeightOf(feedMode, feedThumbDp)
 
     /**
      * 피드 썸네일 비트맵 로드 px. 표시 크기([feedThumbDp])에 밀도를 곱한 값을 쓰되,
@@ -66,13 +64,32 @@ internal data class EpisodiveWidgetLayout(
         // 가로 경계는 3열≈280dp, 4열≈379dp 사이로 둔다.
         private val WIDTH_WIDE_MIN = 330.dp
         private val HEIGHT_STRIP_MIN = 175.dp
-        // GRID 는 가변 썸네일로 피드 밴드가 커지므로, now-playing 이 안 잘리도록 floor 를 높였다
-        // (최대 밴드 ≈230dp + now-playing 최소 ≈95dp). 셀 매핑은 동일: 2행→STRIP, 3행→GRID.
-        private val HEIGHT_GRID_MIN = 340.dp
+        // GRID 는 가변 썸네일로 피드 밴드가 커지므로 floor 를 높였다. 이 값(355)은 "now-playing 썸네일이
+        // 항상 피드보다 큼" 불변식과 묶여 있다: 최악(피드 최대 80dp)에서도 now-playing 영역이
+        // now-playing 썸네일(≥피드+여유)을 담을 수 있어야 하므로 GRID_THUMB_MAX_DP 를 바꾸면 재검토 필요.
+        // 셀 매핑은 동일: 2행(≈236)→STRIP, 3행(≈362)→GRID.
+        private val HEIGHT_GRID_MIN = 355.dp
 
         private const val GRID_THUMB_MIN_DP = 44
         private const val GRID_THUMB_MAX_DP = 80
         private const val STRIP_THUMB_DP = 56
+
+        /** 피드 밴드 높이(dp). [forSize] 와 [feedHeightDp] 가 공유한다. */
+        fun feedHeightOf(mode: FeedMode, feedThumb: Int): Int = when (mode) {
+            FeedMode.STRIP -> STRIP_FEED_HEIGHT_DP
+            FeedMode.GRID -> 2 * (feedThumb + GRID_TITLE_BLOCK_DP) + 3 * GRID_MARGIN_DP
+            FeedMode.NONE -> 0
+        }
+
+        /**
+         * now-playing 영역(위젯 높이 − 피드 밴드)에 맞춘 now-playing 썸네일 크기.
+         * [NP_THUMB_MAX_DP] 는 피드 상한(80)보다 크고, [HEIGHT_GRID_MIN] 이 영역 부족으로 인한
+         * 역전을 막으므로 결과는 항상 피드 썸네일보다 크다.
+         */
+        private fun nowPlayingThumbOf(widgetHeightDp: Float, feedBandDp: Int): Int {
+            val area = widgetHeightDp.toInt() - feedBandDp
+            return (area - NP_VPAD_DP).coerceIn(NP_THUMB_MIN_DP, NP_THUMB_MAX_DP)
+        }
 
         fun forSize(size: DpSize): EpisodiveWidgetLayout {
             val wide = size.width >= WIDTH_WIDE_MIN
@@ -91,6 +108,10 @@ internal data class EpisodiveWidgetLayout(
                         feedCount = columns * 2,
                         gridColumns = columns,
                         feedThumbDp = thumb,
+                        nowPlayingThumbDp = nowPlayingThumbOf(
+                            size.height.value,
+                            feedHeightOf(FeedMode.GRID, thumb),
+                        ),
                     )
                 }
 
@@ -102,6 +123,10 @@ internal data class EpisodiveWidgetLayout(
                         feedCount = count,
                         gridColumns = count,
                         feedThumbDp = STRIP_THUMB_DP,
+                        nowPlayingThumbDp = nowPlayingThumbOf(
+                            size.height.value,
+                            feedHeightOf(FeedMode.STRIP, STRIP_THUMB_DP),
+                        ),
                     )
                 }
 
@@ -110,6 +135,7 @@ internal data class EpisodiveWidgetLayout(
                     feedCount = 0,
                     gridColumns = 0,
                     feedThumbDp = 0,
+                    nowPlayingThumbDp = nowPlayingThumbOf(size.height.value, 0),
                 )
             }
         }
@@ -125,7 +151,14 @@ private const val GRID_TITLE_BLOCK_DP = 20
 /** STRIP 피드 밴드 높이(dp). 썸네일 1행 + 상하 패딩. */
 private const val STRIP_FEED_HEIGHT_DP = 84
 
+/** now-playing 헤더의 세로 여백 합(dp). now-playing 썸네일은 (영역 높이 − 이 값) 이하로 둔다. */
+private const val NP_VPAD_DP = 20
+private const val NP_THUMB_MIN_DP = 56
+
+/** now-playing 썸네일 상한(dp). 피드 상한(GRID_THUMB_MAX_DP=80)보다 크게 둬 "항상 피드보다 큼"을 보장. */
+private const val NP_THUMB_MAX_DP = 96
+
 /** 피드 비트맵 총 페이로드 예산(byte). RemoteViews ~1MB Binder 한도 보호용 항목당 px 상한 계산에 사용. */
-private const val FEED_BITMAP_BUDGET_BYTES = 720_000
+private const val FEED_BITMAP_BUDGET_BYTES = 640_000
 private const val BITMAP_BYTES_PER_PX = 4 // ARGB_8888
 private const val FEED_THUMB_MIN_PX = 72

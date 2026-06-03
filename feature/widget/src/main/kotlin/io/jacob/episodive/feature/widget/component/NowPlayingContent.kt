@@ -65,6 +65,7 @@ internal fun NowPlayingContent(
             NowPlayingHeader(
                 snapshot = snapshot,
                 artwork = artwork,
+                thumbDp = layout.nowPlayingThumbDp,
                 modifier = if (showFeed) {
                     GlanceModifier.fillMaxWidth().defaultWeight()
                 } else {
@@ -91,6 +92,7 @@ internal fun NowPlayingContent(
 private fun NowPlayingHeader(
     snapshot: NowPlayingSnapshot?,
     artwork: Bitmap?,
+    thumbDp: Int,
     modifier: GlanceModifier,
 ) {
     val context = LocalContext.current
@@ -103,35 +105,38 @@ private fun NowPlayingHeader(
             contentDescription = context.getString(
                 R.string.feature_widget_now_playing_artwork_desc,
             ),
-            sizeDp = HEADER_THUMB_DP,
+            sizeDp = thumbDp,
         )
         Spacer(modifier = GlanceModifier.width(12.dp))
-        // 우상단 브랜드 로고와 겹치지 않도록 텍스트 열 오른쪽 여백 확보.
-        Column(modifier = GlanceModifier.defaultWeight().padding(end = 24.dp)) {
-            Text(
-                text = snapshot?.title
-                    ?: context.getString(R.string.feature_widget_now_playing_empty),
-                style = TextStyle(
-                    color = ColorProvider(Color.White),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                maxLines = 1,
-            )
-            val subtitle = snapshot?.feedTitle?.takeIf { it.isNotBlank() }
-                ?: context.getString(R.string.feature_widget_now_playing_empty_hint)
-                    .takeIf { snapshot == null }
-            subtitle?.let {
-                Spacer(modifier = GlanceModifier.height(4.dp))
+        Column(modifier = GlanceModifier.defaultWeight()) {
+            // 제목·부제만 우상단 브랜드 로고 공간을 피해 오른쪽 여백을 둔다.
+            // 컨트롤은 아래에서 전체 폭(우측 정렬)을 써 브랜드 로고 위치(우측 끝)까지 닿게 한다.
+            Column(modifier = GlanceModifier.fillMaxWidth().padding(end = 24.dp)) {
                 Text(
-                    text = it,
+                    text = snapshot?.title
+                        ?: context.getString(R.string.feature_widget_now_playing_empty),
                     style = TextStyle(
-                        color = ColorProvider(WidgetOnArtworkSecondary),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
+                        color = ColorProvider(Color.White),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
                     ),
                     maxLines = 1,
                 )
+                val subtitle = snapshot?.feedTitle?.takeIf { it.isNotBlank() }
+                    ?: context.getString(R.string.feature_widget_now_playing_empty_hint)
+                        .takeIf { snapshot == null }
+                subtitle?.let {
+                    Spacer(modifier = GlanceModifier.height(4.dp))
+                    Text(
+                        text = it,
+                        style = TextStyle(
+                            color = ColorProvider(WidgetOnArtworkSecondary),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        maxLines = 1,
+                    )
+                }
             }
             if (snapshot != null) {
                 Spacer(modifier = GlanceModifier.height(8.dp))
@@ -144,19 +149,12 @@ private fun NowPlayingHeader(
 @Composable
 private fun NowPlayingControlsRow(snapshot: NowPlayingSnapshot) {
     val context = LocalContext.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        WidgetPlayPauseButton(
-            isPlaying = snapshot.isPlaying,
-            contentDescription = context.getString(
-                if (snapshot.isPlaying) {
-                    R.string.feature_widget_now_playing_pause_desc
-                } else {
-                    R.string.feature_widget_now_playing_play_desc
-                },
-            ),
-            diameter = 34,
-        )
-        Spacer(modifier = GlanceModifier.width(10.dp))
+    // 컨트롤은 우측 정렬, 재생/정지를 가장 우측에 둔다. 앞의 Spacer(weight)가 나머지를 오른쪽으로 민다.
+    Row(
+        modifier = GlanceModifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Spacer(modifier = GlanceModifier.defaultWeight())
         WidgetSeekButton(
             iconRes = R.drawable.feature_widget_ic_rewind,
             contentDescription = context.getString(
@@ -176,10 +174,20 @@ private fun NowPlayingControlsRow(snapshot: NowPlayingSnapshot) {
             sizeDp = 34,
             paddingDp = 6,
         )
+        Spacer(modifier = GlanceModifier.width(10.dp))
+        WidgetPlayPauseButton(
+            isPlaying = snapshot.isPlaying,
+            contentDescription = context.getString(
+                if (snapshot.isPlaying) {
+                    R.string.feature_widget_now_playing_pause_desc
+                } else {
+                    R.string.feature_widget_now_playing_play_desc
+                },
+            ),
+            diameter = 34,
+        )
     }
 }
-
-private const val HEADER_THUMB_DP = 56
 
 /**
  * 빈 상태 / 카드·셀 탭 시 MainActivity 를 연다.

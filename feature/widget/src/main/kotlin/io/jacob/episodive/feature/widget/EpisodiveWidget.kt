@@ -52,11 +52,13 @@ class EpisodiveWidget : GlanceAppWidget() {
             val size = LocalSize.current
             val layout = EpisodiveWidgetLayout.forSize(size)
             // 표시 크기에 맞춘 비트맵 로드 px (밀도 반영). 작게 고정하면 업스케일로 흐려진다.
+            // now-playing 은 1장이라 페이로드 비중이 커서 별도 상한([NOW_PLAYING_MAX_PX])을 둔다.
             val density = context.resources.displayMetrics.density
-            val nowPlayingPx = (NOW_PLAYING_THUMB_DP * density).toInt()
+            val nowPlayingPx = (layout.nowPlayingThumbDp * density).toInt()
+                .coerceAtMost(NOW_PLAYING_MAX_PX)
             val feedPx = layout.feedThumbPx(density)
 
-            val artwork by produceState<Bitmap?>(null, snapshot?.imageUrl) {
+            val artwork by produceState<Bitmap?>(null, snapshot?.imageUrl, nowPlayingPx) {
                 value = snapshot?.imageUrl?.let {
                     WidgetImageLoader.loadWidgetBitmap(context, it, nowPlayingPx)
                 }
@@ -107,7 +109,7 @@ class EpisodiveWidget : GlanceAppWidget() {
         /** 가장 큰 4x3 GRID 에서 필요한 그리드 항목 수(2×4=8). */
         const val FEED_MAX = 8
 
-        /** now-playing 썸네일 표시 dp. 밀도를 곱해 로드 px 산출(피드 px 는 [EpisodiveWidgetLayout.feedThumbPx]). */
-        const val NOW_PLAYING_THUMB_DP = 56
+        /** now-playing 비트맵 로드 px 상한. 표시 dp([EpisodiveWidgetLayout.nowPlayingThumbDp])×밀도를 이 값으로 캡. */
+        const val NOW_PLAYING_MAX_PX = 224
     }
 }

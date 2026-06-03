@@ -50,8 +50,9 @@ internal fun WidgetPlayPauseButton(
     Box(
         modifier = GlanceModifier
             .size(diameter.dp)
-            .cornerRadius((diameter / 2).dp)
-            .background(ColorProvider(Color.White))
+            // 원형을 cornerRadius(뷰 아웃라인 클립) 대신 oval 드로어블로 그린다.
+            // 클립 방식은 런처 리사이즈 트랜지션 중 한 프레임 사각형으로 보이는 깜빡임이 있다.
+            .background(ImageProvider(R.drawable.feature_widget_bg_circle_white))
             .clickable(
                 actionRunCallback<WidgetActionCallback>(
                     parameters = actionParametersOf(
