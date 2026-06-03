@@ -7,10 +7,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
-import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
+import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -33,6 +32,8 @@ import io.jacob.episodive.feature.widget.EpisodiveWidgetLayout
 import io.jacob.episodive.feature.widget.FeedMode
 import io.jacob.episodive.feature.widget.PlaybackControl
 import io.jacob.episodive.feature.widget.R
+import io.jacob.episodive.feature.widget.action.WIDGET_OPEN_PLAYER_PARAM
+import io.jacob.episodive.feature.widget.action.mainActivityComponent
 
 /**
  * 재생 + 나의 최신 피드 단일 위젯 콘텐츠(최상위 조합).
@@ -53,24 +54,39 @@ internal fun NowPlayingContent(
     layout: EpisodiveWidgetLayout,
 ) {
     val showFeed = layout.feedMode != FeedMode.NONE && feed.isNotEmpty()
+    val context = LocalContext.current
+    val component = mainActivityComponent(context)
     Box(modifier = GlanceModifier.fillMaxSize()) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .background(ColorProvider(Color(backgroundColor)))
                 .cornerRadius(16.dp)
-                .clickable(actionRunCallback<OpenAppCallback>()),
+                // 빈 영역 폴백: 앱만 연다.
+                .clickable(actionStartActivity(component)),
         ) {
             // now-playing 이 남는 세로 공간을 차지(지배)하고, 피드는 모드별 고정 높이의 얇은 띠로 둔다.
             NowPlayingHeader(
                 snapshot = snapshot,
                 artwork = artwork,
                 thumbDp = layout.nowPlayingThumbDp,
-                modifier = if (showFeed) {
-                    GlanceModifier.fillMaxWidth().defaultWeight()
-                } else {
-                    GlanceModifier.fillMaxSize()
-                },
+                modifier = (
+                    if (showFeed) {
+                        GlanceModifier.fillMaxWidth().defaultWeight()
+                    } else {
+                        GlanceModifier.fillMaxSize()
+                    }
+                    ).clickable(
+                        // 재생 정보가 있으면 해당 에피소드 플레이어 화면(open_player), 없으면 앱만 연다.
+                        actionStartActivity(
+                            component,
+                            if (snapshot != null) {
+                                actionParametersOf(WIDGET_OPEN_PLAYER_PARAM to true)
+                            } else {
+                                actionParametersOf()
+                            },
+                        ),
+                    ),
             )
             if (showFeed) {
                 FeedArea(
@@ -189,21 +205,3 @@ private fun NowPlayingControlsRow(snapshot: NowPlayingSnapshot) {
     }
 }
 
-/**
- * 빈 상태 / 카드·셀 탭 시 MainActivity 를 연다.
- */
-class OpenAppCallback : ActionCallback {
-    override suspend fun onAction(
-        context: android.content.Context,
-        glanceId: androidx.glance.GlanceId,
-        parameters: ActionParameters,
-    ) {
-        io.jacob.episodive.feature.widget.action
-            .openAppPendingIntent(context, REQ_OPEN_APP)
-            .send()
-    }
-
-    companion object {
-        private const val REQ_OPEN_APP = 99
-    }
-}

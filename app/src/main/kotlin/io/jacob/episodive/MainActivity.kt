@@ -109,5 +109,6 @@ class MainActivity : ComponentActivity() {
     companion object {
         // ServiceActions.kt (:feature:widget) 에서 하드코딩된 복제본이 동기화되어야 함.
         const val EXTRA_WIDGET_AUTOPLAY = "widget_autoplay"
+        const val EXTRA_WIDGET_OPEN_PLAYER = "widget_open_player"
     }
 }

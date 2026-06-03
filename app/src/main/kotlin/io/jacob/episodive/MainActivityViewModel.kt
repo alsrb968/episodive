@@ -36,9 +36,17 @@ class MainActivityViewModel @Inject constructor(
     val deepLinkEvent: SharedFlow<DeepLinkEvent> = _deepLinkEvent.asSharedFlow()
 
     fun handleDeepLink(intent: Intent?) {
-        val podcastId = intent?.getLongExtra(EpisodeSyncNotificationHelper.EXTRA_PODCAST_ID, -1L) ?: -1L
+        intent ?: return
+        val podcastId = intent.getLongExtra(EpisodeSyncNotificationHelper.EXTRA_PODCAST_ID, -1L)
         if (podcastId > 0) {
             viewModelScope.launch { _deepLinkEvent.emit(DeepLinkEvent.Podcast(podcastId)) }
+            return
+        }
+        // 위젯 now-playing 탭 → 현재(마지막) 재생 에피소드 플레이어 화면 펼치기.
+        if (intent.getBooleanExtra(MainActivity.EXTRA_WIDGET_OPEN_PLAYER, false)) {
+            // 액티비티 재생성 시 재방출(시트 재오픈) 방지를 위해 소비 후 제거.
+            intent.removeExtra(MainActivity.EXTRA_WIDGET_OPEN_PLAYER)
+            viewModelScope.launch { _deepLinkEvent.emit(DeepLinkEvent.Player) }
         }
     }
 
@@ -49,6 +57,7 @@ class MainActivityViewModel @Inject constructor(
 
 sealed interface DeepLinkEvent {
     data class Podcast(val id: Long) : DeepLinkEvent
+    data object Player : DeepLinkEvent
 }
 
 sealed interface MainActivityState {

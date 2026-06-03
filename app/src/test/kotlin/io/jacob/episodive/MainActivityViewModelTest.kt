@@ -5,7 +5,9 @@ import app.cash.turbine.test
 import io.jacob.episodive.core.domain.usecase.user.GetUserDataUseCase
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.jacob.episodive.sync.EpisodeSyncNotificationHelper
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -49,12 +51,31 @@ class MainActivityViewModelTest {
             // Given
             val intent = mockk<Intent> {
                 every { getLongExtra(EpisodeSyncNotificationHelper.EXTRA_PODCAST_ID, -1L) } returns -1L
+                every { getBooleanExtra(MainActivity.EXTRA_WIDGET_OPEN_PLAYER, false) } returns false
             }
 
             // When & Then
             viewModel.deepLinkEvent.test {
                 viewModel.handleDeepLink(intent)
                 expectNoEvents()
+                cancel()
+            }
+        }
+
+    @Test
+    fun `Given intent with open_player, When handleDeepLink, Then emits Player event`() =
+        runTest {
+            // Given
+            val intent = mockk<Intent> {
+                every { getLongExtra(EpisodeSyncNotificationHelper.EXTRA_PODCAST_ID, -1L) } returns -1L
+                every { getBooleanExtra(MainActivity.EXTRA_WIDGET_OPEN_PLAYER, false) } returns true
+                every { removeExtra(MainActivity.EXTRA_WIDGET_OPEN_PLAYER) } just Runs
+            }
+
+            // When & Then
+            viewModel.deepLinkEvent.test {
+                viewModel.handleDeepLink(intent)
+                assertEquals(DeepLinkEvent.Player, awaitItem())
                 cancel()
             }
         }

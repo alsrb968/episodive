@@ -6,8 +6,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalContext
+import androidx.glance.action.actionParametersOf
+import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -27,6 +29,8 @@ import io.jacob.episodive.core.domain.widget.PodcastSnapshot
 import io.jacob.episodive.feature.widget.EpisodiveWidgetLayout
 import io.jacob.episodive.feature.widget.FeedMode
 import io.jacob.episodive.feature.widget.GRID_MARGIN_DP
+import io.jacob.episodive.feature.widget.action.WIDGET_PODCAST_ID_PARAM
+import io.jacob.episodive.feature.widget.action.mainActivityComponent
 
 /**
  * "나의 최신 피드" 영역. STRIP=썸네일만 1행, GRID=썸네일+제목 2행.
@@ -115,8 +119,15 @@ private fun FeedCell(
     showTitle: Boolean,
     thumbDp: Int,
 ) {
+    val context = LocalContext.current
     Column(
-        modifier = GlanceModifier.clickable(actionRunCallback<OpenAppCallback>()),
+        // 셀 탭 → 해당 팟캐스트 화면(podcast_id extra 딥링크).
+        modifier = GlanceModifier.clickable(
+            actionStartActivity(
+                mainActivityComponent(context),
+                actionParametersOf(WIDGET_PODCAST_ID_PARAM to podcast.id),
+            ),
+        ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         WidgetThumbnail(

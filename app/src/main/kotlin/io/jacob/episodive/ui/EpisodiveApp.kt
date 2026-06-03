@@ -24,7 +24,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -107,12 +109,24 @@ fun EpisodiveApp(
         return
     }
 
+    // 위젯 딥링크 → 플레이어 시트 펼침/접힘 신호. 콜드(fresh onCreate) 타이밍에 일회성 effect 가
+    // PlayerBar 구독 전 emit 되어 유실되지 않도록, 상태(시그널) 로 PlayerBar 에 전달한다.
+    var expandPlayerSignal by remember { mutableIntStateOf(0) }
+    var collapsePlayerSignal by remember { mutableIntStateOf(0) }
+
     // Deep link handling
     LaunchedEffect(Unit) {
         appState.viewModel.deepLinkEvent.collect { event ->
             when (event) {
                 is DeepLinkEvent.Podcast -> {
                     appState.navigateToPodcast(event.id)
+                    // 앱 내 플레이어에서 팟캐스트 탭 시와 동일하게, 열린 시트가 가리지 않도록 접는다.
+                    collapsePlayerSignal++
+                    appState.viewModel.consumeDeepLink()
+                }
+
+                is DeepLinkEvent.Player -> {
+                    expandPlayerSignal++
                     appState.viewModel.consumeDeepLink()
                 }
             }
@@ -193,6 +207,8 @@ fun EpisodiveApp(
             PlayerBar(
                 onPodcastClick = { appState.navigateToPodcast(it) },
                 onShowSnackbar = onShowSnackbar,
+                expandSignal = expandPlayerSignal,
+                collapseSignal = collapsePlayerSignal,
             )
         }
     }
