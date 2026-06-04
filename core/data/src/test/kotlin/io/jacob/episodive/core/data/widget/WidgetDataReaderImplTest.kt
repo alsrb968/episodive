@@ -1,7 +1,9 @@
 package io.jacob.episodive.core.data.widget
 
 import app.cash.turbine.test
+import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.repository.UserRepository
 import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
@@ -9,6 +11,7 @@ import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,12 +30,16 @@ class WidgetDataReaderImplTest {
     private val getNowPlaying = mockk<GetNowPlayingUseCase>(relaxed = true)
     private val getPodcast = mockk<GetPodcastUseCase>(relaxed = true)
     private val getUserRecentPodcasts = mockk<GetUserRecentPodcastsUseCase>(relaxed = true)
+    private val userRepository = mockk<UserRepository>(relaxed = true)
+    private val episodeRepository = mockk<EpisodeRepository>(relaxed = true)
     private val playerRepository = mockk<PlayerRepository>(relaxed = true)
 
     private val reader = WidgetDataReaderImpl(
         getNowPlaying = getNowPlaying,
         getPodcast = getPodcast,
         getUserRecentPodcasts = getUserRecentPodcasts,
+        userRepository = userRepository,
+        episodeRepository = episodeRepository,
         playerRepository = playerRepository,
     )
 
@@ -40,6 +47,8 @@ class WidgetDataReaderImplTest {
     fun `Given no now playing episode, when snapshotNowPlaying called, then returns null`() =
         runTest {
             every { getNowPlaying() } returns flowOf(null)
+            // 활성 재생이 없을 때 폴백하는 "마지막 재생"도 없음 → 최종 null.
+            coEvery { userRepository.getLastPlayState() } returns null
             every { playerRepository.isPlaying } returns flowOf(false)
 
             val snapshot = reader.snapshotNowPlaying()
