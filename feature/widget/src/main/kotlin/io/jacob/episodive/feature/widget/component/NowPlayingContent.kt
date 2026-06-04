@@ -17,6 +17,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -70,6 +71,8 @@ internal fun NowPlayingContent(
                 snapshot = snapshot,
                 artwork = artwork,
                 thumbDp = layout.nowPlayingThumbDp,
+                // 2행(STRIP)·3행(GRID) 처럼 now-playing 영역이 높을 땐 제목 2줄, 1행(NONE)은 1줄.
+                titleMaxLines = if (layout.feedMode == FeedMode.NONE) 1 else 2,
                 modifier = (
                     if (showFeed) {
                         GlanceModifier.fillMaxWidth().defaultWeight()
@@ -109,6 +112,7 @@ private fun NowPlayingHeader(
     snapshot: NowPlayingSnapshot?,
     artwork: Bitmap?,
     thumbDp: Int,
+    titleMaxLines: Int,
     modifier: GlanceModifier,
 ) {
     val context = LocalContext.current
@@ -124,7 +128,8 @@ private fun NowPlayingHeader(
             sizeDp = thumbDp,
         )
         Spacer(modifier = GlanceModifier.width(12.dp))
-        Column(modifier = GlanceModifier.defaultWeight()) {
+        // 높이를 가득 채워, 제목은 위·컨트롤은 아래로 고정(아래 weight Spacer)한다.
+        Column(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
             // 제목·부제만 우상단 브랜드 로고 공간을 피해 오른쪽 여백을 둔다.
             // 컨트롤은 아래에서 전체 폭(우측 정렬)을 써 브랜드 로고 위치(우측 끝)까지 닿게 한다.
             Column(modifier = GlanceModifier.fillMaxWidth().padding(end = 24.dp)) {
@@ -136,7 +141,7 @@ private fun NowPlayingHeader(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                     ),
-                    maxLines = 1,
+                    maxLines = titleMaxLines,
                 )
                 val subtitle = snapshot?.feedTitle?.takeIf { it.isNotBlank() }
                     ?: context.getString(R.string.feature_widget_now_playing_empty_hint)
@@ -155,7 +160,8 @@ private fun NowPlayingHeader(
                 }
             }
             if (snapshot != null) {
-                Spacer(modifier = GlanceModifier.height(8.dp))
+                // 남는 세로 공간을 모두 밀어내 컨트롤을 now-playing 영역 하단에 붙인다.
+                Spacer(modifier = GlanceModifier.defaultWeight())
                 NowPlayingControlsRow(snapshot)
             }
         }
