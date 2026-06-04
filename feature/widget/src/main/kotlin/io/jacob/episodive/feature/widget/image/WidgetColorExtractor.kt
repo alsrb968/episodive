@@ -21,6 +21,19 @@ object WidgetColorExtractor {
     /** "나의 최신 피드" 영역 배경을 만들 때 now-playing 배경에 곱하는 추가 어둡기 계수. */
     private const val FEED_DARKEN_FACTOR = 0.68
 
+    /** now-playing 배경색과 그로부터 파생한 피드 영역 배경색 묶음. */
+    data class WidgetBackground(val background: Int, val feed: Int)
+
+    /**
+     * 썸네일에서 배경색과 피드 배경색을 한 번에 산출하는 단일 진입점.
+     * Palette 추출은 한 번만 수행([backgroundColor])하고, 피드색은 그 결과에서 파생한다.
+     * 호출부가 두 함수를 따로 엮을 필요 없이 한 패스로 두 색을 받는다.
+     */
+    fun colors(bitmap: Bitmap?): WidgetBackground {
+        val background = backgroundColor(bitmap)
+        return WidgetBackground(background, feedBackgroundColor(background))
+    }
+
     fun backgroundColor(bitmap: Bitmap?): Int {
         if (bitmap == null) return FALLBACK
         val rgb = runCatching {

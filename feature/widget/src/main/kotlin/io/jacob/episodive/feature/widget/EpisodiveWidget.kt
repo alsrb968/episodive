@@ -18,9 +18,11 @@ import io.jacob.episodive.feature.widget.component.WidgetLoading
 import io.jacob.episodive.feature.widget.image.WidgetColorExtractor
 import io.jacob.episodive.feature.widget.image.WidgetImageLoader
 import io.jacob.episodive.feature.widget.theme.EpisodiveGlanceTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 /**
  * 재생 + 나의 최신 피드 단일 위젯 (리사이즈 3x1~4x3, 폭 3~4열·세로 1~3행).
@@ -59,28 +61,29 @@ class EpisodiveWidget : GlanceAppWidget() {
                 .coerceAtMost(NOW_PLAYING_MAX_PX)
             val feedPx = layout.feedThumbPx(density)
 
-            // 로드 결과에 "어떤 key(url/ids + px)로 로드했는지"를 함께 담는다.
-            // 현재 key 와 일치할 때만 로드 완료로 보고, 불일치(초기 null·키 변경 직후)는 곧바로
-            // 로딩으로 판정한다 → produceState 의 value 가 코루틴에서 비동기로 갱신되며 생기는
-            // "키 변경 직후 한 프레임은 직전 값" 레이스를 동기적으로 회피한다.
+            // 비트맵 로드와 배경색 추출(Palette)을 한 producer 에서 한 패스로 처리해 결과
+            // (비트맵 + 배경/피드 색)를 함께 게시한다. Palette 는 컴포지션의 remember 가 아닌
+            // 로드 직후 백그라운드(Default)에서 끝낸다.
+            // 결과에 "어떤 key(url + px)로 로드했는지"를 함께 담아, 현재 key 와 일치할 때만 완료로
+            // 보고 불일치(초기 null·키 변경 직후)는 곧바로 로딩으로 판정한다 → produceState 의 value
+            // 가 비동기로 갱신되며 생기는 "키 변경 직후 한 프레임은 직전 값" 레이스를 동기적으로 회피.
             // (로드 실패로 비트맵이 null 이어도 key 는 일치하므로 무한 스피너가 되지 않는다.)
             val artUrl = snapshot?.imageUrl?.takeIf { it.isNotBlank() }
             val artKey = artUrl to nowPlayingPx
-            val artworkLoaded by produceState<Pair<Pair<String?, Int>, Bitmap?>?>(
-                null, artUrl, nowPlayingPx,
-            ) {
-                value = artKey to artUrl?.let {
+            val artworkLoaded by produceState<ArtworkResult?>(null, artUrl, nowPlayingPx) {
+                val bitmap = artUrl?.let {
                     WidgetImageLoader.loadWidgetBitmap(context, it, nowPlayingPx)
                 }
+                val colors = withContext(Dispatchers.Default) {
+                    WidgetColorExtractor.colors(bitmap)
+                }
+                value = ArtworkResult(artKey, bitmap, colors)
             }
-            val artworkReady = artworkLoaded?.first == artKey
-            val artwork = if (artworkReady) artworkLoaded?.second else null
-            val backgroundColor = remember(artwork) {
-                WidgetColorExtractor.backgroundColor(artwork)
-            }
-            val feedBackgroundColor = remember(backgroundColor) {
-                WidgetColorExtractor.feedBackgroundColor(backgroundColor)
-            }
+            val readyArtwork = artworkLoaded?.takeIf { it.key == artKey }
+            val artwork = readyArtwork?.bitmap
+            val background = readyArtwork?.colors ?: WidgetColorExtractor.colors(null)
+            val backgroundColor = background.background
+            val feedBackgroundColor = background.feed
 
             // 현재 크기에서 보이는 만큼만 로드 (최대 4x3 GRID = 8개) → 비트맵 페이로드 상한.
             val visibleFeed = remember(podcasts, layout.feedCount) {
@@ -112,7 +115,7 @@ class EpisodiveWidget : GlanceAppWidget() {
             // 그동안 placeholder 가 부분적으로 깜빡이지 않도록, 로드 대상이 있는데 아직 현재 key 의
             // 결과가 준비되지 않았으면 위젯 전체를 원형 프로그레스로 덮는다(빈 상태는 제외).
             val isLoading =
-                (artUrl != null && !artworkReady) ||
+                (artUrl != null && readyArtwork == null) ||
                     (visibleFeed.isNotEmpty() && !feedReady)
 
             EpisodiveGlanceTheme {
@@ -141,3 +144,10 @@ class EpisodiveWidget : GlanceAppWidget() {
         const val NOW_PLAYING_MAX_PX = 224
     }
 }
+
+/** 한 번의 로드 패스 결과: 로드한 key(url+px) + 비트맵 + 그로부터 추출한 배경/피드 색. */
+private data class ArtworkResult(
+    val key: Pair<String?, Int>,
+    val bitmap: Bitmap?,
+    val colors: WidgetColorExtractor.WidgetBackground,
+)
