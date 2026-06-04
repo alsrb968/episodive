@@ -2,8 +2,10 @@ package io.jacob.episodive.feature.widget.action
 
 import android.app.ActivityManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import androidx.glance.action.ActionParameters
 
 /**
  * Widget 에서 MediaNotificationService / MainActivity 를 호출하기 위한 helper.
@@ -23,6 +25,25 @@ const val ACTION_WIDGET_PLAY_PAUSE = "io.jacob.episodive.action.WIDGET_PLAY_PAUS
 const val ACTION_WIDGET_SEEK_FWD = "io.jacob.episodive.action.WIDGET_SEEK_FWD"
 const val ACTION_WIDGET_SEEK_BWD = "io.jacob.episodive.action.WIDGET_SEEK_BWD"
 const val EXTRA_WIDGET_AUTOPLAY = "widget_autoplay"
+
+// 딥링크 extra — :app 의 MainActivityViewModel(podcast_id) / MainActivity(open_player) 와 동기화 필요.
+// actionStartActivity 의 파라미터 키 이름이 그대로 intent extra 키가 되므로 위 문자열과 일치시킨다.
+const val EXTRA_PODCAST_ID = "podcast_id"
+const val EXTRA_WIDGET_OPEN_PLAYER = "widget_open_player"
+
+/** 피드 셀 탭 딥링크용 — 값은 intent 의 [EXTRA_PODCAST_ID] extra 로 전달된다. */
+val WIDGET_PODCAST_ID_PARAM = ActionParameters.Key<Long>(EXTRA_PODCAST_ID)
+
+/** now-playing 탭 딥링크용 — 값은 intent 의 [EXTRA_WIDGET_OPEN_PLAYER] extra 로 전달된다. */
+val WIDGET_OPEN_PLAYER_PARAM = ActionParameters.Key<Boolean>(EXTRA_WIDGET_OPEN_PLAYER)
+
+/**
+ * 위젯 클릭 → MainActivity 직접 실행(actionStartActivity)용 컴포넌트.
+ * 콜백+PendingIntent.send 방식은 백그라운드 액티비티 실행(BAL) 제한에 막히므로,
+ * 런처가 클릭 PendingIntent 를 직접 발사하도록 컴포넌트 기반으로 연다.
+ */
+fun mainActivityComponent(context: Context): ComponentName =
+    ComponentName(context.packageName.ifEmpty { APP_PACKAGE }, ACTIVITY_CLASS)
 
 private fun serviceIntent(context: Context, action: String): Intent =
     Intent().apply {
@@ -92,21 +113,6 @@ private fun seekPendingIntent(
         )
     }
 }
-
-/**
- * MainActivity 를 연 뒤 현재 재생 화면으로 이동하는 용도의 PendingIntent.
- * (탭 시 열림, autoplay 없음)
- */
-fun openAppPendingIntent(context: Context, requestCode: Int): PendingIntent =
-    PendingIntent.getActivity(
-        context,
-        requestCode,
-        Intent().apply {
-            setClassName(context.packageName.ifEmpty { APP_PACKAGE }, ACTIVITY_CLASS)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        },
-        pendingFlags,
-    )
 
 @Suppress("DEPRECATION")
 private fun isMediaServiceRunning(context: Context): Boolean {

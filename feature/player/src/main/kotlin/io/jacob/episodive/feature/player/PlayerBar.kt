@@ -56,10 +56,22 @@ fun PlayerBar(
     viewModel: PlayerViewModel = hiltViewModel(),
     onPodcastClick: (Long) -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean = { _, _ -> false },
+    expandSignal: Int = 0,
+    collapseSignal: Int = 0,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     var isShowPlayer by remember { mutableStateOf(false) }
+
+    // 외부(위젯 now-playing 딥링크)에서 시그널이 증가하면 플레이어 시트를 펼친다.
+    // 일회성 effect 대신 상태 기반이라 콜드 스타트 타이밍에도 유실되지 않는다.
+    // state 가 아직 Success 가 아니면 시트는 비어 있다가 복원 완료 시 채워진다.
+    // (시트 접힘은 sheetState 애니메이션을 위해 PlayerBottomSheet 가 collapseSignal 로 직접 처리한다.)
+    LaunchedEffect(expandSignal) {
+        if (expandSignal > 0) {
+            isShowPlayer = true
+        }
+    }
 
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
@@ -124,7 +136,10 @@ fun PlayerBar(
     }
 
     if (isShowPlayer) {
-        PlayerBottomSheet(onPodcastClick = onPodcastClick)
+        PlayerBottomSheet(
+            onPodcastClick = onPodcastClick,
+            collapseSignal = collapseSignal,
+        )
     }
 }
 

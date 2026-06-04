@@ -3,15 +3,15 @@ package io.jacob.episodive.feature.widget.image
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.util.Log
-import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import coil.size.Precision
 import coil.size.Scale
+import timber.log.Timber
 
 object WidgetImageLoader {
-    private const val TAG = "WidgetPerf"
     private const val DEFAULT_SIZE_PX = 256
 
     /**
@@ -24,30 +24,28 @@ object WidgetImageLoader {
         url: String?,
         sizePx: Int = DEFAULT_SIZE_PX,
     ): Bitmap? {
-        if (url.isNullOrBlank()) {
-            Log.d(TAG, "loadWidgetBitmap skip: url null/blank")
-            return null
-        }
+        if (url.isNullOrBlank()) return null
         return runCatching {
             val request = ImageRequest.Builder(context)
                 .data(url)
                 .size(sizePx)
                 .scale(Scale.FILL)
+                // EXACT 가 없으면 Coil 기본 INEXACT 가 요청 px 를 무시하고 큰 샘플을 반환해
+                // RemoteViews 비트맵 페이로드가 폭증한다(1MB Binder 한도 초과 위험).
+                .precision(Precision.EXACT)
                 .allowHardware(false)
                 .build()
-            when (val result = ImageLoader(context).execute(request)) {
-                is SuccessResult -> {
-                    val bmp = (result.drawable as? BitmapDrawable)?.bitmap
-                    Log.d(TAG, "loadWidgetBitmap OK url=$url bitmap=${bmp != null}")
-                    bmp
-                }
+            // 앱이 EpisodiveApplication 에서 설정한 Coil 싱글톤(공유 메모리/디스크 캐시) 사용.
+            // 호출마다 new ImageLoader 를 만들면 캐시가 공유되지 않아 재로드가 매번 느려진다.
+            when (val result = context.imageLoader.execute(request)) {
+                is SuccessResult -> (result.drawable as? BitmapDrawable)?.bitmap
                 is ErrorResult -> {
-                    Log.w(TAG, "loadWidgetBitmap ERROR url=$url", result.throwable)
+                    Timber.w(result.throwable, "loadWidgetBitmap ERROR url=%s", url)
                     null
                 }
             }
         }.getOrElse { e ->
-            Log.e(TAG, "loadWidgetBitmap threw for url=$url", e)
+            Timber.e(e, "loadWidgetBitmap threw for url=%s", url)
             null
         }
     }

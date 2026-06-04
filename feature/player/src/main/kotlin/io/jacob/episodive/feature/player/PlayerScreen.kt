@@ -113,6 +113,7 @@ fun PlayerBottomSheet(
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
     onPodcastClick: (Long) -> Unit,
+    collapseSignal: Int = 0,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -148,6 +149,16 @@ fun PlayerBottomSheet(
                     )
                 }
             }
+        }
+    }
+
+    // 위젯 feed 딥링크로 팟캐스트로 이동할 때, 열린 시트를 애니메이션으로 닫는다(앱 내 collapse 와 동일).
+    // 마운트 시점 값을 기준으로 이후 증가분에만 반응해, 시트를 막 연 직후 stale 신호로 닫히는 것을 막는다.
+    val initialCollapse = remember { collapseSignal }
+    LaunchedEffect(collapseSignal) {
+        if (collapseSignal > initialCollapse) {
+            sheetState.hide()
+            viewModel.sendAction(PlayerAction.CollapsePlayer)
         }
     }
 

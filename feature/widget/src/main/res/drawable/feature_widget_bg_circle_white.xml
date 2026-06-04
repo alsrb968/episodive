@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  재생/정지 버튼용 흰색 원형 배경.
+  cornerRadius(아웃라인 클립) 대신 드로어블 자체를 원형으로 두어, 런처 리사이즈
+  트랜지션 중 사각형으로 잠깐 보이는 깜빡임을 없앤다.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@android:color/white" />
+</shape>
