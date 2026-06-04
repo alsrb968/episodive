@@ -3,7 +3,7 @@ package io.jacob.episodive.feature.widget.image
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import coil.ImageLoader
+import coil.imageLoader
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -35,7 +35,9 @@ object WidgetImageLoader {
                 .precision(Precision.EXACT)
                 .allowHardware(false)
                 .build()
-            when (val result = ImageLoader(context).execute(request)) {
+            // 앱이 EpisodiveApplication 에서 설정한 Coil 싱글톤(공유 메모리/디스크 캐시) 사용.
+            // 호출마다 new ImageLoader 를 만들면 캐시가 공유되지 않아 재로드가 매번 느려진다.
+            when (val result = context.imageLoader.execute(request)) {
                 is SuccessResult -> (result.drawable as? BitmapDrawable)?.bitmap
                 is ErrorResult -> {
                     Timber.w(result.throwable, "loadWidgetBitmap ERROR url=%s", url)
