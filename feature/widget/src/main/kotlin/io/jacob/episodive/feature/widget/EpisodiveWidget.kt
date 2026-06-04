@@ -14,6 +14,7 @@ import androidx.glance.appwidget.provideContent
 import dagger.hilt.android.EntryPointAccessors
 import io.jacob.episodive.core.domain.widget.WidgetDataReaderEntryPoint
 import io.jacob.episodive.feature.widget.component.NowPlayingContent
+import io.jacob.episodive.feature.widget.component.WidgetLoading
 import io.jacob.episodive.feature.widget.image.WidgetColorExtractor
 import io.jacob.episodive.feature.widget.image.WidgetImageLoader
 import io.jacob.episodive.feature.widget.theme.EpisodiveGlanceTheme
@@ -58,11 +59,22 @@ class EpisodiveWidget : GlanceAppWidget() {
                 .coerceAtMost(NOW_PLAYING_MAX_PX)
             val feedPx = layout.feedThumbPx(density)
 
-            val artwork by produceState<Bitmap?>(null, snapshot?.imageUrl, nowPlayingPx) {
-                value = snapshot?.imageUrl?.let {
+            // 로드 결과에 "어떤 key(url/ids + px)로 로드했는지"를 함께 담는다.
+            // 현재 key 와 일치할 때만 로드 완료로 보고, 불일치(초기 null·키 변경 직후)는 곧바로
+            // 로딩으로 판정한다 → produceState 의 value 가 코루틴에서 비동기로 갱신되며 생기는
+            // "키 변경 직후 한 프레임은 직전 값" 레이스를 동기적으로 회피한다.
+            // (로드 실패로 비트맵이 null 이어도 key 는 일치하므로 무한 스피너가 되지 않는다.)
+            val artUrl = snapshot?.imageUrl?.takeIf { it.isNotBlank() }
+            val artKey = artUrl to nowPlayingPx
+            val artworkLoaded by produceState<Pair<Pair<String?, Int>, Bitmap?>?>(
+                null, artUrl, nowPlayingPx,
+            ) {
+                value = artKey to artUrl?.let {
                     WidgetImageLoader.loadWidgetBitmap(context, it, nowPlayingPx)
                 }
             }
+            val artworkReady = artworkLoaded?.first == artKey
+            val artwork = if (artworkReady) artworkLoaded?.second else null
             val backgroundColor = remember(artwork) {
                 WidgetColorExtractor.backgroundColor(artwork)
             }
@@ -74,8 +86,11 @@ class EpisodiveWidget : GlanceAppWidget() {
             val visibleFeed = remember(podcasts, layout.feedCount) {
                 podcasts.take(layout.feedCount)
             }
-            val feedBitmaps by produceState<Map<Long, Bitmap?>>(emptyMap(), visibleFeed, feedPx) {
-                value = coroutineScope {
+            val feedKey = visibleFeed.map { it.id } to feedPx
+            val feedLoaded by produceState<Pair<Pair<List<Long>, Int>, Map<Long, Bitmap?>>?>(
+                null, visibleFeed, feedPx,
+            ) {
+                value = feedKey to coroutineScope {
                     visibleFeed
                         .map { snap ->
                             async {
@@ -90,17 +105,30 @@ class EpisodiveWidget : GlanceAppWidget() {
                         .toMap()
                 }
             }
+            val feedReady = feedLoaded?.first == feedKey
+            val feedBitmaps = if (feedReady) feedLoaded?.second ?: emptyMap() else emptyMap()
+
+            // 사이즈 변경/재생·정지로 컴포지션이 새로 시작되면 비트맵을 다시 로드한다.
+            // 그동안 placeholder 가 부분적으로 깜빡이지 않도록, 로드 대상이 있는데 아직 현재 key 의
+            // 결과가 준비되지 않았으면 위젯 전체를 원형 프로그레스로 덮는다(빈 상태는 제외).
+            val isLoading =
+                (artUrl != null && !artworkReady) ||
+                    (visibleFeed.isNotEmpty() && !feedReady)
 
             EpisodiveGlanceTheme {
-                NowPlayingContent(
-                    snapshot = snapshot,
-                    artwork = artwork,
-                    backgroundColor = backgroundColor,
-                    feedBackgroundColor = feedBackgroundColor,
-                    feed = visibleFeed,
-                    feedBitmaps = feedBitmaps,
-                    layout = layout,
-                )
+                if (isLoading) {
+                    WidgetLoading(backgroundColor = backgroundColor)
+                } else {
+                    NowPlayingContent(
+                        snapshot = snapshot,
+                        artwork = artwork,
+                        backgroundColor = backgroundColor,
+                        feedBackgroundColor = feedBackgroundColor,
+                        feed = visibleFeed,
+                        feedBitmaps = feedBitmaps,
+                        layout = layout,
+                    )
+                }
             }
         }
     }

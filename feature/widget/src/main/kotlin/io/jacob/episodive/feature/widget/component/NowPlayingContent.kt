@@ -10,6 +10,7 @@ import androidx.glance.LocalContext
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -208,6 +209,23 @@ private fun NowPlayingControlsRow(snapshot: NowPlayingSnapshot) {
             ),
             diameter = 34,
         )
+    }
+}
+
+/**
+ * 사이즈 변경·재생/정지로 비트맵을 다시 로드하는 동안 위젯 전체를 덮는 로딩 화면.
+ * placeholder 가 부분적으로 깜빡이는 대신 추출 배경색 위에 중앙 원형 프로그레스를 보여준다.
+ */
+@Composable
+internal fun WidgetLoading(backgroundColor: Int) {
+    Box(
+        modifier = GlanceModifier
+            .fillMaxSize()
+            .background(ColorProvider(Color(backgroundColor)))
+            .cornerRadius(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(color = ColorProvider(Color.White))
     }
 }
 
