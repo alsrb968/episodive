@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_widget_now_playing_label">Episodive — Now Playing</string>
+    <string name="feature_widget_now_playing_label">Episodive</string>
     <string name="feature_widget_now_playing_desc">Control playback and browse your latest podcasts from your home screen.</string>
     <string name="feature_widget_now_playing_empty">No episode playing</string>
     <string name="feature_widget_now_playing_empty_hint">Tap to open Episodive</string>
-    <string name="feature_widget_now_playing_preview_title">Episodive</string>
-    <string name="feature_widget_now_playing_preview_subtitle">Your podcast, one tap away</string>
     <string name="feature_widget_now_playing_artwork_desc">Episode artwork</string>
     <string name="feature_widget_now_playing_play_desc">Play</string>
     <string name="feature_widget_now_playing_pause_desc">Pause</string>

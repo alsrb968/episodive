@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_widget_now_playing_label">Episodive — 재생 중</string>
+    <string name="feature_widget_now_playing_label">Episodive</string>
     <string name="feature_widget_now_playing_desc">홈 화면에서 재생을 제어하고 나의 최신 피드를 둘러봅니다.</string>
     <string name="feature_widget_now_playing_empty">재생 중인 에피소드 없음</string>
     <string name="feature_widget_now_playing_empty_hint">탭하여 Episodive 열기</string>
-    <string name="feature_widget_now_playing_preview_title">Episodive</string>
-    <string name="feature_widget_now_playing_preview_subtitle">내 팟캐스트를 한 번에</string>
     <string name="feature_widget_now_playing_artwork_desc">에피소드 아트워크</string>
     <string name="feature_widget_now_playing_play_desc">재생</string>
     <string name="feature_widget_now_playing_pause_desc">일시정지</string>

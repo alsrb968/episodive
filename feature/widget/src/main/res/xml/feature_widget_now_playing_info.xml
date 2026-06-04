@@ -13,4 +13,4 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:initialLayout="@layout/feature_widget_now_playing_preview"
-    android:previewLayout="@layout/feature_widget_now_playing_preview" />
+    android:previewImage="@drawable/feature_widget_preview" />
