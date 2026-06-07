@@ -8,6 +8,7 @@ import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.network.datasource.ChapterRemoteDataSource
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.datasource.SoundbiteRemoteDataSource
+import io.jacob.episodive.core.network.mapper.toEpisodeResponses
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coEvery
@@ -77,6 +78,28 @@ class EpisodeRepositoryImplTest {
             assertEquals(emptyList<Any>(), result)
             coVerify { episodeRemoteDataSource.getEpisodesByFeedId(feedId = feedId, since = since.epochSeconds) }
             coVerify { episodeLocalDataSource.upsertEpisodes(emptyList()) }
+        }
+
+    @Test
+    fun `Given boundary and newer episodes, When fetchAndSaveNewEpisodes, Then returns only episodes after since`() =
+        runTest {
+            // Given
+            val feedId = 5778530L
+            val since = Instant.fromEpochSeconds(1000)
+            val boundaryEpisode = episodeTestData.copy(id = 1L, datePublished = since)
+            val newerEpisode = episodeTestData.copy(id = 2L, datePublished = Instant.fromEpochSeconds(2000))
+            coEvery {
+                episodeRemoteDataSource.getEpisodesByFeedId(feedId = feedId, since = since.epochSeconds)
+            } returns listOf(boundaryEpisode, newerEpisode).toEpisodeResponses()
+
+            // When
+            val result = repository.fetchAndSaveNewEpisodes(feedId, since)
+
+            // Then: 이미 보유한 경계 에피소드는 제외하고 since 이후 새 에피소드만 반환
+            assertEquals(1, result.size)
+            assertEquals(2L, result[0].id)
+            // DB 캐시에는 응답 전체를 저장한다
+            coVerify { episodeLocalDataSource.upsertEpisodes(any()) }
         }
 
     @Test

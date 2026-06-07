@@ -327,8 +327,10 @@ class EpisodeRepositoryImpl @Inject constructor(
             since = since.epochSeconds,
         )
         val episodes = responses.toEpisodes()
-        val entities = episodes.toEpisodeEntities()
-        episodeLocalDataSource.upsertEpisodes(entities)
-        return episodes
+        episodeLocalDataSource.upsertEpisodes(episodes.toEpisodeEntities())
+        // since 는 보유한 최신 에피소드의 발행 시각이며, API 의 since 경계가 inclusive 일 경우
+        // 이미 가진 에피소드가 다시 반환될 수 있다. 알림 중복 발송을 막기 위해
+        // 실제로 since 이후에 발행된 새 에피소드만 반환한다.
+        return episodes.filter { it.datePublished > since }
     }
 }
