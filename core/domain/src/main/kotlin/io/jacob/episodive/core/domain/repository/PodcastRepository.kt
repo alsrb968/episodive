@@ -5,6 +5,7 @@ import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Podcast
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 
 interface PodcastRepository {
     fun searchPodcasts(
@@ -66,5 +67,5 @@ interface PodcastRepository {
 
     suspend fun toggleFollowed(id: Long): Boolean
 
-    suspend fun getFollowedPodcastIdsWithNotificationEnabled(): List<Long>
+    suspend fun getFollowedPodcastsToSync(): Map<Long, Instant>
 }

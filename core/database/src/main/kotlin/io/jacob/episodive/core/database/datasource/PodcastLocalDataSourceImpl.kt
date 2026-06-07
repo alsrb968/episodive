@@ -97,7 +97,7 @@ class PodcastLocalDataSourceImpl(
         )
     }
 
-    override suspend fun getFollowedPodcastIdsWithNotificationEnabled(): List<Long> {
-        return podcastDao.getFollowedPodcastIdsWithNotificationEnabled()
+    override suspend fun getFollowedPodcastsToSync(): Map<Long, Instant> {
+        return podcastDao.getFollowedPodcastsToSync()
     }
 }

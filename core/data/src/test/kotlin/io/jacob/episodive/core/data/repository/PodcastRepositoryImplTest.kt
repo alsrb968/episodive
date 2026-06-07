@@ -20,6 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Instant
 
 class PodcastRepositoryImplTest {
     @get:Rule
@@ -40,18 +41,22 @@ class PodcastRepositoryImplTest {
     )
 
     @Test
-    fun `When getFollowedPodcastIdsWithNotificationEnabled, Then delegates to localDataSource`() =
+    fun `When getFollowedPodcastsToSync, Then delegates to localDataSource`() =
         runTest {
             // Given
-            val expected = listOf(1L, 2L, 3L)
-            coEvery { podcastLocalDataSource.getFollowedPodcastIdsWithNotificationEnabled() } returns expected
+            val expected = mapOf(
+                1L to Instant.fromEpochSeconds(1000),
+                2L to Instant.fromEpochSeconds(2000),
+                3L to Instant.fromEpochSeconds(3000),
+            )
+            coEvery { podcastLocalDataSource.getFollowedPodcastsToSync() } returns expected
 
             // When
-            val result = repository.getFollowedPodcastIdsWithNotificationEnabled()
+            val result = repository.getFollowedPodcastsToSync()
 
             // Then
             assertEquals(expected, result)
-            coVerify { podcastLocalDataSource.getFollowedPodcastIdsWithNotificationEnabled() }
+            coVerify { podcastLocalDataSource.getFollowedPodcastsToSync() }
         }
 
     @Test

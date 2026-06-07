@@ -10,11 +10,10 @@ class SyncNewEpisodesUseCase @Inject constructor(
     private val episodeRepository: EpisodeRepository,
 ) {
     suspend operator fun invoke(): List<NewEpisodeResult> {
-        val feedIds = podcastRepository.getFollowedPodcastIdsWithNotificationEnabled()
-        return feedIds.mapNotNull { feedId ->
+        val syncTargets = podcastRepository.getFollowedPodcastsToSync()
+        return syncTargets.mapNotNull { (feedId, followedAt) ->
             try {
-                val since = episodeRepository.getLatestEpisodeDatePublished(feedId)
-                    ?: return@mapNotNull null
+                val since = episodeRepository.getLatestEpisodeDatePublished(feedId) ?: followedAt
                 val newEpisodes = episodeRepository.fetchAndSaveNewEpisodes(feedId, since)
                 if (newEpisodes.isNotEmpty()) NewEpisodeResult(feedId, newEpisodes) else null
             } catch (_: Exception) {

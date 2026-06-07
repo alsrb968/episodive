@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.time.Instant
 
 class PodcastRepositoryImpl @Inject constructor(
     private val podcastLocalDataSource: PodcastLocalDataSource,
@@ -200,7 +201,7 @@ class PodcastRepositoryImpl @Inject constructor(
         return podcastLocalDataSource.toggleFollowedPodcast(id)
     }
 
-    override suspend fun getFollowedPodcastIdsWithNotificationEnabled(): List<Long> {
-        return podcastLocalDataSource.getFollowedPodcastIdsWithNotificationEnabled()
+    override suspend fun getFollowedPodcastsToSync(): Map<Long, Instant> {
+        return podcastLocalDataSource.getFollowedPodcastsToSync()
     }
 }

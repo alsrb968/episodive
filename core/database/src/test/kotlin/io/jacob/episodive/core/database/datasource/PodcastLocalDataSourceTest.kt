@@ -324,14 +324,14 @@ class PodcastLocalDataSourceTest {
     }
 
     @Test
-    fun `When getFollowedPodcastIdsWithNotificationEnabled is called, Then dao is called`() =
+    fun `When getFollowedPodcastsToSync is called, Then dao is called`() =
         runTest {
             // When
-            dataSource.getFollowedPodcastIdsWithNotificationEnabled()
+            dataSource.getFollowedPodcastsToSync()
 
             // Then
             coVerify {
-                dao.getFollowedPodcastIdsWithNotificationEnabled()
+                dao.getFollowedPodcastsToSync()
             }
         }
 }

@@ -1019,7 +1019,7 @@ class PodcastDaoTest {
         }
 
     @Test
-    fun `Given followed podcasts with notification enabled, When getFollowedPodcastIdsWithNotificationEnabled, Then returns only enabled ids`() =
+    fun `Given followed podcasts, When getFollowedPodcastsToSync, Then returns all ids with followedAt`() =
         runTest {
             // Given
             dao.upsertPodcast(podcastEntity.copy(id = 1L))
@@ -1036,16 +1036,23 @@ class PodcastDaoTest {
             )
 
             // When
-            val result = dao.getFollowedPodcastIdsWithNotificationEnabled()
+            val result = dao.getFollowedPodcastsToSync()
 
             // Then
-            assertEquals(listOf(1L, 3L), result.sorted())
+            assertEquals(
+                mapOf(
+                    1L to Instant.fromEpochSeconds(1000),
+                    2L to Instant.fromEpochSeconds(2000),
+                    3L to Instant.fromEpochSeconds(3000),
+                ),
+                result,
+            )
         }
 
     @Test
-    fun `Given no followed podcasts, When getFollowedPodcastIdsWithNotificationEnabled, Then returns empty list`() =
+    fun `Given no followed podcasts, When getFollowedPodcastsToSync, Then returns empty map`() =
         runTest {
-            val result = dao.getFollowedPodcastIdsWithNotificationEnabled()
+            val result = dao.getFollowedPodcastsToSync()
             assertTrue(result.isEmpty())
         }
 

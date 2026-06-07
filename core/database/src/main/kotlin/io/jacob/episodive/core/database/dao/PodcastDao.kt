@@ -3,6 +3,7 @@ package io.jacob.episodive.core.database.dao
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
@@ -246,6 +247,6 @@ interface PodcastDao {
     )
     fun getFollowedPodcastsPaging(query: String? = null): PagingSource<Int, PodcastWithExtrasView>
 
-    @Query("SELECT id FROM followed_podcasts WHERE isNotificationEnabled = 1")
-    suspend fun getFollowedPodcastIdsWithNotificationEnabled(): List<Long>
+    @Query("SELECT id, followedAt FROM followed_podcasts")
+    suspend fun getFollowedPodcastsToSync(): Map<@MapColumn(columnName = "id") Long, @MapColumn(columnName = "followedAt") Instant>
 }
