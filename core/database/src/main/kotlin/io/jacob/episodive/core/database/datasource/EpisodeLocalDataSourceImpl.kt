@@ -7,7 +7,6 @@ import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.EpisodeWithExtrasView
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.database.util.asFtsWildcard
-import io.jacob.episodive.core.model.DownloadStatus
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import kotlin.time.Duration
@@ -135,18 +134,6 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
 
     override suspend fun toggleSavedEpisode(episode: EpisodeEntity, filePath: String): Boolean {
         return episodeDao.toggleSavedEpisode(episode, filePath)
-    }
-
-    override suspend fun updateSavedEpisodeProgress(
-        id: Long,
-        downloadedSize: Long,
-        status: DownloadStatus,
-    ) {
-        episodeDao.updateSavedEpisodeProgress(id, downloadedSize, status)
-    }
-
-    override suspend fun updateSavedEpisodeStatus(id: Long, status: DownloadStatus) {
-        episodeDao.updateSavedEpisodeStatus(id, status)
     }
 
     override suspend fun removeSavedEpisode(id: Long) {

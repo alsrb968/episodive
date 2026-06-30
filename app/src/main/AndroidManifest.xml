@@ -40,14 +40,6 @@
             </intent-filter>
         </service>
 
-        <receiver
-            android:name="io.jacob.episodive.core.data.download.DownloadCompletedReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-            </intent-filter>
-        </receiver>
-
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

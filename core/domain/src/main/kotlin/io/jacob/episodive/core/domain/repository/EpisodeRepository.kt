@@ -3,7 +3,6 @@ package io.jacob.episodive.core.domain.repository
 import androidx.paging.PagingData
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Chapter
-import io.jacob.episodive.core.model.DownloadStatus
 import io.jacob.episodive.core.model.Episode
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
@@ -102,8 +101,6 @@ interface EpisodeRepository {
     fun getSavedEpisodesPaging(query: String? = null): Flow<PagingData<Episode>>
 
     suspend fun toggleSavedEpisode(episode: Episode): Boolean
-
-    suspend fun updateSavedEpisodeProgress(id: Long, downloadedSize: Long, status: DownloadStatus)
 
     suspend fun removeSavedEpisode(id: Long)
 

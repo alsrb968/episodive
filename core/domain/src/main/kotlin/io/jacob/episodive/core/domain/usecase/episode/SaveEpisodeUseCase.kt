@@ -18,6 +18,8 @@ class SaveEpisodeUseCase @Inject constructor(
             val filePath = "${episode.feedId}/${episode.id}.$ext"
             episodeDownloader.downloadEpisode(episode, filePath)
         } else {
+            // 진행 중 다운로드가 있으면 먼저 취소해 작업이 파일을 다시 만들지 않게 한 뒤 삭제한다.
+            episodeDownloader.cancelDownloadForEpisode(episode.id)
             episode.filePath?.let { episodeDownloader.deleteDownloadedFile(it) }
         }
 

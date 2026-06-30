@@ -3,6 +3,7 @@ package io.jacob.episodive.core.model
 enum class DownloadStatus(val value: String) {
     PENDING("pending"),
     DOWNLOADING("downloading"),
+    PAUSED("paused"),
     COMPLETED("completed"),
     FAILED("failed");
 }

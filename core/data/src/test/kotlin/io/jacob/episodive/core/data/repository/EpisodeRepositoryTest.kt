@@ -11,7 +11,6 @@ import io.jacob.episodive.core.database.mapper.toEpisodeEntity
 import io.jacob.episodive.core.database.mapper.toEpisodeWithExtrasViews
 import io.jacob.episodive.core.database.model.EpisodeWithExtrasView
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
-import io.jacob.episodive.core.model.DownloadStatus
 import io.jacob.episodive.core.network.datasource.ChapterRemoteDataSource
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.datasource.SoundbiteRemoteDataSource
@@ -606,21 +605,6 @@ class EpisodeRepositoryTest {
             assertEquals(true, result)
             coVerify {
                 localDataSource.toggleSavedEpisode(any(), any())
-            }
-        }
-
-    @Test
-    fun `When updateSavedEpisodeProgress, Then calls localDataSource`() =
-        runTest {
-            // Given
-            coEvery { localDataSource.updateSavedEpisodeProgress(any(), any(), any()) } just Runs
-
-            // When
-            repository.updateSavedEpisodeProgress(123L, 5000L, DownloadStatus.COMPLETED)
-
-            // Then
-            coVerifySequence {
-                localDataSource.updateSavedEpisodeProgress(123L, 5000L, DownloadStatus.COMPLETED)
             }
         }
 

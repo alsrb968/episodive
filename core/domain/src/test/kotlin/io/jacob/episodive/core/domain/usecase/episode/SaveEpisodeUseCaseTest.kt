@@ -60,6 +60,7 @@ class SaveEpisodeUseCaseTest {
             coVerify {
                 episodeRepository.upsertEpisode(episode)
                 episodeRepository.toggleSavedEpisode(episode)
+                episodeDownloader.cancelDownloadForEpisode(episode.id)
                 episodeDownloader.deleteDownloadedFile("saved/path.mp3")
             }
         }
@@ -76,6 +77,7 @@ class SaveEpisodeUseCaseTest {
             coVerify {
                 episodeRepository.upsertEpisode(episode)
                 episodeRepository.toggleSavedEpisode(episode)
+                episodeDownloader.cancelDownloadForEpisode(episode.id)
             }
             coVerify(exactly = 0) { episodeDownloader.deleteDownloadedFile(any()) }
         }

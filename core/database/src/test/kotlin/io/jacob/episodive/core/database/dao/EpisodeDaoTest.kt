@@ -1404,64 +1404,6 @@ class EpisodeDaoTest {
         }
 
     @Test
-    fun `Given saved episode, When updateSavedEpisodeProgress is called, Then progress is updated`() =
-        runTest {
-            // Given
-            dao.upsertEpisode(episodeEntity.copy(id = 100L))
-            dao.addSavedEpisode(
-                SavedEpisodeEntity(
-                    id = 100L,
-                    podcastId = episodeEntity.feedId,
-                    savedAt = Instant.fromEpochSeconds(0),
-                    filePath = "/data/episode_100.mp3",
-                    totalSize = 1000L,
-                    downloadedSize = 0L,
-                    downloadStatus = DownloadStatus.PENDING,
-                )
-            )
-
-            // When
-            dao.updateSavedEpisodeProgress(100L, 500L, DownloadStatus.DOWNLOADING)
-
-            // Then
-            dao.getSavedEpisodes(limit = 10).test {
-                val episodes = awaitItem()
-                assertEquals(1, episodes.size)
-                assertEquals(DownloadStatus.DOWNLOADING, episodes[0].downloadStatus)
-                cancel()
-            }
-        }
-
-    @Test
-    fun `Given saved episode, When updateSavedEpisodeStatus is called, Then status is updated`() =
-        runTest {
-            // Given
-            dao.upsertEpisode(episodeEntity.copy(id = 100L))
-            dao.addSavedEpisode(
-                SavedEpisodeEntity(
-                    id = 100L,
-                    podcastId = episodeEntity.feedId,
-                    savedAt = Instant.fromEpochSeconds(0),
-                    filePath = "/data/episode_100.mp3",
-                    totalSize = 1000L,
-                    downloadedSize = 0L,
-                    downloadStatus = DownloadStatus.PENDING,
-                )
-            )
-
-            // When
-            dao.updateSavedEpisodeStatus(100L, DownloadStatus.COMPLETED)
-
-            // Then
-            dao.getSavedEpisodes(limit = 10).test {
-                val episodes = awaitItem()
-                assertEquals(1, episodes.size)
-                assertEquals(DownloadStatus.COMPLETED, episodes[0].downloadStatus)
-                cancel()
-            }
-        }
-
-    @Test
     fun `Given unsaved episode, When toggleSavedEpisode is called, Then episode is saved`() =
         runTest {
             // Given

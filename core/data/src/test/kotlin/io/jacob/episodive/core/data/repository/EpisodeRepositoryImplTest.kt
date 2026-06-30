@@ -267,18 +267,6 @@ class EpisodeRepositoryImplTest {
     }
 
     @Test
-    fun `Given id and progress, When updateSavedEpisodeProgress, Then delegates to localDataSource`() =
-        runTest {
-            val id = 1L
-            val downloadedSize = 1024L
-            val status = io.jacob.episodive.core.model.DownloadStatus.DOWNLOADING
-
-            repository.updateSavedEpisodeProgress(id, downloadedSize, status)
-
-            coVerify { episodeLocalDataSource.updateSavedEpisodeProgress(id, downloadedSize, status) }
-        }
-
-    @Test
     fun `Given feedId, When getEpisodesByFeedId, Then fetches from remote`() = runTest {
         val feedId = 5778530L
         coEvery { episodeRemoteDataSource.getEpisodesByFeedId(feedId, 10) } returns emptyList()
