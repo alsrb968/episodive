@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.common.EpisodivePlayers
 import io.jacob.episodive.core.common.Player
+import io.jacob.episodive.core.domain.download.EpisodeDownloader
 import io.jacob.episodive.core.player.datasource.PlayerDataSource
 import io.jacob.episodive.core.player.datasource.PlayerDataSourceImpl
 import javax.inject.Singleton
@@ -19,9 +20,11 @@ object DataSourceModule {
     @Player(EpisodivePlayers.Main)
     fun provideMainPlayerDataSource(
         @Player(EpisodivePlayers.Main) exoPlayer: ExoPlayer,
+        episodeDownloader: EpisodeDownloader,
     ): PlayerDataSource {
         return PlayerDataSourceImpl(
             player = exoPlayer,
+            episodeDownloader = episodeDownloader,
         )
     }
 
@@ -30,9 +33,11 @@ object DataSourceModule {
     @Player(EpisodivePlayers.Clip)
     fun provideClipPlayerDataSource(
         @Player(EpisodivePlayers.Clip) exoPlayer: ExoPlayer,
+        episodeDownloader: EpisodeDownloader,
     ): PlayerDataSource {
         return PlayerDataSourceImpl(
             player = exoPlayer,
+            episodeDownloader = episodeDownloader,
         )
     }
 }
