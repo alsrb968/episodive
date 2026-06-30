@@ -149,12 +149,7 @@ fun EpisodeWithExtrasView.toEpisode(): Episode =
         clipDuration = clipDuration,
         savedAt = savedAt,
         filePath = filePath,
-        downloadStatus = downloadStatus,
-        downloadProgress = if (totalSize != null && totalSize > 0) {
-            (downloadedSize ?: 0L).toFloat() / totalSize
-        } else {
-            0f
-        },
+        // downloadStatus/downloadProgress는 DB가 아니라 DownloadManager(GetNowPlayingUseCase)에서 채운다.
     )
 
 fun List<EpisodeWithExtrasView>.toEpisodes(): List<Episode> =

@@ -18,7 +18,6 @@ import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
 import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Chapter
-import io.jacob.episodive.core.model.DownloadStatus
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.network.datasource.ChapterRemoteDataSource
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
@@ -303,14 +302,6 @@ class EpisodeRepositoryImpl @Inject constructor(
     override suspend fun toggleSavedEpisode(episode: Episode): Boolean {
         val filePath = "${episode.feedId}/${episode.id}.${episode.enclosureType.substringAfterLast("/", "mp3")}"
         return episodeLocalDataSource.toggleSavedEpisode(episode.toEpisodeEntity(), filePath)
-    }
-
-    override suspend fun updateSavedEpisodeProgress(
-        id: Long,
-        downloadedSize: Long,
-        status: DownloadStatus,
-    ) {
-        episodeLocalDataSource.updateSavedEpisodeProgress(id, downloadedSize, status)
     }
 
     override suspend fun removeSavedEpisode(id: Long) {

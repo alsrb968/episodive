@@ -33,6 +33,19 @@ Episodive는 Kotlin과 Jetpack Compose로 만든 Android 팟캐스트 앱으로,
 ./gradlew createDebugCoverageReport      # 커버리지 리포트 생성 (Jacoco)
 ```
 
+### git worktree 작업 시 필수: local.properties 복사
+
+`local.properties`는 `.gitignore` 대상이라 **worktree를 만들면 자동으로 복사되지 않는다.** 이 파일에는
+SDK 경로(`sdk.dir`)뿐 아니라 **Podcast Index API 키**(`podcastIndex.apiKey`, `podcastIndex.secretKey`)가 들어
+있고, `core/network/build.gradle.kts`가 이 키들을 컴파일 타임에 `BuildConfig.API_KEY` / `BuildConfig.SECRET_KEY`로
+굽는다. 누락하면 빌드는 되지만 런타임에 키가 비어 **모든 API 호출이 HTTP 401**로 실패한다.
+
+worktree에서 작업·빌드하기 전에 루트의 `local.properties`를 복사할 것:
+
+```bash
+cp <repo-root>/local.properties <worktree-dir>/local.properties
+```
+
 ## 아키텍처
 
 ### 모듈 구조 (20개)

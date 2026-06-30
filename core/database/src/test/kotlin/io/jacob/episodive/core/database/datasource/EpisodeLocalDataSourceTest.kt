@@ -4,7 +4,6 @@ import io.jacob.episodive.core.database.dao.EpisodeDao
 import io.jacob.episodive.core.database.mapper.toEpisodeEntities
 import io.jacob.episodive.core.database.mapper.toEpisodeEntity
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
-import io.jacob.episodive.core.model.DownloadStatus
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
@@ -475,39 +474,6 @@ class EpisodeLocalDataSourceTest {
             // Then
             coVerify {
                 dao.toggleSavedEpisode(episodeEntity, filePath)
-            }
-        }
-
-    @Test
-    fun `Given id and progress, When updateSavedEpisodeProgress is called, Then dao updateSavedEpisodeProgress is called`() =
-        runTest {
-            // Given
-            val id = episodeEntity.id
-            val downloadedSize = 1024L
-            val status = DownloadStatus.DOWNLOADING
-
-            // When
-            dataSource.updateSavedEpisodeProgress(id, downloadedSize, status)
-
-            // Then
-            coVerify {
-                dao.updateSavedEpisodeProgress(id, downloadedSize, status)
-            }
-        }
-
-    @Test
-    fun `Given id and status, When updateSavedEpisodeStatus is called, Then dao updateSavedEpisodeStatus is called`() =
-        runTest {
-            // Given
-            val id = episodeEntity.id
-            val status = DownloadStatus.COMPLETED
-
-            // When
-            dataSource.updateSavedEpisodeStatus(id, status)
-
-            // Then
-            coVerify {
-                dao.updateSavedEpisodeStatus(id, status)
             }
         }
 

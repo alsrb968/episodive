@@ -322,18 +322,6 @@ interface EpisodeDao {
     @Query("SELECT EXISTS(SELECT 1 FROM saved_episodes WHERE id = :id)")
     fun isSavedEpisode(id: Long): Flow<Boolean>
 
-    @Query(
-        """
-        UPDATE saved_episodes
-        SET downloadedSize = :downloadedSize, downloadStatus = :status
-        WHERE id = :id
-    """
-    )
-    suspend fun updateSavedEpisodeProgress(id: Long, downloadedSize: Long, status: DownloadStatus)
-
-    @Query("UPDATE saved_episodes SET downloadStatus = :status WHERE id = :id")
-    suspend fun updateSavedEpisodeStatus(id: Long, status: DownloadStatus)
-
     @Transaction
     suspend fun toggleSavedEpisode(episode: EpisodeEntity, filePath: String): Boolean {
         return if (isSavedEpisode(episode.id).first()) {

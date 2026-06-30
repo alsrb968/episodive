@@ -740,6 +740,8 @@ private fun ControlPanelBottom(
                 EpisodiveIconProgressButton(
                     modifier = Modifier.size(32.dp),
                     onClick = { onToggleSave() },
+                    // 크기 확정 전(progress 0)에는 무한 스피너, 진행률이 잡히면 실제 %로 표시
+                    isLoading = downloadProgress <= 0f,
                     progress = downloadProgress,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -748,7 +750,7 @@ private fun ControlPanelBottom(
                     icon = {
                         Icon(
                             modifier = Modifier.size(24.dp),
-                            imageVector = EpisodiveIcons.DownloadDone,
+                            imageVector = EpisodiveIcons.Download,
                             contentDescription = "Downloading",
                         )
                     },

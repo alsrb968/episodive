@@ -5,7 +5,6 @@ import androidx.room.RoomDatabase
 import io.jacob.episodive.core.database.model.EpisodeEntity
 import io.jacob.episodive.core.database.model.EpisodeWithExtrasView
 import io.jacob.episodive.core.database.model.PlayedEpisodeEntity
-import io.jacob.episodive.core.model.DownloadStatus
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -48,8 +47,6 @@ interface EpisodeLocalDataSource {
 
     fun isSavedEpisode(episode: EpisodeEntity): Flow<Boolean>
     suspend fun toggleSavedEpisode(episode: EpisodeEntity, filePath: String): Boolean
-    suspend fun updateSavedEpisodeProgress(id: Long, downloadedSize: Long, status: DownloadStatus)
-    suspend fun updateSavedEpisodeStatus(id: Long, status: DownloadStatus)
     suspend fun removeSavedEpisode(id: Long)
     fun getSavedEpisodes(query: String? = null, limit: Int): Flow<List<EpisodeWithExtrasView>>
     fun getSavedEpisodesPaging(query: String? = null): PagingSource<Int, EpisodeWithExtrasView>

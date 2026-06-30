@@ -58,7 +58,9 @@ data class Episode(
     val isSaved: Boolean = savedAt != null
 
     val isDownloading: Boolean
-        get() = downloadStatus == DownloadStatus.PENDING || downloadStatus == DownloadStatus.DOWNLOADING
+        get() = downloadStatus == DownloadStatus.PENDING ||
+                downloadStatus == DownloadStatus.DOWNLOADING ||
+                downloadStatus == DownloadStatus.PAUSED
 
     val isDownloaded: Boolean = downloadStatus == DownloadStatus.COMPLETED
 
