@@ -12,6 +12,7 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
+    implementation(projects.core.domain)
 
     //----- Media3 Exoplayer
     implementation(libs.androidx.media3.exoplayer)

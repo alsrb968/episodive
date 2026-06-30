@@ -11,6 +11,7 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.ExoPlayer
+import io.jacob.episodive.core.domain.download.EpisodeDownloader
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.mapper.toDurationMillis
@@ -32,6 +33,7 @@ import kotlin.time.Duration
 
 class PlayerDataSourceImpl @Inject constructor(
     private val player: ExoPlayer,
+    private val episodeDownloader: EpisodeDownloader,
 ) : PlayerDataSource {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -170,8 +172,11 @@ class PlayerDataSourceImpl @Inject constructor(
             .setArtworkUri(image.ifEmpty { feedImage }.toUri())
             .build()
 
-        val uri = if (isDownloaded && filePath != null) {
-            android.net.Uri.fromFile(java.io.File(filePath))
+        // 다운로드 완료 판정은 DB 상태가 아니라 실제 파일 존재로 한다.
+        // filePath는 상대경로("feedId/id.ext")이므로 다운로드 디렉토리 기준 절대경로로 변환한다.
+        val localPath = filePath
+        val uri = if (localPath != null && episodeDownloader.isFileDownloaded(localPath)) {
+            android.net.Uri.fromFile(java.io.File(episodeDownloader.getDownloadDirectory(), localPath))
         } else {
             enclosureUrl.toUri()
         }
