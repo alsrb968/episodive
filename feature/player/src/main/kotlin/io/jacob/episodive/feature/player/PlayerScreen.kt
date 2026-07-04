@@ -84,7 +84,6 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveViewToggleButton
 import io.jacob.episodive.core.designsystem.component.FadingEdgeText
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
-import io.jacob.episodive.core.designsystem.component.rememberOverscrollEffectWithoutFlingBounce
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.GradientColors
@@ -275,7 +274,10 @@ internal fun PlayerScreen(
         modifier = modifier
             .fillMaxSize(),
         state = listState,
-        overscrollEffect = rememberOverscrollEffectWithoutFlingBounce(),
+        // 콘텐츠가 짧아 fling 이 대부분 가장자리에서 끝나는데, 이때 잔여 속도·드래그가
+        // stretch 로 흡수되며 스크롤이 멈추는 순간 콘텐츠가 반대 방향으로 움찔거리므로
+        // overscroll 을 사용하지 않는다. 상단 가장자리는 시트 드래그(dismiss)가 피드백을 대신한다.
+        overscrollEffect = null,
     ) {
         item {
             EpisodiveGradientBackground(

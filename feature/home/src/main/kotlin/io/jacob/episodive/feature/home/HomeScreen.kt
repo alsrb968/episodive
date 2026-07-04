@@ -37,7 +37,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveDragHandle
 import io.jacob.episodive.core.designsystem.component.EpisodiveTopAppBar
-import io.jacob.episodive.core.designsystem.component.rememberOverscrollEffectWithoutFlingBounce
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -192,7 +191,11 @@ internal fun HomeScreen(
                         modifier = Modifier
                             .fillMaxSize(),
                         contentPadding = PaddingValues(vertical = 16.dp),
-                        overscrollEffect = rememberOverscrollEffectWithoutFlingBounce(),
+                        // 콘텐츠가 짧아 fling 이 대부분 가장자리에서 끝나는데, 이때 잔여
+                        // 속도·드래그가 stretch 로 흡수되며 스크롤이 멈추는 순간 콘텐츠가
+                        // 반대 방향으로 움찔거리므로 overscroll 을 사용하지 않는다.
+                        // 상단 가장자리는 시트 드래그(collapse)가 피드백을 대신한다.
+                        overscrollEffect = null,
                     ) {
                         itemWithDivider {
                             PodcastsSection(
