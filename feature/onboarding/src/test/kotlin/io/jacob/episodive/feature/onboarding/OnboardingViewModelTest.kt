@@ -2,6 +2,7 @@ package io.jacob.episodive.feature.onboarding
 
 import androidx.paging.PagingData
 import app.cash.turbine.test
+import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecommendedPodcastsPagingUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
@@ -35,6 +36,7 @@ class OnboardingViewModelTest {
     private val toggleCategoryUseCase = mockk<ToggleCategoryUseCase>(relaxed = true)
     private val toggleFollowedUseCase = mockk<ToggleFollowedUseCase>(relaxed = true)
     private val getPreferredCategoriesUseCase = mockk<GetPreferredCategoriesUseCase>(relaxed = true)
+    private val getFollowedPodcastsUseCase = mockk<GetFollowedPodcastsUseCase>(relaxed = true)
     private val getUserRecommendedPodcastsPagingUseCase =
         mockk<GetUserRecommendedPodcastsPagingUseCase>(relaxed = true)
 
@@ -44,6 +46,7 @@ class OnboardingViewModelTest {
             toggleCategoryUseCase = toggleCategoryUseCase,
             toggleFollowedUseCase = toggleFollowedUseCase,
             getPreferredCategoriesUseCase = getPreferredCategoriesUseCase,
+            getFollowedPodcastsUseCase = getFollowedPodcastsUseCase,
             getUserRecommendedPodcastsPagingUseCase = getUserRecommendedPodcastsPagingUseCase,
         )
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecommendedPodcastsPagingUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
@@ -37,6 +38,7 @@ class OnboardingViewModel @Inject constructor(
     private val toggleCategoryUseCase: ToggleCategoryUseCase,
     private val toggleFollowedUseCase: ToggleFollowedUseCase,
     private val getPreferredCategoriesUseCase: GetPreferredCategoriesUseCase,
+    getFollowedPodcastsUseCase: GetFollowedPodcastsUseCase,
     getUserRecommendedPodcastsPagingUseCase: GetUserRecommendedPodcastsPagingUseCase,
 ) : ViewModel() {
 
@@ -59,6 +61,17 @@ class OnboardingViewModel @Inject constructor(
                 flowOf(PagingData.empty())
             }
         }.cachedIn(viewModelScope)
+
+    // 팔로우 상태는 PagingData 를 무효화하지 않고 로컬 오버레이로만 반영한다.
+    // (팔로우 토글이 리스트 전체를 refresh 시켜 스크롤이 튀는 문제 방지)
+    val followedPodcastIds: StateFlow<Set<Long>> =
+        getFollowedPodcastsUseCase(max = Int.MAX_VALUE)
+            .map { podcasts -> podcasts.map { it.id }.toSet() }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptySet(),
+            )
 
     val state: StateFlow<OnboardingState> = _categories.map { categories ->
         OnboardingState.Success(

@@ -175,6 +175,7 @@ private fun rememberPodcastTextSectionMinHeight(): Dp {
 fun PodcastDetailItem(
     modifier: Modifier = Modifier,
     podcast: Podcast,
+    isFollowed: Boolean = podcast.isFollowed,
     onClick: () -> Unit = {},
     onToggleFollowed: () -> Unit = {},
 ) {
@@ -216,7 +217,7 @@ fun PodcastDetailItem(
                     modifier = Modifier
                         .size(34.dp),
                     shape = MaterialTheme.shapes.medium,
-                    checked = podcast.isFollowed,
+                    checked = isFollowed,
                     onCheckedChange = { onToggleFollowed() },
                     icon = {
                         Icon(

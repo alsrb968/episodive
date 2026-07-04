@@ -166,7 +166,6 @@ class PodcastRepositoryImpl @Inject constructor(
             ),
             pagingSourceFactory = {
                 RecommendedPodcastPagingSource(
-                    database = podcastLocalDataSource.database,
                     podcastLocal = podcastLocalDataSource,
                     podcastRemote = podcastRemoteDataSource,
                     feedLocal = feedLocalDataSource,

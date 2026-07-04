@@ -1,8 +1,6 @@
 package io.jacob.episodive.core.data.util.paging
 
 import androidx.paging.PagingSource
-import androidx.room.InvalidationTracker
-import androidx.room.RoomDatabase
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.model.FeedEntity
@@ -33,10 +31,6 @@ class RecommendedPodcastPagingSourceTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val invalidationTracker = mockk<InvalidationTracker>(relaxed = true)
-    private val database = mockk<RoomDatabase>(relaxed = true) {
-        every { invalidationTracker } returns this@RecommendedPodcastPagingSourceTest.invalidationTracker
-    }
     private val podcastLocal = mockk<PodcastLocalDataSource>(relaxed = true)
     private val podcastRemote = mockk<PodcastRemoteDataSource>(relaxed = true)
     private val feedLocal = mockk<FeedLocalDataSource>(relaxed = true)
@@ -49,7 +43,6 @@ class RecommendedPodcastPagingSourceTest {
         categories: List<Category> = emptyList(),
         timeToLive: Duration = 10.minutes,
     ) = RecommendedPodcastPagingSource(
-        database = database,
         podcastLocal = podcastLocal,
         podcastRemote = podcastRemote,
         feedLocal = feedLocal,
