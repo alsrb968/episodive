@@ -84,6 +84,7 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveViewToggleButton
 import io.jacob.episodive.core.designsystem.component.FadingEdgeText
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
+import io.jacob.episodive.core.designsystem.component.rememberOverscrollEffectWithoutFlingBounce
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.GradientColors
@@ -274,6 +275,7 @@ internal fun PlayerScreen(
         modifier = modifier
             .fillMaxSize(),
         state = listState,
+        overscrollEffect = rememberOverscrollEffectWithoutFlingBounce(),
     ) {
         item {
             EpisodiveGradientBackground(

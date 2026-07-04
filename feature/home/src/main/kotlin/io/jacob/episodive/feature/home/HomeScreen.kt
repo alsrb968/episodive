@@ -37,6 +37,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveDragHandle
 import io.jacob.episodive.core.designsystem.component.EpisodiveTopAppBar
+import io.jacob.episodive.core.designsystem.component.rememberOverscrollEffectWithoutFlingBounce
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -191,6 +192,7 @@ internal fun HomeScreen(
                         modifier = Modifier
                             .fillMaxSize(),
                         contentPadding = PaddingValues(vertical = 16.dp),
+                        overscrollEffect = rememberOverscrollEffectWithoutFlingBounce(),
                     ) {
                         itemWithDivider {
                             PodcastsSection(
