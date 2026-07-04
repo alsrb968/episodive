@@ -78,6 +78,7 @@ fun OnboardingRoute(
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val followedPodcastIds by viewModel.followedPodcastIds.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.count })
 
     val moreCategories = stringResource(R.string.feature_onboarding_category_more_categories)
@@ -99,6 +100,7 @@ fun OnboardingRoute(
             pagerState = pagerState,
             categories = s.categories,
             podcasts = viewModel.recommendedPodcasts,
+            followedPodcastIds = followedPodcastIds,
             onChooseCategory = { viewModel.sendAction(OnboardingAction.ChooseCategory(it)) },
             onChoosePodcast = { viewModel.sendAction(OnboardingAction.ChoosePodcast(it)) },
             onNextPage = { viewModel.sendAction(OnboardingAction.NextPage) },
@@ -114,6 +116,7 @@ internal fun OnboardingScreen(
     pagerState: PagerState,
     categories: List<SelectableCategory>,
     podcasts: Flow<PagingData<Podcast>>,
+    followedPodcastIds: Set<Long> = emptySet(),
     onChooseCategory: (Category) -> Unit,
     onChoosePodcast: (Podcast) -> Unit,
     onNextPage: () -> Unit,
@@ -142,6 +145,7 @@ internal fun OnboardingScreen(
                     PodcastSelectionScreen(
                         modifier = modifier,
                         podcasts = podcasts,
+                        followedPodcastIds = followedPodcastIds,
                         onToggleFollowedPodcast = onChoosePodcast,
                     )
 
@@ -315,6 +319,7 @@ private fun CategorySelectionScreen(
 private fun PodcastSelectionScreen(
     modifier: Modifier = Modifier,
     podcasts: Flow<PagingData<Podcast>>,
+    followedPodcastIds: Set<Long> = emptySet(),
     onToggleFollowedPodcast: (Podcast) -> Unit,
 ) {
     val podcastsPaging = podcasts.collectAsLazyPagingItems()
@@ -372,9 +377,10 @@ private fun PodcastSelectionScreen(
                 key = { podcastsPaging.peek(it)?.id ?: it },
             ) { index ->
                 val podcast = podcastsPaging[index] ?: return@items
-
+                // PagingData 는 팔로우 상태를 무효화하지 않으므로 followedPodcastIds 로 오버레이한다.
                 PodcastDetailItem(
                     podcast = podcast,
+                    isFollowed = podcast.id in followedPodcastIds,
                     onClick = { onToggleFollowedPodcast(podcast) },
                     onToggleFollowed = { onToggleFollowedPodcast(podcast) },
                 )
