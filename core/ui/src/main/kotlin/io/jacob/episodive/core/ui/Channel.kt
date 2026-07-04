@@ -62,6 +62,9 @@ fun ChannelSection(
             flingBehavior = flingBehavior,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
+            // 짧은 캐러셀은 빠른 스와이프의 드래그 구간만으로도 가장자리 stretch 가 쌓여
+            // 릴리즈 시 움찔거림이 생기므로 overscroll 을 사용하지 않는다.
+            overscrollEffect = null,
         ) {
             items(
                 items = channels,
