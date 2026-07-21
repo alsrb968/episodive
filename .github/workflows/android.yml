@@ -66,12 +66,12 @@ jobs:
       - name: Display local test coverage
         id: coverage
         # madrapps 액션은 Kover 가 만든 JaCoCo 호환 XML(build/reports/kover/reportDebug.xml)을
-        # 그대로 파싱한다. 네이티브 Kover 엔진은 BRANCH/INSTRUCTION 수치가 JaCoCo 대비
-        # 상승하므로, 첫 실행 후 아래 임계값을 새 baseline 에 맞춰 상향 조정하는 것을 검토할 것.
+        # 그대로 파싱한다. Kover 전환 + 순수 UI 제외 + 로직 테스트 보강 후 overall 이 86.8%로
+        # 재baseline 되어, 하한을 80 으로 상향(회귀 방지). changed-files 는 기존 80 유지.
         uses: madrapps/jacoco-report@v1.7.2
         with:
           title: Combined test coverage report
-          min-coverage-overall: 70
+          min-coverage-overall: 80
           min-coverage-changed-files: 80
           paths: |
             ${{ github.workspace }}/**/build/reports/kover/reportDebug.xml
