@@ -81,7 +81,7 @@
 | **미디어** | Media3 ExoPlayer · MediaSession · MediaNotificationService |
 | **페이징 / 이미지** | Paging 3 · Coil (+ Palette 동적 색상 추출) |
 | **백그라운드 / 위젯** | WorkManager (주기 동기화) · Glance (홈 위젯) |
-| **테스트 / 빌드** | JUnit4 · MockK · Turbine · Robolectric · JaCoCo · Gradle Convention Plugin |
+| **테스트 / 빌드** | JUnit4 · MockK · Turbine · Robolectric · Kover · Gradle Convention Plugin |
 
 ---
 
@@ -99,7 +99,7 @@
 
 - **MVI 패턴** — 모든 Feature가 `State(sealed interface)` · `Action` · `Effect(SharedFlow)`로 단방향 데이터 흐름을 강제
 - **Single Source of Truth** — 네트워크 응답을 Room에 저장하고 UI는 항상 **DB의 Flow**만 구독
-- **멀티모듈 표준화** — 21개 모듈을 **12개 컨벤션 플러그인**으로 통일, 새 Feature는 `episodive.android.feature` 한 줄로 Compose·Hilt·Test·JaCoCo 자동 적용
+- **멀티모듈 표준화** — 21개 모듈을 **12개 컨벤션 플러그인**으로 통일, 새 Feature는 `episodive.android.feature` 한 줄로 Compose·Hilt·Test·Kover 자동 적용
 
 ---
 
@@ -202,7 +202,7 @@ abstract class RemoteUpdater<Query : CacheableQuery, Response, Entity, Output : 
 
 - **Turbine**으로 Flow / StateFlow 방출 순서 검증, **MockK**로 UseCase·Repository 격리
 - **Robolectric + RoomDatabaseRule**로 DAO·마이그레이션 검증, 테스트 데이터 팩토리로 일관된 픽스처 사용
-- JaCoCo 커버리지 리포트를 **CI 뱃지로 자동 게시**
+- Kover 커버리지 리포트를 **CI 뱃지로 자동 게시**
 
 ---
 

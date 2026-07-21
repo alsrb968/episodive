@@ -1,24 +1,16 @@
-import com.android.build.api.dsl.LibraryExtension
-import com.android.build.api.variant.LibraryAndroidComponentsExtension
-import io.jacob.episodive.configureJacoco
+import io.jacob.episodive.configureKover
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.getByType
 
+// 커버리지 convention plugin (Kover 기반). plugin id("episodive.android.library.jacoco")는
+// 하위 호환을 위해 그대로 유지 → 모듈 build.gradle.kts 변경 불필요.
 class AndroidLibraryJacocoConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "jacoco")
+            apply(plugin = "org.jetbrains.kotlinx.kover")
 
-            val androidExtension = extensions.getByType<LibraryExtension>()
-
-            androidExtension.buildTypes.configureEach {
-                enableAndroidTestCoverage = true
-                enableUnitTestCoverage = true
-            }
-
-            configureJacoco(extensions.getByType<LibraryAndroidComponentsExtension>())
+            configureKover()
         }
     }
 }

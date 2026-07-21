@@ -30,7 +30,7 @@ Episodive는 Kotlin과 Jetpack Compose로 만든 Android 팟캐스트 앱으로,
 ./gradlew :core:database:test            # 특정 모듈 테스트
 ./gradlew lint                           # Lint 검사
 ./gradlew lintFix                        # Lint 자동 수정
-./gradlew createDebugCoverageReport      # 커버리지 리포트 생성 (Jacoco)
+./gradlew koverXmlReportDebug            # 커버리지 리포트 생성 (Kover)
 ```
 
 ### git worktree 작업 시 필수: local.properties 복사
@@ -89,10 +89,10 @@ cp <repo-root>/local.properties <worktree-dir>/local.properties
 | `episodive.android.application.compose` | App 모듈 Compose 설정 |
 | `episodive.android.library` | 표준 Android 라이브러리 |
 | `episodive.android.library.compose` | 라이브러리 Compose 설정 |
-| `episodive.android.feature` | Feature 템플릿 (library + compose + hilt + test + jacoco) |
+| `episodive.android.feature` | Feature 템플릿 (library + compose + hilt + test + kover) |
 | `episodive.android.room` | Room + KSP + 스키마 디렉토리 설정 |
 | `episodive.android.test` | 테스트 의존성 |
-| `episodive.android.application.jacoco` / `episodive.android.library.jacoco` | 커버리지 설정 |
+| `episodive.android.application.jacoco` / `episodive.android.library.jacoco` | 커버리지 설정 (Kover 기반, plugin id는 하위 호환 위해 유지) |
 | `episodive.hilt` | Hilt DI + KSP |
 | `episodive.jvm.library` | 순수 Kotlin/JVM 라이브러리 |
 

@@ -11,15 +11,16 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.room) apply false
     alias(libs.plugins.stability.analyzer) apply false
+    alias(libs.plugins.kover) apply false
 }
 
 tasks.register<Exec>("generateCoverageReport") {
     group = "verification"
-    description = "Generate a markdown coverage report from Jacoco XML reports (outputs to docs/)"
+    description = "Generate a markdown coverage report from Kover XML reports (outputs to docs/)"
 
     dependsOn(
         subprojects.mapNotNull { subproject ->
-            subproject.tasks.findByName("createDebugCombinedCoverageReport")
+            subproject.tasks.findByName("koverXmlReportDebug")
         }
     )
 
