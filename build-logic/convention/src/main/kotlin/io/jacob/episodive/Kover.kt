@@ -69,8 +69,16 @@ internal fun Project.configureKover() {
                     classes("*.CustomCommand", "*.CustomCommand\$*")
                     // App shell
                     classes("*AppKt*", "*AppState*")
-                    // designsystem
+                    // designsystem (재사용 Compose UI 컴포넌트)
                     classes("*.designsystem.*")
+                    // core:ui — 도메인 특화 Compose UI 컴포넌트. designsystem 과 동일 성격
+                    // (분리 가능한 로직 없이 전부 @Composable). Compose UI는 커버리지 미집계 관례.
+                    classes("*.core.ui.*")
+                    // feature:widget — Glance @Composable UI + AppWidget/DI glue (designsystem·*Service 류와 동일)
+                    classes("*.feature.widget.component.*", "*.feature.widget.theme.*")
+                    classes("*.feature.widget.dispatcher.*")
+                    classes("*.feature.widget.EpisodiveWidget", "*.feature.widget.EpisodiveWidget\$*")
+                    classes("*.feature.widget.EpisodiveWidgetReceiver")
                 }
             }
         }
