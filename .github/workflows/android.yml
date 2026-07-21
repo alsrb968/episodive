@@ -58,20 +58,23 @@ jobs:
       - name: Build and test
         run: >-
           ./gradlew
-          createDebugCombinedCoverageReport
+          koverXmlReportDebug
           --no-daemon --build-cache --parallel
           -Dorg.gradle.jvmargs="-Dfile.encoding=UTF-8 -XX:+UseG1GC -XX:SoftRefLRUPolicyMSPerMB=1 -XX:ReservedCodeCacheSize=256m -Xmx2g -Xms512m"
           -Pkotlin.daemon.jvmargs="-Dfile.encoding=UTF-8 -XX:+UseG1GC -XX:ReservedCodeCacheSize=320m -Xmx2g -Xms512m"
 
       - name: Display local test coverage
-        id: jacoco
+        id: coverage
+        # madrapps 액션은 Kover 가 만든 JaCoCo 호환 XML(build/reports/kover/reportDebug.xml)을
+        # 그대로 파싱한다. Kover 전환 + 순수 UI 제외 + 로직 테스트 보강 후 overall 이 86.8%로
+        # 재baseline 되어, 하한을 80 으로 상향(회귀 방지). changed-files 는 기존 80 유지.
         uses: madrapps/jacoco-report@v1.7.2
         with:
           title: Combined test coverage report
-          min-coverage-overall: 70
+          min-coverage-overall: 80
           min-coverage-changed-files: 80
           paths: |
-            ${{ github.workspace }}/**/build/reports/jacoco/**/*Report.xml
+            ${{ github.workspace }}/**/build/reports/kover/reportDebug.xml
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate coverage badge
@@ -81,10 +84,10 @@ jobs:
           gistID: 991664386c54d6464bb3399f02d8e1c1
           filename: coverage.json
           label: Coverage
-          message: ${{ steps.jacoco.outputs.coverage-overall }}%
+          message: ${{ steps.coverage.outputs.coverage-overall }}%
           minColorRange: 50
           maxColorRange: 90
-          valColorRange: ${{ steps.jacoco.outputs.coverage-overall }}
+          valColorRange: ${{ steps.coverage.outputs.coverage-overall }}
 
   ci:
     needs: build

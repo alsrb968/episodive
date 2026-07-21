@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Jacoco Coverage Report Analyzer
-Analyzes Jacoco XML reports and generates a markdown summary
+Kover Coverage Report Analyzer
+Analyzes Kover XML reports (JaCoCo-compatible schema) and generates a markdown summary
 """
 
 import xml.etree.ElementTree as ET
@@ -285,27 +285,27 @@ def main():
 
     # Core modules
     for module in ['database', 'network', 'datastore', 'data', 'domain', 'player', 'designsystem', 'testing']:
-        xml_path = project_root / f'core/{module}/build/reports/jacoco/createDebugCombinedCoverageReport/createDebugCombinedCoverageReport.xml'
+        xml_path = project_root / f'core/{module}/build/reports/kover/reportDebug.xml'
         if xml_path.exists():
             print(f"  [OK] Found coverage for core:{module}")
             modules_data[f'core:{module}'] = parse_coverage(str(xml_path))
 
     # Feature modules
     for module in ['home', 'search', 'library', 'podcast', 'player', 'clip', 'onboarding', 'channel']:
-        xml_path = project_root / f'feature/{module}/build/reports/jacoco/createDebugCombinedCoverageReport/createDebugCombinedCoverageReport.xml'
+        xml_path = project_root / f'feature/{module}/build/reports/kover/reportDebug.xml'
         if xml_path.exists():
             print(f"  [OK] Found coverage for feature:{module}")
             modules_data[f'feature:{module}'] = parse_coverage(str(xml_path))
 
     # App module
-    app_xml_path = project_root / 'app/build/reports/jacoco/createDebugCombinedCoverageReport/createDebugCombinedCoverageReport.xml'
+    app_xml_path = project_root / 'app/build/reports/kover/reportDebug.xml'
     if app_xml_path.exists():
         print(f"  [OK] Found coverage for app")
         modules_data['app'] = parse_coverage(str(app_xml_path))
 
     if not modules_data:
         print("[ERROR] No coverage reports found!")
-        print("   Run './gradlew createDebugCombinedCoverageReport' first")
+        print("   Run './gradlew koverXmlReportDebug' first")
         sys.exit(1)
 
     # Generate report

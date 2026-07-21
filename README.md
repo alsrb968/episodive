@@ -123,14 +123,14 @@ Data Sources: Network (:core:network) | Database (:core:database) | DataStore (:
 | MockK | 1.14.6 |
 | Turbine | 1.2.1 |
 | Robolectric | 4.16 |
-| JaCoCo | 0.8.12 |
+| Kover | 0.9.9 |
 
 ## 빌드 시스템
 
 - **Gradle Version Catalog**: 의존성 중앙 관리
 - **Convention Plugins**: 모듈별 일관된 빌드 설정
   - `episodive.android.application` / `.application.compose` - Application 모듈
-  - `episodive.android.feature` - Feature 모듈 (Compose + Hilt + Test + Jacoco)
+  - `episodive.android.feature` - Feature 모듈 (Compose + Hilt + Test + Kover)
   - `episodive.android.library` / `.library.compose` - 라이브러리 모듈
   - `episodive.android.room` - Room 데이터베이스 설정
   - `episodive.hilt` - Hilt DI 설정
@@ -184,8 +184,8 @@ Data Sources: Network (:core:network) | Database (:core:database) | DataStore (:
 ./gradlew lint
 ./gradlew lintFix
 
-# 코드 커버리지 리포트 생성
-./gradlew createDebugCoverageReport
+# 코드 커버리지 리포트 생성 (전 모듈 Kover XML)
+./gradlew koverXmlReportDebug
 ```
 
 # 주요 구현 패턴
