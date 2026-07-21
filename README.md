@@ -6,9 +6,13 @@ Podcast Index Api 활용한 팟캐스트 앱
 
 # 화면
 
-|                   **홈**                    |                    **검색**                    |                    **보관함**                    |                   **클립**                   |                   **플레이어**                   |
-|:------------------------------------------:|:--------------------------------------------:|:---------------------------------------------:|:------------------------------------------:|:--------------------------------------------:|
-| <img src="docs/gifs/home.gif" width="140"> | <img src="docs/gifs/search.gif" width="140"> | <img src="docs/gifs/library.gif" width="140"> | <img src="docs/gifs/clip.gif" width="140"> | <img src="docs/gifs/player.gif" width="140"> |
+|                     **온보딩**                     |                   **홈**                    |                    **검색**                    |                    **팟캐스트**                    |
+|:----------------------------------------------:|:------------------------------------------:|:--------------------------------------------:|:----------------------------------------------:|
+| <img src="docs/gifs/onboarding.gif" width="150"> | <img src="docs/gifs/home.gif" width="150"> | <img src="docs/gifs/search.gif" width="150"> | <img src="docs/gifs/podcast.gif" width="150"> |
+
+|                    **플레이어**                    |                    **보관함**                    |                   **클립**                   |                    **위젯**                    |
+|:--------------------------------------------:|:---------------------------------------------:|:------------------------------------------:|:--------------------------------------------:|
+| <img src="docs/gifs/player.gif" width="150"> | <img src="docs/gifs/library.gif" width="150"> | <img src="docs/gifs/clip.gif" width="150"> | <img src="docs/gifs/widget.gif" width="150"> |
 
 # 주요 기능
 
@@ -20,6 +24,7 @@ Podcast Index Api 활용한 팟캐스트 앱
 - **팟캐스트 상세**: 팟캐스트 정보 및 에피소드 목록 제공
 - **오디오 플레이어**: ExoPlayer 기반의 백그라운드 재생 및 미디어 알림 지원
 - **백그라운드 동기화**: WorkManager 기반 3시간 주기 에피소드 동기화 및 새 에피소드 알림
+- **홈 화면 위젯**: Glance 기반 위젯으로 홈 화면에서 바로 재생 제어 및 팔로우 피드 확인
 - **Last Play**: 마지막 재생 위치 기억 및 이어듣기
 
 # 아키텍처
@@ -75,6 +80,7 @@ Data Sources: Network (:core:network) | Database (:core:database) | DataStore (:
 | `:feature:player`     | 오디오 플레이어 UI           |
 | `:feature:clip`       | 사운드바이트 및 클립           |
 | `:feature:channel`    | 채널/카테고리 탐색            |
+| `:feature:widget`     | Glance 홈 화면 위젯          |
 
 ## App Module
 
