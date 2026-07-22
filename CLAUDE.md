@@ -331,11 +331,13 @@ Rules:
 `graphify-out/`의 `graph.json`·`GRAPH_REPORT.md`는 커밋되어 팀이 공유하지만, **동작 훅은 버전 관리가 안 되므로**(git hook은 `.git/hooks`, Claude PreToolUse 가드는 로컬 `.claude/settings.json`에 위치) 각 기여자가 **clone 후 한 번** 직접 설치해야 한다.
 
 ```bash
-graphify install         # graphify 0.9.12 (버전 고정 — 다르면 그래프 diff 노이즈 발생)
-graphify hook install    # post-commit 훅: 커밋마다 바뀐 코드 파일 AST 재추출 → graph.json·GRAPH_REPORT.md 재생성
-graphify claude install  # Claude Code용 CLAUDE.md 지시문 + PreToolUse 그래프-우선 가드
+graphify install            # graphify 0.9.12 (버전 고정 — 다르면 그래프 diff 노이즈 발생)
+graphify hook install       # post-commit·post-checkout 훅 설치
+rm -f .git/hooks/post-checkout  # post-checkout 훅은 제거 권장 (아래 참고)
+graphify claude install     # Claude Code용 CLAUDE.md 지시문 + PreToolUse 그래프-우선 가드
 ```
 
 동작 규칙:
 - post-commit 훅은 커밋 **후** `git diff HEAD~1`로 바뀐 **코드** 파일만 감지해 그래프를 재생성한다. 따라서 커밋 직후 `graphify-out/`가 dirty로 남으면 **별도 커밋**한다(훅은 자동 커밋하지 않으며, 그대로 둔다).
 - 문서/이미지만 변경한 경우 훅이 무시하므로 그때만 `graphify update .`(또는 `/graphify --update`)를 수동 실행한다.
+- **post-checkout 훅은 제거한다.** `graphify hook install`이 함께 설치하지만, 이 훅은 브랜치 전환마다 **전체 재빌드**를 돌리고 `GRAPHIFY_SKIP_HOOK`을 무시하며 shrink-guard와 맞물려 그래프 노드를 누적시켜 `graphify-out/`를 계속 dirty하게 만든다. post-commit 훅만으로 충분하다. (그래프가 누적으로 부풀면 `graphify update . --force`로 리셋 가능.)
