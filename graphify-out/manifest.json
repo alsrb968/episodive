@@ -1,0 +1,2982 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1784726817.5731983,
+    "ast_hash": "74b862887a7d984a5caa00f63ff2e904",
+    "semantic_hash": "74b862887a7d984a5caa00f63ff2e904"
+  },
+  "app/build.gradle.kts": {
+    "mtime": 1780107904.8530707,
+    "ast_hash": "4f1e23df4dae3d1566158772eb88b51f",
+    "semantic_hash": "4f1e23df4dae3d1566158772eb88b51f"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/EpisodiveApplication.kt": {
+    "mtime": 1775564389.7767751,
+    "ast_hash": "62730c5993977044afe1219bdf134896",
+    "semantic_hash": "62730c5993977044afe1219bdf134896"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/MainActivity.kt": {
+    "mtime": 1780590963.7759016,
+    "ast_hash": "2675a68ec0d665fb15cee402d78a142c",
+    "semantic_hash": "2675a68ec0d665fb15cee402d78a142c"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/MainActivityViewModel.kt": {
+    "mtime": 1780590963.7760892,
+    "ast_hash": "9f69b558c7856627909e7e64f70a821c",
+    "semantic_hash": "9f69b558c7856627909e7e64f70a821c"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/MediaNotificationService.kt": {
+    "mtime": 1780590963.7763298,
+    "ast_hash": "4a2da016cc6d9a5203c0f0af1203096a",
+    "semantic_hash": "4a2da016cc6d9a5203c0f0af1203096a"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/navigation/BottomBarDestination.kt": {
+    "mtime": 1775476640.624875,
+    "ast_hash": "0eb81f8a392407e5da1ab95eeebb9165",
+    "semantic_hash": "0eb81f8a392407e5da1ab95eeebb9165"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavHost.kt": {
+    "mtime": 1775476640.6252894,
+    "ast_hash": "856ba53c550a064f08679f1014e8d95c",
+    "semantic_hash": "856ba53c550a064f08679f1014e8d95c"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavigationState.kt": {
+    "mtime": 1775476640.6257122,
+    "ast_hash": "903b58a2fc26589173434dbdd436f423",
+    "semantic_hash": "903b58a2fc26589173434dbdd436f423"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavigator.kt": {
+    "mtime": 1775476640.6259758,
+    "ast_hash": "27db325de2a4efc6dff90e7738a52fe3",
+    "semantic_hash": "27db325de2a4efc6dff90e7738a52fe3"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/sync/EpisodeSyncNotificationHelper.kt": {
+    "mtime": 1775569170.7608283,
+    "ast_hash": "c35200ad6da05a6b7b761392e1603f10",
+    "semantic_hash": "c35200ad6da05a6b7b761392e1603f10"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/sync/EpisodeSyncScheduler.kt": {
+    "mtime": 1775564397.7774754,
+    "ast_hash": "3405577427931921f5aba5339cfd03b8",
+    "semantic_hash": "3405577427931921f5aba5339cfd03b8"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/sync/EpisodeSyncWorker.kt": {
+    "mtime": 1780590963.7764747,
+    "ast_hash": "894b0f4ea20ad16ffef9b1feb3ad42b6",
+    "semantic_hash": "894b0f4ea20ad16ffef9b1feb3ad42b6"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/ui/EpisodiveApp.kt": {
+    "mtime": 1780590963.7767153,
+    "ast_hash": "9dbd667d79b5c643258eaa79df70eeec",
+    "semantic_hash": "9dbd667d79b5c643258eaa79df70eeec"
+  },
+  "app/src/main/kotlin/io/jacob/episodive/ui/EpisodiveAppState.kt": {
+    "mtime": 1775476640.626653,
+    "ast_hash": "e1e286132c4632b005de3699cbc5005f",
+    "semantic_hash": "e1e286132c4632b005de3699cbc5005f"
+  },
+  "app/src/test/kotlin/io/jacob/episodive/MainActivityViewModelTest.kt": {
+    "mtime": 1780590963.7768826,
+    "ast_hash": "955740b38fac4fdfab18bfa423db18c1",
+    "semantic_hash": "955740b38fac4fdfab18bfa423db18c1"
+  },
+  "app/src/test/kotlin/io/jacob/episodive/sync/EpisodeSyncNotificationHelperTest.kt": {
+    "mtime": 1775569379.7163393,
+    "ast_hash": "bd61568b71659072e908f3630a2a08da",
+    "semantic_hash": "bd61568b71659072e908f3630a2a08da"
+  },
+  "app/src/test/kotlin/io/jacob/episodive/sync/EpisodeSyncSchedulerTest.kt": {
+    "mtime": 1775561259.8079572,
+    "ast_hash": "4c6d6f0e7adcd6148e798b5e358a1aba",
+    "semantic_hash": "4c6d6f0e7adcd6148e798b5e358a1aba"
+  },
+  "app/src/test/kotlin/io/jacob/episodive/sync/EpisodeSyncWorkerTest.kt": {
+    "mtime": 1780590963.7770538,
+    "ast_hash": "b5408e42eab61cc7852a7e58462e6d72",
+    "semantic_hash": "b5408e42eab61cc7852a7e58462e6d72"
+  },
+  "build-logic/convention/build.gradle.kts": {
+    "mtime": 1784651473.304599,
+    "ast_hash": "d27a96dd44e80cdfddb2c3e16ae422a9",
+    "semantic_hash": "d27a96dd44e80cdfddb2c3e16ae422a9"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidApplicationComposeConventionPlugin.kt": {
+    "mtime": 1764929329.992505,
+    "ast_hash": "a37fd71ac4c47445d98d81cd25ca3ccd",
+    "semantic_hash": "a37fd71ac4c47445d98d81cd25ca3ccd"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidApplicationConventionPlugin.kt": {
+    "mtime": 1761650162.4037788,
+    "ast_hash": "8039f9086bd4c6422a1873c309168b49",
+    "semantic_hash": "8039f9086bd4c6422a1873c309168b49"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidApplicationJacocoConventionPlugin.kt": {
+    "mtime": 1784651473.3048677,
+    "ast_hash": "fda7f6f4f874af7b7bf85aaf66b85406",
+    "semantic_hash": "fda7f6f4f874af7b7bf85aaf66b85406"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidFeatureConventionPlugin.kt": {
+    "mtime": 1775476640.6269608,
+    "ast_hash": "831eeeb211cc29c3d55004070ae9f7e5",
+    "semantic_hash": "831eeeb211cc29c3d55004070ae9f7e5"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidLibraryComposeConventionPlugin.kt": {
+    "mtime": 1764929329.9882796,
+    "ast_hash": "f02d3a88b3c587876b1b6e0068d052d4",
+    "semantic_hash": "f02d3a88b3c587876b1b6e0068d052d4"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidLibraryConventionPlugin.kt": {
+    "mtime": 1761650162.4049816,
+    "ast_hash": "a955ef53b330ac3c5ed748af8661357c",
+    "semantic_hash": "a955ef53b330ac3c5ed748af8661357c"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidLibraryJacocoConventionPlugin.kt": {
+    "mtime": 1784651473.3051653,
+    "ast_hash": "41ebbd4cbe2ba4db594012a184f0893c",
+    "semantic_hash": "41ebbd4cbe2ba4db594012a184f0893c"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidRoomConventionPlugin.kt": {
+    "mtime": 1761650162.4057374,
+    "ast_hash": "40e637b0f6372aab92804d71966770ac",
+    "semantic_hash": "40e637b0f6372aab92804d71966770ac"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidTestConventionPlugin.kt": {
+    "mtime": 1774618060.1694298,
+    "ast_hash": "860a09fe8f318dda3931d6e9cd8b04b8",
+    "semantic_hash": "860a09fe8f318dda3931d6e9cd8b04b8"
+  },
+  "build-logic/convention/src/main/kotlin/AndroidWidgetConventionPlugin.kt": {
+    "mtime": 1780107904.8550994,
+    "ast_hash": "0eb982fee7d30380d82be3e281ac30d4",
+    "semantic_hash": "0eb982fee7d30380d82be3e281ac30d4"
+  },
+  "build-logic/convention/src/main/kotlin/HiltConventionPlugin.kt": {
+    "mtime": 1764739444.2395484,
+    "ast_hash": "b41e4a195fd3c25c3ec1ac6d33ca290b",
+    "semantic_hash": "b41e4a195fd3c25c3ec1ac6d33ca290b"
+  },
+  "build-logic/convention/src/main/kotlin/JvmLibraryConventionPlugin.kt": {
+    "mtime": 1764727241.686983,
+    "ast_hash": "8e9526b251b0f9ac3664323fc301b25a",
+    "semantic_hash": "8e9526b251b0f9ac3664323fc301b25a"
+  },
+  "build-logic/convention/src/main/kotlin/io/jacob/episodive/AndroidCompose.kt": {
+    "mtime": 1763539333.084303,
+    "ast_hash": "dce5a295af975767f10664ec06fc93c0",
+    "semantic_hash": "dce5a295af975767f10664ec06fc93c0"
+  },
+  "build-logic/convention/src/main/kotlin/io/jacob/episodive/KotlinAndroid.kt": {
+    "mtime": 1761650162.407107,
+    "ast_hash": "08d76eb88567a924eef813cb7119aa89",
+    "semantic_hash": "08d76eb88567a924eef813cb7119aa89"
+  },
+  "build-logic/convention/src/main/kotlin/io/jacob/episodive/Kover.kt": {
+    "mtime": 1784651473.3052957,
+    "ast_hash": "8c0d4fd4285a031c55dfc6cbb197b98f",
+    "semantic_hash": "8c0d4fd4285a031c55dfc6cbb197b98f"
+  },
+  "build-logic/convention/src/main/kotlin/io/jacob/episodive/ProjectExtensions.kt": {
+    "mtime": 1761650162.4074678,
+    "ast_hash": "31816cb618375054ec036c8174e21b38",
+    "semantic_hash": "31816cb618375054ec036c8174e21b38"
+  },
+  "build-logic/convention/src/main/kotlin/io/jacob/episodive/TestPackaging.kt": {
+    "mtime": 1764725703.0500793,
+    "ast_hash": "db68d14116b2ca3c7e450709ff18da0a",
+    "semantic_hash": "db68d14116b2ca3c7e450709ff18da0a"
+  },
+  "build-logic/settings.gradle.kts": {
+    "mtime": 1755093973.8985293,
+    "ast_hash": "dd2666d48e13a719cbeaf9f0817e01dc",
+    "semantic_hash": "dd2666d48e13a719cbeaf9f0817e01dc"
+  },
+  "build.gradle.kts": {
+    "mtime": 1784651473.3056977,
+    "ast_hash": "a4ae935359d733395a869f5453892d10",
+    "semantic_hash": "a4ae935359d733395a869f5453892d10"
+  },
+  "core/common/build.gradle.kts": {
+    "mtime": 1764724375.851628,
+    "ast_hash": "bc565a438efa23fe5e40c0c7695ab300",
+    "semantic_hash": "bc565a438efa23fe5e40c0c7695ab300"
+  },
+  "core/common/src/main/kotlin/io/jacob/episodive/core/common/EpisodiveDispatchers.kt": {
+    "mtime": 1764735123.496955,
+    "ast_hash": "40dbb98e64f0f2da589efcbd670f7ec7",
+    "semantic_hash": "40dbb98e64f0f2da589efcbd670f7ec7"
+  },
+  "core/common/src/main/kotlin/io/jacob/episodive/core/common/EpisodivePlayers.kt": {
+    "mtime": 1764736591.3680394,
+    "ast_hash": "03c55bf9f5c99495ba4dae75e7267c7a",
+    "semantic_hash": "03c55bf9f5c99495ba4dae75e7267c7a"
+  },
+  "core/common/src/main/kotlin/io/jacob/episodive/core/common/FlowExt.kt": {
+    "mtime": 1764729305.6668062,
+    "ast_hash": "6aacddd9e15a572712505a97daa9c62a",
+    "semantic_hash": "6aacddd9e15a572712505a97daa9c62a"
+  },
+  "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt": {
+    "mtime": 1784728148.60162,
+    "ast_hash": "51821bddbddb2878b86dbde72d7de05a",
+    "semantic_hash": ""
+  },
+  "core/common/src/main/kotlin/io/jacob/episodive/core/common/di/DispatchersModule.kt": {
+    "mtime": 1774618060.1698537,
+    "ast_hash": "50c20a6a1bcf554ca8570afeff17bd96",
+    "semantic_hash": "50c20a6a1bcf554ca8570afeff17bd96"
+  },
+  "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt": {
+    "mtime": 1764729456.2092822,
+    "ast_hash": "d5f8f3c51407050f7861321e8529462d",
+    "semantic_hash": "d5f8f3c51407050f7861321e8529462d"
+  },
+  "core/data/build.gradle.kts": {
+    "mtime": 1774867488.7522426,
+    "ast_hash": "ccbe76bb7778cf23f871ba5a38318bea",
+    "semantic_hash": "ccbe76bb7778cf23f871ba5a38318bea"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/di/DownloadModule.kt": {
+    "mtime": 1783140439.816255,
+    "ast_hash": "1ae1f2382030ff9a9644cf31ff28b289",
+    "semantic_hash": "1ae1f2382030ff9a9644cf31ff28b289"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/di/ImageModule.kt": {
+    "mtime": 1761650162.407704,
+    "ast_hash": "1c5cd6b553ca5b5ad7079ff6258368b7",
+    "semantic_hash": "1c5cd6b553ca5b5ad7079ff6258368b7"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/di/MonitorModule.kt": {
+    "mtime": 1758713803.169095,
+    "ast_hash": "34e3d73f9ecb1a6c9902ea0715455a91",
+    "semantic_hash": "34e3d73f9ecb1a6c9902ea0715455a91"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/di/RepositoryModule.kt": {
+    "mtime": 1767339643.5259736,
+    "ast_hash": "8734dcad18f4d630be5658cfcbda6b53",
+    "semantic_hash": "8734dcad18f4d630be5658cfcbda6b53"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/download/EpisodeDownloaderImpl.kt": {
+    "mtime": 1783140439.8164566,
+    "ast_hash": "d4aca46985f19755a4c0d84ef64c20e2",
+    "semantic_hash": "d4aca46985f19755a4c0d84ef64c20e2"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryImpl.kt": {
+    "mtime": 1764764675.119641,
+    "ast_hash": "1cf78133b039c2c46b65f3f29ce69200",
+    "semantic_hash": "1cf78133b039c2c46b65f3f29ce69200"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/EpisodeRepositoryImpl.kt": {
+    "mtime": 1783140439.8169289,
+    "ast_hash": "11eb01bdc3a61595446a1a088db9ac80",
+    "semantic_hash": "11eb01bdc3a61595446a1a088db9ac80"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/PlayerRepositoryImpl.kt": {
+    "mtime": 1780107904.8553832,
+    "ast_hash": "9ad2728575e461951ef26ef234e7fcff",
+    "semantic_hash": "9ad2728575e461951ef26ef234e7fcff"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/PodcastRepositoryImpl.kt": {
+    "mtime": 1783152568.5671446,
+    "ast_hash": "db9f35588ded7b4bbebd439ef84d2151",
+    "semantic_hash": "db9f35588ded7b4bbebd439ef84d2151"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/RecentSearchRepositoryImpl.kt": {
+    "mtime": 1774867488.7534556,
+    "ast_hash": "859cca54d2a20181359ebc5ca5d05c10",
+    "semantic_hash": "859cca54d2a20181359ebc5ca5d05c10"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/UserRepositoryImpl.kt": {
+    "mtime": 1774618060.170383,
+    "ast_hash": "93b4f7907e40bc036d847bbceb08a1e5",
+    "semantic_hash": "93b4f7907e40bc036d847bbceb08a1e5"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/ConnectivityManagerNetworkMonitor.kt": {
+    "mtime": 1759402133.8750427,
+    "ast_hash": "2dc22665cf616b5ef7f348ce41c353c7",
+    "semantic_hash": "2dc22665cf616b5ef7f348ce41c353c7"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/ImageCacheInterceptor.kt": {
+    "mtime": 1761650162.408307,
+    "ast_hash": "2e5fac591d4d6c6f56fa0e1ef668628a",
+    "semantic_hash": "2e5fac591d4d6c6f56fa0e1ef668628a"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/NetworkMonitor.kt": {
+    "mtime": 1758713803.169285,
+    "ast_hash": "2c9ec0af6c9070ff9d750dce2af9851b",
+    "semantic_hash": "2c9ec0af6c9070ff9d750dce2af9851b"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/paging/PagingDefaults.kt": {
+    "mtime": 1774867488.7536883,
+    "ast_hash": "5ffadf600de29332332149f46c6072e6",
+    "semantic_hash": "5ffadf600de29332332149f46c6072e6"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/paging/RecommendedPodcastPagingSource.kt": {
+    "mtime": 1783152568.5678308,
+    "ast_hash": "76b7d1c67a7e89982510b9aa0885a812",
+    "semantic_hash": "76b7d1c67a7e89982510b9aa0885a812"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/paging/SoundbiteEpisodePagingSource.kt": {
+    "mtime": 1767343878.7967677,
+    "ast_hash": "27f022c989e75db07de5528b862a54db",
+    "semantic_hash": "27f022c989e75db07de5528b862a54db"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/query/CacheableQuery.kt": {
+    "mtime": 1761719425.9416637,
+    "ast_hash": "473c8789dbf22b1fba56ecb6927ea81b",
+    "semantic_hash": "473c8789dbf22b1fba56ecb6927ea81b"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/query/EpisodeQuery.kt": {
+    "mtime": 1767332697.2889614,
+    "ast_hash": "c4f50b8b69146709c68bb6f407b7bf39",
+    "semantic_hash": "c4f50b8b69146709c68bb6f407b7bf39"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/query/PodcastQuery.kt": {
+    "mtime": 1767080379.3272417,
+    "ast_hash": "b9990becbe48185ba3fd3a8af0c6b5c5",
+    "semantic_hash": "b9990becbe48185ba3fd3a8af0c6b5c5"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/updater/EpisodeRemoteUpdater.kt": {
+    "mtime": 1767332697.3018315,
+    "ast_hash": "d56c2fd63b0295b1343f3d0166d0623b",
+    "semantic_hash": "d56c2fd63b0295b1343f3d0166d0623b"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/updater/PodcastRemoteUpdater.kt": {
+    "mtime": 1767080379.3327768,
+    "ast_hash": "032d75dda22ddbba1d3fce776d243a02",
+    "semantic_hash": "032d75dda22ddbba1d3fce776d243a02"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/util/updater/RemoteUpdater.kt": {
+    "mtime": 1765417549.4145093,
+    "ast_hash": "99ef76968e9eb208553367bd2059097b",
+    "semantic_hash": "99ef76968e9eb208553367bd2059097b"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataModule.kt": {
+    "mtime": 1780107904.8556385,
+    "ast_hash": "96b77d54b6176ba9dd2d1ad82f206fd4",
+    "semantic_hash": "96b77d54b6176ba9dd2d1ad82f206fd4"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt": {
+    "mtime": 1780590963.7773013,
+    "ast_hash": "ffe01ffe5398aee4deb8ae76db5e59e5",
+    "semantic_hash": "ffe01ffe5398aee4deb8ae76db5e59e5"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDispatcher.kt": {
+    "mtime": 1780107904.8559778,
+    "ast_hash": "321db63203f4c5808c9ed714bdcd47a0",
+    "semantic_hash": "321db63203f4c5808c9ed714bdcd47a0"
+  },
+  "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt": {
+    "mtime": 1780590963.7774649,
+    "ast_hash": "831181fb5eb3eb990353c607838b9c5d",
+    "semantic_hash": "831181fb5eb3eb990353c607838b9c5d"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryTest.kt": {
+    "mtime": 1764764476.3483992,
+    "ast_hash": "4956f55c147cf1f734a1332bfec81bda",
+    "semantic_hash": "4956f55c147cf1f734a1332bfec81bda"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/EpisodeRepositoryImplTest.kt": {
+    "mtime": 1783140439.817405,
+    "ast_hash": "1bebd942862461a44cbeee716ae6d36f",
+    "semantic_hash": "1bebd942862461a44cbeee716ae6d36f"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/EpisodeRepositoryTest.kt": {
+    "mtime": 1783140439.8179746,
+    "ast_hash": "a68e23128ebcf17551e6145b7ae34b1a",
+    "semantic_hash": "a68e23128ebcf17551e6145b7ae34b1a"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/PlayerRepositoryTest.kt": {
+    "mtime": 1766968825.4249866,
+    "ast_hash": "c49ed13e3246da6e782b1d3c10d423ab",
+    "semantic_hash": "c49ed13e3246da6e782b1d3c10d423ab"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/PodcastRepositoryImplTest.kt": {
+    "mtime": 1780823543.4960043,
+    "ast_hash": "d4ec0e87e1ea23d51b363f3ed0401258",
+    "semantic_hash": "d4ec0e87e1ea23d51b363f3ed0401258"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/PodcastRepositoryTest.kt": {
+    "mtime": 1775472853.8895116,
+    "ast_hash": "9960e043e60367c269f753872e5d4c47",
+    "semantic_hash": "9960e043e60367c269f753872e5d4c47"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/RecentSearchRepositoryTest.kt": {
+    "mtime": 1775472853.8897917,
+    "ast_hash": "19f70244ddc2dee34f8ea1b745228b98",
+    "semantic_hash": "19f70244ddc2dee34f8ea1b745228b98"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/UserRepositoryTest.kt": {
+    "mtime": 1774618060.1709735,
+    "ast_hash": "e010c49472fdd274f5c8f6ac9ab8e35c",
+    "semantic_hash": "e010c49472fdd274f5c8f6ac9ab8e35c"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/util/ConnectivityManagerNetworkMonitorTest.kt": {
+    "mtime": 1775472853.890128,
+    "ast_hash": "02bcd20979e73b07d85dc9a542c0bb9a",
+    "semantic_hash": "02bcd20979e73b07d85dc9a542c0bb9a"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/util/ImageCacheInterceptorTest.kt": {
+    "mtime": 1764132742.1081364,
+    "ast_hash": "7696cb32977c688c16b413b999ab16dd",
+    "semantic_hash": "7696cb32977c688c16b413b999ab16dd"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/util/paging/RecommendedPodcastPagingSourceTest.kt": {
+    "mtime": 1783152568.5684025,
+    "ast_hash": "3978d844028c0c85b3230a49e458c9a5",
+    "semantic_hash": "3978d844028c0c85b3230a49e458c9a5"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/util/paging/SoundbiteEpisodePagingSourceTest.kt": {
+    "mtime": 1774618060.1711807,
+    "ast_hash": "9de12b9378c36078124659d1f96f71e8",
+    "semantic_hash": "9de12b9378c36078124659d1f96f71e8"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/util/updater/EpisodeRemoteUpdaterTest.kt": {
+    "mtime": 1767332697.2966547,
+    "ast_hash": "a209e95a7b34bb8da899cfbb795b5858",
+    "semantic_hash": "a209e95a7b34bb8da899cfbb795b5858"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/util/updater/PodcastRemoteUpdaterTest.kt": {
+    "mtime": 1767081185.2442086,
+    "ast_hash": "034ad2c423aee80ff1577c798c846035",
+    "semantic_hash": "034ad2c423aee80ff1577c798c846035"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImplTest.kt": {
+    "mtime": 1780590963.7776933,
+    "ast_hash": "80197563e181e71b00658aa30c24f77a",
+    "semantic_hash": "80197563e181e71b00658aa30c24f77a"
+  },
+  "core/data/src/test/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdaterTest.kt": {
+    "mtime": 1780590963.7778487,
+    "ast_hash": "164b628806f96520df7294a569b80ad6",
+    "semantic_hash": "164b628806f96520df7294a569b80ad6"
+  },
+  "core/database/build.gradle.kts": {
+    "mtime": 1765948840.9800355,
+    "ast_hash": "adbfe3ac84477c94bdded00855fb23d3",
+    "semantic_hash": "adbfe3ac84477c94bdded00855fb23d3"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/1.json": {
+    "mtime": 1758626566.0630457,
+    "ast_hash": "2d98072c11e218b6665cf915a5888842",
+    "semantic_hash": "2d98072c11e218b6665cf915a5888842"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/10.json": {
+    "mtime": 1775663900.5629005,
+    "ast_hash": "084bf26949184a70d07ee6302382cf97",
+    "semantic_hash": "084bf26949184a70d07ee6302382cf97"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/11.json": {
+    "mtime": 1775665173.6975825,
+    "ast_hash": "b116b006ccaa2736ecb2392f34059819",
+    "semantic_hash": "b116b006ccaa2736ecb2392f34059819"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/2.json": {
+    "mtime": 1764551169.8250332,
+    "ast_hash": "45f8f1af94fa1bc0df961ecf243ecaf3",
+    "semantic_hash": "45f8f1af94fa1bc0df961ecf243ecaf3"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/3.json": {
+    "mtime": 1764550492.746004,
+    "ast_hash": "87b2f5a340ce4f1e6a87f73574aa7de9",
+    "semantic_hash": "87b2f5a340ce4f1e6a87f73574aa7de9"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/4.json": {
+    "mtime": 1766103867.9125943,
+    "ast_hash": "4314399f8d6c150416f772e24869ce9c",
+    "semantic_hash": "4314399f8d6c150416f772e24869ce9c"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/5.json": {
+    "mtime": 1766387685.9207745,
+    "ast_hash": "91ee194988fcdf8bb17c510623a483cb",
+    "semantic_hash": "91ee194988fcdf8bb17c510623a483cb"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/6.json": {
+    "mtime": 1766387764.5644991,
+    "ast_hash": "b3d3f5686e6c3f3371d04ee252112d3e",
+    "semantic_hash": "b3d3f5686e6c3f3371d04ee252112d3e"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/7.json": {
+    "mtime": 1766453774.422618,
+    "ast_hash": "0a7cea6e6a467d3f0356eb19ed718555",
+    "semantic_hash": "0a7cea6e6a467d3f0356eb19ed718555"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/8.json": {
+    "mtime": 1767341079.7215538,
+    "ast_hash": "b7202621bc29df03cb5055c56d302fd0",
+    "semantic_hash": "b7202621bc29df03cb5055c56d302fd0"
+  },
+  "core/database/schemas/io.jacob.episodive.core.database.EpisodiveDatabase/9.json": {
+    "mtime": 1774796282.2101986,
+    "ast_hash": "6666f4944f68213e4e08f545f4d7bc8b",
+    "semantic_hash": "6666f4944f68213e4e08f545f4d7bc8b"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/EpisodiveDatabase.kt": {
+    "mtime": 1775665173.698048,
+    "ast_hash": "44ac24b4a102152a6a2382bbed763d1b",
+    "semantic_hash": "44ac24b4a102152a6a2382bbed763d1b"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/EpisodeDao.kt": {
+    "mtime": 1783140439.8186128,
+    "ast_hash": "315a18200085f1fe8664b54a560d4bf7",
+    "semantic_hash": "315a18200085f1fe8664b54a560d4bf7"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt": {
+    "mtime": 1767336960.8739862,
+    "ast_hash": "70b4743e825a79fcf9aa9d1adf656c8c",
+    "semantic_hash": "70b4743e825a79fcf9aa9d1adf656c8c"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/PodcastDao.kt": {
+    "mtime": 1780823543.4962199,
+    "ast_hash": "ac68bc4eac8f1a9b988c98a32fd321a1",
+    "semantic_hash": "ac68bc4eac8f1a9b988c98a32fd321a1"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/RecentSearchDao.kt": {
+    "mtime": 1774796282.2109473,
+    "ast_hash": "129adcbb553a6b912f197615a244ee1c",
+    "semantic_hash": "129adcbb553a6b912f197615a244ee1c"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/SoundbiteDao.kt": {
+    "mtime": 1767149240.2874858,
+    "ast_hash": "6d7c2bc9f8af096ee8222ac4e6232111",
+    "semantic_hash": "6d7c2bc9f8af096ee8222ac4e6232111"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/EpisodeLocalDataSource.kt": {
+    "mtime": 1783140439.8188503,
+    "ast_hash": "7e6101eb0e99401aaf9ba77829553b00",
+    "semantic_hash": "7e6101eb0e99401aaf9ba77829553b00"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/EpisodeLocalDataSourceImpl.kt": {
+    "mtime": 1783140439.819174,
+    "ast_hash": "b386723ba20c354495cb7ef620a76222",
+    "semantic_hash": "b386723ba20c354495cb7ef620a76222"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/FeedLocalDataSource.kt": {
+    "mtime": 1767336960.845617,
+    "ast_hash": "d9e68fb999766d62aed48a64b09843b1",
+    "semantic_hash": "d9e68fb999766d62aed48a64b09843b1"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/FeedLocalDataSourceImpl.kt": {
+    "mtime": 1767336960.8685272,
+    "ast_hash": "b3a7bfcd2e19f5632e11d96e5bc225b3",
+    "semantic_hash": "b3a7bfcd2e19f5632e11d96e5bc225b3"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/PodcastLocalDataSource.kt": {
+    "mtime": 1780823543.4965246,
+    "ast_hash": "feae155f8530902c2502e44fa875719e",
+    "semantic_hash": "feae155f8530902c2502e44fa875719e"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/PodcastLocalDataSourceImpl.kt": {
+    "mtime": 1780823543.4967346,
+    "ast_hash": "44fb42ac9690d38a160b49d6495bc3fe",
+    "semantic_hash": "44fb42ac9690d38a160b49d6495bc3fe"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt": {
+    "mtime": 1774796282.211497,
+    "ast_hash": "45f708a93ff52c2359d46d5511bae95c",
+    "semantic_hash": "45f708a93ff52c2359d46d5511bae95c"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSourceImpl.kt": {
+    "mtime": 1774796282.2117555,
+    "ast_hash": "ced35aba7d87d2db7b3b01d6d4b51e93",
+    "semantic_hash": "ced35aba7d87d2db7b3b01d6d4b51e93"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/SoundbiteLocalDataSource.kt": {
+    "mtime": 1767335950.2505476,
+    "ast_hash": "12c6965f6bf6172572460e94eb93a308",
+    "semantic_hash": "12c6965f6bf6172572460e94eb93a308"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/SoundbiteLocalDataSourceImpl.kt": {
+    "mtime": 1767335950.2391322,
+    "ast_hash": "affaa1ef1fac20ec4a66e17f69ee8361",
+    "semantic_hash": "affaa1ef1fac20ec4a66e17f69ee8361"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/di/DaoModule.kt": {
+    "mtime": 1767336302.6516335,
+    "ast_hash": "7b115c6e8808925457577d927029b3f6",
+    "semantic_hash": "7b115c6e8808925457577d927029b3f6"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/di/DataSourceModule.kt": {
+    "mtime": 1767344087.0403721,
+    "ast_hash": "7f13a09032d46e05009401672be31c95",
+    "semantic_hash": "7f13a09032d46e05009401672be31c95"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/di/DatabaseModule.kt": {
+    "mtime": 1775665173.698483,
+    "ast_hash": "582b991c9bb1ff38401b6e26660e0342",
+    "semantic_hash": "582b991c9bb1ff38401b6e26660e0342"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/mapper/DatabaseMapper.kt": {
+    "mtime": 1783140439.8198545,
+    "ast_hash": "2012dbb44bf4920b1510d43ffc773f6c",
+    "semantic_hash": "2012dbb44bf4920b1510d43ffc773f6c"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/AutoMigration2to3.kt": {
+    "mtime": 1764555034.8420112,
+    "ast_hash": "dc7216e5a37951434ed7a1fdd6b7aed1",
+    "semantic_hash": "dc7216e5a37951434ed7a1fdd6b7aed1"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/AutoMigration3to4.kt": {
+    "mtime": 1765961592.4910448,
+    "ast_hash": "4487681f06b38a8e140aca19931f362c",
+    "semantic_hash": "4487681f06b38a8e140aca19931f362c"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/AutoMigration4to5.kt": {
+    "mtime": 1766110234.8621292,
+    "ast_hash": "9723ff7591b1460b1af76aea9588abad",
+    "semantic_hash": "9723ff7591b1460b1af76aea9588abad"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/AutoMigration5to6.kt": {
+    "mtime": 1766387754.0157552,
+    "ast_hash": "70f7ee9ee24f91e3b8a964b7d5c93cb9",
+    "semantic_hash": "70f7ee9ee24f91e3b8a964b7d5c93cb9"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/AutoMigration6to7.kt": {
+    "mtime": 1766452933.6656,
+    "ast_hash": "7f2b1d419007015bf68ae376f64fee45",
+    "semantic_hash": "7f2b1d419007015bf68ae376f64fee45"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/Migration10to11.kt": {
+    "mtime": 1775665173.6992466,
+    "ast_hash": "78e7c2f1eecdbd427f25c624772629dd",
+    "semantic_hash": "78e7c2f1eecdbd427f25c624772629dd"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/Migration8to9.kt": {
+    "mtime": 1774796282.212603,
+    "ast_hash": "8662f017c981dee925473254ef2b04a9",
+    "semantic_hash": "8662f017c981dee925473254ef2b04a9"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/migration/Migration9to10.kt": {
+    "mtime": 1774872016.6311796,
+    "ast_hash": "eb45b82c3655e5c2e527d62f0f016b09",
+    "semantic_hash": "eb45b82c3655e5c2e527d62f0f016b09"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/EpisodeEntity.kt": {
+    "mtime": 1765949611.1355865,
+    "ast_hash": "ba2278816bf94927f4f932b76c723067",
+    "semantic_hash": "ba2278816bf94927f4f932b76c723067"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/EpisodeFtsEntity.kt": {
+    "mtime": 1766103856.4373162,
+    "ast_hash": "cd888ce11f42eec5f9292f9fd3bffad5",
+    "semantic_hash": "cd888ce11f42eec5f9292f9fd3bffad5"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/EpisodeGroupEntity.kt": {
+    "mtime": 1766110234.890881,
+    "ast_hash": "83be7b4052ec0e86941f6a5bc54e0117",
+    "semantic_hash": "83be7b4052ec0e86941f6a5bc54e0117"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/EpisodeWithExtrasView.kt": {
+    "mtime": 1775665173.6996136,
+    "ast_hash": "fefd4402083d8caa8111bea8f5d70b79",
+    "semantic_hash": "fefd4402083d8caa8111bea8f5d70b79"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/FeedEntity.kt": {
+    "mtime": 1767336960.8187313,
+    "ast_hash": "2adf968dd7d95488676b0d71992dada9",
+    "semantic_hash": "2adf968dd7d95488676b0d71992dada9"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/FollowedPodcastEntity.kt": {
+    "mtime": 1766110234.9461386,
+    "ast_hash": "6f66a3965f15bafb14252bc321ac7dc1",
+    "semantic_hash": "6f66a3965f15bafb14252bc321ac7dc1"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/GroupKeyWithCount.kt": {
+    "mtime": 1766968825.427732,
+    "ast_hash": "0cc8723424aa2e08ae59c84d2362baeb",
+    "semantic_hash": "0cc8723424aa2e08ae59c84d2362baeb"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/LikedEpisodeEntity.kt": {
+    "mtime": 1765937939.5506587,
+    "ast_hash": "639964e8dabb3e07ebe8354605ea9419",
+    "semantic_hash": "639964e8dabb3e07ebe8354605ea9419"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/PlayedEpisodeEntity.kt": {
+    "mtime": 1765949499.060569,
+    "ast_hash": "a2b14d43878900de2db79ba0ce8d1b60",
+    "semantic_hash": "a2b14d43878900de2db79ba0ce8d1b60"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/PodcastEntity.kt": {
+    "mtime": 1766110234.96072,
+    "ast_hash": "887e22162999b738d16e9e3e4e9f98c9",
+    "semantic_hash": "887e22162999b738d16e9e3e4e9f98c9"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/PodcastFtsEntity.kt": {
+    "mtime": 1766110234.8720963,
+    "ast_hash": "4ca0a735423241851a7c15f9f7cee9be",
+    "semantic_hash": "4ca0a735423241851a7c15f9f7cee9be"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/PodcastGroupEntity.kt": {
+    "mtime": 1766110234.9774323,
+    "ast_hash": "1e74e2808b40cffc95114da403a94577",
+    "semantic_hash": "1e74e2808b40cffc95114da403a94577"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/PodcastWithExtrasView.kt": {
+    "mtime": 1766386270.6259074,
+    "ast_hash": "324797b875a56c4e50a74b71f9a3d07c",
+    "semantic_hash": "324797b875a56c4e50a74b71f9a3d07c"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/RecentSearchEntity.kt": {
+    "mtime": 1774867488.7540581,
+    "ast_hash": "63b0393840807d8a4932c36322f728e3",
+    "semantic_hash": "63b0393840807d8a4932c36322f728e3"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/SavedEpisodeEntity.kt": {
+    "mtime": 1774872016.631744,
+    "ast_hash": "075cf5001f1dd87d8df74cda72c09488",
+    "semantic_hash": "075cf5001f1dd87d8df74cda72c09488"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/model/SoundbiteEntity.kt": {
+    "mtime": 1766387675.356769,
+    "ast_hash": "127b8644267200d5871d86da4f6fac1e",
+    "semantic_hash": "127b8644267200d5871d86da4f6fac1e"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/CategoryConverter.kt": {
+    "mtime": 1758288997.8869376,
+    "ast_hash": "e88f7577fc2a6abf44bb4f563025607f",
+    "semantic_hash": "e88f7577fc2a6abf44bb4f563025607f"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/DownloadStatusConverter.kt": {
+    "mtime": 1774872016.631953,
+    "ast_hash": "0353dc658d9d3303a0e4d5f639f5806a",
+    "semantic_hash": "0353dc658d9d3303a0e4d5f639f5806a"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/DurationConverter.kt": {
+    "mtime": 1758271024.7602453,
+    "ast_hash": "63d9734f5b1a53bbf983a8d0965dedd4",
+    "semantic_hash": "63d9734f5b1a53bbf983a8d0965dedd4"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/EpisodeTypeConverter.kt": {
+    "mtime": 1758288997.8933582,
+    "ast_hash": "0c8148cd57ae83a0489efbb203aef798",
+    "semantic_hash": "0c8148cd57ae83a0489efbb203aef798"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/FtsExt.kt": {
+    "mtime": 1766968825.4285583,
+    "ast_hash": "3a2c0947b55a28867451231c5ad6b5b0",
+    "semantic_hash": "3a2c0947b55a28867451231c5ad6b5b0"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/InstantConverter.kt": {
+    "mtime": 1758270521.0759676,
+    "ast_hash": "bc89449758701438166b070c93782028",
+    "semantic_hash": "bc89449758701438166b070c93782028"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/MediumConverter.kt": {
+    "mtime": 1758288997.8438199,
+    "ast_hash": "b3b1484c8681bf909e09b3479a642a28",
+    "semantic_hash": "b3b1484c8681bf909e09b3479a642a28"
+  },
+  "core/database/src/main/kotlin/io/jacob/episodive/core/database/util/RecentSearchTypeConverter.kt": {
+    "mtime": 1774867488.75412,
+    "ast_hash": "be629fa2401b55b9669bffafe6d03a94",
+    "semantic_hash": "be629fa2401b55b9669bffafe6d03a94"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/RoomDatabaseRule.kt": {
+    "mtime": 1762316876.8998494,
+    "ast_hash": "b68f59ad539a080d70c780e0347c3705",
+    "semantic_hash": "b68f59ad539a080d70c780e0347c3705"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/EpisodeDaoTest.kt": {
+    "mtime": 1783140439.820355,
+    "ast_hash": "a8def77ffb7b72def0bc45962fb4fab7",
+    "semantic_hash": "a8def77ffb7b72def0bc45962fb4fab7"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/EpisodeDaoTransactionTest.kt": {
+    "mtime": 1766968825.429728,
+    "ast_hash": "bc6875d7184cbd9b6297606dca84a0ca",
+    "semantic_hash": "bc6875d7184cbd9b6297606dca84a0ca"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/FeedDaoTest.kt": {
+    "mtime": 1774618060.171635,
+    "ast_hash": "05f534426bd5b8afee33713d2632ce8b",
+    "semantic_hash": "05f534426bd5b8afee33713d2632ce8b"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/PodcastDaoTest.kt": {
+    "mtime": 1780823543.4971883,
+    "ast_hash": "ce7cd62b3b1525fa663d5a00f53933d4",
+    "semantic_hash": "ce7cd62b3b1525fa663d5a00f53933d4"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/PodcastDaoTransactionTest.kt": {
+    "mtime": 1766968825.4333258,
+    "ast_hash": "3c6dbaba91fc408ca430f108fc5ae571",
+    "semantic_hash": "3c6dbaba91fc408ca430f108fc5ae571"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/RecentSearchDaoTest.kt": {
+    "mtime": 1774867488.75439,
+    "ast_hash": "f0e4d76059cc58322c2a5729d322ef86",
+    "semantic_hash": "f0e4d76059cc58322c2a5729d322ef86"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/dao/SoundbiteDaoTest.kt": {
+    "mtime": 1774618060.1720736,
+    "ast_hash": "026830838d5bcc624c776d86a66113c1",
+    "semantic_hash": "026830838d5bcc624c776d86a66113c1"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/datasource/EpisodeLocalDataSourceTest.kt": {
+    "mtime": 1783140439.8206065,
+    "ast_hash": "33e5682a8c525b6a91495232aaa6541b",
+    "semantic_hash": "33e5682a8c525b6a91495232aaa6541b"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/datasource/FeedLocalDataSourceTest.kt": {
+    "mtime": 1774618060.1723373,
+    "ast_hash": "fbb53003aa9de457a5072c165c7208b6",
+    "semantic_hash": "fbb53003aa9de457a5072c165c7208b6"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/datasource/PodcastLocalDataSourceTest.kt": {
+    "mtime": 1780823543.4975762,
+    "ast_hash": "079861f6f9718a78cad1f6a1e739e23c",
+    "semantic_hash": "079861f6f9718a78cad1f6a1e739e23c"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSourceTest.kt": {
+    "mtime": 1774796282.2135115,
+    "ast_hash": "c96c9357ea06b8016e0f73529fb04a32",
+    "semantic_hash": "c96c9357ea06b8016e0f73529fb04a32"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/datasource/SoundbiteLocalDataSourceTest.kt": {
+    "mtime": 1774618060.1727285,
+    "ast_hash": "de0b4dae54ccc474932e1d0d812ad60e",
+    "semantic_hash": "de0b4dae54ccc474932e1d0d812ad60e"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/mapper/DatabaseMapperTest.kt": {
+    "mtime": 1774618060.1729279,
+    "ast_hash": "650ae2fbbc8b4146e15822fa15b5f0bb",
+    "semantic_hash": "650ae2fbbc8b4146e15822fa15b5f0bb"
+  },
+  "core/database/src/test/kotlin/io/jacob/episodive/core/database/util/DownloadStatusConverterTest.kt": {
+    "mtime": 1775472853.8907914,
+    "ast_hash": "343183264492e780927ae396d8e301bb",
+    "semantic_hash": "343183264492e780927ae396d8e301bb"
+  },
+  "core/datastore/build.gradle.kts": {
+    "mtime": 1764726977.370309,
+    "ast_hash": "230f26be0689b64532a64d19b0881946",
+    "semantic_hash": "230f26be0689b64532a64d19b0881946"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/datasource/UserPreferencesDataSource.kt": {
+    "mtime": 1774618060.1732135,
+    "ast_hash": "a8caf2b840d6727ed88c311cc8aa5600",
+    "semantic_hash": "a8caf2b840d6727ed88c311cc8aa5600"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/datasource/UserPreferencesDataSourceImpl.kt": {
+    "mtime": 1774618060.173401,
+    "ast_hash": "69514cbe6ae0f75fa732f064b080ecce",
+    "semantic_hash": "69514cbe6ae0f75fa732f064b080ecce"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/di/DataSourceModule.kt": {
+    "mtime": 1758626550.0009038,
+    "ast_hash": "308e601c82616958ca40c200788b3945",
+    "semantic_hash": "308e601c82616958ca40c200788b3945"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/di/DataStoreModule.kt": {
+    "mtime": 1758626550.0009782,
+    "ast_hash": "207f796ccb62cb8c62dd2f7a37ecaabd",
+    "semantic_hash": "207f796ccb62cb8c62dd2f7a37ecaabd"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/mapper/DataStoreMapper.kt": {
+    "mtime": 1763016545.0526612,
+    "ast_hash": "78c7ae05a57b45d8939debe1282bc272",
+    "semantic_hash": "78c7ae05a57b45d8939debe1282bc272"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/model/UserPreferences.kt": {
+    "mtime": 1763016545.0580246,
+    "ast_hash": "66be930f51ae4328d813c69310f1578b",
+    "semantic_hash": "66be930f51ae4328d813c69310f1578b"
+  },
+  "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/store/UserPreferencesStore.kt": {
+    "mtime": 1774618060.173644,
+    "ast_hash": "cb3742890a9ba0c70d28866046dbe95f",
+    "semantic_hash": "cb3742890a9ba0c70d28866046dbe95f"
+  },
+  "core/datastore/src/test/kotlin/io/jacob/episodive/core/datastore/datasource/UserPreferencesDataSourceTest.kt": {
+    "mtime": 1774618060.1739123,
+    "ast_hash": "e87696fbca13d3563dbcf65ffdb4ffd3",
+    "semantic_hash": "e87696fbca13d3563dbcf65ffdb4ffd3"
+  },
+  "core/datastore/src/test/kotlin/io/jacob/episodive/core/datastore/mapper/DataStoreMapperTest.kt": {
+    "mtime": 1763016545.0508277,
+    "ast_hash": "d102a094476f19f882bb227d90a12327",
+    "semantic_hash": "d102a094476f19f882bb227d90a12327"
+  },
+  "core/datastore/src/test/kotlin/io/jacob/episodive/core/datastore/store/UserPreferencesStoreTest.kt": {
+    "mtime": 1775472853.8914242,
+    "ast_hash": "e08e8dd89401b1a415fb013f3b2c4095",
+    "semantic_hash": "e08e8dd89401b1a415fb013f3b2c4095"
+  },
+  "core/designsystem/build.gradle.kts": {
+    "mtime": 1774872016.632499,
+    "ast_hash": "ae82a8a60e00e04c8dcac563fb7245a9",
+    "semantic_hash": "ae82a8a60e00e04c8dcac563fb7245a9"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/AnimationIcon.kt": {
+    "mtime": 1761362412.41135,
+    "ast_hash": "ee248a6788747a0e6ffffe98233fd3d2",
+    "semantic_hash": "ee248a6788747a0e6ffffe98233fd3d2"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Background.kt": {
+    "mtime": 1764813774.7016723,
+    "ast_hash": "c0d01fc68432f2e91aeba809e4615365",
+    "semantic_hash": "c0d01fc68432f2e91aeba809e4615365"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Button.kt": {
+    "mtime": 1763110578.5831828,
+    "ast_hash": "8b991b5f8776967f61cb5d318cbb5f16",
+    "semantic_hash": "8b991b5f8776967f61cb5d318cbb5f16"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Chip.kt": {
+    "mtime": 1760452473.2473469,
+    "ast_hash": "bf7ca1851e48e66d82a84bc5155f7976",
+    "semantic_hash": "bf7ca1851e48e66d82a84bc5155f7976"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Dial.kt": {
+    "mtime": 1763012180.1592522,
+    "ast_hash": "24d82fb60274a2b3ee723547ff8b9940",
+    "semantic_hash": "24d82fb60274a2b3ee723547ff8b9940"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/DragHandle.kt": {
+    "mtime": 1762927915.2791429,
+    "ast_hash": "455987103c9a4d89743671e4e585c9fc",
+    "semantic_hash": "455987103c9a4d89743671e4e585c9fc"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/FadingMarquee.kt": {
+    "mtime": 1764847934.8802726,
+    "ast_hash": "72e73efd3e9d6bd1fb91c5ede3a109df",
+    "semantic_hash": "72e73efd3e9d6bd1fb91c5ede3a109df"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt": {
+    "mtime": 1763099365.6047497,
+    "ast_hash": "f8e0a8f5b327bf94d20a822a1fc2e87b",
+    "semantic_hash": "f8e0a8f5b327bf94d20a822a1fc2e87b"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/IconButton.kt": {
+    "mtime": 1763628034.7208352,
+    "ast_hash": "d7e1ca57f5c863ac73583678d9b3ec42",
+    "semantic_hash": "d7e1ca57f5c863ac73583678d9b3ec42"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/IconText.kt": {
+    "mtime": 1764824359.8646574,
+    "ast_hash": "db719c25129e63469747fd13066a5aa7",
+    "semantic_hash": "db719c25129e63469747fd13066a5aa7"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Image.kt": {
+    "mtime": 1765158842.2714155,
+    "ast_hash": "524b3cc148faf32aac467fae49e2bc95",
+    "semantic_hash": "524b3cc148faf32aac467fae49e2bc95"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Layout.kt": {
+    "mtime": 1764822723.304343,
+    "ast_hash": "078b84257ecef3e1722a2f5857f29134",
+    "semantic_hash": "078b84257ecef3e1722a2f5857f29134"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/LoadingWheel.kt": {
+    "mtime": 1758713811.6127303,
+    "ast_hash": "e2a3abe3237659d05c57b9303a16ee34",
+    "semantic_hash": "e2a3abe3237659d05c57b9303a16ee34"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Navigation.kt": {
+    "mtime": 1763628034.7093515,
+    "ast_hash": "393842b49b70ed7a7f9bb160c19fbc8a",
+    "semantic_hash": "393842b49b70ed7a7f9bb160c19fbc8a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/SearchBar.kt": {
+    "mtime": 1763628034.7017546,
+    "ast_hash": "a9779ad7e5c72af3c030779932afd908",
+    "semantic_hash": "a9779ad7e5c72af3c030779932afd908"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Seeker.kt": {
+    "mtime": 1764840916.73237,
+    "ast_hash": "bd6331d3b5d23a2eeb9bc2c9b9ddd3c9",
+    "semantic_hash": "bd6331d3b5d23a2eeb9bc2c9b9ddd3c9"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Snackbar.kt": {
+    "mtime": 1775665173.6999023,
+    "ast_hash": "5eb344608cfd2f1c134549749b58b090",
+    "semantic_hash": "5eb344608cfd2f1c134549749b58b090"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Tab.kt": {
+    "mtime": 1758798326.6580148,
+    "ast_hash": "394f23983e4af75735914d157dfee9fc",
+    "semantic_hash": "394f23983e4af75735914d157dfee9fc"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Tag.kt": {
+    "mtime": 1758798326.6581786,
+    "ast_hash": "f6c327ba9ba85e24df3381eb8276bbc7",
+    "semantic_hash": "f6c327ba9ba85e24df3381eb8276bbc7"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Text.kt": {
+    "mtime": 1765156890.320023,
+    "ast_hash": "4b7e173273e1161fac09cf6f7845e5e1",
+    "semantic_hash": "4b7e173273e1161fac09cf6f7845e5e1"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/TopAppBar.kt": {
+    "mtime": 1764822523.6651134,
+    "ast_hash": "2f45e764464b79699973193f07972c8a",
+    "semantic_hash": "2f45e764464b79699973193f07972c8a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/ViewToggle.kt": {
+    "mtime": 1763692421.133731,
+    "ast_hash": "b8f8172c82f94b4eebd71cb9e7b24dee",
+    "semantic_hash": "b8f8172c82f94b4eebd71cb9e7b24dee"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/scrollbar/AppScrollbars.kt": {
+    "mtime": 1764143282.2403424,
+    "ast_hash": "a258c8849a24aa40ada5aa5b5f5af12b",
+    "semantic_hash": "a258c8849a24aa40ada5aa5b5f5af12b"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/scrollbar/LazyScrollbarUtilities.kt": {
+    "mtime": 1758726352.2205021,
+    "ast_hash": "f6435d1acd10e934eab5a9d908c16318",
+    "semantic_hash": "f6435d1acd10e934eab5a9d908c16318"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/scrollbar/Scrollbar.kt": {
+    "mtime": 1760508381.7346852,
+    "ast_hash": "c7aff9525cd9ffd4fe9b07554410c910",
+    "semantic_hash": "c7aff9525cd9ffd4fe9b07554410c910"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/scrollbar/ScrollbarExt.kt": {
+    "mtime": 1760508381.7229218,
+    "ast_hash": "1bb3eb18c6e538b31df996ba4779a387",
+    "semantic_hash": "1bb3eb18c6e538b31df996ba4779a387"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/scrollbar/ThumbExt.kt": {
+    "mtime": 1758726278.042828,
+    "ast_hash": "724c2a345db94bef06c03f3e3878b9b8",
+    "semantic_hash": "724c2a345db94bef06c03f3e3878b9b8"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/EpisodiveIcons.kt": {
+    "mtime": 1776263236.6180637,
+    "ast_hash": "861c10df176eeb0c8fd0edb9b8c7c1e6",
+    "semantic_hash": "861c10df176eeb0c8fd0edb9b8c7c1e6"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ArrowLeft.kt": {
+    "mtime": 1763622313.5695486,
+    "ast_hash": "11f2c48937876a082200988519061dcb",
+    "semantic_hash": "11f2c48937876a082200988519061dcb"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ArrowsDiagonal.kt": {
+    "mtime": 1764825145.2900224,
+    "ast_hash": "be91441c7927e5dcf70eb74d824e913f",
+    "semantic_hash": "be91441c7927e5dcf70eb74d824e913f"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ArrowsDiagonalMinimize2.kt": {
+    "mtime": 1764825145.2881272,
+    "ast_hash": "debc3243bb500541e142328d0a53ea2f",
+    "semantic_hash": "debc3243bb500541e142328d0a53ea2f"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ArrowsMoveVertical.kt": {
+    "mtime": 1763686145.5906427,
+    "ast_hash": "99266e0b1527cf6f0d7b0c69ffb37c9d",
+    "semantic_hash": "99266e0b1527cf6f0d7b0c69ffb37c9d"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Blob.kt": {
+    "mtime": 1763622313.5729551,
+    "ast_hash": "3731673596323785f61337f4a1322a88",
+    "semantic_hash": "3731673596323785f61337f4a1322a88"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/BlobFilled.kt": {
+    "mtime": 1763622313.5712712,
+    "ast_hash": "e09df9f4b8a9a94ce55c405c3dea0a5d",
+    "semantic_hash": "e09df9f4b8a9a94ce55c405c3dea0a5d"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/CalendarTime.kt": {
+    "mtime": 1763622313.5764716,
+    "ast_hash": "f2d226a72406f3ac31ba2dc6088e65a9",
+    "semantic_hash": "f2d226a72406f3ac31ba2dc6088e65a9"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Check.kt": {
+    "mtime": 1763622313.5779045,
+    "ast_hash": "094e970d8a7275a35f3ff6bdc93d40d6",
+    "semantic_hash": "094e970d8a7275a35f3ff6bdc93d40d6"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ChevronDown.kt": {
+    "mtime": 1763622313.578943,
+    "ast_hash": "bb044ae55c6f7c1a9b51c7be3fbc1b07",
+    "semantic_hash": "bb044ae55c6f7c1a9b51c7be3fbc1b07"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ChevronRight.kt": {
+    "mtime": 1763622313.5798793,
+    "ast_hash": "6494c03b5154db4cbe73b0336b3f349f",
+    "semantic_hash": "6494c03b5154db4cbe73b0336b3f349f"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Container.kt": {
+    "mtime": 1763622313.5855775,
+    "ast_hash": "e774cd1f9a2534c713e14a692153e2be",
+    "semantic_hash": "e774cd1f9a2534c713e14a692153e2be"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ContainerFilled.kt": {
+    "mtime": 1763622313.5829885,
+    "ast_hash": "757780e77db10aa35f1f58c639c94804",
+    "semantic_hash": "757780e77db10aa35f1f58c639c94804"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/CreativeCommonsBy.kt": {
+    "mtime": 1763622313.586903,
+    "ast_hash": "9fdc51030bd8d37aacf8d04a8502b70a",
+    "semantic_hash": "9fdc51030bd8d37aacf8d04a8502b70a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/DeviceFloppy.kt": {
+    "mtime": 1774872016.6334045,
+    "ast_hash": "c0acf8dfc6e79eeef050abdb1c700979",
+    "semantic_hash": "c0acf8dfc6e79eeef050abdb1c700979"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/DeviceFloppyFilled.kt": {
+    "mtime": 1774872016.6335945,
+    "ast_hash": "af11b85af3dba60139d9ffe71cfffb7d",
+    "semantic_hash": "af11b85af3dba60139d9ffe71cfffb7d"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/DotsVertical.kt": {
+    "mtime": 1763622313.5881422,
+    "ast_hash": "a1aaf3f79fb60470d0600c1eaeffb900",
+    "semantic_hash": "a1aaf3f79fb60470d0600c1eaeffb900"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ExclamationCircle.kt": {
+    "mtime": 1763622313.591517,
+    "ast_hash": "6a7a541e9e149a1b585074bf638b31de",
+    "semantic_hash": "6a7a541e9e149a1b585074bf638b31de"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Fold.kt": {
+    "mtime": 1763686145.5949733,
+    "ast_hash": "419e55eb98f096477226ea2886b23f6d",
+    "semantic_hash": "419e55eb98f096477226ea2886b23f6d"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Fountain.kt": {
+    "mtime": 1763622313.5941541,
+    "ast_hash": "e1ab31a09616901a1d50a4481dbf095a",
+    "semantic_hash": "e1ab31a09616901a1d50a4481dbf095a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/FountainFilled.kt": {
+    "mtime": 1763623054.5987709,
+    "ast_hash": "4fd5ab7e62de40a082da0078d43d63fc",
+    "semantic_hash": "4fd5ab7e62de40a082da0078d43d63fc"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/HeartFilled.kt": {
+    "mtime": 1763623054.5943983,
+    "ast_hash": "9ec0ea35c85bcd1f45c6b2caa26c270c",
+    "semantic_hash": "9ec0ea35c85bcd1f45c6b2caa26c270c"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/HeartPlus.kt": {
+    "mtime": 1763623054.595847,
+    "ast_hash": "beae065772b78873ea54603f22137a82",
+    "semantic_hash": "beae065772b78873ea54603f22137a82"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/History.kt": {
+    "mtime": 1763622313.5973153,
+    "ast_hash": "d95c1f1d8e4b6756a64087b621509d58",
+    "semantic_hash": "d95c1f1d8e4b6756a64087b621509d58"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Label.kt": {
+    "mtime": 1763633676.923429,
+    "ast_hash": "7ec6b58ddb3c43d7c94cc5d387ae7b32",
+    "semantic_hash": "7ec6b58ddb3c43d7c94cc5d387ae7b32"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/LayoutList.kt": {
+    "mtime": 1763622313.5983307,
+    "ast_hash": "a501050aa9d8540b7cff59bcd2752eda",
+    "semantic_hash": "a501050aa9d8540b7cff59bcd2752eda"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/LetterISmall.kt": {
+    "mtime": 1763629925.4859784,
+    "ast_hash": "106733902527c7813927f32269d95c30",
+    "semantic_hash": "106733902527c7813927f32269d95c30"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/LetterXSmall.kt": {
+    "mtime": 1763622313.5992274,
+    "ast_hash": "c28609c64bbc79d50f3bd8c6d2bb7b3a",
+    "semantic_hash": "c28609c64bbc79d50f3bd8c6d2bb7b3a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/List.kt": {
+    "mtime": 1763622313.6020865,
+    "ast_hash": "c6e94303b07aa97edbf98dcfa4974d15",
+    "semantic_hash": "c6e94303b07aa97edbf98dcfa4974d15"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ListNumbers.kt": {
+    "mtime": 1763622313.600632,
+    "ast_hash": "5c81738de67d13c8709c31c4e604f81b",
+    "semantic_hash": "5c81738de67d13c8709c31c4e604f81b"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Moon.kt": {
+    "mtime": 1776263236.6183498,
+    "ast_hash": "4af2288eab4834255ecc9c3b39091f68",
+    "semantic_hash": "4af2288eab4834255ecc9c3b39091f68"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/PhotoExclamation.kt": {
+    "mtime": 1763622313.603404,
+    "ast_hash": "0fa4abb74fd51540c9689c8dfd0daa98",
+    "semantic_hash": "0fa4abb74fd51540c9689c8dfd0daa98"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/PlayerPause.kt": {
+    "mtime": 1763622313.6041343,
+    "ast_hash": "37289996e698898daf879fc270df82ea",
+    "semantic_hash": "37289996e698898daf879fc270df82ea"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/PlayerPlay.kt": {
+    "mtime": 1763623054.5974183,
+    "ast_hash": "df4909674bd7e9ffd56aba61b051be98",
+    "semantic_hash": "df4909674bd7e9ffd56aba61b051be98"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/PlayerSkipBack.kt": {
+    "mtime": 1763623054.589666,
+    "ast_hash": "4936aa7baa69a3ae2a829fe0251d6735",
+    "semantic_hash": "4936aa7baa69a3ae2a829fe0251d6735"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/PlayerSkipForward.kt": {
+    "mtime": 1763623054.5868216,
+    "ast_hash": "26fb9c27d7a8c52e3a7343026d691e14",
+    "semantic_hash": "26fb9c27d7a8c52e3a7343026d691e14"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/PlaylistX.kt": {
+    "mtime": 1763686145.5977576,
+    "ast_hash": "44416f0313ff5ad57be499f40ae5ccc3",
+    "semantic_hash": "44416f0313ff5ad57be499f40ae5ccc3"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Plus.kt": {
+    "mtime": 1763622313.6068723,
+    "ast_hash": "f054b91663e255cae9bc851efade6412",
+    "semantic_hash": "f054b91663e255cae9bc851efade6412"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/RewindBackward15.kt": {
+    "mtime": 1763622313.6077187,
+    "ast_hash": "55a506182c4185e62a58cb7457bed157",
+    "semantic_hash": "55a506182c4185e62a58cb7457bed157"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/RewindForward30.kt": {
+    "mtime": 1763623054.5922308,
+    "ast_hash": "d98b6406cb7c71319c2ca9d1b0bdc06b",
+    "semantic_hash": "d98b6406cb7c71319c2ca9d1b0bdc06b"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Tabler.kt": {
+    "mtime": 1763619484.1332533,
+    "ast_hash": "a203feead907c86f3b7af197c0721208",
+    "semantic_hash": "a203feead907c86f3b7af197c0721208"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Template.kt": {
+    "mtime": 1763622313.6113374,
+    "ast_hash": "c20bda454d2cf0c51648f4264e1833e5",
+    "semantic_hash": "c20bda454d2cf0c51648f4264e1833e5"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/TemplateFilled.kt": {
+    "mtime": 1763622313.6101778,
+    "ast_hash": "1e02a4c8f2dac53933cdd9cbd6930e10",
+    "semantic_hash": "1e02a4c8f2dac53933cdd9cbd6930e10"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/TransitionTop.kt": {
+    "mtime": 1763622313.6123695,
+    "ast_hash": "bac1a04de8b9ae255dfaada24d7ac837",
+    "semantic_hash": "bac1a04de8b9ae255dfaada24d7ac837"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/UsersMinus.kt": {
+    "mtime": 1763622313.6133094,
+    "ast_hash": "deddd6884afede133f1bacf0bee33f67",
+    "semantic_hash": "deddd6884afede133f1bacf0bee33f67"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/UsersPlus.kt": {
+    "mtime": 1763622313.6143258,
+    "ast_hash": "28e1a42fda8ac2cc266cd57d3162eadd",
+    "semantic_hash": "28e1a42fda8ac2cc266cd57d3162eadd"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ViewportShort.kt": {
+    "mtime": 1763622313.6162739,
+    "ast_hash": "1b51470cc02c2ca50a693efe2e19a169",
+    "semantic_hash": "1b51470cc02c2ca50a693efe2e19a169"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ViewportTall.kt": {
+    "mtime": 1763622313.6173897,
+    "ast_hash": "4bdaf4d180225549033edcfa1f69970a",
+    "semantic_hash": "4bdaf4d180225549033edcfa1f69970a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/WorldShare.kt": {
+    "mtime": 1764826246.321044,
+    "ast_hash": "cc5b52e371f8506015ba62c763788664",
+    "semantic_hash": "cc5b52e371f8506015ba62c763788664"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/X.kt": {
+    "mtime": 1763622313.6185431,
+    "ast_hash": "4eec5fab9d96c8ee3ed650d9893f41ef",
+    "semantic_hash": "4eec5fab9d96c8ee3ed650d9893f41ef"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/Zoom.kt": {
+    "mtime": 1763622313.6201427,
+    "ast_hash": "7424c0b402b1cce9b12e4a7e0c25b280",
+    "semantic_hash": "7424c0b402b1cce9b12e4a7e0c25b280"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/icon/tabler/ZoomFilled.kt": {
+    "mtime": 1763623054.6008918,
+    "ast_hash": "fc7f66efe6566615300297f5faeea78f",
+    "semantic_hash": "fc7f66efe6566615300297f5faeea78f"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/screen/ErrorScreen.kt": {
+    "mtime": 1760416207.1016028,
+    "ast_hash": "c5433e4cc1d1f73c89b96a2eb3dea84b",
+    "semantic_hash": "c5433e4cc1d1f73c89b96a2eb3dea84b"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/screen/LoadingScreen.kt": {
+    "mtime": 1760416207.0965927,
+    "ast_hash": "88edb94109ea067c5fe6967dff0f4ba6",
+    "semantic_hash": "88edb94109ea067c5fe6967dff0f4ba6"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Background.kt": {
+    "mtime": 1758888266.273534,
+    "ast_hash": "764ba10cfa8b234384a3dde2a55466fe",
+    "semantic_hash": "764ba10cfa8b234384a3dde2a55466fe"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Color.kt": {
+    "mtime": 1760515133.172794,
+    "ast_hash": "f7215c26d727676f9f4dc50a651d6a64",
+    "semantic_hash": "f7215c26d727676f9f4dc50a651d6a64"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Dimension.kt": {
+    "mtime": 1759334889.5247555,
+    "ast_hash": "0645e354c7fc6c4f114b49929d7e54a3",
+    "semantic_hash": "0645e354c7fc6c4f114b49929d7e54a3"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Gradient.kt": {
+    "mtime": 1758888266.273925,
+    "ast_hash": "b1bb02f05b8ef26d2a721016c1746a1d",
+    "semantic_hash": "b1bb02f05b8ef26d2a721016c1746a1d"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Theme.kt": {
+    "mtime": 1760433113.5749023,
+    "ast_hash": "f5561b85862513ce33742c81b727ce19",
+    "semantic_hash": "f5561b85862513ce33742c81b727ce19"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Tint.kt": {
+    "mtime": 1758888266.2745924,
+    "ast_hash": "c1a30dc9c0a45b85a531c48d45a98e3a",
+    "semantic_hash": "c1a30dc9c0a45b85a531c48d45a98e3a"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Type.kt": {
+    "mtime": 1760595478.39964,
+    "ast_hash": "c830632e26aa23d92d7edfeb6dc91ebc",
+    "semantic_hash": "c830632e26aa23d92d7edfeb6dc91ebc"
+  },
+  "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/tooling/Previews.kt": {
+    "mtime": 1764038545.9279265,
+    "ast_hash": "077be9fa96e4e0098e32f9cbc47c5543",
+    "semantic_hash": "077be9fa96e4e0098e32f9cbc47c5543"
+  },
+  "core/domain/build.gradle.kts": {
+    "mtime": 1780107904.8565485,
+    "ast_hash": "b8d623887f892316ec311db5ed70ec9e",
+    "semantic_hash": "b8d623887f892316ec311db5ed70ec9e"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/download/EpisodeDownloader.kt": {
+    "mtime": 1783140439.8208807,
+    "ast_hash": "92805e43cdba245d8decf8bc37dfeed7",
+    "semantic_hash": "92805e43cdba245d8decf8bc37dfeed7"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/ChannelRepository.kt": {
+    "mtime": 1764764616.5739145,
+    "ast_hash": "827060ac85f071493cc895c520041b41",
+    "semantic_hash": "827060ac85f071493cc895c520041b41"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/EpisodeRepository.kt": {
+    "mtime": 1783140439.821113,
+    "ast_hash": "c2ab06facb7f8bb8fbf0445315a8b4ca",
+    "semantic_hash": "c2ab06facb7f8bb8fbf0445315a8b4ca"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/PlayerRepository.kt": {
+    "mtime": 1780107904.8568377,
+    "ast_hash": "107e0ae5c7d5c9ff661a6c8d8e91215a",
+    "semantic_hash": "107e0ae5c7d5c9ff661a6c8d8e91215a"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/PodcastRepository.kt": {
+    "mtime": 1780823543.4978235,
+    "ast_hash": "084e743046a5bec8fdc203efa7bbf6d4",
+    "semantic_hash": "084e743046a5bec8fdc203efa7bbf6d4"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/RecentSearchRepository.kt": {
+    "mtime": 1774796282.2139094,
+    "ast_hash": "643e0d3e9f5717d9ccf70e0c2d8fe868",
+    "semantic_hash": "643e0d3e9f5717d9ccf70e0c2d8fe868"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/UserRepository.kt": {
+    "mtime": 1774618060.1747048,
+    "ast_hash": "4e825da0dc401617ac2cd8fefa9cb739",
+    "semantic_hash": "4e825da0dc401617ac2cd8fefa9cb739"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/FindInLibraryUseCase.kt": {
+    "mtime": 1774872016.6343641,
+    "ast_hash": "b6b204fde33372c8fcfb0da4414779c5",
+    "semantic_hash": "b6b204fde33372c8fcfb0da4414779c5"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelByIdUseCase.kt": {
+    "mtime": 1765876092.3197522,
+    "ast_hash": "a56b9d15139150a7de74483c0df2dc41",
+    "semantic_hash": "a56b9d15139150a7de74483c0df2dc41"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelsUseCase.kt": {
+    "mtime": 1765180229.471428,
+    "ast_hash": "41e49266157ba754e5d067d878721e77",
+    "semantic_hash": "41e49266157ba754e5d067d878721e77"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetAllPlayedEpisodesPagingUseCase.kt": {
+    "mtime": 1765961058.8100832,
+    "ast_hash": "0ed65af465215de44a3f0cf48309ba01",
+    "semantic_hash": "0ed65af465215de44a3f0cf48309ba01"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetAllPlayedEpisodesUseCase.kt": {
+    "mtime": 1765961058.813381,
+    "ast_hash": "f73bf5da905a4b5fe494371189156b2b",
+    "semantic_hash": "f73bf5da905a4b5fe494371189156b2b"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetChaptersUseCase.kt": {
+    "mtime": 1763094557.629694,
+    "ast_hash": "3ffd09c602cf690f024b37b69341828e",
+    "semantic_hash": "3ffd09c602cf690f024b37b69341828e"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetClipEpisodesPagingUseCase.kt": {
+    "mtime": 1767068867.759578,
+    "ast_hash": "72a1b2b4f8575f8a667ac18cb737a522",
+    "semantic_hash": "72a1b2b4f8575f8a667ac18cb737a522"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetEpisodeByIdUseCase.kt": {
+    "mtime": 1774796282.2141979,
+    "ast_hash": "1dcfc72f422f2ebe9e708be718dc4e47",
+    "semantic_hash": "1dcfc72f422f2ebe9e708be718dc4e47"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetEpisodesByPodcastIdPagingUseCase.kt": {
+    "mtime": 1765347132.0089784,
+    "ast_hash": "9bb9bf79d4504bb602db67d6cf5a2c1b",
+    "semantic_hash": "9bb9bf79d4504bb602db67d6cf5a2c1b"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetLikedEpisodesPagingUseCase.kt": {
+    "mtime": 1765245176.2187362,
+    "ast_hash": "04f9cb8de363f432ae77a7c2a759e1ac",
+    "semantic_hash": "04f9cb8de363f432ae77a7c2a759e1ac"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetLikedEpisodesUseCase.kt": {
+    "mtime": 1765353753.0180824,
+    "ast_hash": "ff97c4a1168295578680bce9029c9103",
+    "semantic_hash": "ff97c4a1168295578680bce9029c9103"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetLiveEpisodesUseCase.kt": {
+    "mtime": 1765353752.9920828,
+    "ast_hash": "68701fac3da9d18cdfb8d26cce39ca6d",
+    "semantic_hash": "68701fac3da9d18cdfb8d26cce39ca6d"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetMostRecentPlayedEpisodeUseCase.kt": {
+    "mtime": 1780107904.857228,
+    "ast_hash": "274f968f5ec06d5c57a7016c4d8cb08e",
+    "semantic_hash": "274f968f5ec06d5c57a7016c4d8cb08e"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetMyRandomEpisodesUseCase.kt": {
+    "mtime": 1765353753.1337316,
+    "ast_hash": "6c7e5d47df24abbf120ebc4b647e9bf0",
+    "semantic_hash": "6c7e5d47df24abbf120ebc4b647e9bf0"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetPlayingEpisodesUseCase.kt": {
+    "mtime": 1765961058.8052938,
+    "ast_hash": "ffbf10ab08c531c48f3ffa205b62a66e",
+    "semantic_hash": "ffbf10ab08c531c48f3ffa205b62a66e"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetRecentEpisodesUseCase.kt": {
+    "mtime": 1765353752.9766393,
+    "ast_hash": "70b8b672f9a917949c64a17fe9d4cd60",
+    "semantic_hash": "70b8b672f9a917949c64a17fe9d4cd60"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetSavedEpisodesPagingUseCase.kt": {
+    "mtime": 1774872016.6345248,
+    "ast_hash": "32641962f3f8a6b172fa45de80b3432f",
+    "semantic_hash": "32641962f3f8a6b172fa45de80b3432f"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetSavedEpisodesUseCase.kt": {
+    "mtime": 1774872016.6346643,
+    "ast_hash": "2124f89738eda007ed33c2642cb5a9c9",
+    "semantic_hash": "2124f89738eda007ed33c2642cb5a9c9"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/SaveEpisodeUseCase.kt": {
+    "mtime": 1783140439.8212726,
+    "ast_hash": "310a87bdd88a4d5a81725130d6429d59",
+    "semantic_hash": "310a87bdd88a4d5a81725130d6429d59"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/SyncNewEpisodesUseCase.kt": {
+    "mtime": 1780823543.4981961,
+    "ast_hash": "911064e9e935b593d092de45678d81f9",
+    "semantic_hash": "911064e9e935b593d092de45678d81f9"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/ToggleLikedEpisodeUseCase.kt": {
+    "mtime": 1766968825.4343727,
+    "ast_hash": "76328ffdd3f363f3a7c02eb8ee7ce371",
+    "semantic_hash": "76328ffdd3f363f3a7c02eb8ee7ce371"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/UpdatePlayedEpisodeUseCase.kt": {
+    "mtime": 1766032714.7148187,
+    "ast_hash": "9d62fbac6baa18fd1ae468aafd36478f",
+    "semantic_hash": "9d62fbac6baa18fd1ae468aafd36478f"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/player/GetNowPlayingUseCase.kt": {
+    "mtime": 1783140439.8219402,
+    "ast_hash": "aa6796c4e50c0b58b15798eb32ec2ae0",
+    "semantic_hash": "aa6796c4e50c0b58b15798eb32ec2ae0"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/player/GetPlaylistUseCase.kt": {
+    "mtime": 1766968825.4345412,
+    "ast_hash": "0922e8cd5923fee486e6c0d0d2cd9d51",
+    "semantic_hash": "0922e8cd5923fee486e6c0d0d2cd9d51"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/player/PlayEpisodeUseCase.kt": {
+    "mtime": 1766968825.4347255,
+    "ast_hash": "e7fd538c4766a3b26403610be41e1406",
+    "semantic_hash": "e7fd538c4766a3b26403610be41e1406"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/player/RestoreLastPlayStateUseCase.kt": {
+    "mtime": 1774618060.174773,
+    "ast_hash": "cc38d978ec865bd6b7e2c95effaadefa",
+    "semantic_hash": "cc38d978ec865bd6b7e2c95effaadefa"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/player/ResumeEpisodeUseCase.kt": {
+    "mtime": 1764736591.3641906,
+    "ast_hash": "31d72843e99d71e5ce5aef33383ef281",
+    "semantic_hash": "31d72843e99d71e5ce5aef33383ef281"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/player/SaveLastPlayStateUseCase.kt": {
+    "mtime": 1774618060.1748285,
+    "ast_hash": "a0d8cd2498eac7b4444cb7e52e99ef93",
+    "semantic_hash": "a0d8cd2498eac7b4444cb7e52e99ef93"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetFollowedPodcastsPagingUseCase.kt": {
+    "mtime": 1765261832.2271166,
+    "ast_hash": "19bb18fc8d37b047cd1bc011b4ad114a",
+    "semantic_hash": "19bb18fc8d37b047cd1bc011b4ad114a"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetFollowedPodcastsUseCase.kt": {
+    "mtime": 1765353753.0500505,
+    "ast_hash": "7aa29a3dbf4f64a3f46caedc1f3cdac3",
+    "semantic_hash": "7aa29a3dbf4f64a3f46caedc1f3cdac3"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetForeignTrendingPodcastsUseCase.kt": {
+    "mtime": 1765877409.2714431,
+    "ast_hash": "d9aa7818869d415bdc7ce2544205f3ea",
+    "semantic_hash": "d9aa7818869d415bdc7ce2544205f3ea"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetLocalTrendingPodcastsUseCase.kt": {
+    "mtime": 1765877655.8994293,
+    "ast_hash": "3cffaf3431e5855f9e49415a53070649",
+    "semantic_hash": "3cffaf3431e5855f9e49415a53070649"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastUseCase.kt": {
+    "mtime": 1759231222.026367,
+    "ast_hash": "ff126356c60c65479276535c4c03522f",
+    "semantic_hash": "ff126356c60c65479276535c4c03522f"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastsByChannelUseCase.kt": {
+    "mtime": 1765262177.666298,
+    "ast_hash": "aace08a98aad2c0759fa945ceb42dd66",
+    "semantic_hash": "aace08a98aad2c0759fa945ceb42dd66"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetRecentPodcastsUseCase.kt": {
+    "mtime": 1766395597.0741513,
+    "ast_hash": "27ee3c4c120d9e38e000afcc4d67867e",
+    "semantic_hash": "27ee3c4c120d9e38e000afcc4d67867e"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetTrendingPodcastsUseCase.kt": {
+    "mtime": 1766395597.0844574,
+    "ast_hash": "35dc838b85512649d7a75fca5cad7154",
+    "semantic_hash": "35dc838b85512649d7a75fca5cad7154"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetUserRecentPodcastsUseCase.kt": {
+    "mtime": 1767080020.0949006,
+    "ast_hash": "6924df7b1dd2f0db0938b2c9dc1e9e08",
+    "semantic_hash": "6924df7b1dd2f0db0938b2c9dc1e9e08"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetUserRecommendedPodcastsPagingUseCase.kt": {
+    "mtime": 1767339643.5934784,
+    "ast_hash": "8c30c95b6bcf915c2ffe35ee7243189d",
+    "semantic_hash": "8c30c95b6bcf915c2ffe35ee7243189d"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetUserTrendingPodcastsUseCase.kt": {
+    "mtime": 1767080079.7564776,
+    "ast_hash": "5d6c8bd8bcc2ad547c0391ae7bb3f80a",
+    "semantic_hash": "5d6c8bd8bcc2ad547c0391ae7bb3f80a"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/podcast/ToggleFollowedUseCase.kt": {
+    "mtime": 1763106621.3498077,
+    "ast_hash": "0fc98ba5cf3ebb17a8abef2be503d2b4",
+    "semantic_hash": "0fc98ba5cf3ebb17a8abef2be503d2b4"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/ClearRecentSearchesUseCase.kt": {
+    "mtime": 1760356223.9590616,
+    "ast_hash": "294e53b520dc5b2f7c64b1366567cfec",
+    "semantic_hash": "294e53b520dc5b2f7c64b1366567cfec"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/DeleteRecentSearchUseCase.kt": {
+    "mtime": 1774796282.2144308,
+    "ast_hash": "205eee2a1d26653fc51b45199e763508",
+    "semantic_hash": "205eee2a1d26653fc51b45199e763508"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/GetRecentSearchesUseCase.kt": {
+    "mtime": 1774796282.2146273,
+    "ast_hash": "5038f7dbd498d370722270261b686a7e",
+    "semantic_hash": "5038f7dbd498d370722270261b686a7e"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/SearchUseCase.kt": {
+    "mtime": 1766968825.4353263,
+    "ast_hash": "6341f33afc3f442f6a930ee780df3360",
+    "semantic_hash": "6341f33afc3f442f6a930ee780df3360"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/UpsertRecentSearchUseCase.kt": {
+    "mtime": 1774796282.2148545,
+    "ast_hash": "2614de76d8752bf78990e78580aaeae4",
+    "semantic_hash": "2614de76d8752bf78990e78580aaeae4"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/user/GetPreferredCategoriesUseCase.kt": {
+    "mtime": 1758807884.3375795,
+    "ast_hash": "ab303c3f861a9abfb3d8e7b3428f1214",
+    "semantic_hash": "ab303c3f861a9abfb3d8e7b3428f1214"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/user/GetSelectableCategoriesUseCase.kt": {
+    "mtime": 1761362412.4145284,
+    "ast_hash": "4a114b7b5d51f1f11d18f76b40d6038a",
+    "semantic_hash": "4a114b7b5d51f1f11d18f76b40d6038a"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/user/GetUserDataUseCase.kt": {
+    "mtime": 1758804724.7363362,
+    "ast_hash": "a4006c0e9cb3234945bccf536f325d09",
+    "semantic_hash": "a4006c0e9cb3234945bccf536f325d09"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/user/SetFirstLaunchOffUseCase.kt": {
+    "mtime": 1758805688.8243418,
+    "ast_hash": "2b9c6de530eaf4c424d5727716cae1ed",
+    "semantic_hash": "2b9c6de530eaf4c424d5727716cae1ed"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/user/SetSpeedUseCase.kt": {
+    "mtime": 1763017104.1282637,
+    "ast_hash": "79da906fb5a192570c4e3730395e712c",
+    "semantic_hash": "79da906fb5a192570c4e3730395e712c"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/user/ToggleCategoryUseCase.kt": {
+    "mtime": 1758803692.6349463,
+    "ast_hash": "e6b89d2a678daf7baee0a3661d1c2fc4",
+    "semantic_hash": "e6b89d2a678daf7baee0a3661d1c2fc4"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/widget/NowPlayingSnapshot.kt": {
+    "mtime": 1780107904.8575025,
+    "ast_hash": "e3560c4d3713974c96ff92bb4018b779",
+    "semantic_hash": "e3560c4d3713974c96ff92bb4018b779"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/widget/PodcastSnapshot.kt": {
+    "mtime": 1780590963.7779536,
+    "ast_hash": "a4630ddf759196e2566928c89f6365b2",
+    "semantic_hash": "a4630ddf759196e2566928c89f6365b2"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/widget/WidgetDataReader.kt": {
+    "mtime": 1780590963.7782104,
+    "ast_hash": "d8219d51147da0bf543e82bcb3d85e5d",
+    "semantic_hash": "d8219d51147da0bf543e82bcb3d85e5d"
+  },
+  "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/widget/WidgetDataReaderEntryPoint.kt": {
+    "mtime": 1780107904.8578286,
+    "ast_hash": "38c05b554f80fceb1c37f35c2019ba5b",
+    "semantic_hash": "38c05b554f80fceb1c37f35c2019ba5b"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/FindInLibraryUseCaseTest.kt": {
+    "mtime": 1774872016.635019,
+    "ast_hash": "7ded9aa3d74888957f84102c24a90e59",
+    "semantic_hash": "7ded9aa3d74888957f84102c24a90e59"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelByIdUseCaseTest.kt": {
+    "mtime": 1765876092.3169405,
+    "ast_hash": "b82cff4a392b2a803f5e279bd16ec8c3",
+    "semantic_hash": "b82cff4a392b2a803f5e279bd16ec8c3"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelsUseCaseTest.kt": {
+    "mtime": 1764764476.363872,
+    "ast_hash": "d0d40c33ad77b519b945b275c9f38924",
+    "semantic_hash": "d0d40c33ad77b519b945b275c9f38924"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetAllPlayedEpisodesPagingUseCaseTest.kt": {
+    "mtime": 1766106672.2968771,
+    "ast_hash": "24fd2981c83f0a3c030b71557d2cef57",
+    "semantic_hash": "24fd2981c83f0a3c030b71557d2cef57"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetAllPlayedEpisodesUseCaseTest.kt": {
+    "mtime": 1766106690.6175523,
+    "ast_hash": "fdadd2bb85b9898fd7ae6c9647f3b7dc",
+    "semantic_hash": "fdadd2bb85b9898fd7ae6c9647f3b7dc"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetChaptersUseCaseTest.kt": {
+    "mtime": 1764122937.2863069,
+    "ast_hash": "4d55bd5dc10167530be43bc6b633ef7d",
+    "semantic_hash": "4d55bd5dc10167530be43bc6b633ef7d"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetClipEpisodesPagingUseCaseTest.kt": {
+    "mtime": 1767080481.087714,
+    "ast_hash": "9771e8bd76467a0cae29dc77811092b2",
+    "semantic_hash": "9771e8bd76467a0cae29dc77811092b2"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetEpisodeByIdUseCaseTest.kt": {
+    "mtime": 1775472853.8915389,
+    "ast_hash": "616f84cf17b4fb312b3e735f75c25b92",
+    "semantic_hash": "616f84cf17b4fb312b3e735f75c25b92"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetEpisodesByPodcastIdPagingUseCaseTest.kt": {
+    "mtime": 1765877409.273454,
+    "ast_hash": "3c02cd9c98da6d11fe78bf44185f2844",
+    "semantic_hash": "3c02cd9c98da6d11fe78bf44185f2844"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetLikedEpisodesPagingUseCaseTest.kt": {
+    "mtime": 1765876580.7789054,
+    "ast_hash": "efc602b49bbac84412c3db503ed6b8c7",
+    "semantic_hash": "efc602b49bbac84412c3db503ed6b8c7"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetLikedEpisodesUseCaseTest.kt": {
+    "mtime": 1775472853.8917894,
+    "ast_hash": "d5120e2db9f288ec2d9a55e5c5508e60",
+    "semantic_hash": "d5120e2db9f288ec2d9a55e5c5508e60"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetLiveEpisodesUseCaseTest.kt": {
+    "mtime": 1765783777.0359268,
+    "ast_hash": "ae7f97842e4a90273dbf88a099e20962",
+    "semantic_hash": "ae7f97842e4a90273dbf88a099e20962"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetMyRandomEpisodesUseCaseTest.kt": {
+    "mtime": 1765783777.0195367,
+    "ast_hash": "da5f1bd969258643c867c01c15af102d",
+    "semantic_hash": "da5f1bd969258643c867c01c15af102d"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetPlayingEpisodesUseCaseTest.kt": {
+    "mtime": 1766107645.087785,
+    "ast_hash": "00c7aabb2445ce73866452300ebb3bdb",
+    "semantic_hash": "00c7aabb2445ce73866452300ebb3bdb"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetRecentEpisodesUseCaseTest.kt": {
+    "mtime": 1765783777.0121052,
+    "ast_hash": "41ba69d5175a5b3697931e1770074413",
+    "semantic_hash": "41ba69d5175a5b3697931e1770074413"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetSavedEpisodesPagingUseCaseTest.kt": {
+    "mtime": 1775472853.8918576,
+    "ast_hash": "c5630963f119f9b4c23f4f4eb30fa3b6",
+    "semantic_hash": "c5630963f119f9b4c23f4f4eb30fa3b6"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/GetSavedEpisodesUseCaseTest.kt": {
+    "mtime": 1775472853.8919215,
+    "ast_hash": "c5706a8a4676adcaea02bb9e430f9cc3",
+    "semantic_hash": "c5706a8a4676adcaea02bb9e430f9cc3"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/SaveEpisodeUseCaseTest.kt": {
+    "mtime": 1783140439.8224223,
+    "ast_hash": "09a222f3e318f2fb50f5cf47c9afa67b",
+    "semantic_hash": "09a222f3e318f2fb50f5cf47c9afa67b"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/SyncNewEpisodesUseCaseTest.kt": {
+    "mtime": 1780823543.4984322,
+    "ast_hash": "654451d4525716ace0183757011af918",
+    "semantic_hash": "654451d4525716ace0183757011af918"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/ToggleLikedUseCaseTest.kt": {
+    "mtime": 1766968825.4355423,
+    "ast_hash": "4c852ab475fae024bd80ab36aa47c159",
+    "semantic_hash": "4c852ab475fae024bd80ab36aa47c159"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/episode/UpdatePlayedEpisodeUseCaseTest.kt": {
+    "mtime": 1766032714.7030756,
+    "ast_hash": "861285561ecf04a1bb0ac79b19b16b30",
+    "semantic_hash": "861285561ecf04a1bb0ac79b19b16b30"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/player/GetNowPlayingUseCaseTest.kt": {
+    "mtime": 1783140439.8228316,
+    "ast_hash": "4f40834f9eaa544a6f8e9d6673eff784",
+    "semantic_hash": "4f40834f9eaa544a6f8e9d6673eff784"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/player/GetPlaylistUseCaseTest.kt": {
+    "mtime": 1766968825.4356892,
+    "ast_hash": "9af464281347ae708586aff26b751ca1",
+    "semantic_hash": "9af464281347ae708586aff26b751ca1"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/player/PlayEpisodeUseCaseTest.kt": {
+    "mtime": 1766968825.435822,
+    "ast_hash": "7d602632b68dd12e95f1126b7b32c776",
+    "semantic_hash": "7d602632b68dd12e95f1126b7b32c776"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/player/RestoreLastPlayStateUseCaseTest.kt": {
+    "mtime": 1774618060.174918,
+    "ast_hash": "e8639798839a166e094d55f2512b3084",
+    "semantic_hash": "e8639798839a166e094d55f2512b3084"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/player/ResumeEpisodeUseCaseTest.kt": {
+    "mtime": 1762311248.0556571,
+    "ast_hash": "de1336f38044353f694c9195afc324df",
+    "semantic_hash": "de1336f38044353f694c9195afc324df"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/player/SaveLastPlayStateUseCaseTest.kt": {
+    "mtime": 1774618060.1749706,
+    "ast_hash": "602a130ced3afa6536183f3e8c3b583a",
+    "semantic_hash": "602a130ced3afa6536183f3e8c3b583a"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetFollowedPodcastsPagingUseCaseTest.kt": {
+    "mtime": 1765877409.2876077,
+    "ast_hash": "07c16435fdf605026305721a724fe2f4",
+    "semantic_hash": "07c16435fdf605026305721a724fe2f4"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetFollowedPodcastsUseCaseTest.kt": {
+    "mtime": 1765783777.0241401,
+    "ast_hash": "c2c3a8903b9299de6c56d8ac1cf89e22",
+    "semantic_hash": "c2c3a8903b9299de6c56d8ac1cf89e22"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetForeignTrendingPodcastsUseCaseTest.kt": {
+    "mtime": 1765877575.3500853,
+    "ast_hash": "fbfd32915db1bc72728406c1d052df58",
+    "semantic_hash": "fbfd32915db1bc72728406c1d052df58"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetLocalTrendingPodcastsUseCaseTest.kt": {
+    "mtime": 1765877655.8966956,
+    "ast_hash": "37c4af949af10c5ca6a9de04309ad9c4",
+    "semantic_hash": "37c4af949af10c5ca6a9de04309ad9c4"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastUseCaseTest.kt": {
+    "mtime": 1759231222.0266721,
+    "ast_hash": "95d071ea407680059c43b035a2df7dba",
+    "semantic_hash": "95d071ea407680059c43b035a2df7dba"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastsByChannelUseCaseTest.kt": {
+    "mtime": 1765262304.7523754,
+    "ast_hash": "a2f5419634a500e50e3a0848bf9aca8a",
+    "semantic_hash": "a2f5419634a500e50e3a0848bf9aca8a"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetRecentPodcastsUseCaseTest.kt": {
+    "mtime": 1766450663.7703233,
+    "ast_hash": "be61d744d7e0d8486afd7324a4c970d2",
+    "semantic_hash": "be61d744d7e0d8486afd7324a4c970d2"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetTrendingPodcastsUseCaseTest.kt": {
+    "mtime": 1766450663.7673597,
+    "ast_hash": "0f2f762c937095cf79ff2198b1df8527",
+    "semantic_hash": "0f2f762c937095cf79ff2198b1df8527"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetUserRecentPodcastsUseCaseTest.kt": {
+    "mtime": 1767080379.330648,
+    "ast_hash": "2f32bce83ffe45ca859f26a16c3707b5",
+    "semantic_hash": "2f32bce83ffe45ca859f26a16c3707b5"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetUserRecommendedPodcastsPagingUseCaseTest.kt": {
+    "mtime": 1767339643.6425724,
+    "ast_hash": "1e7338537e5b7f28019b118ed3a3472d",
+    "semantic_hash": "1e7338537e5b7f28019b118ed3a3472d"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetUserTrendingPodcastsUseCaseTest.kt": {
+    "mtime": 1767080379.32499,
+    "ast_hash": "e86b14a9b457183eabaff707d2c9410d",
+    "semantic_hash": "e86b14a9b457183eabaff707d2c9410d"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/ToggleFollowedUseCaseTest.kt": {
+    "mtime": 1764120079.5942094,
+    "ast_hash": "3731b03104507e4ad9c0f34064d02c04",
+    "semantic_hash": "3731b03104507e4ad9c0f34064d02c04"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/search/ClearRecentSearchesUseCaseTest.kt": {
+    "mtime": 1760372648.5647795,
+    "ast_hash": "9a6ba8e173f5ca5f6c402fb5275e3f12",
+    "semantic_hash": "9a6ba8e173f5ca5f6c402fb5275e3f12"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/search/DeleteRecentSearchUseCaseTest.kt": {
+    "mtime": 1774796282.2151916,
+    "ast_hash": "9d1e22f729bd2fef7596bb137d3d6ef7",
+    "semantic_hash": "9d1e22f729bd2fef7596bb137d3d6ef7"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/search/GetRecentSearchesUseCaseTest.kt": {
+    "mtime": 1774796282.2155218,
+    "ast_hash": "0b59fd7ef6bad8e91cb5ff930f3bd8bd",
+    "semantic_hash": "0b59fd7ef6bad8e91cb5ff930f3bd8bd"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/search/SearchUseCaseTest.kt": {
+    "mtime": 1766968825.4359426,
+    "ast_hash": "3feb83f7dc53a51d1dbad0b3624229bb",
+    "semantic_hash": "3feb83f7dc53a51d1dbad0b3624229bb"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/search/UpsertRecentSearchUseCaseTest.kt": {
+    "mtime": 1775472853.8922477,
+    "ast_hash": "6f38a267d7272825194b84022b261422",
+    "semantic_hash": "6f38a267d7272825194b84022b261422"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/user/GetPreferredCategoriesUseCaseTest.kt": {
+    "mtime": 1758807884.343802,
+    "ast_hash": "3abaaf6d5f1b0b6256c0b143a5f91ac2",
+    "semantic_hash": "3abaaf6d5f1b0b6256c0b143a5f91ac2"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/user/GetSelectableCategoriesUesCaseTest.kt": {
+    "mtime": 1761362412.4147584,
+    "ast_hash": "db40bf87d76b3ec84a1bdf330e2c3242",
+    "semantic_hash": "db40bf87d76b3ec84a1bdf330e2c3242"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/user/GetUserDataUseCaseTest.kt": {
+    "mtime": 1758805688.815371,
+    "ast_hash": "aa939150d2f6ec615cf6929cb39c43c5",
+    "semantic_hash": "aa939150d2f6ec615cf6929cb39c43c5"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/user/SetFirstLaunchOffUseCaseTest.kt": {
+    "mtime": 1758805688.8000932,
+    "ast_hash": "23efbf48aca55a08196781ae2b5ad44c",
+    "semantic_hash": "23efbf48aca55a08196781ae2b5ad44c"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/user/SetSpeedUseCaseTest.kt": {
+    "mtime": 1764132151.2663276,
+    "ast_hash": "91a2d311005f8725ad96c9404c5f043f",
+    "semantic_hash": "91a2d311005f8725ad96c9404c5f043f"
+  },
+  "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/user/ToggleCategoryUseCaseTest.kt": {
+    "mtime": 1758805688.8111577,
+    "ast_hash": "3690d00ad5a06ace11b69e5809255697",
+    "semantic_hash": "3690d00ad5a06ace11b69e5809255697"
+  },
+  "core/model/build.gradle.kts": {
+    "mtime": 1766708849.7899814,
+    "ast_hash": "070fa2e2becd651d346266b3f793c556",
+    "semantic_hash": "070fa2e2becd651d346266b3f793c556"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Category.kt": {
+    "mtime": 1776092388.1586053,
+    "ast_hash": "38f25f03c8f8f2759970fc54c43f8a36",
+    "semantic_hash": "38f25f03c8f8f2759970fc54c43f8a36"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Channel.kt": {
+    "mtime": 1764929752.28075,
+    "ast_hash": "365d005275a0c3e48d3dbadedb2491a7",
+    "semantic_hash": "365d005275a0c3e48d3dbadedb2491a7"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Chapter.kt": {
+    "mtime": 1763021468.4906323,
+    "ast_hash": "c90250914ad8569a4c60fe2f23290d70",
+    "semantic_hash": "c90250914ad8569a4c60fe2f23290d70"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/DownloadProgress.kt": {
+    "mtime": 1783140439.822947,
+    "ast_hash": "74fadfaa352315c478eb558ea6a75758",
+    "semantic_hash": "74fadfaa352315c478eb558ea6a75758"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/DownloadStatus.kt": {
+    "mtime": 1783140439.8231428,
+    "ast_hash": "52376dc142ae4a718552b943ec9db3e9",
+    "semantic_hash": "52376dc142ae4a718552b943ec9db3e9"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Episode.kt": {
+    "mtime": 1783140439.8233764,
+    "ast_hash": "d74e287c0a36c17195c99f471667b074",
+    "semantic_hash": "d74e287c0a36c17195c99f471667b074"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/EpisodeType.kt": {
+    "mtime": 1758259625.971109,
+    "ast_hash": "319fe72ce4332c6278a30404314e4485",
+    "semantic_hash": "319fe72ce4332c6278a30404314e4485"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Feed.kt": {
+    "mtime": 1767335473.4361994,
+    "ast_hash": "d761c9a094fe4c87a6d0c363e0595ec0",
+    "semantic_hash": "d761c9a094fe4c87a6d0c363e0595ec0"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/GroupKey.kt": {
+    "mtime": 1767080379.3392873,
+    "ast_hash": "f4d228e7035aa188b7b231c51e3ab08a",
+    "semantic_hash": "f4d228e7035aa188b7b231c51e3ab08a"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/LastPlayState.kt": {
+    "mtime": 1774618060.1750486,
+    "ast_hash": "3eaf2b58aa3b75300ce00b6e06f1a08c",
+    "semantic_hash": "3eaf2b58aa3b75300ce00b6e06f1a08c"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/LibraryFindResult.kt": {
+    "mtime": 1774872016.635896,
+    "ast_hash": "9c1bbc38e481c2d94925652233ae59b9",
+    "semantic_hash": "9c1bbc38e481c2d94925652233ae59b9"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Medium.kt": {
+    "mtime": 1758108471.0327203,
+    "ast_hash": "753f5fd47b1a9bd482f942e1f69840d5",
+    "semantic_hash": "753f5fd47b1a9bd482f942e1f69840d5"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Playback.kt": {
+    "mtime": 1759334889.5304103,
+    "ast_hash": "f1ddab3ad4229021af61d62a924e9af7",
+    "semantic_hash": "f1ddab3ad4229021af61d62a924e9af7"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Podcast.kt": {
+    "mtime": 1766559767.6020274,
+    "ast_hash": "3ceaf9691350aeac27886f7894f55602",
+    "semantic_hash": "3ceaf9691350aeac27886f7894f55602"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Progress.kt": {
+    "mtime": 1763695569.7153912,
+    "ast_hash": "346794cbfda8d47735c7a6d5e250bda6",
+    "semantic_hash": "346794cbfda8d47735c7a6d5e250bda6"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/RecentFeed.kt": {
+    "mtime": 1758108471.0332355,
+    "ast_hash": "e742f28b8b14d8cfe193eb97a88faad8",
+    "semantic_hash": "e742f28b8b14d8cfe193eb97a88faad8"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/RecentNewFeed.kt": {
+    "mtime": 1757859796.6972985,
+    "ast_hash": "492c61bf44558664f4fba878052a04c1",
+    "semantic_hash": "492c61bf44558664f4fba878052a04c1"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/RecentNewValueFeed.kt": {
+    "mtime": 1758108471.0334318,
+    "ast_hash": "05301b77892bbcfe6ed44ce144d0939f",
+    "semantic_hash": "05301b77892bbcfe6ed44ce144d0939f"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/RecentSearch.kt": {
+    "mtime": 1774796282.2163692,
+    "ast_hash": "0bea1967273e0b8224345f67740f7ab8",
+    "semantic_hash": "0bea1967273e0b8224345f67740f7ab8"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/RecentSearchType.kt": {
+    "mtime": 1774867488.754647,
+    "ast_hash": "130ec3586feb07eee20a88cb9b3c52d1",
+    "semantic_hash": "130ec3586feb07eee20a88cb9b3c52d1"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Repeat.kt": {
+    "mtime": 1774618060.175435,
+    "ast_hash": "1152d38549c3bde8f96f553d62232e21",
+    "semantic_hash": "1152d38549c3bde8f96f553d62232e21"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/SearchResult.kt": {
+    "mtime": 1758626566.0785909,
+    "ast_hash": "b3023809727ce22c34d61e0f76fddb17",
+    "semantic_hash": "b3023809727ce22c34d61e0f76fddb17"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/SelectableCategory.kt": {
+    "mtime": 1761362412.4150558,
+    "ast_hash": "4fefea63b820d938189d2de08ac65308",
+    "semantic_hash": "4fefea63b820d938189d2de08ac65308"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Soundbite.kt": {
+    "mtime": 1766385194.5864203,
+    "ast_hash": "5970ac92c3c0b954ae6f3fdf6588dbb5",
+    "semantic_hash": "5970ac92c3c0b954ae6f3fdf6588dbb5"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/Transcript.kt": {
+    "mtime": 1757770998.5509715,
+    "ast_hash": "37dd1073ed6a8f4be8a923da49c0f0f0",
+    "semantic_hash": "37dd1073ed6a8f4be8a923da49c0f0f0"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/TrendingFeed.kt": {
+    "mtime": 1758108471.0335917,
+    "ast_hash": "d89920ffeac0f760729c2fc3d5b0b946",
+    "semantic_hash": "d89920ffeac0f760729c2fc3d5b0b946"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/UserData.kt": {
+    "mtime": 1763016545.0604956,
+    "ast_hash": "955557eb7b4e5a7cd2adf11350fa4bb8",
+    "semantic_hash": "955557eb7b4e5a7cd2adf11350fa4bb8"
+  },
+  "core/model/src/main/kotlin/io/jacob/episodive/core/model/mapper/ModelMapper.kt": {
+    "mtime": 1774867488.75519,
+    "ast_hash": "21124da6a497384a09de4f4374297461",
+    "semantic_hash": "21124da6a497384a09de4f4374297461"
+  },
+  "core/model/src/test/kotlin/io/jacob/episodive/core/model/mapper/ModelMapperTest.kt": {
+    "mtime": 1773484534.7614279,
+    "ast_hash": "86ef9af5820175378d6e380c9313419a",
+    "semantic_hash": "86ef9af5820175378d6e380c9313419a"
+  },
+  "core/network/build.gradle.kts": {
+    "mtime": 1764737757.751996,
+    "ast_hash": "ebeb5a718232273d88e6cdcd7dcff3ae",
+    "semantic_hash": "ebeb5a718232273d88e6cdcd7dcff3ae"
+  },
+  "core/network/src/androidTest/kotlin/io/jacob/episodive/core/network/api/EpisodeApiTest.kt": {
+    "mtime": 1766536426.7183058,
+    "ast_hash": "b15c668e1a223beb58552b69a94c4d76",
+    "semantic_hash": "b15c668e1a223beb58552b69a94c4d76"
+  },
+  "core/network/src/androidTest/kotlin/io/jacob/episodive/core/network/api/FeedApiTest.kt": {
+    "mtime": 1766453741.2350652,
+    "ast_hash": "1f38b77e993d7c9cfb988beb97028bb9",
+    "semantic_hash": "1f38b77e993d7c9cfb988beb97028bb9"
+  },
+  "core/network/src/androidTest/kotlin/io/jacob/episodive/core/network/api/PodcastApiTest.kt": {
+    "mtime": 1764741901.8709004,
+    "ast_hash": "ab9a5c88f05aecd6ef428bc3908b7cab",
+    "semantic_hash": "ab9a5c88f05aecd6ef428bc3908b7cab"
+  },
+  "core/network/src/androidTest/kotlin/io/jacob/episodive/core/network/api/RetrofitRule.kt": {
+    "mtime": 1758038185.873227,
+    "ast_hash": "9dbe8a4a24f222b35a4030dfa0e2f735",
+    "semantic_hash": "9dbe8a4a24f222b35a4030dfa0e2f735"
+  },
+  "core/network/src/androidTest/kotlin/io/jacob/episodive/core/network/api/SoundbiteApiTest.kt": {
+    "mtime": 1766453741.2498093,
+    "ast_hash": "d26c8840a7c785e12731fa1b706a193d",
+    "semantic_hash": "d26c8840a7c785e12731fa1b706a193d"
+  },
+  "core/network/src/main/assets/channels.json": {
+    "mtime": 1764738052.9810133,
+    "ast_hash": "1b20b77a0f51615b562a5ed7f35589bd",
+    "semantic_hash": "1b20b77a0f51615b562a5ed7f35589bd"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/ChapterApi.kt": {
+    "mtime": 1763023126.9226604,
+    "ast_hash": "2144c309d32baf546a7a8beb8382da20",
+    "semantic_hash": "2144c309d32baf546a7a8beb8382da20"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/EpisodeApi.kt": {
+    "mtime": 1766536426.7184618,
+    "ast_hash": "7a43fb210a273170082bd8a68753877c",
+    "semantic_hash": "7a43fb210a273170082bd8a68753877c"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/FeedApi.kt": {
+    "mtime": 1766453741.2878523,
+    "ast_hash": "da12dd202b5845f9a88c51f2725f0874",
+    "semantic_hash": "da12dd202b5845f9a88c51f2725f0874"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/PodcastApi.kt": {
+    "mtime": 1764742110.1528852,
+    "ast_hash": "4e7fb768e58bf5ba17b6b3812bae45dc",
+    "semantic_hash": "4e7fb768e58bf5ba17b6b3812bae45dc"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/SoundbiteApi.kt": {
+    "mtime": 1766453741.261677,
+    "ast_hash": "f3b88bed9090b1b73cb42907a1a7a0e3",
+    "semantic_hash": "f3b88bed9090b1b73cb42907a1a7a0e3"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/ChannelRemoteDataSource.kt": {
+    "mtime": 1764764675.104452,
+    "ast_hash": "24043a7394c18e9ae3d162cc45d4a211",
+    "semantic_hash": "24043a7394c18e9ae3d162cc45d4a211"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/ChannelRemoteDataSourceImpl.kt": {
+    "mtime": 1767062560.5754905,
+    "ast_hash": "584f802011c57100a2a857b18f8e1e49",
+    "semantic_hash": "584f802011c57100a2a857b18f8e1e49"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/ChapterRemoteDataSource.kt": {
+    "mtime": 1763023290.7769594,
+    "ast_hash": "4478e319a953a54d7fe21cbd617ba73d",
+    "semantic_hash": "4478e319a953a54d7fe21cbd617ba73d"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/ChapterRemoteDataSourceImpl.kt": {
+    "mtime": 1767056028.1328702,
+    "ast_hash": "0ff85489e1345c60a5343c872a433691",
+    "semantic_hash": "0ff85489e1345c60a5343c872a433691"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/EpisodeRemoteDataSource.kt": {
+    "mtime": 1766536426.7186766,
+    "ast_hash": "4aef975055b019926df4f7a227f271b0",
+    "semantic_hash": "4aef975055b019926df4f7a227f271b0"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/EpisodeRemoteDataSourceImpl.kt": {
+    "mtime": 1767056028.1559618,
+    "ast_hash": "b5d07802b75ead7e6f40e9b83b5a7e0c",
+    "semantic_hash": "b5d07802b75ead7e6f40e9b83b5a7e0c"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSource.kt": {
+    "mtime": 1766453741.2188585,
+    "ast_hash": "e1cceec67497d9d7e3ba8600d87a88da",
+    "semantic_hash": "e1cceec67497d9d7e3ba8600d87a88da"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSourceImpl.kt": {
+    "mtime": 1767056028.1417236,
+    "ast_hash": "e0b1dfa3f2328cc75f53f431e7b59a06",
+    "semantic_hash": "e0b1dfa3f2328cc75f53f431e7b59a06"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/PodcastRemoteDataSource.kt": {
+    "mtime": 1764742526.1007202,
+    "ast_hash": "ef6e471406c231a5e1e8fd4e52cc25f7",
+    "semantic_hash": "ef6e471406c231a5e1e8fd4e52cc25f7"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/PodcastRemoteDataSourceImpl.kt": {
+    "mtime": 1767056028.1481469,
+    "ast_hash": "44898b2a5f7c825ca776a1e1e6db4c65",
+    "semantic_hash": "44898b2a5f7c825ca776a1e1e6db4c65"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/SoundbiteRemoteDataSource.kt": {
+    "mtime": 1766453741.2279122,
+    "ast_hash": "859cd0db1e970176934734ee9bd5b48c",
+    "semantic_hash": "859cd0db1e970176934734ee9bd5b48c"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/SoundbiteRemoteDataSourceImpl.kt": {
+    "mtime": 1767056028.154101,
+    "ast_hash": "e1a52700043087aee45e8d30edd20a47",
+    "semantic_hash": "e1a52700043087aee45e8d30edd20a47"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/di/ApiModule.kt": {
+    "mtime": 1766453741.2644527,
+    "ast_hash": "0037d7aebb6b22819e4f810104d2cb80",
+    "semantic_hash": "0037d7aebb6b22819e4f810104d2cb80"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/di/DataSourceModule.kt": {
+    "mtime": 1766453741.2047756,
+    "ast_hash": "dcf9ed0b743799307d5644f0bcd0f2b4",
+    "semantic_hash": "dcf9ed0b743799307d5644f0bcd0f2b4"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/di/NetworkModule.kt": {
+    "mtime": 1780107904.858445,
+    "ast_hash": "e77003cbba2cbf62a5b9252cd97d2719",
+    "semantic_hash": "e77003cbba2cbf62a5b9252cd97d2719"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt": {
+    "mtime": 1766708849.7909436,
+    "ast_hash": "2efb2f5f7b66e1e3024625b7a301ae7d",
+    "semantic_hash": "2efb2f5f7b66e1e3024625b7a301ae7d"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/ChannelResponse.kt": {
+    "mtime": 1764764675.1073353,
+    "ast_hash": "bac4fa015f38ca9b957452951572fffb",
+    "semantic_hash": "bac4fa015f38ca9b957452951572fffb"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/ChapterResponse.kt": {
+    "mtime": 1763021956.434553,
+    "ast_hash": "e75588ab95ea011a4bcb2fd19de42285",
+    "semantic_hash": "e75588ab95ea011a4bcb2fd19de42285"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/ChaptersResponse.kt": {
+    "mtime": 1763021956.4265842,
+    "ast_hash": "e4acd8e7e8cede8df6c331e11ff80be4",
+    "semantic_hash": "e4acd8e7e8cede8df6c331e11ff80be4"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/EpisodeResponse.kt": {
+    "mtime": 1764308488.7456353,
+    "ast_hash": "46463d7fb418b2c6cf73dff6222da289",
+    "semantic_hash": "46463d7fb418b2c6cf73dff6222da289"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/PodcastResponse.kt": {
+    "mtime": 1758108471.0357864,
+    "ast_hash": "2e766c4b08fc2f95e7b3d11f3fee9605",
+    "semantic_hash": "2e766c4b08fc2f95e7b3d11f3fee9605"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentFeedResponse.kt": {
+    "mtime": 1767334130.0184963,
+    "ast_hash": "607bf8c40ea17d6b2e500c250c11981e",
+    "semantic_hash": "607bf8c40ea17d6b2e500c250c11981e"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentNewFeedResponse.kt": {
+    "mtime": 1757780559.1264484,
+    "ast_hash": "1fb9dd9a6156ff92da48755d23060d5d",
+    "semantic_hash": "1fb9dd9a6156ff92da48755d23060d5d"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentNewValueFeedResponse.kt": {
+    "mtime": 1758038185.876073,
+    "ast_hash": "980e330bbef4639b612fd3b994a1f09d",
+    "semantic_hash": "980e330bbef4639b612fd3b994a1f09d"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/ResponseListWrapper.kt": {
+    "mtime": 1757826813.625763,
+    "ast_hash": "211f63f609132ad9d1451924ade88ad6",
+    "semantic_hash": "211f63f609132ad9d1451924ade88ad6"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/ResponseWrapper.kt": {
+    "mtime": 1780107904.8587139,
+    "ast_hash": "30c0e4c7e2ef45a4c052aa0a6cf8ade6",
+    "semantic_hash": "30c0e4c7e2ef45a4c052aa0a6cf8ade6"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/ResponseWrapperDeserializer.kt": {
+    "mtime": 1780107904.8593068,
+    "ast_hash": "eab57f3930e8763878e70337730e1195",
+    "semantic_hash": "eab57f3930e8763878e70337730e1195"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/SoundbiteResponse.kt": {
+    "mtime": 1758538941.2802796,
+    "ast_hash": "49a386b4777b28586abbb4f93d521c2e",
+    "semantic_hash": "49a386b4777b28586abbb4f93d521c2e"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/TrendingFeedResponse.kt": {
+    "mtime": 1758038185.8762207,
+    "ast_hash": "655f9cd905a7640c25558d6ac931a5c7",
+    "semantic_hash": "655f9cd905a7640c25558d6ac931a5c7"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/util/EpisodiveInterceptor.kt": {
+    "mtime": 1758038185.876404,
+    "ast_hash": "3d665018cc7108921f7c579fd4fb48c3",
+    "semantic_hash": "3d665018cc7108921f7c579fd4fb48c3"
+  },
+  "core/network/src/main/kotlin/io/jacob/episodive/core/network/util/Utils.kt": {
+    "mtime": 1758038185.8765461,
+    "ast_hash": "7aad176c3d8f162def2fd19b3b46d18f",
+    "semantic_hash": "7aad176c3d8f162def2fd19b3b46d18f"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/datasource/ChannelRemoteDataSourceTest.kt": {
+    "mtime": 1764764718.874679,
+    "ast_hash": "f9eb6edf2e086133fa38af11cfe3c96a",
+    "semantic_hash": "f9eb6edf2e086133fa38af11cfe3c96a"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/datasource/ChapterRemoteDataSourceTest.kt": {
+    "mtime": 1764123188.9192047,
+    "ast_hash": "d49492835a257b4a6f3fec5b64ca7c21",
+    "semantic_hash": "d49492835a257b4a6f3fec5b64ca7c21"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/datasource/EpisodeRemoteDataSourceTest.kt": {
+    "mtime": 1766536426.7189686,
+    "ast_hash": "200453684634077e182a5858c8ef0d1e",
+    "semantic_hash": "200453684634077e182a5858c8ef0d1e"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSourceTest.kt": {
+    "mtime": 1766453741.2543387,
+    "ast_hash": "3382c97d6ff8b4f9113be64ac77e80d5",
+    "semantic_hash": "3382c97d6ff8b4f9113be64ac77e80d5"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/datasource/PodcastRemoteDataSourceTest.kt": {
+    "mtime": 1764742597.0524993,
+    "ast_hash": "0a418ee1cb140a71fcab615814421b83",
+    "semantic_hash": "0a418ee1cb140a71fcab615814421b83"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/datasource/SoundbiteRemoteDataSourceTest.kt": {
+    "mtime": 1766453741.2523952,
+    "ast_hash": "2a63f68fad10c4d89a031d1c7e218e72",
+    "semantic_hash": "2a63f68fad10c4d89a031d1c7e218e72"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapperTest.kt": {
+    "mtime": 1766385194.586831,
+    "ast_hash": "16764e29a84a04ddbc10d2104a9d222c",
+    "semantic_hash": "16764e29a84a04ddbc10d2104a9d222c"
+  },
+  "core/network/src/test/kotlin/io/jacob/episodive/core/network/util/EpisodiveInterceptorTest.kt": {
+    "mtime": 1764133264.5267391,
+    "ast_hash": "e8adf1326b1d1f61ce111570fbb1a161",
+    "semantic_hash": "e8adf1326b1d1f61ce111570fbb1a161"
+  },
+  "core/player/build.gradle.kts": {
+    "mtime": 1783140439.8239691,
+    "ast_hash": "34c97ffb64996ae9a20b34d1b2d43d75",
+    "semantic_hash": "34c97ffb64996ae9a20b34d1b2d43d75"
+  },
+  "core/player/src/main/kotlin/io/jacob/episodive/core/player/datasource/PlayerDataSource.kt": {
+    "mtime": 1780107904.8595214,
+    "ast_hash": "000c683630639592560f51b8cb92eb64",
+    "semantic_hash": "000c683630639592560f51b8cb92eb64"
+  },
+  "core/player/src/main/kotlin/io/jacob/episodive/core/player/datasource/PlayerDataSourceImpl.kt": {
+    "mtime": 1783140439.8248556,
+    "ast_hash": "633187f8269ea6c8e5eb36bb07c3acb3",
+    "semantic_hash": "633187f8269ea6c8e5eb36bb07c3acb3"
+  },
+  "core/player/src/main/kotlin/io/jacob/episodive/core/player/di/DataSourceModule.kt": {
+    "mtime": 1783140439.8255553,
+    "ast_hash": "90a11218643913240b0e867e91f0acd8",
+    "semantic_hash": "90a11218643913240b0e867e91f0acd8"
+  },
+  "core/player/src/main/kotlin/io/jacob/episodive/core/player/di/PlayerModule.kt": {
+    "mtime": 1764736591.348582,
+    "ast_hash": "9c484bedf3c9f6b1bea9d42109cf0205",
+    "semantic_hash": "9c484bedf3c9f6b1bea9d42109cf0205"
+  },
+  "core/player/src/test/kotlin/io/jacob/episodive/core/player/ExoPlayerRule.kt": {
+    "mtime": 1759334889.5348804,
+    "ast_hash": "79f4b8bc2d61e066c554e5f938136f8f",
+    "semantic_hash": "79f4b8bc2d61e066c554e5f938136f8f"
+  },
+  "core/player/src/test/kotlin/io/jacob/episodive/core/player/datasource/PlayerDataSourceImplTest.kt": {
+    "mtime": 1784651473.3060126,
+    "ast_hash": "cd92bfdb5be88774de690bc35b1115cf",
+    "semantic_hash": "cd92bfdb5be88774de690bc35b1115cf"
+  },
+  "core/testing/build.gradle.kts": {
+    "mtime": 1765784980.7448726,
+    "ast_hash": "83653dfadff0848fb8e18211c637b225",
+    "semantic_hash": "83653dfadff0848fb8e18211c637b225"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/model/ChannelTestData.kt": {
+    "mtime": 1764764744.422649,
+    "ast_hash": "cd5e5997a5a892b15b0aea950fb83812",
+    "semantic_hash": "cd5e5997a5a892b15b0aea950fb83812"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/model/EpisodeTestData.kt": {
+    "mtime": 1766708849.7919235,
+    "ast_hash": "d34241d0d3daf0f876c42e0d50f58a4d",
+    "semantic_hash": "d34241d0d3daf0f876c42e0d50f58a4d"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/model/FeedTestData.kt": {
+    "mtime": 1766385194.5881467,
+    "ast_hash": "cd9ce062ebea909afa1ce8bb02fef1ca",
+    "semantic_hash": "cd9ce062ebea909afa1ce8bb02fef1ca"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/model/PodcastTestData.kt": {
+    "mtime": 1762317323.486192,
+    "ast_hash": "9262b2662502e9a23afadfb3847f246c",
+    "semantic_hash": "9262b2662502e9a23afadfb3847f246c"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/util/DisabledOnWindowsRule.kt": {
+    "mtime": 1761650162.4218173,
+    "ast_hash": "79c248d1701969b7689596d0cf2c6ca7",
+    "semantic_hash": "79c248d1701969b7689596d0cf2c6ca7"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/util/MainDispatcherRule.kt": {
+    "mtime": 1764737517.7179062,
+    "ast_hash": "3b0a6753260c949746e7dcb724a612ea",
+    "semantic_hash": "3b0a6753260c949746e7dcb724a612ea"
+  },
+  "core/testing/src/main/kotlin/io/jacob/episodive/core/testing/util/PagingSourceTestExt.kt": {
+    "mtime": 1765964548.6207542,
+    "ast_hash": "0b01a2076bcc4a7c279c6a4e17882ce2",
+    "semantic_hash": "0b01a2076bcc4a7c279c6a4e17882ce2"
+  },
+  "core/ui/build.gradle.kts": {
+    "mtime": 1765189058.2355573,
+    "ast_hash": "7172c4c8252efa7bf84d3d594cd530c9",
+    "semantic_hash": "7172c4c8252efa7bf84d3d594cd530c9"
+  },
+  "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Category.kt": {
+    "mtime": 1776092388.1590366,
+    "ast_hash": "973e25f7986b0b0f65cefb0c43af0957",
+    "semantic_hash": "973e25f7986b0b0f65cefb0c43af0957"
+  },
+  "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Channel.kt": {
+    "mtime": 1783140439.8263597,
+    "ast_hash": "05272df1b25b149842f3c90a4fe0d210",
+    "semantic_hash": "05272df1b25b149842f3c90a4fe0d210"
+  },
+  "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Chapter.kt": {
+    "mtime": 1764740197.3455567,
+    "ast_hash": "e7970e1e73a0466ff9474f82460dd09b",
+    "semantic_hash": "e7970e1e73a0466ff9474f82460dd09b"
+  },
+  "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Episode.kt": {
+    "mtime": 1783140439.8267975,
+    "ast_hash": "074039316e97b8b73fc3d151ff43c881",
+    "semantic_hash": "074039316e97b8b73fc3d151ff43c881"
+  },
+  "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Podcast.kt": {
+    "mtime": 1783152568.5688334,
+    "ast_hash": "169a72b5db87edd97a796d9283feaa8e",
+    "semantic_hash": "169a72b5db87edd97a796d9283feaa8e"
+  },
+  "feature/channel/build.gradle.kts": {
+    "mtime": 1764762753.5147312,
+    "ast_hash": "e84a883f5c7ce5eb832dc1385be4e526",
+    "semantic_hash": "e84a883f5c7ce5eb832dc1385be4e526"
+  },
+  "feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/ChannelScreen.kt": {
+    "mtime": 1774618060.176576,
+    "ast_hash": "5b48c967629a15856ea8042817c0cfcc",
+    "semantic_hash": "5b48c967629a15856ea8042817c0cfcc"
+  },
+  "feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/ChannelViewModel.kt": {
+    "mtime": 1765262177.5081687,
+    "ast_hash": "30e8f9553c0051491b19169d6a85c96b",
+    "semantic_hash": "30e8f9553c0051491b19169d6a85c96b"
+  },
+  "feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/navigation/ChannelNavigation.kt": {
+    "mtime": 1775476640.6273577,
+    "ast_hash": "3dcaaf991956294a10c6daac74e1c235",
+    "semantic_hash": "3dcaaf991956294a10c6daac74e1c235"
+  },
+  "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt": {
+    "mtime": 1774618060.1768231,
+    "ast_hash": "2d8d5f4ded77acc0ad76d072e6466da9",
+    "semantic_hash": "2d8d5f4ded77acc0ad76d072e6466da9"
+  },
+  "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelViewModelTest.kt": {
+    "mtime": 1774618060.1769474,
+    "ast_hash": "3ce5d519eee49bf25ad477923cc1d8ff",
+    "semantic_hash": "3ce5d519eee49bf25ad477923cc1d8ff"
+  },
+  "feature/clip/build.gradle.kts": {
+    "mtime": 1758713803.1701984,
+    "ast_hash": "d1c2d32461f07a413351b712278c379f",
+    "semantic_hash": "d1c2d32461f07a413351b712278c379f"
+  },
+  "feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/ClipScreen.kt": {
+    "mtime": 1774618060.177337,
+    "ast_hash": "1440fae26dc0762db785577f7dda1905",
+    "semantic_hash": "1440fae26dc0762db785577f7dda1905"
+  },
+  "feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/ClipViewModel.kt": {
+    "mtime": 1767080481.0909276,
+    "ast_hash": "3ab0a62ec30166c186e3399981cd7226",
+    "semantic_hash": "3ab0a62ec30166c186e3399981cd7226"
+  },
+  "feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/navigation/ClipNavigation.kt": {
+    "mtime": 1775476640.6277895,
+    "ast_hash": "4ea7714ffb89cceb3f7ae51822e3fb80",
+    "semantic_hash": "4ea7714ffb89cceb3f7ae51822e3fb80"
+  },
+  "feature/clip/src/test/kotlin/io/jacob/episodive/feature/clip/ClipScreenTest.kt": {
+    "mtime": 1775472853.8931537,
+    "ast_hash": "5ff1d09d6f136e57e979497facd4c830",
+    "semantic_hash": "5ff1d09d6f136e57e979497facd4c830"
+  },
+  "feature/clip/src/test/kotlin/io/jacob/episodive/feature/clip/ClipViewModelTest.kt": {
+    "mtime": 1774618060.1777217,
+    "ast_hash": "ea4561a1cb67ccf6f434ff502e4d0c3a",
+    "semantic_hash": "ea4561a1cb67ccf6f434ff502e4d0c3a"
+  },
+  "feature/home/build.gradle.kts": {
+    "mtime": 1758713803.171382,
+    "ast_hash": "bbf83a317a4bf3329c9c3568591b7750",
+    "semantic_hash": "bbf83a317a4bf3329c9c3568591b7750"
+  },
+  "feature/home/src/main/kotlin/io/jacob/episodive/feature/home/HomeScreen.kt": {
+    "mtime": 1783140439.828085,
+    "ast_hash": "b6fbc8a795de02c7769e94f957e9e15b",
+    "semantic_hash": "b6fbc8a795de02c7769e94f957e9e15b"
+  },
+  "feature/home/src/main/kotlin/io/jacob/episodive/feature/home/HomeViewModel.kt": {
+    "mtime": 1775665173.7018309,
+    "ast_hash": "6f43cb1fd111ae6ad7b12203fc8ff77e",
+    "semantic_hash": "6f43cb1fd111ae6ad7b12203fc8ff77e"
+  },
+  "feature/home/src/main/kotlin/io/jacob/episodive/feature/home/navigation/HomeNavigation.kt": {
+    "mtime": 1775476640.6281288,
+    "ast_hash": "0174e78d693a6aaeb4c9fc2e20caa0cc",
+    "semantic_hash": "0174e78d693a6aaeb4c9fc2e20caa0cc"
+  },
+  "feature/home/src/test/kotlin/io/jacob/episodive/feature/home/HomeScreenTest.kt": {
+    "mtime": 1775482992.7496717,
+    "ast_hash": "9074eb574a2f0aedad309a76554e67ce",
+    "semantic_hash": "9074eb574a2f0aedad309a76554e67ce"
+  },
+  "feature/home/src/test/kotlin/io/jacob/episodive/feature/home/HomeViewModelTest.kt": {
+    "mtime": 1774872016.6378624,
+    "ast_hash": "13e11e4fa7a0de52587838e0c392c89e",
+    "semantic_hash": "13e11e4fa7a0de52587838e0c392c89e"
+  },
+  "feature/library/build.gradle.kts": {
+    "mtime": 1758713803.17249,
+    "ast_hash": "3efacb6d2b9f36090d9a0a62483d1106",
+    "semantic_hash": "3efacb6d2b9f36090d9a0a62483d1106"
+  },
+  "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryScreen.kt": {
+    "mtime": 1776092388.1595564,
+    "ast_hash": "792aad40ac0d3b766a72e4e91226d6ba",
+    "semantic_hash": "792aad40ac0d3b766a72e4e91226d6ba"
+  },
+  "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt": {
+    "mtime": 1775665173.7024784,
+    "ast_hash": "0ba2368735cb70c424e236ac6df23fa5",
+    "semantic_hash": "0ba2368735cb70c424e236ac6df23fa5"
+  },
+  "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/navigation/LibraryNavigation.kt": {
+    "mtime": 1775476640.6284032,
+    "ast_hash": "9fb31b1bda0297d5ca0cf72ddf2126f5",
+    "semantic_hash": "9fb31b1bda0297d5ca0cf72ddf2126f5"
+  },
+  "feature/library/src/test/kotlin/io/jacob/episodive/feature/library/LibraryScreenTest.kt": {
+    "mtime": 1775472853.8936715,
+    "ast_hash": "8da855053e83cb13c35fc8b934718eba",
+    "semantic_hash": "8da855053e83cb13c35fc8b934718eba"
+  },
+  "feature/library/src/test/kotlin/io/jacob/episodive/feature/library/LibraryViewModelTest.kt": {
+    "mtime": 1775472853.893857,
+    "ast_hash": "4d7a6b4e6e1b16e554db70f70b583296",
+    "semantic_hash": "4d7a6b4e6e1b16e554db70f70b583296"
+  },
+  "feature/onboarding/build.gradle.kts": {
+    "mtime": 1758713811.6173902,
+    "ast_hash": "aa5f8e7e428b49c05cb42efaff521cea",
+    "semantic_hash": "aa5f8e7e428b49c05cb42efaff521cea"
+  },
+  "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt": {
+    "mtime": 1783152568.5694141,
+    "ast_hash": "0415f0df4bc608001796f80e62f7511e",
+    "semantic_hash": "0415f0df4bc608001796f80e62f7511e"
+  },
+  "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingViewModel.kt": {
+    "mtime": 1783152568.5698423,
+    "ast_hash": "755d81baf6d9524105e6c8173c05209d",
+    "semantic_hash": "755d81baf6d9524105e6c8173c05209d"
+  },
+  "feature/onboarding/src/test/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreenTest.kt": {
+    "mtime": 1774618060.1796825,
+    "ast_hash": "a31ec3fa8988d790d6f6934aa54c1aa7",
+    "semantic_hash": "a31ec3fa8988d790d6f6934aa54c1aa7"
+  },
+  "feature/onboarding/src/test/kotlin/io/jacob/episodive/feature/onboarding/OnboardingViewModelTest.kt": {
+    "mtime": 1783152568.5701854,
+    "ast_hash": "8d712c772db0bff01b19b2ee55ce4290",
+    "semantic_hash": "8d712c772db0bff01b19b2ee55ce4290"
+  },
+  "feature/player/build.gradle.kts": {
+    "mtime": 1763084908.5496902,
+    "ast_hash": "2805a9a816e448f8698546a269f6ad48",
+    "semantic_hash": "2805a9a816e448f8698546a269f6ad48"
+  },
+  "feature/player/src/main/kotlin/io/jacob/episodive/feature/player/PlayerBar.kt": {
+    "mtime": 1780590963.7786913,
+    "ast_hash": "45651cc6c1d4afe66b5269dec771c919",
+    "semantic_hash": "45651cc6c1d4afe66b5269dec771c919"
+  },
+  "feature/player/src/main/kotlin/io/jacob/episodive/feature/player/PlayerScreen.kt": {
+    "mtime": 1783140439.8288488,
+    "ast_hash": "1c6d33c2afe316e31b3641d2257afa46",
+    "semantic_hash": "1c6d33c2afe316e31b3641d2257afa46"
+  },
+  "feature/player/src/main/kotlin/io/jacob/episodive/feature/player/PlayerViewModel.kt": {
+    "mtime": 1776263236.6204307,
+    "ast_hash": "b6b257991e4aeb746ba6b749dcdf5a97",
+    "semantic_hash": "b6b257991e4aeb746ba6b749dcdf5a97"
+  },
+  "feature/player/src/test/kotlin/io/jacob/episodive/feature/player/PlayerBarTest.kt": {
+    "mtime": 1775472853.894108,
+    "ast_hash": "370464406e89eef4aa542119ba00da52",
+    "semantic_hash": "370464406e89eef4aa542119ba00da52"
+  },
+  "feature/player/src/test/kotlin/io/jacob/episodive/feature/player/PlayerScreenTest.kt": {
+    "mtime": 1775472853.8942428,
+    "ast_hash": "0fa21aaed7301de869723dab807b9f09",
+    "semantic_hash": "0fa21aaed7301de869723dab807b9f09"
+  },
+  "feature/player/src/test/kotlin/io/jacob/episodive/feature/player/PlayerViewModelTest.kt": {
+    "mtime": 1776263236.6210957,
+    "ast_hash": "506fd78c14ada798ee3b1b8c2f158f39",
+    "semantic_hash": "506fd78c14ada798ee3b1b8c2f158f39"
+  },
+  "feature/podcast/build.gradle.kts": {
+    "mtime": 1759231222.0286715,
+    "ast_hash": "d114967c1bf6b65a7a5bc4367d1e8945",
+    "semantic_hash": "d114967c1bf6b65a7a5bc4367d1e8945"
+  },
+  "feature/podcast/src/main/kotlin/io/jacob/episodive/feature/podcast/PodcastScreen.kt": {
+    "mtime": 1775665173.7038445,
+    "ast_hash": "962087a1ee9014db983234fcf1b98d07",
+    "semantic_hash": "962087a1ee9014db983234fcf1b98d07"
+  },
+  "feature/podcast/src/main/kotlin/io/jacob/episodive/feature/podcast/PodcastViewModel.kt": {
+    "mtime": 1775665173.7040966,
+    "ast_hash": "19690f4d05d8b21deec868e98aa7ad8d",
+    "semantic_hash": "19690f4d05d8b21deec868e98aa7ad8d"
+  },
+  "feature/podcast/src/main/kotlin/io/jacob/episodive/feature/podcast/navigation/PodcastNavigation.kt": {
+    "mtime": 1775476640.6286445,
+    "ast_hash": "4610ba2ab31b1cffd072d3435a3198cb",
+    "semantic_hash": "4610ba2ab31b1cffd072d3435a3198cb"
+  },
+  "feature/podcast/src/test/kotlin/io/jacob/episodive/feature/podcast/PodcastScreenTest.kt": {
+    "mtime": 1775472853.894614,
+    "ast_hash": "c8d6abfefff954fdf0726931bf5d11d5",
+    "semantic_hash": "c8d6abfefff954fdf0726931bf5d11d5"
+  },
+  "feature/podcast/src/test/kotlin/io/jacob/episodive/feature/podcast/PodcastViewModelTest.kt": {
+    "mtime": 1774872016.6424534,
+    "ast_hash": "229d8f4add60a02a4152b655d4775013",
+    "semantic_hash": "229d8f4add60a02a4152b655d4775013"
+  },
+  "feature/search/build.gradle.kts": {
+    "mtime": 1758713803.173601,
+    "ast_hash": "f4e1ae4beaefaa63a3579f85e050f8bd",
+    "semantic_hash": "f4e1ae4beaefaa63a3579f85e050f8bd"
+  },
+  "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchScreen.kt": {
+    "mtime": 1774867488.7591302,
+    "ast_hash": "854366467e4bcdd05b714527aef1c0cb",
+    "semantic_hash": "854366467e4bcdd05b714527aef1c0cb"
+  },
+  "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt": {
+    "mtime": 1774867488.7592483,
+    "ast_hash": "8e141f6139a7f19bfb31a252c46eb610",
+    "semantic_hash": "8e141f6139a7f19bfb31a252c46eb610"
+  },
+  "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/navigation/SearchNavigation.kt": {
+    "mtime": 1775476640.6289144,
+    "ast_hash": "ca79479dfcb3d962eb4296f89695dc9c",
+    "semantic_hash": "ca79479dfcb3d962eb4296f89695dc9c"
+  },
+  "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchScreenTest.kt": {
+    "mtime": 1775472853.9038422,
+    "ast_hash": "9025e944c9acb12cc34e06e8944b2e84",
+    "semantic_hash": "9025e944c9acb12cc34e06e8944b2e84"
+  },
+  "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt": {
+    "mtime": 1774796282.2180321,
+    "ast_hash": "e5ff39634270f72e3afdfd21f3508b7d",
+    "semantic_hash": "e5ff39634270f72e3afdfd21f3508b7d"
+  },
+  "feature/widget/build.gradle.kts": {
+    "mtime": 1780590963.7813094,
+    "ast_hash": "676895d2704b62a83f7f8284c3f21b9e",
+    "semantic_hash": "676895d2704b62a83f7f8284c3f21b9e"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidget.kt": {
+    "mtime": 1780590963.7815714,
+    "ast_hash": "0b959a970dc5167b824288f29b59be1b",
+    "semantic_hash": "0b959a970dc5167b824288f29b59be1b"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayout.kt": {
+    "mtime": 1780590963.7816808,
+    "ast_hash": "6948ee364f9c7b1884f96ff3631aa7b6",
+    "semantic_hash": "6948ee364f9c7b1884f96ff3631aa7b6"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetReceiver.kt": {
+    "mtime": 1780590963.7817605,
+    "ast_hash": "9134d0a1c214d3e932acc9206f456b59",
+    "semantic_hash": "9134d0a1c214d3e932acc9206f456b59"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/PlaybackControl.kt": {
+    "mtime": 1780107904.860908,
+    "ast_hash": "323556041f561edd37718d988f90136e",
+    "semantic_hash": "323556041f561edd37718d988f90136e"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/action/ServiceActions.kt": {
+    "mtime": 1780590963.7823553,
+    "ast_hash": "689ba64281c9023e3fc3ccf7e6ef90cc",
+    "semantic_hash": "689ba64281c9023e3fc3ccf7e6ef90cc"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/action/WidgetActionCallback.kt": {
+    "mtime": 1780107904.861197,
+    "ast_hash": "81fbf130574a8507b695d5744c0f71ba",
+    "semantic_hash": "81fbf130574a8507b695d5744c0f71ba"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/component/FeedContent.kt": {
+    "mtime": 1780590963.7825613,
+    "ast_hash": "3ec8b2cdd7f9a96e9e2013064ce96f5c",
+    "semantic_hash": "3ec8b2cdd7f9a96e9e2013064ce96f5c"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/component/NowPlayingContent.kt": {
+    "mtime": 1780590963.78273,
+    "ast_hash": "4b2bdbcae54eda6d03f02198ca02bb25",
+    "semantic_hash": "4b2bdbcae54eda6d03f02198ca02bb25"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/component/NowPlayingControls.kt": {
+    "mtime": 1780590963.782873,
+    "ast_hash": "7a66805d10cbc1275c04dbc82707d233",
+    "semantic_hash": "7a66805d10cbc1275c04dbc82707d233"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/dispatcher/GlanceWidgetDispatcher.kt": {
+    "mtime": 1780590963.7830584,
+    "ast_hash": "d8276fa5d4fe433955fb55243d01d2e2",
+    "semantic_hash": "d8276fa5d4fe433955fb55243d01d2e2"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/dispatcher/WidgetDispatcherModule.kt": {
+    "mtime": 1780107904.861536,
+    "ast_hash": "3f2f74493d0b64a9a8dd25e3a9069fb9",
+    "semantic_hash": "3f2f74493d0b64a9a8dd25e3a9069fb9"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/image/WidgetColorExtractor.kt": {
+    "mtime": 1780590963.7831562,
+    "ast_hash": "a11809756d3ae056e0e9b8a09a696a94",
+    "semantic_hash": "a11809756d3ae056e0e9b8a09a696a94"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/image/WidgetImageLoader.kt": {
+    "mtime": 1780590963.783313,
+    "ast_hash": "35075b4db530ead7c3c34ba72669c547",
+    "semantic_hash": "35075b4db530ead7c3c34ba72669c547"
+  },
+  "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/theme/EpisodiveGlanceTheme.kt": {
+    "mtime": 1780107904.8632314,
+    "ast_hash": "8b3a8d36b3c3cc1ce62a7a625d430491",
+    "semantic_hash": "8b3a8d36b3c3cc1ce62a7a625d430491"
+  },
+  "feature/widget/src/test/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayoutTest.kt": {
+    "mtime": 1784651473.3068056,
+    "ast_hash": "ce31babcaa7ad2122608a11738ad2b56",
+    "semantic_hash": "ce31babcaa7ad2122608a11738ad2b56"
+  },
+  "feature/widget/src/test/kotlin/io/jacob/episodive/feature/widget/PlaybackControlTest.kt": {
+    "mtime": 1784651473.3069339,
+    "ast_hash": "ce17451d6fb959c06a2111605fa1b5ea",
+    "semantic_hash": "ce17451d6fb959c06a2111605fa1b5ea"
+  },
+  "gradlew": {
+    "mtime": 1757734159.3049295,
+    "ast_hash": "02c16663c6f0aa37f98d94d698c22b8c",
+    "semantic_hash": "02c16663c6f0aa37f98d94d698c22b8c"
+  },
+  "scripts/analyze_coverage.py": {
+    "mtime": 1784651473.3077102,
+    "ast_hash": "eff2a391ac677b64dbdaa0a975f908eb",
+    "semantic_hash": "eff2a391ac677b64dbdaa0a975f908eb"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1780107904.866398,
+    "ast_hash": "17b62161787327233797ef5258199177",
+    "semantic_hash": "17b62161787327233797ef5258199177"
+  },
+  ".github/copilot-instructions.md": {
+    "mtime": 1774618060.168307,
+    "ast_hash": "ec0cc7afb24164abebdf757573799654",
+    "semantic_hash": "ec0cc7afb24164abebdf757573799654"
+  },
+  ".github/workflows/android.yml": {
+    "mtime": 1784651473.3035507,
+    "ast_hash": "9101cf17cf1b2f45fc1014146438592e",
+    "semantic_hash": "9101cf17cf1b2f45fc1014146438592e"
+  },
+  ".github/workflows/publish.yml": {
+    "mtime": 1748526044.9039428,
+    "ast_hash": "f05ae7402624f025fd915d614c41d853",
+    "semantic_hash": "f05ae7402624f025fd915d614c41d853"
+  },
+  "CLAUDE.md": {
+    "mtime": 1784727646.521378,
+    "ast_hash": "74457319286d1c1fd47a510604710aa7",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1783213777.3606343,
+    "ast_hash": "c725eab6dc2b4f499c5846036e86f509",
+    "semantic_hash": "c725eab6dc2b4f499c5846036e86f509"
+  },
+  "README.md": {
+    "mtime": 1784651473.304199,
+    "ast_hash": "0772a5b1b6401054d51de508042cc4b7",
+    "semantic_hash": "0772a5b1b6401054d51de508042cc4b7"
+  },
+  "docs/COVERAGE_REPORT.md": {
+    "mtime": 1775472853.8926146,
+    "ast_hash": "af4b548f2824895ebf722a2ac30faadf",
+    "semantic_hash": "af4b548f2824895ebf722a2ac30faadf"
+  },
+  "docs/IMPLEMENTATION_CHECKLIST.md": {
+    "mtime": 1775569170.7617757,
+    "ast_hash": "2c40d6a36a7b48a485917c569a646d05",
+    "semantic_hash": "2c40d6a36a7b48a485917c569a646d05"
+  },
+  "docs/portfolio/PORTFOLIO.md": {
+    "mtime": 1784651473.3063905,
+    "ast_hash": "72c6184f9bfd47c373086e761c192f8f",
+    "semantic_hash": "72c6184f9bfd47c373086e761c192f8f"
+  },
+  "docs/portfolio/Episodive_\ud3ec\ud2b8\ud3f4\ub9ac\uc624.pdf": {
+    "mtime": 1784641582.282779,
+    "ast_hash": "9dacad09b11f6febc8b688a1bab6588f",
+    "semantic_hash": "9dacad09b11f6febc8b688a1bab6588f"
+  },
+  "app/src/main/ic_launcher-playstore.png": {
+    "mtime": 1758724128.1547892,
+    "ast_hash": "d6656d1f3baecf4b0a9a816b0ee8c652",
+    "semantic_hash": "d6656d1f3baecf4b0a9a816b0ee8c652"
+  },
+  "app/src/main/res/mipmap-hdpi/ic_launcher.webp": {
+    "mtime": 1758724128.074503,
+    "ast_hash": "1440cbd48d4163b444580f62ae919ffb",
+    "semantic_hash": "1440cbd48d4163b444580f62ae919ffb"
+  },
+  "app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp": {
+    "mtime": 1758724128.2997556,
+    "ast_hash": "39d03b0904a3d80f7e41a8e70740e07c",
+    "semantic_hash": "39d03b0904a3d80f7e41a8e70740e07c"
+  },
+  "app/src/main/res/mipmap-hdpi/ic_launcher_round.webp": {
+    "mtime": 1758724128.2172606,
+    "ast_hash": "3e18ad20c84188a3188d49c17aabaa03",
+    "semantic_hash": "3e18ad20c84188a3188d49c17aabaa03"
+  },
+  "app/src/main/res/mipmap-mdpi/ic_launcher.webp": {
+    "mtime": 1758724128.2681286,
+    "ast_hash": "04a8dd407b24e13865e40464d2760938",
+    "semantic_hash": "04a8dd407b24e13865e40464d2760938"
+  },
+  "app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp": {
+    "mtime": 1758724128.2482147,
+    "ast_hash": "b463800f1b6735aedd3fea903257a7b8",
+    "semantic_hash": "b463800f1b6735aedd3fea903257a7b8"
+  },
+  "app/src/main/res/mipmap-mdpi/ic_launcher_round.webp": {
+    "mtime": 1758724128.1931832,
+    "ast_hash": "13fdb5fabcf72ba6bc18dc307b270256",
+    "semantic_hash": "13fdb5fabcf72ba6bc18dc307b270256"
+  },
+  "app/src/main/res/mipmap-xhdpi/ic_launcher.webp": {
+    "mtime": 1758724128.254502,
+    "ast_hash": "a6bb263968c085e138ee68baf63537d6",
+    "semantic_hash": "a6bb263968c085e138ee68baf63537d6"
+  },
+  "app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1758724128.276357,
+    "ast_hash": "0648b8dfa4c73463f4b60a32d15965ec",
+    "semantic_hash": "0648b8dfa4c73463f4b60a32d15965ec"
+  },
+  "app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp": {
+    "mtime": 1758724128.107923,
+    "ast_hash": "cb806586d5b82c13913ae047588d4bef",
+    "semantic_hash": "cb806586d5b82c13913ae047588d4bef"
+  },
+  "app/src/main/res/mipmap-xxhdpi/ic_launcher.webp": {
+    "mtime": 1758724128.2095797,
+    "ast_hash": "2982a48ff1796083f93d37d12b644e08",
+    "semantic_hash": "2982a48ff1796083f93d37d12b644e08"
+  },
+  "app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1758724128.1865067,
+    "ast_hash": "5dccc4e29aaaf76e940f76c399e2ab33",
+    "semantic_hash": "5dccc4e29aaaf76e940f76c399e2ab33"
+  },
+  "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp": {
+    "mtime": 1758724128.09698,
+    "ast_hash": "9e41274c5856086b46d6cc9fd9bc0196",
+    "semantic_hash": "9e41274c5856086b46d6cc9fd9bc0196"
+  },
+  "app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp": {
+    "mtime": 1758724128.2879622,
+    "ast_hash": "0260ddebc1044da9b17d06f54482c56e",
+    "semantic_hash": "0260ddebc1044da9b17d06f54482c56e"
+  },
+  "app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1758724128.2406929,
+    "ast_hash": "7b2328573da2c7f458b881cf32d05b19",
+    "semantic_hash": "7b2328573da2c7f458b881cf32d05b19"
+  },
+  "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp": {
+    "mtime": 1758724128.334884,
+    "ast_hash": "2f28bbeb550e4432c3c3e026d8f1744f",
+    "semantic_hash": "2f28bbeb550e4432c3c3e026d8f1744f"
+  },
+  "docs/gifs/clip.gif": {
+    "mtime": 1784639890.7450068,
+    "ast_hash": "b2e96151e5eb16f7dd9774ab91cb132f",
+    "semantic_hash": "b2e96151e5eb16f7dd9774ab91cb132f"
+  },
+  "docs/gifs/home.gif": {
+    "mtime": 1784639890.76031,
+    "ast_hash": "cb50a5a3f8880d7dca52d4c967f59b51",
+    "semantic_hash": "cb50a5a3f8880d7dca52d4c967f59b51"
+  },
+  "docs/gifs/library.gif": {
+    "mtime": 1784639890.769009,
+    "ast_hash": "0adb8922631771df3fd5cc84f8fa014f",
+    "semantic_hash": "0adb8922631771df3fd5cc84f8fa014f"
+  },
+  "docs/gifs/onboarding.gif": {
+    "mtime": 1784639890.772987,
+    "ast_hash": "de6414e45002de1fed6d6cc825c5480a",
+    "semantic_hash": "de6414e45002de1fed6d6cc825c5480a"
+  },
+  "docs/gifs/player.gif": {
+    "mtime": 1784639890.7790751,
+    "ast_hash": "b1f5a35a950b4fc4c2ad9415c39c7f0a",
+    "semantic_hash": "b1f5a35a950b4fc4c2ad9415c39c7f0a"
+  },
+  "docs/gifs/podcast.gif": {
+    "mtime": 1784639890.7940655,
+    "ast_hash": "7592791c1a62a857d16aa42991143831",
+    "semantic_hash": "7592791c1a62a857d16aa42991143831"
+  },
+  "docs/gifs/search.gif": {
+    "mtime": 1784639890.8065865,
+    "ast_hash": "16380a0729d0e8caa96467307de44ac5",
+    "semantic_hash": "16380a0729d0e8caa96467307de44ac5"
+  },
+  "docs/gifs/widget.gif": {
+    "mtime": 1784639890.807487,
+    "ast_hash": "693796940c232ca18520e0179e5138f6",
+    "semantic_hash": "693796940c232ca18520e0179e5138f6"
+  },
+  "docs/portfolio/images/clip.png": {
+    "mtime": 1784641582.2838905,
+    "ast_hash": "7e91bb06eca3dd074f15102922615cc3",
+    "semantic_hash": "7e91bb06eca3dd074f15102922615cc3"
+  },
+  "docs/portfolio/images/home.png": {
+    "mtime": 1784641582.2851,
+    "ast_hash": "1c1c24ac8d37475a84226ec7dc137ad4",
+    "semantic_hash": "1c1c24ac8d37475a84226ec7dc137ad4"
+  },
+  "docs/portfolio/images/library.png": {
+    "mtime": 1784641582.2882745,
+    "ast_hash": "efa2fc1a2b0383ba3373981970df1918",
+    "semantic_hash": "efa2fc1a2b0383ba3373981970df1918"
+  },
+  "docs/portfolio/images/onboarding.png": {
+    "mtime": 1784641582.2893,
+    "ast_hash": "eb4fd7e5c2cf46766f6acbf30d584c9f",
+    "semantic_hash": "eb4fd7e5c2cf46766f6acbf30d584c9f"
+  },
+  "docs/portfolio/images/player.png": {
+    "mtime": 1784641582.290684,
+    "ast_hash": "be9425aba14a2e857b911d6f93789889",
+    "semantic_hash": "be9425aba14a2e857b911d6f93789889"
+  },
+  "docs/portfolio/images/podcast.png": {
+    "mtime": 1784641582.291562,
+    "ast_hash": "0a791bbfbe08c915225684b36ff5512f",
+    "semantic_hash": "0a791bbfbe08c915225684b36ff5512f"
+  },
+  "docs/portfolio/images/search.png": {
+    "mtime": 1784641582.2922466,
+    "ast_hash": "b270daa9b099574cf99a7453686dba8e",
+    "semantic_hash": "b270daa9b099574cf99a7453686dba8e"
+  },
+  "docs/portfolio/images/widget.png": {
+    "mtime": 1784641582.292885,
+    "ast_hash": "7cf86a80f38122cd3856fb6b935779f7",
+    "semantic_hash": "7cf86a80f38122cd3856fb6b935779f7"
+  },
+  "feature/widget/src/main/res/drawable-nodpi/feature_widget_preview.webp": {
+    "mtime": 1780590963.7835736,
+    "ast_hash": "0aa5be868d2b23a8f4444a174253e80e",
+    "semantic_hash": "0aa5be868d2b23a8f4444a174253e80e"
+  }
+}
