@@ -17,5 +17,7 @@ local.properties
 .kotlin
 *.hprof
 .claude/settings.local.json
+# graphify PreToolUse 가드(머신 종속 절대경로) — graphify claude install로 개발자별 재생성
+.claude/settings.json
 .claude/worktrees/
 .omc/
