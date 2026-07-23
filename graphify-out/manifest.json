@@ -1,8 +1,8 @@
 {
   ".claude/settings.json": {
-    "mtime": 1784726817.5731983,
-    "ast_hash": "74b862887a7d984a5caa00f63ff2e904",
-    "semantic_hash": "74b862887a7d984a5caa00f63ff2e904"
+    "mtime": 1784807791.0804646,
+    "ast_hash": "2b37ecca6a94f04b24124cf599e516fa",
+    "semantic_hash": ""
   },
   "app/build.gradle.kts": {
     "mtime": 1780107904.8530707,
@@ -2780,8 +2780,8 @@
     "semantic_hash": "f05ae7402624f025fd915d614c41d853"
   },
   "CLAUDE.md": {
-    "mtime": 1784727646.521378,
-    "ast_hash": "74457319286d1c1fd47a510604710aa7",
+    "mtime": 1784807840.3417947,
+    "ast_hash": "b2c41e628751a1c99d425cb843ec4bdf",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -2978,5 +2978,10 @@
     "mtime": 1780590963.7835736,
     "ast_hash": "0aa5be868d2b23a8f4444a174253e80e",
     "semantic_hash": "0aa5be868d2b23a8f4444a174253e80e"
+  },
+  "scripts/graphify-grep-guard.sh": {
+    "mtime": 1784807757.691664,
+    "ast_hash": "151abbf2df3d5fe17218655289a06db2",
+    "semantic_hash": ""
   }
 }

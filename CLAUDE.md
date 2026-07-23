@@ -328,16 +328,38 @@ Rules:
 
 ## graphify 팀 셋업
 
-`graphify-out/`의 `graph.json`·`GRAPH_REPORT.md`는 커밋되어 팀이 공유하지만, **동작 훅은 버전 관리가 안 되므로**(git hook은 `.git/hooks`, Claude PreToolUse 가드는 로컬 `.claude/settings.json`에 위치) 각 기여자가 **clone 후 한 번** 직접 설치해야 한다.
+**Claude PreToolUse 가드는 `.claude/settings.json`에 커밋되어 있다.** clone하면 그대로 적용되므로
+설정할 것이 없다. 반면 **git 훅은 `.git/hooks`에 있어 버전 관리가 안 되므로** 각 기여자가
+**clone 후 한 번** 직접 설치해야 한다.
 
 ```bash
-graphify install            # graphify 0.9.12 (버전 고정 — 다르면 그래프 diff 노이즈 발생)
-graphify hook install       # post-commit·post-checkout 훅 설치
-rm -f .git/hooks/post-checkout  # post-checkout 훅은 제거 권장 (아래 참고)
-graphify claude install     # Claude Code용 CLAUDE.md 지시문 + PreToolUse 그래프-우선 가드
+graphify install                # graphify 0.9.12 (버전 고정 — 다르면 그래프 diff 노이즈 발생)
+graphify hook install           # post-commit·post-checkout 훅 설치
+rm -f .git/hooks/post-checkout  # post-checkout 훅은 제거한다 (아래 참고)
 ```
 
-동작 규칙:
+**`graphify claude install`은 실행하지 않는다.** 이 명령은 `.claude/settings.json`을 자기 형식으로
+덮어써서, 커밋된 설정의 두 가지 보완(머신 독립 경로, 아래 Grep 가드)을 날려버린다. 이미 실행했다면
+`git checkout -- .claude/settings.json`으로 되돌린다.
+
+graphify가 PATH에 없어도 훅은 조용히 통과하므로, graphify를 설치하지 않은 기여자도 작업에 지장이 없다.
+
+### PreToolUse 가드 구성
+
+| 매처 | 실행 대상 | 비고 |
+|:----|:----|:----|
+| `Bash` | `graphify hook-guard search` | `command` 필드에서 grep류 명령을 감지 |
+| `Read\|Glob` | `graphify hook-guard read` | 입력 문자열의 파일 확장자를 감지 |
+| `Grep` | `scripts/graphify-grep-guard.sh` | 저장소 자체 스크립트 |
+
+`Grep`만 자체 스크립트인 이유: `graphify hook-guard`(0.9.12)는 tool_input에서 **파일 확장자를 찾아낼
+때만** 발화한다. Grep 툴의 입력은 `{"pattern":"class EpisodeDao","path":"core"}` 형태라 확장자가 없어
+`search`·`read` 어느 쪽도 반응하지 않는다(실측 확인, `glob` 파라미터를 붙여도 동일). Grep은 그 자체가
+코드 검색이므로 자체 스크립트가 패턴과 무관하게 항상 안내한다.
+
+### 동작 규칙
+
 - post-commit 훅은 커밋 **후** `git diff HEAD~1`로 바뀐 **코드** 파일만 감지해 그래프를 재생성한다. 따라서 커밋 직후 `graphify-out/`가 dirty로 남으면 **별도 커밋**한다(훅은 자동 커밋하지 않으며, 그대로 둔다).
 - 문서/이미지만 변경한 경우 훅이 무시하므로 그때만 `graphify update .`(또는 `/graphify --update`)를 수동 실행한다.
 - **post-checkout 훅은 제거한다.** `graphify hook install`이 함께 설치하지만, 이 훅은 브랜치 전환마다 **전체 재빌드**를 돌리고 `GRAPHIFY_SKIP_HOOK`을 무시하며 shrink-guard와 맞물려 그래프 노드를 누적시켜 `graphify-out/`를 계속 dirty하게 만든다. post-commit 훅만으로 충분하다. (그래프가 누적으로 부풀면 `graphify update . --force`로 리셋 가능.)
+- `graphify-out/`은 `.gitattributes`에서 `linguist-generated=true`로 표시되어 GitHub 언어 통계·코드 검색에서 빠진다(4.7MB짜리 `graph.html` 때문에 HTML 프로젝트로 표시되던 문제). 단 `GRAPH_REPORT.md`는 사람이 읽는 문서라 예외로 남겨 두었다.
