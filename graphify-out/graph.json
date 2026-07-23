@@ -4,21 +4,6 @@
   "graph": {
     "hyperedges": [
       {
-        "id": "offline_first_caching_flow",
-        "label": "Offline-First \uce90\uc2f1 \ud750\ub984 (RemoteUpdater\u00b7CacheableQuery\u00b7Room SSOT)",
-        "nodes": [
-          "claude_remote_updater",
-          "claude_cacheable_query",
-          "claude_offline_first",
-          "readme_caching_strategy",
-          "docs_portfolio_portfolio_offline_first_case"
-        ],
-        "relation": "participate_in",
-        "confidence": "INFERRED",
-        "confidence_score": 0.85,
-        "source_file": "CLAUDE.md"
-      },
-      {
         "id": "dynamic_theming_media_surfaces",
         "label": "\ud314\ub808\ud2b8 \ub3d9\uc801 \ud14c\ub9c8\ub9c1\uc774 \ud50c\ub808\uc774\uc5b4\u00b7\ubbf8\ub2c8\ud50c\ub808\uc774\uc5b4\u00b7\uc704\uc82f \ud45c\uba74\uc5d0 \uc8fc\uc785",
         "nodes": [
@@ -52,14 +37,502 @@
   },
   "nodes": [
     {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude",
+      "community": 70,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude_claude_md",
+      "community": 70,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "\ud504\ub85c\uc81d\ud2b8 \uac1c\uc694",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "claude_\ud504\ub85c\uc81d\ud2b8_\uac1c\uc694",
+      "community": 70,
+      "norm_label": "\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173 \u1100\u1162\u110b\u116d"
+    },
+    {
+      "label": "\uae30\uc220 \uc2a4\ud0dd",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "claude_\uae30\uc220_\uc2a4\ud0dd",
+      "community": 70,
+      "norm_label": "\u1100\u1175\u1109\u116e\u11af \u1109\u1173\u1110\u1162\u11a8"
+    },
+    {
+      "label": "\ube4c\ub4dc \uba85\ub839\uc5b4",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "claude_\ube4c\ub4dc_\uba85\ub839\uc5b4",
+      "community": 70,
+      "norm_label": "\u1107\u1175\u11af\u1103\u1173 \u1106\u1167\u11bc\u1105\u1167\u11bc\u110b\u1165"
+    },
+    {
+      "label": "git worktree \uc791\uc5c5 \uc2dc \ud544\uc218: local.properties \ubcf5\uc0ac",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "claude_git_worktree_\uc791\uc5c5_\uc2dc_\ud544\uc218_local_properties_\ubcf5\uc0ac",
+      "community": 70,
+      "norm_label": "git worktree \u110c\u1161\u11a8\u110b\u1165\u11b8 \u1109\u1175 \u1111\u1175\u11af\u1109\u116e: local.properties \u1107\u1169\u11a8\u1109\u1161"
+    },
+    {
+      "label": "\uc544\ud0a4\ud14d\ucc98",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "claude_\uc544\ud0a4\ud14d\ucc98",
+      "community": 70,
+      "norm_label": "\u110b\u1161\u110f\u1175\u1110\u1166\u11a8\u110e\u1165"
+    },
+    {
+      "label": "\ubaa8\ub4c8 \uad6c\uc870 (20\uac1c)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "claude_\ubaa8\ub4c8_\uad6c\uc870_20\uac1c",
+      "community": 70,
+      "norm_label": "\u1106\u1169\u1103\u1172\u11af \u1100\u116e\u110c\u1169 (20\u1100\u1162)"
+    },
+    {
+      "label": "Core \ubaa8\ub4c8 (11\uac1c)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "claude_core_\ubaa8\ub4c8_11\uac1c",
+      "community": 70,
+      "norm_label": "core \u1106\u1169\u1103\u1172\u11af (11\u1100\u1162)"
+    },
+    {
+      "label": "Feature \ubaa8\ub4c8 (8\uac1c)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "claude_feature_\ubaa8\ub4c8_8\uac1c",
+      "community": 70,
+      "norm_label": "feature \u1106\u1169\u1103\u1172\u11af (8\u1100\u1162)"
+    },
+    {
+      "label": "\ucee8\ubca4\uc158 \ud50c\ub7ec\uadf8\uc778 (build-logic/convention/)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "claude_\ucee8\ubca4\uc158_\ud50c\ub7ec\uadf8\uc778_build_logic_convention",
+      "community": 70,
+      "norm_label": "\u110f\u1165\u11ab\u1107\u1166\u11ab\u1109\u1167\u11ab \u1111\u1173\u11af\u1105\u1165\u1100\u1173\u110b\u1175\u11ab (build-logic/convention/)"
+    },
+    {
+      "label": "\ud575\uc2ec \uc544\ud0a4\ud14d\ucc98 \ud328\ud134",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "community": 70,
+      "norm_label": "\u1112\u1162\u11a8\u1109\u1175\u11b7 \u110b\u1161\u110f\u1175\u1110\u1166\u11a8\u110e\u1165 \u1111\u1162\u1110\u1165\u11ab"
+    },
+    {
+      "label": "Clean Architecture \uacc4\uce35",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L101",
+      "_origin": "ast",
+      "id": "claude_clean_architecture_\uacc4\uce35",
+      "community": 70,
+      "norm_label": "clean architecture \u1100\u1168\u110e\u1173\u11bc"
+    },
+    {
+      "label": "MVI \ud328\ud134",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "claude_mvi_\ud328\ud134",
+      "community": 70,
+      "norm_label": "mvi \u1111\u1162\u1110\u1165\u11ab"
+    },
+    {
+      "label": "Offline-First / RemoteUpdater \ud328\ud134",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "claude_offline_first_remoteupdater_\ud328\ud134",
+      "community": 70,
+      "norm_label": "offline-first / remoteupdater \u1111\u1162\u1110\u1165\u11ab"
+    },
+    {
+      "label": "\ubc31\uadf8\ub77c\uc6b4\ub4dc \uc5d0\ud53c\uc18c\ub4dc \ub3d9\uae30\ud654",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "claude_\ubc31\uadf8\ub77c\uc6b4\ub4dc_\uc5d0\ud53c\uc18c\ub4dc_\ub3d9\uae30\ud654",
+      "community": 70,
+      "norm_label": "\u1107\u1162\u11a8\u1100\u1173\u1105\u1161\u110b\u116e\u11ab\u1103\u1173 \u110b\u1166\u1111\u1175\u1109\u1169\u1103\u1173 \u1103\u1169\u11bc\u1100\u1175\u1112\u116a"
+    },
+    {
+      "label": "\ub4c0\uc5bc \ud50c\ub808\uc774\uc5b4 \uc2dc\uc2a4\ud15c",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L133",
+      "_origin": "ast",
+      "id": "claude_\ub4c0\uc5bc_\ud50c\ub808\uc774\uc5b4_\uc2dc\uc2a4\ud15c",
+      "community": 70,
+      "norm_label": "\u1103\u1172\u110b\u1165\u11af \u1111\u1173\u11af\u1105\u1166\u110b\u1175\u110b\u1165 \u1109\u1175\u1109\u1173\u1110\u1166\u11b7"
+    },
+    {
+      "label": "\uc911\uc694 \uad6c\ud604 \uc138\ubd80\uc0ac\ud56d",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L138",
+      "_origin": "ast",
+      "id": "claude_\uc911\uc694_\uad6c\ud604_\uc138\ubd80\uc0ac\ud56d",
+      "community": 70,
+      "norm_label": "\u110c\u116e\u11bc\u110b\u116d \u1100\u116e\u1112\u1167\u11ab \u1109\u1166\u1107\u116e\u1109\u1161\u1112\u1161\u11bc"
+    },
+    {
+      "label": "1. Enum \ucc98\ub9ac (\ud544\uc218)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L140",
+      "_origin": "ast",
+      "id": "claude_1_enum_\ucc98\ub9ac_\ud544\uc218",
+      "community": 70,
+      "norm_label": "1. enum \u110e\u1165\u1105\u1175 (\u1111\u1175\u11af\u1109\u116e)"
+    },
+    {
+      "label": "2. \ub370\uc774\ud130\ubca0\uc774\uc2a4 \uc2a4\ud0a4\ub9c8 (Room v8)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L161",
+      "_origin": "ast",
+      "id": "claude_2_\ub370\uc774\ud130\ubca0\uc774\uc2a4_\uc2a4\ud0a4\ub9c8_room_v8",
+      "community": 70,
+      "norm_label": "2. \u1103\u1166\u110b\u1175\u1110\u1165\u1107\u1166\u110b\u1175\u1109\u1173 \u1109\u1173\u110f\u1175\u1106\u1161 (room v8)"
+    },
+    {
+      "label": "3. API \uc778\uc99d (Podcast Index)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L173",
+      "_origin": "ast",
+      "id": "claude_3_api_\uc778\uc99d_podcast_index",
+      "community": 70,
+      "norm_label": "3. api \u110b\u1175\u11ab\u110c\u1173\u11bc (podcast index)"
+    },
+    {
+      "label": "4. \uc751\ub2f5 \ub798\ud37c",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L182",
+      "_origin": "ast",
+      "id": "claude_4_\uc751\ub2f5_\ub798\ud37c",
+      "community": 70,
+      "norm_label": "4. \u110b\u1173\u11bc\u1103\u1161\u11b8 \u1105\u1162\u1111\u1165"
+    },
+    {
+      "label": "\uac1c\ubc1c \uc6cc\ud06c\ud50c\ub85c\uc6b0",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L186",
+      "_origin": "ast",
+      "id": "claude_\uac1c\ubc1c_\uc6cc\ud06c\ud50c\ub85c\uc6b0",
+      "community": 70,
+      "norm_label": "\u1100\u1162\u1107\u1161\u11af \u110b\u116f\u110f\u1173\u1111\u1173\u11af\u1105\u1169\u110b\u116e"
+    },
+    {
+      "label": "\ub370\uc774\ud130\ubca0\uc774\uc2a4 \ubcc0\uacbd \uc2dc",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L188",
+      "_origin": "ast",
+      "id": "claude_\ub370\uc774\ud130\ubca0\uc774\uc2a4_\ubcc0\uacbd_\uc2dc",
+      "community": 70,
+      "norm_label": "\u1103\u1166\u110b\u1175\u1110\u1165\u1107\u1166\u110b\u1175\u1109\u1173 \u1107\u1167\u11ab\u1100\u1167\u11bc \u1109\u1175"
+    },
+    {
+      "label": "\uc0c8 API \uc5d4\ub4dc\ud3ec\uc778\ud2b8 \ucd94\uac00 \uc2dc",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L197",
+      "_origin": "ast",
+      "id": "claude_\uc0c8_api_\uc5d4\ub4dc\ud3ec\uc778\ud2b8_\ucd94\uac00_\uc2dc",
+      "community": 70,
+      "norm_label": "\u1109\u1162 api \u110b\u1166\u11ab\u1103\u1173\u1111\u1169\u110b\u1175\u11ab\u1110\u1173 \u110e\u116e\u1100\u1161 \u1109\u1175"
+    },
+    {
+      "label": "\uc0c8 Feature \ucd94\uac00 \uc2dc",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L205",
+      "_origin": "ast",
+      "id": "claude_\uc0c8_feature_\ucd94\uac00_\uc2dc",
+      "community": 70,
+      "norm_label": "\u1109\u1162 feature \u110e\u116e\u1100\u1161 \u1109\u1175"
+    },
+    {
+      "label": "\ud14c\uc2a4\ud2b8",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L212",
+      "_origin": "ast",
+      "id": "claude_\ud14c\uc2a4\ud2b8",
+      "community": 70,
+      "norm_label": "\u1110\u1166\u1109\u1173\u1110\u1173"
+    },
+    {
+      "label": "\ub370\uc774\ud130\ubca0\uc774\uc2a4 \ud14c\uc2a4\ud2b8",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L214",
+      "_origin": "ast",
+      "id": "claude_\ub370\uc774\ud130\ubca0\uc774\uc2a4_\ud14c\uc2a4\ud2b8",
+      "community": 70,
+      "norm_label": "\u1103\u1166\u110b\u1175\u1110\u1165\u1107\u1166\u110b\u1175\u1109\u1173 \u1110\u1166\u1109\u1173\u1110\u1173"
+    },
+    {
+      "label": "\ud14c\uc2a4\ud2b8 \ub370\uc774\ud130 (`:core:testing`)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L225",
+      "_origin": "ast",
+      "id": "claude_\ud14c\uc2a4\ud2b8_\ub370\uc774\ud130_core_testing",
+      "community": 70,
+      "norm_label": "\u1110\u1166\u1109\u1173\u1110\u1173 \u1103\u1166\u110b\u1175\u1110\u1165 (`:core:testing`)"
+    },
+    {
+      "label": "CLI \ub3c4\uad6c \uc0ac\uc6a9 \uac00\uc774\ub4dc",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L233",
+      "_origin": "ast",
+      "id": "claude_cli_\ub3c4\uad6c_\uc0ac\uc6a9_\uac00\uc774\ub4dc",
+      "community": 70,
+      "norm_label": "cli \u1103\u1169\u1100\u116e \u1109\u1161\u110b\u116d\u11bc \u1100\u1161\u110b\u1175\u1103\u1173"
+    },
+    {
+      "label": "\ub9e4\ud551 (\uc120\ud638 \u2192 \ud3f4\ubc31)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L237",
+      "_origin": "ast",
+      "id": "claude_\ub9e4\ud551_\uc120\ud638_\ud3f4\ubc31",
+      "community": 70,
+      "norm_label": "\u1106\u1162\u1111\u1175\u11bc (\u1109\u1165\u11ab\u1112\u1169 \u2192 \u1111\u1169\u11af\u1107\u1162\u11a8)"
+    },
+    {
+      "label": "native \ub9cc \uac00\ub2a5\ud55c \ucf00\uc774\uc2a4 (\ud3f4\ubc31 \ud544\uc218)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L251",
+      "_origin": "ast",
+      "id": "claude_native_\ub9cc_\uac00\ub2a5\ud55c_\ucf00\uc774\uc2a4_\ud3f4\ubc31_\ud544\uc218",
+      "community": 70,
+      "norm_label": "native \u1106\u1161\u11ab \u1100\u1161\u1102\u1173\u11bc\u1112\u1161\u11ab \u110f\u1166\u110b\u1175\u1109\u1173 (\u1111\u1169\u11af\u1107\u1162\u11a8 \u1111\u1175\u11af\u1109\u116e)"
+    },
+    {
+      "label": "\uc77c\ubc18 \uc6d0\uce59",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L258",
+      "_origin": "ast",
+      "id": "claude_\uc77c\ubc18_\uc6d0\uce59",
+      "community": 70,
+      "norm_label": "\u110b\u1175\u11af\u1107\u1161\u11ab \u110b\u116f\u11ab\u110e\u1175\u11a8"
+    },
+    {
+      "label": "mccm:Commit Conventions",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L264",
+      "_origin": "ast",
+      "id": "claude_mccm_commit_conventions",
+      "community": 70,
+      "norm_label": "mccm:commit conventions"
+    },
+    {
+      "label": "mccm:PR Conventions",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L273",
+      "_origin": "ast",
+      "id": "claude_mccm_pr_conventions",
+      "community": 70,
+      "norm_label": "mccm:pr conventions"
+    },
+    {
+      "label": "mccm:Cleanup Conventions",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L283",
+      "_origin": "ast",
+      "id": "claude_mccm_cleanup_conventions",
+      "community": 70,
+      "norm_label": "mccm:cleanup conventions"
+    },
+    {
+      "label": "\ucf54\ub4dc \ud3b8\uc9d1 \uaddc\uce59",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L288",
+      "_origin": "ast",
+      "id": "claude_\ucf54\ub4dc_\ud3b8\uc9d1_\uaddc\uce59",
+      "community": 70,
+      "norm_label": "\u110f\u1169\u1103\u1173 \u1111\u1167\u11ab\u110c\u1175\u11b8 \u1100\u1172\u110e\u1175\u11a8"
+    },
+    {
+      "label": "\uacf5\ud1b5 \ud328\ud134",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L295",
+      "_origin": "ast",
+      "id": "claude_\uacf5\ud1b5_\ud328\ud134",
+      "community": 70,
+      "norm_label": "\u1100\u1169\u11bc\u1110\u1169\u11bc \u1111\u1162\u1110\u1165\u11ab"
+    },
+    {
+      "label": "Coroutine Dispatcher",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L297",
+      "_origin": "ast",
+      "id": "claude_coroutine_dispatcher",
+      "community": 70,
+      "norm_label": "coroutine dispatcher"
+    },
+    {
+      "label": "StateFlow vs SharedFlow",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L303",
+      "_origin": "ast",
+      "id": "claude_stateflow_vs_sharedflow",
+      "community": 70,
+      "norm_label": "stateflow vs sharedflow"
+    },
+    {
+      "label": "\ub124\ube44\uac8c\uc774\uc158",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L307",
+      "_origin": "ast",
+      "id": "claude_\ub124\ube44\uac8c\uc774\uc158",
+      "community": 70,
+      "norm_label": "\u1102\u1166\u1107\u1175\u1100\u1166\u110b\u1175\u1109\u1167\u11ab"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L312",
+      "_origin": "ast",
+      "id": "claude_graphify",
+      "community": 70,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "Codebase Analysis Policy",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L322",
+      "_origin": "ast",
+      "id": "claude_codebase_analysis_policy",
+      "community": 70,
+      "norm_label": "codebase analysis policy"
+    },
+    {
+      "label": "graphify \ud300 \uc14b\uc5c5",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L329",
+      "_origin": "ast",
+      "id": "claude_graphify_\ud300_\uc14b\uc5c5",
+      "community": 70,
+      "norm_label": "graphify \u1110\u1175\u11b7 \u1109\u1166\u11ba\u110b\u1165\u11b8"
+    },
+    {
+      "label": "PreToolUse \uac00\ub4dc \uad6c\uc131",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L347",
+      "_origin": "ast",
+      "id": "claude_pretooluse_\uac00\ub4dc_\uad6c\uc131",
+      "community": 70,
+      "norm_label": "pretooluse \u1100\u1161\u1103\u1173 \u1100\u116e\u1109\u1165\u11bc"
+    },
+    {
+      "label": "\ub3d9\uc791 \uaddc\uce59",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L360",
+      "_origin": "ast",
+      "id": "claude_\ub3d9\uc791_\uaddc\uce59",
+      "community": 70,
+      "norm_label": "\u1103\u1169\u11bc\u110c\u1161\u11a8 \u1100\u1172\u110e\u1175\u11a8"
+    },
+    {
+      "label": "graphify-grep-guard.sh",
+      "file_type": "code",
+      "source_file": "scripts/graphify-grep-guard.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "scripts_graphify_grep_guard",
+      "community": 428,
+      "norm_label": "graphify-grep-guard.sh"
+    },
+    {
+      "label": "graphify-grep-guard.sh script",
+      "file_type": "code",
+      "source_file": "scripts/graphify-grep-guard.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "scripts_graphify_grep_guard_sh__entry",
+      "community": 428,
+      "norm_label": "graphify-grep-guard.sh script"
+    },
+    {
       "label": "TimeProvider.kt",
       "file_type": "code",
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider",
       "community": 124,
-      "norm_label": "timeprovider.kt"
+      "norm_label": "timeprovider.kt",
+      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider"
     },
     {
       "label": "TimeProvider",
@@ -67,9 +540,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider",
       "community": 124,
-      "norm_label": "timeprovider"
+      "norm_label": "timeprovider",
+      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider"
     },
     {
       "label": ".currentTimeMillis()",
@@ -77,9 +550,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider_currenttimemillis",
       "community": 124,
-      "norm_label": ".currenttimemillis()"
+      "norm_label": ".currenttimemillis()",
+      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider_currenttimemillis"
     },
     {
       "label": "Long",
@@ -87,9 +560,9 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "id": "long",
       "community": 124,
-      "norm_label": "long"
+      "norm_label": "long",
+      "id": "long"
     },
     {
       "label": "SystemTimeProvider",
@@ -97,9 +570,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider",
       "community": 124,
-      "norm_label": "systemtimeprovider"
+      "norm_label": "systemtimeprovider",
+      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider"
     },
     {
       "label": ".currentTimeMillis()",
@@ -107,9 +580,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider_currenttimemillis",
       "community": 124,
-      "norm_label": ".currenttimemillis()"
+      "norm_label": ".currenttimemillis()",
+      "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider_currenttimemillis"
     },
     {
       "label": "app/build.gradle.kts",
@@ -2547,7 +3020,7 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/FlowExt.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "flowext.kt",
       "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_flowext"
     },
@@ -2557,7 +3030,7 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/FlowExt.kt",
       "source_location": "L17",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "combine()",
       "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_flowext_combine"
     },
@@ -2567,7 +3040,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "flow",
       "id": "core_common_src_main_kotlin_io_jacob_episodive_core_common_flowext_kt_flow"
     },
@@ -2577,7 +3050,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t1",
       "id": "t1"
     },
@@ -2587,7 +3060,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t2",
       "id": "t2"
     },
@@ -2597,7 +3070,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t3",
       "id": "t3"
     },
@@ -2607,7 +3080,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t4",
       "id": "t4"
     },
@@ -2617,7 +3090,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t5",
       "id": "t5"
     },
@@ -2627,7 +3100,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "r",
       "id": "r"
     },
@@ -2637,7 +3110,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t6",
       "id": "t6"
     },
@@ -2647,7 +3120,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t7",
       "id": "t7"
     },
@@ -2657,7 +3130,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t8",
       "id": "t8"
     },
@@ -2667,7 +3140,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t9",
       "id": "t9"
     },
@@ -2677,7 +3150,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t10",
       "id": "t10"
     },
@@ -2687,7 +3160,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "t11",
       "id": "t11"
     },
@@ -2757,7 +3230,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "flowexttest.kt",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest"
     },
@@ -2767,7 +3240,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L9",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": "flowexttest",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest"
     },
@@ -2777,7 +3250,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": ".combine5test()",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest_combine5test"
     },
@@ -2787,7 +3260,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L27",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": ".combine6test()",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest_combine6test"
     },
@@ -2797,7 +3270,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L45",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": ".combine7test()",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest_combine7test"
     },
@@ -2807,7 +3280,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L64",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": ".combine8test()",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest_combine8test"
     },
@@ -2817,7 +3290,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L84",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": ".combine9test()",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest_combine9test"
     },
@@ -2827,7 +3300,7 @@
       "source_file": "core/common/src/test/kotlin/io/jacob/episodive/core/common/FlowExtTest.kt",
       "source_location": "L105",
       "_origin": "ast",
-      "community": 75,
+      "community": 2,
       "norm_label": ".combine10test()",
       "id": "core_common_src_test_kotlin_io_jacob_episodive_core_common_flowexttest_flowexttest_combine10test"
     },
@@ -4117,7 +4590,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/PodcastRepositoryImpl.kt",
       "source_location": "L93",
       "_origin": "ast",
-      "community": 77,
+      "community": 53,
       "norm_label": ".getpodcastsbychannel()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_repository_podcastrepositoryimpl_podcastrepositoryimpl_getpodcastsbychannel"
     },
@@ -4447,7 +4920,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/repository/UserRepositoryImpl.kt",
       "source_location": "L68",
       "_origin": "ast",
-      "community": 80,
+      "community": 95,
       "norm_label": ".getlastplaystate()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_repository_userrepositoryimpl_userrepositoryimpl_getlastplaystate"
     },
@@ -5487,7 +5960,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": "widgetdatareaderimpl.kt",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl"
     },
@@ -5497,7 +5970,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt",
       "source_location": "L24",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": "widgetdatareaderimpl",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl_widgetdatareaderimpl"
     },
@@ -5507,7 +5980,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt",
       "source_location": "L39",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": ".lastplayedepisode()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl_widgetdatareaderimpl_lastplayedepisode"
     },
@@ -5517,7 +5990,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt",
       "source_location": "L43",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": ".snapshotnowplaying()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl_widgetdatareaderimpl_snapshotnowplaying"
     },
@@ -5527,7 +6000,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt",
       "source_location": "L62",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": ".nowplayingflow()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl_widgetdatareaderimpl_nowplayingflow"
     },
@@ -5537,7 +6010,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": "flow",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl_kt_flow"
     },
@@ -5547,7 +6020,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetDataReaderImpl.kt",
       "source_location": "L89",
       "_origin": "ast",
-      "community": 150,
+      "community": 65,
       "norm_label": ".userrecentpodcastsflow()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetdatareaderimpl_widgetdatareaderimpl_userrecentpodcastsflow"
     },
@@ -5597,7 +6070,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 182,
+      "community": 194,
       "norm_label": "widgetupdater.kt",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater"
     },
@@ -5607,7 +6080,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 146,
+      "community": 194,
       "norm_label": "widgetupdaterequest",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater_widgetupdaterequest"
     },
@@ -5617,7 +6090,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L21",
       "_origin": "ast",
-      "community": 146,
+      "community": 194,
       "norm_label": "nowplayingchanged",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater_nowplayingchanged"
     },
@@ -5627,7 +6100,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 146,
+      "community": 194,
       "norm_label": "all",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater_all"
     },
@@ -5637,7 +6110,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 182,
+      "community": 194,
       "norm_label": "widgetupdater",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater_widgetupdater"
     },
@@ -5647,7 +6120,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L48",
       "_origin": "ast",
-      "community": 182,
+      "community": 194,
       "norm_label": ".notifynowplayingchanged()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater_widgetupdater_notifynowplayingchanged"
     },
@@ -5657,7 +6130,7 @@
       "source_file": "core/data/src/main/kotlin/io/jacob/episodive/core/data/widget/WidgetUpdater.kt",
       "source_location": "L52",
       "_origin": "ast",
-      "community": 182,
+      "community": 194,
       "norm_label": ".notifyallwidgets()",
       "id": "core_data_src_main_kotlin_io_jacob_episodive_core_data_widget_widgetupdater_widgetupdater_notifyallwidgets"
     },
@@ -5667,7 +6140,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryTest.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 194,
+      "community": 77,
       "norm_label": "channelrepositorytest.kt",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_channelrepositorytest"
     },
@@ -5677,7 +6150,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryTest.kt",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 194,
+      "community": 77,
       "norm_label": "channelrepositorytest",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_channelrepositorytest_channelrepositorytest"
     },
@@ -5687,7 +6160,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryTest.kt",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 194,
+      "community": 77,
       "norm_label": ".teardown()",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_channelrepositorytest_channelrepositorytest_teardown"
     },
@@ -5697,7 +6170,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryTest.kt",
       "source_location": "L33",
       "_origin": "ast",
-      "community": 194,
+      "community": 77,
       "norm_label": ".`given suspend datasource, when getchannelbyid is called, then calls methods of datasources`()",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_channelrepositorytest_channelrepositorytest_given_suspend_datasource_when_getchannelbyid_is_called_then_calls_methods_of_datasources"
     },
@@ -5707,7 +6180,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/ChannelRepositoryTest.kt",
       "source_location": "L51",
       "_origin": "ast",
-      "community": 194,
+      "community": 77,
       "norm_label": ".`given suspend datasource, when getchannels is called, then calls methods of datasources`()",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_channelrepositorytest_channelrepositorytest_given_suspend_datasource_when_getchannels_is_called_then_calls_methods_of_datasources"
     },
@@ -6787,7 +7260,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/PodcastRepositoryTest.kt",
       "source_location": "L230",
       "_origin": "ast",
-      "community": 77,
+      "community": 74,
       "norm_label": ".`given channel, when getpodcastsbychannel is called, then calls methods of datasources`()",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_podcastrepositorytest_podcastrepositorytest_given_channel_when_getpodcastsbychannel_is_called_then_calls_methods_of_datasources"
     },
@@ -6847,7 +7320,7 @@
       "source_file": "core/data/src/test/kotlin/io/jacob/episodive/core/data/repository/PodcastRepositoryTest.kt",
       "source_location": "L392",
       "_origin": "ast",
-      "community": 77,
+      "community": 74,
       "norm_label": ".`given channel, when getpodcastsbychannelpaging is called, then creates correct query and calls sourcefactory`()",
       "id": "core_data_src_test_kotlin_io_jacob_episodive_core_data_repository_podcastrepositorytest_podcastrepositorytest_given_channel_when_getpodcastsbychannelpaging_is_called_then_creates_correct_query_and_calls_sourcefactory"
     },
@@ -8137,7 +8610,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/EpisodiveDatabase.kt",
       "source_location": "L84",
       "_origin": "ast",
-      "community": 119,
+      "community": 120,
       "norm_label": ".feeddao()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_episodivedatabase_episodivedatabase_feeddao"
     },
@@ -8147,7 +8620,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/EpisodiveDatabase.kt",
       "source_location": "L85",
       "_origin": "ast",
-      "community": 108,
+      "community": 120,
       "norm_label": ".soundbitedao()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_episodivedatabase_episodivedatabase_soundbitedao"
     },
@@ -8647,7 +9120,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": "feeddao.kt",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao"
     },
@@ -8657,7 +9130,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": "feeddao",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao"
     },
@@ -8667,7 +9140,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L13",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".upsertfeeds()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_upsertfeeds"
     },
@@ -8677,7 +9150,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".deletefeedsbygroupkey()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_deletefeedsbygroupkey"
     },
@@ -8687,7 +9160,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".deletefeeds()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_deletefeeds"
     },
@@ -8697,7 +9170,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".replacefeedsbygroupkey()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_replacefeedsbygroupkey"
     },
@@ -8707,7 +9180,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L28",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".getfeeds()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_getfeeds"
     },
@@ -8717,7 +9190,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L31",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".getfeedspaging()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_getfeedspaging"
     },
@@ -8727,7 +9200,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": "pagingsource",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_kt_pagingsource"
     },
@@ -8737,7 +9210,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L34",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".getfeedspaginglist()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_getfeedspaginglist"
     },
@@ -8747,7 +9220,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/FeedDao.kt",
       "source_location": "L37",
       "_origin": "ast",
-      "community": 119,
+      "community": 45,
       "norm_label": ".getfeedsoldestcachedat()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_feeddao_feeddao_getfeedsoldestcachedat"
     },
@@ -8987,7 +9460,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/dao/PodcastDao.kt",
       "source_location": "L144",
       "_origin": "ast",
-      "community": 20,
+      "community": 24,
       "norm_label": ".getgroupkeyswithcounts()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_dao_podcastdao_podcastdao_getgroupkeyswithcounts"
     },
@@ -9337,7 +9810,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/EpisodeLocalDataSource.kt",
       "source_location": "L15",
       "_origin": "ast",
-      "community": 35,
+      "community": 29,
       "norm_label": ".upsertepisodeswithgroup()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_episodelocaldatasource_episodelocaldatasource_upsertepisodeswithgroup"
     },
@@ -10537,7 +11010,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": "recentsearchlocaldatasource.kt",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource"
     },
@@ -10547,7 +11020,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt",
       "source_location": "L6",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": "recentsearchlocaldatasource",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource_recentsearchlocaldatasource"
     },
@@ -10557,7 +11030,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": ".getrecentsearches()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource_recentsearchlocaldatasource_getrecentsearches"
     },
@@ -10567,7 +11040,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": "flow",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource_kt_flow"
     },
@@ -10577,7 +11050,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": ".upsertrecentsearch()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource_recentsearchlocaldatasource_upsertrecentsearch"
     },
@@ -10587,7 +11060,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt",
       "source_location": "L9",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": ".deleterecentsearch()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource_recentsearchlocaldatasource_deleterecentsearch"
     },
@@ -10597,7 +11070,7 @@
       "source_file": "core/database/src/main/kotlin/io/jacob/episodive/core/database/datasource/RecentSearchLocalDataSource.kt",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 89,
+      "community": 173,
       "norm_label": ".clearrecentsearches()",
       "id": "core_database_src_main_kotlin_io_jacob_episodive_core_database_datasource_recentsearchlocaldatasource_recentsearchlocaldatasource_clearrecentsearches"
     },
@@ -15237,7 +15710,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/datasource/UserPreferencesDataSource.kt",
       "source_location": "L18",
       "_origin": "ast",
-      "community": 80,
+      "community": 109,
       "norm_label": ".getlastplaystate()",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_datasource_userpreferencesdatasource_userpreferencesdatasource_getlastplaystate"
     },
@@ -15377,7 +15850,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/datasource/UserPreferencesDataSourceImpl.kt",
       "source_location": "L52",
       "_origin": "ast",
-      "community": 80,
+      "community": 83,
       "norm_label": ".getlastplaystate()",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_datasource_userpreferencesdatasourceimpl_userpreferencesdatasourceimpl_getlastplaystate"
     },
@@ -15427,7 +15900,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/di/DataStoreModule.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": "datastoremodule.kt",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule"
     },
@@ -15437,7 +15910,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/di/DataStoreModule.kt",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": "datastoremodule",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule_datastoremodule"
     },
@@ -15447,7 +15920,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/di/DataStoreModule.kt",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": ".provideuserpreferencesdatastore()",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule_datastoremodule_provideuserpreferencesdatastore"
     },
@@ -15457,7 +15930,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": "context",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule_kt_context"
     },
@@ -15467,7 +15940,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": "datastore",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule_kt_datastore"
     },
@@ -15477,7 +15950,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": "preferences",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule_kt_preferences"
     },
@@ -15487,7 +15960,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/di/DataStoreModule.kt",
       "source_location": "L29",
       "_origin": "ast",
-      "community": 174,
+      "community": 91,
       "norm_label": ".provideuserpreferencesstore()",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_di_datastoremodule_datastoremodule_provideuserpreferencesstore"
     },
@@ -15677,7 +16150,7 @@
       "source_file": "core/datastore/src/main/kotlin/io/jacob/episodive/core/datastore/store/UserPreferencesStore.kt",
       "source_location": "L109",
       "_origin": "ast",
-      "community": 80,
+      "community": 91,
       "norm_label": ".getlastplaystate()",
       "id": "core_datastore_src_main_kotlin_io_jacob_episodive_core_datastore_store_userpreferencesstore_userpreferencesstore_getlastplaystate"
     },
@@ -16347,7 +16820,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Background.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 84,
+      "community": 153,
       "norm_label": "component/background.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_background"
     },
@@ -16357,7 +16830,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Background.kt",
       "source_location": "L34",
       "_origin": "ast",
-      "community": 84,
+      "community": 153,
       "norm_label": "episodivebackground()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_background_episodivebackground"
     },
@@ -16367,7 +16840,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 84,
+      "community": 153,
       "norm_label": "modifier",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_background_kt_modifier"
     },
@@ -16377,7 +16850,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Background.kt",
       "source_location": "L60",
       "_origin": "ast",
-      "community": 84,
+      "community": 153,
       "norm_label": "episodivegradientbackground()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_background_episodivegradientbackground"
     },
@@ -16387,7 +16860,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Background.kt",
       "source_location": "L127",
       "_origin": "ast",
-      "community": 84,
+      "community": 153,
       "norm_label": "episodivegradientbackgroundpreview()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_background_episodivegradientbackgroundpreview"
     },
@@ -16517,7 +16990,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Chip.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 47,
+      "community": 241,
       "norm_label": "chip.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_chip"
     },
@@ -16527,7 +17000,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Chip.kt",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 47,
+      "community": 241,
       "norm_label": "episodivefilterchip()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_chip_episodivefilterchip"
     },
@@ -16537,7 +17010,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 47,
+      "community": 241,
       "norm_label": "modifier",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_chip_kt_modifier"
     },
@@ -16547,7 +17020,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 47,
+      "community": 241,
       "norm_label": "shape",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_chip_kt_shape"
     },
@@ -16557,7 +17030,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Chip.kt",
       "source_location": "L88",
       "_origin": "ast",
-      "community": 47,
+      "community": 241,
       "norm_label": "episodivechipdefaults",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_chip_episodivechipdefaults"
     },
@@ -16817,7 +17290,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "htmltextcontainer.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer"
     },
@@ -16827,7 +17300,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "htmltextcontainer()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer_htmltextcontainer"
     },
@@ -16837,7 +17310,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt",
       "source_location": "L37",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "addlinkstoannotatedstring()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer_addlinkstoannotatedstring"
     },
@@ -16847,7 +17320,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "annotatedstring",
       "id": "annotatedstring"
     },
@@ -16857,7 +17330,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "color",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer_kt_color"
     },
@@ -16867,7 +17340,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt",
       "source_location": "L60",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "findallmatches()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer_findallmatches"
     },
@@ -16877,7 +17350,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt",
       "source_location": "L76",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "isvalidmatch()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer_isvalidmatch"
     },
@@ -16887,7 +17360,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/HtmlTextContainer.kt",
       "source_location": "L82",
       "_origin": "ast",
-      "community": 63,
+      "community": 199,
       "norm_label": "filteroverlappingmatches()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_htmltextcontainer_filteroverlappingmatches"
     },
@@ -17507,7 +17980,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/SearchBar.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 239,
+      "community": 137,
       "norm_label": "searchbar.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_searchbar"
     },
@@ -17517,7 +17990,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/SearchBar.kt",
       "source_location": "L32",
       "_origin": "ast",
-      "community": 239,
+      "community": 137,
       "norm_label": "episodivesearchbar()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_searchbar_episodivesearchbar"
     },
@@ -17527,7 +18000,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 239,
+      "community": 137,
       "norm_label": "modifier",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_searchbar_kt_modifier"
     },
@@ -17537,7 +18010,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/SearchBar.kt",
       "source_location": "L161",
       "_origin": "ast",
-      "community": 239,
+      "community": 137,
       "norm_label": "episodivesearchbarexpandpreview()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_searchbar_episodivesearchbarexpandpreview"
     },
@@ -17867,7 +18340,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/TopAppBar.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "topappbar.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar"
     },
@@ -17877,7 +18350,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/TopAppBar.kt",
       "source_location": "L23",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "episodivetopappbar()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_episodivetopappbar"
     },
@@ -17887,7 +18360,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "modifier",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_kt_modifier"
     },
@@ -17897,7 +18370,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "imagevector",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_kt_imagevector"
     },
@@ -17907,7 +18380,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "topappbarcolors",
       "id": "topappbarcolors"
     },
@@ -17917,7 +18390,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "topappbarscrollbehavior",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_kt_topappbarscrollbehavior"
     },
@@ -17927,7 +18400,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/TopAppBar.kt",
       "source_location": "L68",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "episodivecentertopappbar()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_episodivecentertopappbar"
     },
@@ -17937,7 +18410,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "iconbuttoncolors",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_kt_iconbuttoncolors"
     },
@@ -17957,7 +18430,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/TopAppBar.kt",
       "source_location": "L136",
       "_origin": "ast",
-      "community": 98,
+      "community": 197,
       "norm_label": "episodivecentertopappbarpreview()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_component_topappbar_episodivecentertopappbarpreview"
     },
@@ -19097,7 +19570,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/screen/ErrorScreen.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 153,
+      "community": 119,
       "norm_label": "errorscreen.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_screen_errorscreen"
     },
@@ -19107,7 +19580,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/screen/ErrorScreen.kt",
       "source_location": "L12",
       "_origin": "ast",
-      "community": 153,
+      "community": 119,
       "norm_label": "errorscreen()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_screen_errorscreen_errorscreen"
     },
@@ -19117,7 +19590,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 153,
+      "community": 119,
       "norm_label": "modifier",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_screen_errorscreen_kt_modifier"
     },
@@ -19127,7 +19600,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/screen/ErrorScreen.kt",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 153,
+      "community": 119,
       "norm_label": "errorscreenpreview()",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_screen_errorscreen_errorscreenpreview"
     },
@@ -19227,7 +19700,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Gradient.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "gradient.kt",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_theme_gradient"
     },
@@ -19237,7 +19710,7 @@
       "source_file": "core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/theme/Gradient.kt",
       "source_location": "L14",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "gradientcolors",
       "id": "core_designsystem_src_main_kotlin_io_jacob_episodive_core_designsystem_theme_gradient_gradientcolors"
     },
@@ -20587,7 +21060,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/repository/UserRepository.kt",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 80,
+      "community": 100,
       "norm_label": ".getlastplaystate()",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_repository_userrepository_userrepository_getlastplaystate"
     },
@@ -20647,7 +21120,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelByIdUseCase.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 70,
+      "community": 74,
       "norm_label": "getchannelbyidusecase.kt",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelbyidusecase"
     },
@@ -20657,7 +21130,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelByIdUseCase.kt",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 70,
+      "community": 74,
       "norm_label": "getchannelbyidusecase",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelbyidusecase_getchannelbyidusecase"
     },
@@ -20667,7 +21140,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelByIdUseCase.kt",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 70,
+      "community": 74,
       "norm_label": ".invoke()",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelbyidusecase_getchannelbyidusecase_invoke"
     },
@@ -20677,7 +21150,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 70,
+      "community": 74,
       "norm_label": "flow",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelbyidusecase_kt_flow"
     },
@@ -20687,7 +21160,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelsUseCase.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 241,
+      "community": 74,
       "norm_label": "getchannelsusecase.kt",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelsusecase"
     },
@@ -20697,7 +21170,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelsUseCase.kt",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 241,
+      "community": 74,
       "norm_label": "getchannelsusecase",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelsusecase_getchannelsusecase"
     },
@@ -20707,7 +21180,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/channel/GetChannelsUseCase.kt",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 241,
+      "community": 74,
       "norm_label": ".invoke()",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelsusecase_getchannelsusecase_invoke"
     },
@@ -20717,7 +21190,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 241,
+      "community": 74,
       "norm_label": "flow",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_channel_getchannelsusecase_kt_flow"
     },
@@ -21427,7 +21900,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/ToggleLikedEpisodeUseCase.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 114,
+      "community": 315,
       "norm_label": "togglelikedepisodeusecase.kt",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_episode_togglelikedepisodeusecase"
     },
@@ -21437,7 +21910,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/ToggleLikedEpisodeUseCase.kt",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 114,
+      "community": 315,
       "norm_label": "togglelikedepisodeusecase",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_episode_togglelikedepisodeusecase_togglelikedepisodeusecase"
     },
@@ -21447,7 +21920,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/ToggleLikedEpisodeUseCase.kt",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 114,
+      "community": 315,
       "norm_label": ".invoke()",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_episode_togglelikedepisodeusecase_togglelikedepisodeusecase_invoke"
     },
@@ -21457,7 +21930,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/UpdatePlayedEpisodeUseCase.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 199,
+      "community": 46,
       "norm_label": "updateplayedepisodeusecase.kt",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_episode_updateplayedepisodeusecase"
     },
@@ -21467,7 +21940,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/UpdatePlayedEpisodeUseCase.kt",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 199,
+      "community": 46,
       "norm_label": "updateplayedepisodeusecase",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_episode_updateplayedepisodeusecase_updateplayedepisodeusecase"
     },
@@ -21477,7 +21950,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/episode/UpdatePlayedEpisodeUseCase.kt",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 199,
+      "community": 46,
       "norm_label": ".invoke()",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_episode_updateplayedepisodeusecase_updateplayedepisodeusecase_invoke"
     },
@@ -22337,7 +22810,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/DeleteRecentSearchUseCase.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 298,
+      "community": 39,
       "norm_label": "deleterecentsearchusecase.kt",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_search_deleterecentsearchusecase"
     },
@@ -22347,7 +22820,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/DeleteRecentSearchUseCase.kt",
       "source_location": "L7",
       "_origin": "ast",
-      "community": 298,
+      "community": 39,
       "norm_label": "deleterecentsearchusecase",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_search_deleterecentsearchusecase_deleterecentsearchusecase"
     },
@@ -22357,7 +22830,7 @@
       "source_file": "core/domain/src/main/kotlin/io/jacob/episodive/core/domain/usecase/search/DeleteRecentSearchUseCase.kt",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 298,
+      "community": 39,
       "norm_label": ".invoke()",
       "id": "core_domain_src_main_kotlin_io_jacob_episodive_core_domain_usecase_search_deleterecentsearchusecase_deleterecentsearchusecase_invoke"
     },
@@ -24307,7 +24780,7 @@
       "source_file": "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastsByChannelUseCaseTest.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 197,
+      "community": 74,
       "norm_label": "getpodcastsbychannelusecasetest.kt",
       "id": "core_domain_src_test_kotlin_io_jacob_episodive_core_domain_usecase_podcast_getpodcastsbychannelusecasetest"
     },
@@ -24317,7 +24790,7 @@
       "source_file": "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastsByChannelUseCaseTest.kt",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 197,
+      "community": 74,
       "norm_label": "getpodcastsbychannelusecasetest",
       "id": "core_domain_src_test_kotlin_io_jacob_episodive_core_domain_usecase_podcast_getpodcastsbychannelusecasetest_getpodcastsbychannelusecasetest"
     },
@@ -24327,7 +24800,7 @@
       "source_file": "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastsByChannelUseCaseTest.kt",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 197,
+      "community": 74,
       "norm_label": ".teardown()",
       "id": "core_domain_src_test_kotlin_io_jacob_episodive_core_domain_usecase_podcast_getpodcastsbychannelusecasetest_getpodcastsbychannelusecasetest_teardown"
     },
@@ -24337,7 +24810,7 @@
       "source_file": "core/domain/src/test/kotlin/io/jacob/episodive/core/domain/usecase/podcast/GetPodcastsByChannelUseCaseTest.kt",
       "source_location": "L31",
       "_origin": "ast",
-      "community": 197,
+      "community": 74,
       "norm_label": ".`given dependencies, when invoke called, then repository called`()",
       "id": "core_domain_src_test_kotlin_io_jacob_episodive_core_domain_usecase_podcast_getpodcastsbychannelusecasetest_getpodcastsbychannelusecasetest_given_dependencies_when_invoke_called_then_repository_called"
     },
@@ -26197,7 +26670,7 @@
       "source_file": "core/model/src/main/kotlin/io/jacob/episodive/core/model/Channel.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 77,
+      "community": 74,
       "norm_label": "model/channel.kt",
       "id": "core_model_src_main_kotlin_io_jacob_episodive_core_model_channel"
     },
@@ -26207,7 +26680,7 @@
       "source_file": "core/model/src/main/kotlin/io/jacob/episodive/core/model/Channel.kt",
       "source_location": "L3",
       "_origin": "ast",
-      "community": 77,
+      "community": 74,
       "norm_label": "channel",
       "id": "core_model_src_main_kotlin_io_jacob_episodive_core_model_channel_channel"
     },
@@ -27167,7 +27640,7 @@
       "source_file": "core/model/src/main/kotlin/io/jacob/episodive/core/model/TrendingFeed.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 37,
+      "community": 239,
       "norm_label": "trendingfeed.kt",
       "id": "core_model_src_main_kotlin_io_jacob_episodive_core_model_trendingfeed"
     },
@@ -27177,7 +27650,7 @@
       "source_file": "core/model/src/main/kotlin/io/jacob/episodive/core/model/TrendingFeed.kt",
       "source_location": "L5",
       "_origin": "ast",
-      "community": 37,
+      "community": 239,
       "norm_label": "trendingfeed",
       "id": "core_model_src_main_kotlin_io_jacob_episodive_core_model_trendingfeed_trendingfeed"
     },
@@ -27667,7 +28140,7 @@
       "source_file": "core/model/src/test/kotlin/io/jacob/episodive/core/model/mapper/ModelMapperTest.kt",
       "source_location": "L328",
       "_origin": "ast",
-      "community": 37,
+      "community": 239,
       "norm_label": ".`tofeedfromtrending converts trendingfeed to feed correctly`()",
       "id": "core_model_src_test_kotlin_io_jacob_episodive_core_model_mapper_modelmappertest_modelmappertest_tofeedfromtrending_converts_trendingfeed_to_feed_correctly"
     },
@@ -27677,7 +28150,7 @@
       "source_file": "core/model/src/test/kotlin/io/jacob/episodive/core/model/mapper/ModelMapperTest.kt",
       "source_location": "L361",
       "_origin": "ast",
-      "community": 37,
+      "community": 239,
       "norm_label": ".`tofeedsfromtrending converts list of trendingfeed to list of feed correctly`()",
       "id": "core_model_src_test_kotlin_io_jacob_episodive_core_model_mapper_modelmappertest_modelmappertest_tofeedsfromtrending_converts_list_of_trendingfeed_to_list_of_feed_correctly"
     },
@@ -28277,7 +28750,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/FeedApi.kt",
       "source_location": "L12",
       "_origin": "ast",
-      "community": 133,
+      "community": 198,
       "norm_label": ".gettrendingfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_api_feedapi_feedapi_gettrendingfeeds"
     },
@@ -28287,7 +28760,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/FeedApi.kt",
       "source_location": "L21",
       "_origin": "ast",
-      "community": 154,
+      "community": 133,
       "norm_label": ".getrecentfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_api_feedapi_feedapi_getrecentfeeds"
     },
@@ -28297,7 +28770,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/api/FeedApi.kt",
       "source_location": "L30",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": ".getrecentnewfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_api_feedapi_feedapi_getrecentnewfeeds"
     },
@@ -28807,7 +29280,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSource.kt",
       "source_location": "L9",
       "_origin": "ast",
-      "community": 198,
+      "community": 94,
       "norm_label": ".gettrendingfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_datasource_feedremotedatasource_feedremotedatasource_gettrendingfeeds"
     },
@@ -28817,7 +29290,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSource.kt",
       "source_location": "L17",
       "_origin": "ast",
-      "community": 154,
+      "community": 94,
       "norm_label": ".getrecentfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_datasource_feedremotedatasource_feedremotedatasource_getrecentfeeds"
     },
@@ -28827,7 +29300,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSource.kt",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": ".getrecentnewfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_datasource_feedremotedatasource_feedremotedatasource_getrecentnewfeeds"
     },
@@ -28877,7 +29350,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSourceImpl.kt",
       "source_location": "L31",
       "_origin": "ast",
-      "community": 154,
+      "community": 94,
       "norm_label": ".getrecentfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_datasource_feedremotedatasourceimpl_feedremotedatasourceimpl_getrecentfeeds"
     },
@@ -28887,7 +29360,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/datasource/FeedRemoteDataSourceImpl.kt",
       "source_location": "L48",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": ".getrecentnewfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_datasource_feedremotedatasourceimpl_feedremotedatasourceimpl_getrecentnewfeeds"
     },
@@ -29397,7 +29870,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L33",
       "_origin": "ast",
-      "community": 57,
+      "community": 74,
       "norm_label": "tochannel()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_tochannel"
     },
@@ -29407,7 +29880,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L44",
       "_origin": "ast",
-      "community": 57,
+      "community": 74,
       "norm_label": "tochannels()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_tochannels"
     },
@@ -29507,7 +29980,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L205",
       "_origin": "ast",
-      "community": 37,
+      "community": 239,
       "norm_label": "totrendingfeed()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_totrendingfeed"
     },
@@ -29517,7 +29990,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L221",
       "_origin": "ast",
-      "community": 37,
+      "community": 239,
       "norm_label": "totrendingfeeds()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_totrendingfeeds"
     },
@@ -29567,7 +30040,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L265",
       "_origin": "ast",
-      "community": 154,
+      "community": 94,
       "norm_label": "torecentfeedresponse()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_torecentfeedresponse"
     },
@@ -29577,7 +30050,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L282",
       "_origin": "ast",
-      "community": 154,
+      "community": 94,
       "norm_label": "torecentfeedresponses()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_torecentfeedresponses"
     },
@@ -29607,7 +30080,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L299",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": "torecentnewfeedresponse()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_torecentnewfeedresponse"
     },
@@ -29617,7 +30090,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/mapper/NetworkMapper.kt",
       "source_location": "L310",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": "torecentnewfeedresponses()",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_mapper_networkmapper_torecentnewfeedresponses"
     },
@@ -29817,7 +30290,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentFeedResponse.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 154,
+      "community": 94,
       "norm_label": "recentfeedresponse.kt",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_model_recentfeedresponse"
     },
@@ -29827,7 +30300,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentFeedResponse.kt",
       "source_location": "L5",
       "_origin": "ast",
-      "community": 154,
+      "community": 94,
       "norm_label": "recentfeedresponse",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_model_recentfeedresponse_recentfeedresponse"
     },
@@ -29837,7 +30310,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentNewFeedResponse.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": "recentnewfeedresponse.kt",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_model_recentnewfeedresponse"
     },
@@ -29847,7 +30320,7 @@
       "source_file": "core/network/src/main/kotlin/io/jacob/episodive/core/network/model/RecentNewFeedResponse.kt",
       "source_location": "L5",
       "_origin": "ast",
-      "community": 94,
+      "community": 214,
       "norm_label": "recentnewfeedresponse",
       "id": "core_network_src_main_kotlin_io_jacob_episodive_core_network_model_recentnewfeedresponse_recentnewfeedresponse"
     },
@@ -32697,7 +33170,7 @@
       "source_file": "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Channel.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 130,
+      "community": 74,
       "norm_label": "ui/channel.kt",
       "id": "core_ui_src_main_kotlin_io_jacob_episodive_core_ui_channel"
     },
@@ -32707,7 +33180,7 @@
       "source_file": "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Channel.kt",
       "source_location": "L41",
       "_origin": "ast",
-      "community": 130,
+      "community": 74,
       "norm_label": "channelsection()",
       "id": "core_ui_src_main_kotlin_io_jacob_episodive_core_ui_channel_channelsection"
     },
@@ -32717,7 +33190,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 130,
+      "community": 74,
       "norm_label": "modifier",
       "id": "core_ui_src_main_kotlin_io_jacob_episodive_core_ui_channel_kt_modifier"
     },
@@ -32727,7 +33200,7 @@
       "source_file": "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Channel.kt",
       "source_location": "L82",
       "_origin": "ast",
-      "community": 130,
+      "community": 74,
       "norm_label": "channelitem()",
       "id": "core_ui_src_main_kotlin_io_jacob_episodive_core_ui_channel_channelitem"
     },
@@ -32737,7 +33210,7 @@
       "source_file": "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Channel.kt",
       "source_location": "L129",
       "_origin": "ast",
-      "community": 130,
+      "community": 74,
       "norm_label": "channelitempreview()",
       "id": "core_ui_src_main_kotlin_io_jacob_episodive_core_ui_channel_channelitempreview"
     },
@@ -32877,7 +33350,7 @@
       "source_file": "core/ui/src/main/kotlin/io/jacob/episodive/core/ui/Episode.kt",
       "source_location": "L383",
       "_origin": "ast",
-      "community": 47,
+      "community": 63,
       "norm_label": "playedepisodeitem()",
       "id": "core_ui_src_main_kotlin_io_jacob_episodive_core_ui_episode_playedepisodeitem"
     },
@@ -33317,7 +33790,7 @@
       "source_file": "feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/navigation/ChannelNavigation.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 214,
+      "community": 86,
       "norm_label": "channelnavigation.kt",
       "id": "feature_channel_src_main_kotlin_io_jacob_episodive_feature_channel_navigation_channelnavigation"
     },
@@ -33327,7 +33800,7 @@
       "source_file": "feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/navigation/ChannelNavigation.kt",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 214,
+      "community": 86,
       "norm_label": "channelroute",
       "id": "feature_channel_src_main_kotlin_io_jacob_episodive_feature_channel_navigation_channelnavigation_channelroute"
     },
@@ -33337,7 +33810,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 214,
+      "community": 86,
       "norm_label": "navkey",
       "id": "feature_channel_src_main_kotlin_io_jacob_episodive_feature_channel_navigation_channelnavigation_kt_navkey"
     },
@@ -33347,7 +33820,7 @@
       "source_file": "feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/navigation/ChannelNavigation.kt",
       "source_location": "L13",
       "_origin": "ast",
-      "community": 214,
+      "community": 86,
       "norm_label": "channelentries()",
       "id": "feature_channel_src_main_kotlin_io_jacob_episodive_feature_channel_navigation_channelnavigation_channelentries"
     },
@@ -33357,7 +33830,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": "channelscreentest.kt",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest"
     },
@@ -33367,7 +33840,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L14",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": "channelscreentest",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest_channelscreentest"
     },
@@ -33377,7 +33850,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": ".channeltitleisdisplayed()",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest_channelscreentest_channeltitleisdisplayed"
     },
@@ -33387,7 +33860,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L36",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": ".podcastitemsaredisplayed()",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest_channelscreentest_podcastitemsaredisplayed"
     },
@@ -33397,7 +33870,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L53",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": ".channelsubtitleisdisplayed()",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest_channelscreentest_channelsubtitleisdisplayed"
     },
@@ -33407,7 +33880,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L69",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": ".emptypodcastslist_channeltitlestilldisplayed()",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest_channelscreentest_emptypodcastslist_channeltitlestilldisplayed"
     },
@@ -33417,7 +33890,7 @@
       "source_file": "feature/channel/src/test/kotlin/io/jacob/episodive/feature/channel/ChannelScreenTest.kt",
       "source_location": "L85",
       "_origin": "ast",
-      "community": 50,
+      "community": 84,
       "norm_label": ".multiplepodcastsaredisplayed()",
       "id": "feature_channel_src_test_kotlin_io_jacob_episodive_feature_channel_channelscreentest_channelscreentest_multiplepodcastsaredisplayed"
     },
@@ -33837,7 +34310,7 @@
       "source_file": "feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/navigation/ClipNavigation.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 86,
+      "community": 298,
       "norm_label": "clipnavigation.kt",
       "id": "feature_clip_src_main_kotlin_io_jacob_episodive_feature_clip_navigation_clipnavigation"
     },
@@ -33847,7 +34320,7 @@
       "source_file": "feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/navigation/ClipNavigation.kt",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 86,
+      "community": 298,
       "norm_label": "cliproute",
       "id": "feature_clip_src_main_kotlin_io_jacob_episodive_feature_clip_navigation_clipnavigation_cliproute"
     },
@@ -33857,7 +34330,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 86,
+      "community": 298,
       "norm_label": "navkey",
       "id": "feature_clip_src_main_kotlin_io_jacob_episodive_feature_clip_navigation_clipnavigation_kt_navkey"
     },
@@ -33867,7 +34340,7 @@
       "source_file": "feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/navigation/ClipNavigation.kt",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 86,
+      "community": 298,
       "norm_label": "clipentries()",
       "id": "feature_clip_src_main_kotlin_io_jacob_episodive_feature_clip_navigation_clipnavigation_clipentries"
     },
@@ -34537,7 +35010,7 @@
       "source_file": "feature/home/src/main/kotlin/io/jacob/episodive/feature/home/navigation/HomeNavigation.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 86,
+      "community": 299,
       "norm_label": "homenavigation.kt",
       "id": "feature_home_src_main_kotlin_io_jacob_episodive_feature_home_navigation_homenavigation"
     },
@@ -34547,7 +35020,7 @@
       "source_file": "feature/home/src/main/kotlin/io/jacob/episodive/feature/home/navigation/HomeNavigation.kt",
       "source_location": "L8",
       "_origin": "ast",
-      "community": 86,
+      "community": 299,
       "norm_label": "homeroute",
       "id": "feature_home_src_main_kotlin_io_jacob_episodive_feature_home_navigation_homenavigation_homeroute"
     },
@@ -34557,7 +35030,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 86,
+      "community": 299,
       "norm_label": "navkey",
       "id": "feature_home_src_main_kotlin_io_jacob_episodive_feature_home_navigation_homenavigation_kt_navkey"
     },
@@ -34567,7 +35040,7 @@
       "source_file": "feature/home/src/main/kotlin/io/jacob/episodive/feature/home/navigation/HomeNavigation.kt",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 86,
+      "community": 299,
       "norm_label": "homeentries()",
       "id": "feature_home_src_main_kotlin_io_jacob_episodive_feature_home_navigation_homenavigation_homeentries"
     },
@@ -35267,7 +35740,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryScreen.kt",
       "source_location": "L892",
       "_origin": "ast",
-      "community": 84,
+      "community": 47,
       "norm_label": "libraryscreenpreview()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryscreen_libraryscreenpreview"
     },
@@ -35277,7 +35750,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "libraryviewmodel.kt",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel"
     },
@@ -35287,7 +35760,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L52",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "libraryviewmodel",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel"
     },
@@ -35297,7 +35770,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "viewmodel",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_kt_viewmodel"
     },
@@ -35307,7 +35780,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "flow",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_kt_flow"
     },
@@ -35317,7 +35790,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "pagingdata",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_kt_pagingdata"
     },
@@ -35327,7 +35800,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "podcast",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_kt_podcast"
     },
@@ -35337,7 +35810,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "stateflow",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_kt_stateflow"
     },
@@ -35347,7 +35820,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L220",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".handleactions()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_handleactions"
     },
@@ -35357,7 +35830,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L238",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": ".sendaction()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_sendaction"
     },
@@ -35367,7 +35840,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L242",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".changequery()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_changequery"
     },
@@ -35377,7 +35850,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L246",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".clearquery()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_clearquery"
     },
@@ -35387,7 +35860,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L250",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".resumeepisode()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_resumeepisode"
     },
@@ -35397,7 +35870,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L258",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".playepisode()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_playepisode"
     },
@@ -35407,7 +35880,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L262",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".clickpodcast()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_clickpodcast"
     },
@@ -35417,7 +35890,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L266",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".togglelikedepisode()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_togglelikedepisode"
     },
@@ -35427,7 +35900,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L270",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".togglesavedepisode()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_togglesavedepisode"
     },
@@ -35437,7 +35910,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L277",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".togglefollowedpodcast()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_togglefollowedpodcast"
     },
@@ -35447,7 +35920,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L281",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".togglecategory()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_togglecategory"
     },
@@ -35457,7 +35930,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L285",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": ".selectsection()",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryviewmodel_selectsection"
     },
@@ -35467,7 +35940,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L294",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "librarystate",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_librarystate"
     },
@@ -35477,7 +35950,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L295",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "loading",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_loading"
     },
@@ -35487,7 +35960,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L296",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "success",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_success"
     },
@@ -35497,7 +35970,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L307",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "error",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_error"
     },
@@ -35507,7 +35980,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L310",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "libraryaction",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryaction"
     },
@@ -35517,7 +35990,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L311",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "querychanged",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_querychanged"
     },
@@ -35527,7 +36000,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L312",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "clickfind",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_clickfind"
     },
@@ -35537,7 +36010,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L313",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "clearquery",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_clearquery"
     },
@@ -35547,7 +36020,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L314",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "clickplayingepisode",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_clickplayingepisode"
     },
@@ -35557,7 +36030,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L315",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "clickepisode",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_clickepisode"
     },
@@ -35567,7 +36040,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L316",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "clickpodcast",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_clickpodcast"
     },
@@ -35577,7 +36050,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L317",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "togglelikedepisode",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_togglelikedepisode"
     },
@@ -35587,7 +36060,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L318",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "togglesavedepisode",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_togglesavedepisode"
     },
@@ -35597,7 +36070,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L319",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "togglefollowedpodcast",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_togglefollowedpodcast"
     },
@@ -35607,7 +36080,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L320",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "togglepreferredcategory",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_togglepreferredcategory"
     },
@@ -35617,7 +36090,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L321",
       "_origin": "ast",
-      "community": 2,
+      "community": 154,
       "norm_label": "selectsection",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_selectsection"
     },
@@ -35627,7 +36100,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L324",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "libraryeffect",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_libraryeffect"
     },
@@ -35637,7 +36110,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L325",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "navigatetopodcast",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_navigatetopodcast"
     },
@@ -35647,7 +36120,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L326",
       "_origin": "ast",
-      "community": 2,
+      "community": 75,
       "norm_label": "showunsavesnackbar",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_showunsavesnackbar"
     },
@@ -35747,7 +36220,7 @@
       "source_file": "feature/library/src/main/kotlin/io/jacob/episodive/feature/library/LibraryViewModel.kt",
       "source_location": "L333",
       "_origin": "ast",
-      "community": 47,
+      "community": 427,
       "norm_label": "content",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_content"
     },
@@ -35757,7 +36230,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 47,
+      "community": 427,
       "norm_label": "t",
       "id": "feature_library_src_main_kotlin_io_jacob_episodive_feature_library_libraryviewmodel_kt_t"
     },
@@ -36487,7 +36960,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "onboardingscreen.kt",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen"
     },
@@ -36497,7 +36970,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L74",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "onboardingroute()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_onboardingroute"
     },
@@ -36507,7 +36980,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "modifier",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_kt_modifier"
     },
@@ -36517,7 +36990,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L113",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "onboardingscreen()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_onboardingscreen"
     },
@@ -36527,7 +37000,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "pagerstate",
       "id": "pagerstate"
     },
@@ -36537,7 +37010,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "flow",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_kt_flow"
     },
@@ -36547,7 +37020,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "pagingdata",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_kt_pagingdata"
     },
@@ -36557,7 +37030,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "podcast",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_kt_podcast"
     },
@@ -36567,7 +37040,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L198",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "welcomescreen()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_welcomescreen"
     },
@@ -36577,7 +37050,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L237",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "categoryselectionscreen()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_categoryselectionscreen"
     },
@@ -36587,7 +37060,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L318",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "podcastselectionscreen()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_podcastselectionscreen"
     },
@@ -36597,7 +37070,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L407",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "completionscreen()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_completionscreen"
     },
@@ -36607,7 +37080,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L452",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "pagerindicator()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_pagerindicator"
     },
@@ -36617,7 +37090,7 @@
       "source_file": "feature/onboarding/src/main/kotlin/io/jacob/episodive/feature/onboarding/OnboardingScreen.kt",
       "source_location": "L512",
       "_origin": "ast",
-      "community": 84,
+      "community": 119,
       "norm_label": "completionscreenpreview()",
       "id": "feature_onboarding_src_main_kotlin_io_jacob_episodive_feature_onboarding_onboardingscreen_completionscreenpreview"
     },
@@ -37377,7 +37850,7 @@
       "source_file": "feature/player/src/main/kotlin/io/jacob/episodive/feature/player/PlayerScreen.kt",
       "source_location": "L591",
       "_origin": "ast",
-      "community": 149,
+      "community": 60,
       "norm_label": "controlpanelbottom()",
       "id": "feature_player_src_main_kotlin_io_jacob_episodive_feature_player_playerscreen_controlpanelbottom"
     },
@@ -38277,7 +38750,7 @@
       "source_file": "feature/player/src/test/kotlin/io/jacob/episodive/feature/player/PlayerBarTest.kt",
       "source_location": "L193",
       "_origin": "ast",
-      "community": 46,
+      "community": 61,
       "norm_label": ".zeroprogress_barstilldisplayed()",
       "id": "feature_player_src_test_kotlin_io_jacob_episodive_feature_player_playerbartest_playerbartest_zeroprogress_barstilldisplayed"
     },
@@ -39857,7 +40330,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L118",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": ".sendaction()",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_searchviewmodel_sendaction"
     },
@@ -40017,7 +40490,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L202",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "searchaction",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_searchaction"
     },
@@ -40027,7 +40500,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L203",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "querychanged",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_querychanged"
     },
@@ -40037,7 +40510,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L204",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clicksearch",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clicksearch"
     },
@@ -40047,7 +40520,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L205",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clearquery",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clearquery"
     },
@@ -40057,7 +40530,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L206",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clickrecentsearch",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clickrecentsearch"
     },
@@ -40067,7 +40540,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L207",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "removerecentsearch",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_removerecentsearch"
     },
@@ -40077,7 +40550,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L208",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clearrecentsearches",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clearrecentsearches"
     },
@@ -40087,7 +40560,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L209",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clickcategory",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clickcategory"
     },
@@ -40097,7 +40570,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L210",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clickpodcast",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clickpodcast"
     },
@@ -40107,7 +40580,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L211",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "clickepisode",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_clickepisode"
     },
@@ -40117,7 +40590,7 @@
       "source_file": "feature/search/src/main/kotlin/io/jacob/episodive/feature/search/SearchViewModel.kt",
       "source_location": "L212",
       "_origin": "ast",
-      "community": 3,
+      "community": 174,
       "norm_label": "togglelikedepisode",
       "id": "feature_search_src_main_kotlin_io_jacob_episodive_feature_search_searchviewmodel_togglelikedepisode"
     },
@@ -40497,7 +40970,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": "searchviewmodeltest.kt",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest"
     },
@@ -40507,7 +40980,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L33",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": "searchviewmodeltest",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest"
     },
@@ -40517,7 +40990,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L49",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".createviewmodel()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_createviewmodel"
     },
@@ -40527,7 +41000,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L64",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".teardown()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_teardown"
     },
@@ -40537,7 +41010,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L75",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given no emissions, when viewmodel is created, then initial state is loading`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_no_emissions_when_viewmodel_is_created_then_initial_state_is_loading"
     },
@@ -40547,7 +41020,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L86",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given all flows emit, when collecting, then state is success with all fields`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_all_flows_emit_when_collecting_then_state_is_success_with_all_fields"
     },
@@ -40557,7 +41030,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L117",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given flow throws, when collecting, then state is error`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_flow_throws_when_collecting_then_state_is_error"
     },
@@ -40567,7 +41040,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L133",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clicksearch action, when sent, then searchquery is set and upsertrecentsearchusecase is invoked`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clicksearch_action_when_sent_then_searchquery_is_set_and_upsertrecentsearchusecase_is_invoked"
     },
@@ -40577,7 +41050,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L147",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clearquery action, when sent, then searchquery becomes empty`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clearquery_action_when_sent_then_searchquery_becomes_empty"
     },
@@ -40587,7 +41060,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L170",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clickrecentsearch action, when sent, then upsertrecentsearchusecase is invoked`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clickrecentsearch_action_when_sent_then_upsertrecentsearchusecase_is_invoked"
     },
@@ -40597,7 +41070,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L185",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given removerecentsearch action, when sent, then deleterecentsearchusecase is invoked`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_removerecentsearch_action_when_sent_then_deleterecentsearchusecase_is_invoked"
     },
@@ -40607,7 +41080,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L200",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clearrecentsearches action, when sent, then clearrecentsearchesusecase is invoked`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clearrecentsearches_action_when_sent_then_clearrecentsearchesusecase_is_invoked"
     },
@@ -40617,7 +41090,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L214",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clickcategory action, when sent, then navigatetocategory effect is emitted`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clickcategory_action_when_sent_then_navigatetocategory_effect_is_emitted"
     },
@@ -40627,7 +41100,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L229",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clickpodcast action, when sent, then navigatetopodcast effect is emitted`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clickpodcast_action_when_sent_then_navigatetopodcast_effect_is_emitted"
     },
@@ -40637,7 +41110,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L247",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given clickepisode action, when sent, then playepisodeusecase is invoked`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_clickepisode_action_when_sent_then_playepisodeusecase_is_invoked"
     },
@@ -40647,7 +41120,7 @@
       "source_file": "feature/search/src/test/kotlin/io/jacob/episodive/feature/search/SearchViewModelTest.kt",
       "source_location": "L262",
       "_origin": "ast",
-      "community": 3,
+      "community": 150,
       "norm_label": ".`given togglelikedepisode action, when sent, then togglelikedepisodeusecase is invoked`()",
       "id": "feature_search_src_test_kotlin_io_jacob_episodive_feature_search_searchviewmodeltest_searchviewmodeltest_given_togglelikedepisode_action_when_sent_then_togglelikedepisodeusecase_is_invoked"
     },
@@ -40797,7 +41270,7 @@
       "source_file": "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayout.kt",
       "source_location": "L28",
       "_origin": "ast",
-      "community": 165,
+      "community": 67,
       "norm_label": "episodivewidgetlayout",
       "id": "feature_widget_src_main_kotlin_io_jacob_episodive_feature_widget_episodivewidgetlayout_episodivewidgetlayout"
     },
@@ -40807,7 +41280,7 @@
       "source_file": "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayout.kt",
       "source_location": "L50",
       "_origin": "ast",
-      "community": 165,
+      "community": 67,
       "norm_label": ".feedthumbpx()",
       "id": "feature_widget_src_main_kotlin_io_jacob_episodive_feature_widget_episodivewidgetlayout_episodivewidgetlayout_feedthumbpx"
     },
@@ -41087,7 +41560,7 @@
       "source_file": "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/action/WidgetActionCallback.kt",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 76,
+      "community": 302,
       "norm_label": "widgetactioncallback.kt",
       "id": "feature_widget_src_main_kotlin_io_jacob_episodive_feature_widget_action_widgetactioncallback"
     },
@@ -41097,7 +41570,7 @@
       "source_file": "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/action/WidgetActionCallback.kt",
       "source_location": "L18",
       "_origin": "ast",
-      "community": 76,
+      "community": 302,
       "norm_label": "widgetactioncallback",
       "id": "feature_widget_src_main_kotlin_io_jacob_episodive_feature_widget_action_widgetactioncallback_widgetactioncallback"
     },
@@ -41107,7 +41580,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 76,
+      "community": 302,
       "norm_label": "actioncallback",
       "id": "actioncallback"
     },
@@ -41377,7 +41850,7 @@
       "source_file": "feature/widget/src/main/kotlin/io/jacob/episodive/feature/widget/dispatcher/GlanceWidgetDispatcher.kt",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 146,
+      "community": 194,
       "norm_label": ".dispatch()",
       "id": "feature_widget_src_main_kotlin_io_jacob_episodive_feature_widget_dispatcher_glancewidgetdispatcher_glancewidgetdispatcher_dispatch"
     },
@@ -41387,7 +41860,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 146,
+      "community": 194,
       "norm_label": "context",
       "id": "feature_widget_src_main_kotlin_io_jacob_episodive_feature_widget_dispatcher_glancewidgetdispatcher_kt_context"
     },
@@ -41687,7 +42160,7 @@
       "source_file": "feature/widget/src/test/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayoutTest.kt",
       "source_location": "L90",
       "_origin": "ast",
-      "community": 165,
+      "community": 67,
       "norm_label": ".`feedthumbpx returns zero when feedthumbdp is not positive`()",
       "id": "feature_widget_src_test_kotlin_io_jacob_episodive_feature_widget_episodivewidgetlayouttest_episodivewidgetlayouttest_feedthumbpx_returns_zero_when_feedthumbdp_is_not_positive"
     },
@@ -41697,7 +42170,7 @@
       "source_file": "feature/widget/src/test/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayoutTest.kt",
       "source_location": "L103",
       "_origin": "ast",
-      "community": 165,
+      "community": 67,
       "norm_label": ".`feedthumbpx returns zero when feedcount is not positive`()",
       "id": "feature_widget_src_test_kotlin_io_jacob_episodive_feature_widget_episodivewidgetlayouttest_episodivewidgetlayouttest_feedthumbpx_returns_zero_when_feedcount_is_not_positive"
     },
@@ -41727,7 +42200,7 @@
       "source_file": "feature/widget/src/test/kotlin/io/jacob/episodive/feature/widget/EpisodiveWidgetLayoutTest.kt",
       "source_location": "L130",
       "_origin": "ast",
-      "community": 165,
+      "community": 67,
       "norm_label": ".`feedthumbpx caps to bitmap budget when scaled value is too large`()",
       "id": "feature_widget_src_test_kotlin_io_jacob_episodive_feature_widget_episodivewidgetlayouttest_episodivewidgetlayouttest_feedthumbpx_caps_to_bitmap_budget_when_scaled_value_is_too_large"
     },
@@ -41952,231 +42425,6 @@
       "id": "settings_gradle"
     },
     {
-      "label": "Clean Architecture \uacc4\uce35 (UI\u2192Domain\u2192Data\u2192Sources)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 209,
-      "norm_label": "clean architecture \u1100\u1168\u110e\u1173\u11bc (ui\u2192domain\u2192data\u2192sources)",
-      "id": "claude_clean_architecture"
-    },
-    {
-      "label": "MVI \ud328\ud134 (State/Action/Effect/ViewModel)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 209,
-      "norm_label": "mvi \u1111\u1162\u1110\u1165\u11ab (state/action/effect/viewmodel)",
-      "id": "claude_mvi_pattern"
-    },
-    {
-      "label": "Offline-First / RemoteUpdater \ud328\ud134",
-      "file_type": "rationale",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "\uce90\uc2dc \ub9cc\ub8cc(CacheableQuery TTL) \ud655\uc778 \ud6c4 \ud544\uc694\ud560 \ub54c\ub9cc \uc6d0\uaca9 \ud398\uce58, UI\uc5d0\ub294 \ud56d\uc0c1 Room\uc758 Flow(\ub2e8\uc77c \uc18c\uc2a4)\ub97c \ubc18\ud658\ud574 \uc624\ud504\ub77c\uc778\uc5d0\uc11c\ub3c4 \uc989\uc2dc \ub80c\ub354\ub9c1.",
-      "community": 8,
-      "norm_label": "offline-first / remoteupdater \u1111\u1162\u1110\u1165\u11ab",
-      "id": "claude_offline_first"
-    },
-    {
-      "label": "RemoteUpdater \ucd94\uc0c1 \ud074\ub798\uc2a4",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "remoteupdater \u110e\u116e\u1109\u1161\u11bc \u110f\u1173\u11af\u1105\u1162\u1109\u1173",
-      "id": "claude_remote_updater"
-    },
-    {
-      "label": "CacheableQuery (Podcast/Episode \ucffc\ub9ac + TTL)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "cacheablequery (podcast/episode \u110f\u116f\u1105\u1175 + ttl)",
-      "id": "claude_cacheable_query"
-    },
-    {
-      "label": "\ubc31\uadf8\ub77c\uc6b4\ub4dc \uc5d0\ud53c\uc18c\ub4dc \ub3d9\uae30\ud654 (WorkManager 3\uc2dc\uac04 \uc8fc\uae30)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "\u1107\u1162\u11a8\u1100\u1173\u1105\u1161\u110b\u116e\u11ab\u1103\u1173 \u110b\u1166\u1111\u1175\u1109\u1169\u1103\u1173 \u1103\u1169\u11bc\u1100\u1175\u1112\u116a (workmanager 3\u1109\u1175\u1100\u1161\u11ab \u110c\u116e\u1100\u1175)",
-      "id": "claude_background_episode_sync"
-    },
-    {
-      "label": "EpisodeSyncWorker / EpisodeSyncScheduler",
-      "file_type": "code",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "episodesyncworker / episodesyncscheduler",
-      "id": "claude_episode_sync_worker"
-    },
-    {
-      "label": "\ub4c0\uc5bc \ud50c\ub808\uc774\uc5b4 \uc2dc\uc2a4\ud15c (@Player Main/Clip)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "Hilt @Player qualifier\ub85c ExoPlayer \uc778\uc2a4\ud134\uc2a4 \ub450 \uac1c(\uc804\uccb4 \uc5d0\ud53c\uc18c\ub4dc\uc6a9 Main, \uc0ac\uc6b4\ub4dc\ubc14\uc774\ud2b8/\ud074\ub9bd\uc6a9 Clip)\ub97c \ubd84\ub9ac \uad00\ub9ac.",
-      "community": 8,
-      "norm_label": "\u1103\u1172\u110b\u1165\u11af \u1111\u1173\u11af\u1105\u1166\u110b\u1175\u110b\u1165 \u1109\u1175\u1109\u1173\u1110\u1166\u11b7 (@player main/clip)",
-      "id": "claude_dual_player_system"
-    },
-    {
-      "label": "@Player qualifier (EpisodivePlayers)",
-      "file_type": "code",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "@player qualifier (episodiveplayers)",
-      "id": "claude_player_qualifier"
-    },
-    {
-      "label": "Enum value \ucc98\ub9ac (entries.find, valueOf \uae08\uc9c0)",
-      "file_type": "rationale",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "API\ub294 \uc18c\ubb38\uc790(\"podcast\")\ub97c \ubc18\ud658\ud558\uc9c0\ub9cc enum name\uc740 \ub300\ubb38\uc790(PODCAST)\ub77c valueOf()\ub294 \uc608\uc678 \ubc1c\uc0dd. value \ud504\ub85c\ud37c\ud2f0 \uae30\ubc18 entries.find() \uc0ac\uc6a9.",
-      "community": 324,
-      "norm_label": "enum value \u110e\u1165\u1105\u1175 (entries.find, valueof \u1100\u1173\u11b7\u110c\u1175)",
-      "id": "claude_enum_value_pattern"
-    },
-    {
-      "label": "Room DB v8 (Entity 12\u00b7View 2\u00b7DAO 5\u00b7Auto-migration)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "room db v8 (entity 12\u00b7view 2\u00b7dao 5\u00b7auto-migration)",
-      "id": "claude_room_database"
-    },
-    {
-      "label": "EpisodiveInterceptor (SHA-1 \uc778\uc99d \ud5e4\ub354)",
-      "file_type": "code",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 303,
-      "norm_label": "episodiveinterceptor (sha-1 \u110b\u1175\u11ab\u110c\u1173\u11bc \u1112\u1166\u1103\u1165)",
-      "id": "claude_episodive_interceptor"
-    },
-    {
-      "label": "ResponseListWrapper (feeds/items/channels \ud1b5\ud569)",
-      "file_type": "code",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 303,
-      "norm_label": "responselistwrapper (feeds/items/channels \u1110\u1169\u11bc\u1112\u1161\u11b8)",
-      "id": "claude_response_list_wrapper"
-    },
-    {
-      "label": "Gradle \ucee8\ubca4\uc158 \ud50c\ub7ec\uadf8\uc778",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "gradle \u110f\u1165\u11ab\u1107\u1166\u11ab\u1109\u1167\u11ab \u1111\u1173\u11af\u1105\u1165\u1100\u1173\u110b\u1175\u11ab",
-      "id": "claude_convention_plugins"
-    },
-    {
-      "label": "episodive.android.feature \ud50c\ub7ec\uadf8\uc778",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "episodive.android.feature \u1111\u1173\u11af\u1105\u1165\u1100\u1173\u110b\u1175\u11ab",
-      "id": "claude_feature_plugin"
-    },
-    {
-      "label": "\ud14c\uc2a4\ud2b8 \ub370\uc774\ud130 \ud329\ud1a0\ub9ac (:core:testing)",
-      "file_type": "concept",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 326,
-      "norm_label": "\u1110\u1166\u1109\u1173\u1110\u1173 \u1103\u1166\u110b\u1175\u1110\u1165 \u1111\u1162\u11a8\u1110\u1169\u1105\u1175 (:core:testing)",
-      "id": "claude_test_data_factory"
-    },
-    {
-      "label": "Import \uc21c\uc11c \uaddc\uce59 (\ucf54\ub4dc \uba3c\uc800, import \ub098\uc911)",
-      "file_type": "rationale",
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "rationale": "lint \ucda9\ub3cc \ubc29\uc9c0\ub97c \uc704\ud574 \uc2e4\uc81c \ucf54\ub4dc\ub97c \uba3c\uc800 \uc218\uc815/\ucd94\uac00\ud55c \ud6c4 import\ub97c \ub9c8\uc9c0\ub9c9\uc5d0 \ucd94\uac00.",
-      "community": 325,
-      "norm_label": "import \u1109\u116e\u11ab\u1109\u1165 \u1100\u1172\u110e\u1175\u11a8 (\u110f\u1169\u1103\u1173 \u1106\u1165\u11ab\u110c\u1165, import \u1102\u1161\u110c\u116e\u11bc)",
-      "id": "claude_import_order"
-    },
-    {
       "label": "MVI \ud328\ud134 (Copilot \uac00\uc774\ub4dc)",
       "file_type": "concept",
       "source_file": ".github/copilot-instructions.md",
@@ -42212,7 +42460,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 429,
       "norm_label": "remoteupdater \u110f\u1162\u1109\u1175\u11bc \u1111\u1162\u1110\u1165\u11ab (copilot \u1100\u1161\u110b\u1175\u1103\u1173)",
       "id": "github_copilot_instructions_remote_updater"
     },
@@ -42621,7 +42869,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 338,
       "norm_label": "\u1100\u116e\u1112\u1167\u11ab \u110e\u1166\u110f\u1173\u1105\u1175\u1109\u1173\u1110\u1173 (\u1100\u1175\u1102\u1173\u11bc \u110c\u1175\u11ab\u1112\u1162\u11bc \u1109\u1161\u11bc\u1112\u116a\u11bc)",
       "id": "docs_implementation_checklist"
     },
@@ -42634,7 +42882,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 338,
       "norm_label": "\u1107\u1162\u11a8\u1100\u1173\u1105\u1161\u110b\u116e\u11ab\u1103\u1173 \u1103\u1169\u11bc\u1100\u1175\u1112\u116a \u110e\u1166\u110f\u1173\u1105\u1175\u1109\u1173\u1110\u1173 (workmanager 3\u1109\u1175\u1100\u1161\u11ab\u00b7\u110b\u1161\u11af\u1105\u1175\u11b7)",
       "id": "docs_implementation_checklist_background_sync"
     },
@@ -42778,12 +43026,472 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_claude_md",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L233",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_cli_\ub3c4\uad6c_\uc0ac\uc6a9_\uac00\uc774\ub4dc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L322",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_codebase_analysis_policy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L312",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L329",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_graphify_\ud300_\uc14b\uc5c5",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L283",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_mccm_cleanup_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L264",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_mccm_commit_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L273",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_mccm_pr_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\uac1c\ubc1c_\uc6cc\ud06c\ud50c\ub85c\uc6b0",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L295",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\uacf5\ud1b5_\ud328\ud134",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\ube4c\ub4dc_\uba85\ub839\uc5b4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\uc544\ud0a4\ud14d\ucc98",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L138",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\uc911\uc694_\uad6c\ud604_\uc138\ubd80\uc0ac\ud56d",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L288",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\ucf54\ub4dc_\ud3b8\uc9d1_\uaddc\uce59",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L212",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\ud14c\uc2a4\ud2b8",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\ud504\ub85c\uc81d\ud2b8_\uac1c\uc694",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "claude_claude_md",
+      "target": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "claude_\ud504\ub85c\uc81d\ud2b8_\uac1c\uc694",
+      "target": "claude_\uae30\uc220_\uc2a4\ud0dd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "claude_\ube4c\ub4dc_\uba85\ub839\uc5b4",
+      "target": "claude_git_worktree_\uc791\uc5c5_\uc2dc_\ud544\uc218_local_properties_\ubcf5\uc0ac",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "claude_\uc544\ud0a4\ud14d\ucc98",
+      "target": "claude_\ubaa8\ub4c8_\uad6c\uc870_20\uac1c",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "claude_\uc544\ud0a4\ud14d\ucc98",
+      "target": "claude_\ucee8\ubca4\uc158_\ud50c\ub7ec\uadf8\uc778_build_logic_convention",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "claude_\ubaa8\ub4c8_\uad6c\uc870_20\uac1c",
+      "target": "claude_core_\ubaa8\ub4c8_11\uac1c",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "source": "claude_\ubaa8\ub4c8_\uad6c\uc870_20\uac1c",
+      "target": "claude_feature_\ubaa8\ub4c8_8\uac1c",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L101",
+      "weight": 1.0,
+      "source": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "target": "claude_clean_architecture_\uacc4\uce35",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "target": "claude_mvi_\ud328\ud134",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "target": "claude_offline_first_remoteupdater_\ud328\ud134",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L133",
+      "weight": 1.0,
+      "source": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "target": "claude_\ub4c0\uc5bc_\ud50c\ub808\uc774\uc5b4_\uc2dc\uc2a4\ud15c",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "claude_\ud575\uc2ec_\uc544\ud0a4\ud14d\ucc98_\ud328\ud134",
+      "target": "claude_\ubc31\uadf8\ub77c\uc6b4\ub4dc_\uc5d0\ud53c\uc18c\ub4dc_\ub3d9\uae30\ud654",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "claude_\uc911\uc694_\uad6c\ud604_\uc138\ubd80\uc0ac\ud56d",
+      "target": "claude_1_enum_\ucc98\ub9ac_\ud544\uc218",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L161",
+      "weight": 1.0,
+      "source": "claude_\uc911\uc694_\uad6c\ud604_\uc138\ubd80\uc0ac\ud56d",
+      "target": "claude_2_\ub370\uc774\ud130\ubca0\uc774\uc2a4_\uc2a4\ud0a4\ub9c8_room_v8",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L173",
+      "weight": 1.0,
+      "source": "claude_\uc911\uc694_\uad6c\ud604_\uc138\ubd80\uc0ac\ud56d",
+      "target": "claude_3_api_\uc778\uc99d_podcast_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L182",
+      "weight": 1.0,
+      "source": "claude_\uc911\uc694_\uad6c\ud604_\uc138\ubd80\uc0ac\ud56d",
+      "target": "claude_4_\uc751\ub2f5_\ub798\ud37c",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L188",
+      "weight": 1.0,
+      "source": "claude_\uac1c\ubc1c_\uc6cc\ud06c\ud50c\ub85c\uc6b0",
+      "target": "claude_\ub370\uc774\ud130\ubca0\uc774\uc2a4_\ubcc0\uacbd_\uc2dc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L197",
+      "weight": 1.0,
+      "source": "claude_\uac1c\ubc1c_\uc6cc\ud06c\ud50c\ub85c\uc6b0",
+      "target": "claude_\uc0c8_api_\uc5d4\ub4dc\ud3ec\uc778\ud2b8_\ucd94\uac00_\uc2dc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L205",
+      "weight": 1.0,
+      "source": "claude_\uac1c\ubc1c_\uc6cc\ud06c\ud50c\ub85c\uc6b0",
+      "target": "claude_\uc0c8_feature_\ucd94\uac00_\uc2dc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L214",
+      "weight": 1.0,
+      "source": "claude_\ud14c\uc2a4\ud2b8",
+      "target": "claude_\ub370\uc774\ud130\ubca0\uc774\uc2a4_\ud14c\uc2a4\ud2b8",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L225",
+      "weight": 1.0,
+      "source": "claude_\ud14c\uc2a4\ud2b8",
+      "target": "claude_\ud14c\uc2a4\ud2b8_\ub370\uc774\ud130_core_testing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L251",
+      "weight": 1.0,
+      "source": "claude_cli_\ub3c4\uad6c_\uc0ac\uc6a9_\uac00\uc774\ub4dc",
+      "target": "claude_native_\ub9cc_\uac00\ub2a5\ud55c_\ucf00\uc774\uc2a4_\ud3f4\ubc31_\ud544\uc218",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L237",
+      "weight": 1.0,
+      "source": "claude_cli_\ub3c4\uad6c_\uc0ac\uc6a9_\uac00\uc774\ub4dc",
+      "target": "claude_\ub9e4\ud551_\uc120\ud638_\ud3f4\ubc31",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L258",
+      "weight": 1.0,
+      "source": "claude_cli_\ub3c4\uad6c_\uc0ac\uc6a9_\uac00\uc774\ub4dc",
+      "target": "claude_\uc77c\ubc18_\uc6d0\uce59",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L297",
+      "weight": 1.0,
+      "source": "claude_\uacf5\ud1b5_\ud328\ud134",
+      "target": "claude_coroutine_dispatcher",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L303",
+      "weight": 1.0,
+      "source": "claude_\uacf5\ud1b5_\ud328\ud134",
+      "target": "claude_stateflow_vs_sharedflow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L307",
+      "weight": 1.0,
+      "source": "claude_\uacf5\ud1b5_\ud328\ud134",
+      "target": "claude_\ub124\ube44\uac8c\uc774\uc158",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L347",
+      "weight": 1.0,
+      "source": "claude_graphify_\ud300_\uc14b\uc5c5",
+      "target": "claude_pretooluse_\uac00\ub4dc_\uad6c\uc131",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L360",
+      "weight": 1.0,
+      "source": "claude_graphify_\ud300_\uc14b\uc5c5",
+      "target": "claude_\ub3d9\uc791_\uaddc\uce59",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/graphify-grep-guard.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "scripts_graphify_grep_guard",
+      "target": "scripts_graphify_grep_guard_sh__entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider",
-      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider",
-      "confidence_score": 1.0
+      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider"
     },
     {
       "relation": "contains",
@@ -42791,9 +43499,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider",
-      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider",
-      "confidence_score": 1.0
+      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider"
     },
     {
       "relation": "references",
@@ -42813,9 +43521,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider",
-      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider",
-      "confidence_score": 1.0
+      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider"
     },
     {
       "relation": "method",
@@ -42823,9 +43531,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider",
-      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider_currenttimemillis",
-      "confidence_score": 1.0
+      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider_currenttimemillis"
     },
     {
       "relation": "references",
@@ -42834,9 +43542,9 @@
       "source_location": "L6",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_timeprovider_currenttimemillis",
-      "target": "long",
-      "confidence_score": 1.0
+      "target": "long"
     },
     {
       "relation": "references",
@@ -42845,9 +43553,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider_currenttimemillis",
-      "target": "long",
-      "confidence_score": 1.0
+      "target": "long"
     },
     {
       "relation": "calls",
@@ -42867,9 +43575,9 @@
       "source_file": "core/common/src/main/kotlin/io/jacob/episodive/core/common/TimeProvider.kt",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider",
-      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider_currenttimemillis",
-      "confidence_score": 1.0
+      "target": "core_common_src_main_kotlin_io_jacob_episodive_core_common_timeprovider_systemtimeprovider_currenttimemillis"
     },
     {
       "relation": "contains",
@@ -114044,246 +114752,6 @@
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
       "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_clean_architecture",
-      "target": "readme_architecture"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_mvi_pattern",
-      "target": "github_copilot_instructions_mvi_pattern"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_mvi_pattern",
-      "target": "readme_mvi"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_offline_first",
-      "target": "claude_remote_updater"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_offline_first",
-      "target": "docs_portfolio_portfolio_offline_first_case"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_offline_first",
-      "target": "readme_offline_first"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_remote_updater",
-      "target": "claude_cacheable_query"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_remote_updater",
-      "target": "docs_portfolio_portfolio_offline_first_case"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_remote_updater",
-      "target": "github_copilot_instructions_remote_updater"
-    },
-    {
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "docs/COVERAGE_REPORT.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "docs_coverage_report_remote_updater",
-      "target": "claude_remote_updater"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_background_episode_sync",
-      "target": "claude_episode_sync_worker"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_background_episode_sync",
-      "target": "docs_portfolio_portfolio_background_sync"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "docs/IMPLEMENTATION_CHECKLIST.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "docs_implementation_checklist_background_sync",
-      "target": "claude_background_episode_sync"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "AMBIGUOUS",
-      "confidence_score": 0.2,
-      "source_file": "docs/portfolio/PORTFOLIO.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "docs_portfolio_portfolio_case3_onboarding_paging",
-      "target": "claude_background_episode_sync"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_dual_player_system",
-      "target": "claude_player_qualifier"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_dual_player_system",
-      "target": "docs_portfolio_portfolio_dual_player"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_enum_value_pattern",
-      "target": "github_copilot_instructions_enum_value_pattern"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_room_database",
-      "target": "readme_caching_strategy"
-    },
-    {
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_episodive_interceptor",
-      "target": "readme_podcast_index_api"
-    },
-    {
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_response_list_wrapper",
-      "target": "readme_podcast_index_api"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_convention_plugins",
-      "target": "claude_feature_plugin"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.65,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_feature_plugin",
-      "target": "github_workflows_android_kover_report"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": ".github/copilot-instructions.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "github_copilot_instructions_test_pattern",
-      "target": "claude_test_data_factory"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "CLAUDE.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "claude_import_order",
-      "target": "github_copilot_instructions_import_order"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
       "source_file": "README.md",
       "source_location": null,
       "weight": 1.0,
@@ -114673,21 +115141,6 @@
   ],
   "hyperedges": [
     {
-      "id": "offline_first_caching_flow",
-      "label": "Offline-First \uce90\uc2f1 \ud750\ub984 (RemoteUpdater\u00b7CacheableQuery\u00b7Room SSOT)",
-      "nodes": [
-        "claude_remote_updater",
-        "claude_cacheable_query",
-        "claude_offline_first",
-        "readme_caching_strategy",
-        "docs_portfolio_portfolio_offline_first_case"
-      ],
-      "relation": "participate_in",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
-      "source_file": "CLAUDE.md"
-    },
-    {
       "id": "dynamic_theming_media_surfaces",
       "label": "\ud314\ub808\ud2b8 \ub3d9\uc801 \ud14c\ub9c8\ub9c1\uc774 \ud50c\ub808\uc774\uc5b4\u00b7\ubbf8\ub2c8\ud50c\ub808\uc774\uc5b4\u00b7\uc704\uc82f \ud45c\uba74\uc5d0 \uc8fc\uc785",
       "nodes": [
@@ -114718,5 +115171,5 @@
       "source_file": ".github/workflows/android.yml"
     }
   ],
-  "built_at_commit": "23edd213b517c3f1dd328925fca17cee6bdd2fe7"
+  "built_at_commit": "f9c20a93912f24b74ab7df090023f9d806d1b1e0"
 }

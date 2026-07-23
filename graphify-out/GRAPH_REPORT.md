@@ -1,16 +1,16 @@
-# Graph Report - Episodive  (2026-07-22)
+# Graph Report - Episodive  (2026-07-23)
 
 ## Corpus Check
-- 560 files · ~1,116,393 words
+- 561 files · ~1,116,828 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4250 nodes · 6273 edges · 423 communities (232 shown, 191 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 508 edges (avg confidence: 0.81)
+- 4281 nodes · 6295 edges · 430 communities (241 shown, 189 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 490 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `23edd213`
+- Built from commit: `f9c20a93`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -314,8 +314,10 @@
 - Community 296
 - Community 297
 - Community 298
+- homeEntries
 - Community 300
 - Community 301
+- WidgetActionCallback
 - Community 303
 - Community 304
 - Community 305
@@ -328,6 +330,7 @@
 - Community 312
 - Community 313
 - Community 314
+- ToggleLikedEpisodeUseCase
 - Community 316
 - Community 317
 - Community 318
@@ -348,6 +351,7 @@
 - Community 335
 - Community 336
 - Community 337
+- 구현 체크리스트 (기능 진행 상황)
 - Community 339
 - Community 340
 - Community 342
@@ -375,6 +379,9 @@
 - Community 423
 - Community 424
 - .getPagingSource
+- Content
+- graphify-grep-guard.sh
+- RemoteUpdater 캐싱 패턴 (Copilot 가이드)
 
 ## God Nodes (most connected - your core abstractions)
 1. `Episode` - 175 edges
@@ -391,36 +398,35 @@
 ## Surprising Connections (you probably didn't know these)
 - `StateImage (Coil + Palette 대표색 추출)` --semantically_similar_to--> `백그라운드 동기화 (WorkManager + Hilt Worker)`  [INFERRED] [semantically similar]
   DESIGN.md → docs/portfolio/PORTFOLIO.md
-- `EpisodiveNavHost()` --calls--> `channelEntries()`  [INFERRED]
-  app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavHost.kt → feature/channel/src/main/kotlin/io/jacob/episodive/feature/channel/navigation/ChannelNavigation.kt
+- `EpisodiveNavHost()` --calls--> `clipEntries()`  [INFERRED]
+  app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavHost.kt → feature/clip/src/main/kotlin/io/jacob/episodive/feature/clip/navigation/ClipNavigation.kt
+- `EpisodiveNavHost()` --calls--> `homeEntries()`  [INFERRED]
+  app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavHost.kt → feature/home/src/main/kotlin/io/jacob/episodive/feature/home/navigation/HomeNavigation.kt
 - `EpisodiveNavHost()` --calls--> `searchEntries()`  [INFERRED]
   app/src/main/kotlin/io/jacob/episodive/navigation/EpisodiveNavHost.kt → feature/search/src/main/kotlin/io/jacob/episodive/feature/search/navigation/SearchNavigation.kt
 - `EpisodiveApp()` --calls--> `EpisodiveBackground()`  [INFERRED]
   app/src/main/kotlin/io/jacob/episodive/ui/EpisodiveApp.kt → core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Background.kt
-- `EpisodiveApp()` --calls--> `EpisodiveSwipeDismissSnackbarHost()`  [INFERRED]
-  app/src/main/kotlin/io/jacob/episodive/ui/EpisodiveApp.kt → core/designsystem/src/main/kotlin/io/jacob/episodive/core/designsystem/component/Snackbar.kt
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
-- **Offline-First 캐싱 흐름 (RemoteUpdater·CacheableQuery·Room SSOT)** — claude_remote_updater, claude_cacheable_query, claude_offline_first, readme_caching_strategy, docs_portfolio_portfolio_offline_first_case [INFERRED 0.85]
 - **팔레트 동적 테마링이 플레이어·미니플레이어·위젯 표면에 주입** — design_dynamic_theming, design_state_image, docs_portfolio_portfolio_palette_theme, design_mini_player, design_glance_widget [INFERRED 0.85]
 - **CI 커버리지 파이프라인 (Kover→뱃지→리포트)** — github_workflows_android_ci, github_workflows_android_kover_report, github_workflows_android_coverage_badge, docs_coverage_report_summary, readme_coverage_badge [INFERRED 0.85]
 
-## Communities (423 total, 191 thin omitted)
+## Communities (430 total, 189 thin omitted)
 
 ### Community 0 - "Domain Model & Categories"
 Cohesion: 0.02
 Nodes (114): model/Category.kt, Category, AFTER_SHOWS, ALTERNATIVE, ANIMALS, ANIMATION, ARTS, ASTRONOMY (+106 more)
 
 ### Community 2 - "Flow Combine Utilities"
-Cohesion: 0.05
-Nodes (29): FindInLibraryUseCase, Flow, LibraryFindResult, ClearQuery, ClickEpisode, ClickFind, ClickPlayingEpisode, ClickPodcast (+21 more)
+Cohesion: 0.06
+Nodes (19): combine(), Flow, FlowExtTest, FindInLibraryUseCase, Flow, LibraryFindResult, LibraryViewModelTest, R (+11 more)
 
 ### Community 3 - "Search Feature (MVI)"
-Cohesion: 0.06
-Nodes (25): ClearQuery, ClearRecentSearches, ClickCategory, ClickEpisode, ClickPodcast, ClickRecentSearch, ClickSearch, Error (+17 more)
+Cohesion: 0.13
+Nodes (13): Error, Flow, Podcast, StateFlow, ViewModel, Loading, NavigateToCategory, NavigateToEpisode (+5 more)
 
 ### Community 5 - "Onboarding Feature"
 Cohesion: 0.06
@@ -431,8 +437,8 @@ Cohesion: 0.07
 Nodes (42): DecorativeScrollbar(), DecorativeScrollbarThumb(), DraggableScrollbar(), DraggableScrollbarThumb(), Color, Modifier, Orientation, scrollbarThumbColor() (+34 more)
 
 ### Community 8 - "Architecture Documentation"
-Cohesion: 0.05
-Nodes (44): 백그라운드 에피소드 동기화 (WorkManager 3시간 주기), CacheableQuery (Podcast/Episode 쿼리 + TTL), Gradle 컨벤션 플러그인, 듀얼 플레이어 시스템 (@Player Main/Clip), EpisodeSyncWorker / EpisodeSyncScheduler, episodive.android.feature 플러그인, Offline-First / RemoteUpdater 패턴, @Player qualifier (EpisodivePlayers) (+36 more)
+Cohesion: 0.08
+Nodes (31): 브랜드 레드 #F5332C (dynamicColor=false), 팔레트 기반 다이내믹 컬러 테마링, FadingEdgeText + fadingEdgeMarquee, Glance 홈스크린 위젯 (색 스킴 브릿지), EpisodiveGradientBackground (사선 이중 그라데이션), 오버레이 미니플레이어 (PlayerBar), androidx.navigation3 (NavDisplay·멀티 백스택), Now in Android 파생 골격 (+23 more)
 
 ### Community 9 - "Enum Type Converters"
 Cohesion: 0.05
@@ -511,16 +517,12 @@ Cohesion: 0.16
 Nodes (4): Flow, PagingSource, RoomDatabase, PodcastLocalDataSource
 
 ### Community 35 - "Community 35"
-Cohesion: 0.10
+Cohesion: 0.11
 Nodes (4): EpisodeLocalDataSource, Flow, PagingSource, RoomDatabase
 
-### Community 37 - "Community 37"
-Cohesion: 0.06
-Nodes (4): TrendingFeed, ModelMapperTest, toTrendingFeed(), toTrendingFeeds()
-
 ### Community 39 - "Community 39"
-Cohesion: 0.11
-Nodes (10): Flow, Podcast, RecentSearchRepositoryImpl, Flow, Podcast, RecentSearchRepository, EpisodeSearch, PodcastSearch (+2 more)
+Cohesion: 0.10
+Nodes (11): Flow, Podcast, RecentSearchRepositoryImpl, Flow, Podcast, RecentSearchRepository, DeleteRecentSearchUseCase, EpisodeSearch (+3 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.12
@@ -543,20 +545,24 @@ Cohesion: 0.16
 Nodes (4): Factory, PodcastRemoteUpdater, PodcastRemoteUpdaterTest, PagingConfig
 
 ### Community 45 - "Community 45"
-Cohesion: 0.12
-Nodes (5): FeedLocalDataSource, PagingSource, FeedLocalDataSourceImpl, PagingSource, FeedEntity
+Cohesion: 0.08
+Nodes (7): FeedDao, PagingSource, FeedLocalDataSource, PagingSource, FeedLocalDataSourceImpl, PagingSource, FeedEntity
+
+### Community 46 - "Community 46"
+Cohesion: 0.17
+Nodes (3): UpdatePlayedEpisodeUseCase, Progress, ClipScreenTest
 
 ### Community 47 - "Community 47"
-Cohesion: 0.18
-Nodes (30): EpisodiveChipDefaults, EpisodiveFilterChip(), Modifier, Shape, PlayedEpisodeItem(), AllSectionContent(), CategorySection(), EpisodeRowSection() (+22 more)
+Cohesion: 0.27
+Nodes (24): AllSectionContent(), CategorySection(), EpisodeRowSection(), FindBar(), FindOrFilter(), FollowedContent(), Flow, LazyListState (+16 more)
 
 ### Community 48 - "Community 48"
 Cohesion: 0.13
 Nodes (5): EpisodeRemoteUpdater, Factory, Flow, PagingSource, EpisodeRemoteUpdaterTest
 
 ### Community 50 - "Community 50"
-Cohesion: 0.24
-Nodes (8): ChannelFooter(), ChannelFooterPreview(), ChannelHeader(), ChannelRoute(), ChannelScreen(), Modifier, Podcast, ChannelScreenTest
+Cohesion: 0.50
+Nodes (7): ChannelFooter(), ChannelFooterPreview(), ChannelHeader(), ChannelRoute(), ChannelScreen(), Modifier, Podcast
 
 ### Community 51 - "Community 51"
 Cohesion: 0.09
@@ -579,8 +585,8 @@ Cohesion: 0.23
 Nodes (4): Flow, PagingData, Podcast, PodcastRepository
 
 ### Community 57 - "Community 57"
-Cohesion: 0.14
-Nodes (19): RecentNewFeed, RecentNewValueFeed, Podcast, toChannel(), toChannels(), toChapter(), toChapters(), toEpisode() (+11 more)
+Cohesion: 0.15
+Nodes (17): RecentNewFeed, RecentNewValueFeed, Podcast, toChapter(), toChapters(), toEpisode(), toEpisodeResponse(), toEpisodeResponses() (+9 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.14
@@ -591,28 +597,36 @@ Cohesion: 0.13
 Nodes (13): AndroidApplicationConventionPlugin, Plugin, Project, AndroidLibraryConventionPlugin, Plugin, Project, configureKotlin(), configureKotlinAndroid() (+5 more)
 
 ### Community 60 - "Community 60"
-Cohesion: 0.26
-Nodes (17): EpisodiveDragHandle(), Modifier, CardSection(), ChapterSection(), ControlPanelProgress(), EpisodeInfoSection(), Modifier, Podcast (+9 more)
+Cohesion: 0.25
+Nodes (18): EpisodiveDragHandle(), Modifier, CardSection(), ChapterSection(), ControlPanelBottom(), ControlPanelProgress(), EpisodeInfoSection(), Modifier (+10 more)
 
 ### Community 63 - "Community 63"
-Cohesion: 0.19
-Nodes (19): AnnotatedString, addLinksToAnnotatedString(), filterOverlappingMatches(), findAllMatches(), HtmlTextContainer(), isValidMatch(), Color, ui/Episode.kt (+11 more)
+Cohesion: 0.32
+Nodes (13): ui/Episode.kt, EpisodeClipItem(), EpisodeClipItemPreview(), EpisodeDetailItem(), EpisodeItem(), episodeItems(), EpisodesSection(), Modifier (+5 more)
 
 ### Community 64 - "Community 64"
 Cohesion: 0.14
 Nodes (7): Context, MonitorModule, ConnectivityManagerNetworkMonitor, Flow, Flow, NetworkMonitor, ConnectivityManagerNetworkMonitorTest
 
 ### Community 65 - "Community 65"
-Cohesion: 0.18
-Nodes (4): WidgetDataModule, Flow, WidgetDataReader, WidgetDataReaderEntryPoint
+Cohesion: 0.13
+Nodes (6): WidgetDataModule, Flow, WidgetDataReaderImpl, Flow, WidgetDataReader, WidgetDataReaderEntryPoint
 
 ### Community 66 - "Community 66"
 Cohesion: 0.13
 Nodes (6): SoundbiteApiTest, ChapterApi, SoundbiteApi, ApiModule, Retrofit, ChaptersResponse
 
+### Community 67 - "Community 67"
+Cohesion: 0.16
+Nodes (3): DpSize, EpisodiveWidgetLayout, EpisodiveWidgetLayoutTest
+
 ### Community 68 - "Community 68"
 Cohesion: 0.22
 Nodes (7): Flow, PagingData, PagingSource, Response, RemoteUpdater, Entity, Output
+
+### Community 70 - "Community 70"
+Cohesion: 0.04
+Nodes (44): 1. Enum 처리 (필수), 2. 데이터베이스 스키마 (Room v8), 3. API 인증 (Podcast Index), 4. 응답 래퍼, Clean Architecture 계층, CLI 도구 사용 가이드, Codebase Analysis Policy, Core 모듈 (11개) (+36 more)
 
 ### Community 71 - "Community 71"
 Cohesion: 0.11
@@ -626,17 +640,21 @@ Nodes (8): androidx, EpisodeSyncWorker, EpisodeSyncWorkerTest, android, Context,
 Cohesion: 0.14
 Nodes (12): DeepLinkEvent, FirstLaunch, Intent, StateFlow, ViewModel, Loading, MainActivityState, MainActivityViewModel (+4 more)
 
+### Community 74 - "Community 74"
+Cohesion: 0.06
+Nodes (15): PodcastRepositoryTest, GetChannelByIdUseCase, Flow, GetChannelsUseCase, Flow, GetPodcastsByChannelUseCaseTest, model/Channel.kt, Channel (+7 more)
+
 ### Community 75 - "Community 75"
-Cohesion: 0.11
-Nodes (15): combine(), Flow, FlowExtTest, R, T1, T10, T11, T2 (+7 more)
+Cohesion: 0.13
+Nodes (13): Error, Flow, PagingData, Podcast, StateFlow, ViewModel, LibraryEffect, LibraryState (+5 more)
 
 ### Community 76 - "Community 76"
-Cohesion: 0.23
-Nodes (16): ActionCallback, ActionParameters, activityAutoplayIntent(), isMediaServiceRunning(), Context, Intent, PendingIntent, mainActivityComponent() (+8 more)
+Cohesion: 0.30
+Nodes (14): ActionParameters, activityAutoplayIntent(), isMediaServiceRunning(), Context, Intent, PendingIntent, mainActivityComponent(), playPausePendingIntent() (+6 more)
 
 ### Community 77 - "Community 77"
-Cohesion: 0.17
-Nodes (6): ChannelRepositoryImpl, Flow, ChannelRepository, Flow, model/Channel.kt, Channel
+Cohesion: 0.15
+Nodes (5): ChannelRepositoryImpl, Flow, ChannelRepositoryTest, ChannelRepository, Flow
 
 ### Community 78 - "Community 78"
 Cohesion: 0.13
@@ -647,32 +665,28 @@ Cohesion: 0.18
 Nodes (17): Podcast, toEpisode(), toEpisodeEntities(), toEpisodeEntity(), toEpisodes(), toEpisodeWithExtrasView(), toEpisodeWithExtrasViews(), toFeedEntities() (+9 more)
 
 ### Community 83 - "Community 83"
-Cohesion: 0.13
+Cohesion: 0.12
 Nodes (5): Flow, Repeat, UserPreferencesDataSourceImpl, datastore/di/DataSourceModule.kt, DataSourceModule
 
 ### Community 84 - "Community 84"
-Cohesion: 0.10
-Nodes (27): component/Background.kt, EpisodiveBackground(), EpisodiveGradientBackground(), EpisodiveGradientBackgroundPreview(), Modifier, theme/Background.kt, BackgroundTheme, DimensionTheme (+19 more)
+Cohesion: 0.13
+Nodes (8): theme/Background.kt, BackgroundTheme, DimensionTheme, EpisodiveTheme(), TintTheme, SelectableCategory, ChannelScreenTest, OnboardingScreenTest
 
 ### Community 86 - "Community 86"
-Cohesion: 0.13
-Nodes (14): EpisodiveNavHost(), Modifier, clipEntries(), ClipRoute, NavKey, homeEntries(), HomeRoute, NavKey (+6 more)
+Cohesion: 0.16
+Nodes (11): EpisodiveNavHost(), Modifier, channelEntries(), ChannelRoute, NavKey, NavKey, libraryEntries(), LibraryRoute (+3 more)
 
 ### Community 87 - "Community 87"
 Cohesion: 0.17
 Nodes (5): EpisodeSyncNotificationHelperTest, Context, NewEpisodeResult, SyncNewEpisodesUseCase, NotificationManager
-
-### Community 89 - "Community 89"
-Cohesion: 0.14
-Nodes (4): Flow, RecentSearchLocalDataSource, Flow, RecentSearchLocalDataSourceImpl
 
 ### Community 90 - "Community 90"
 Cohesion: 0.15
 Nodes (4): toUserData(), toUserPreferences(), UserPreferences, DataStoreMapperTest
 
 ### Community 91 - "Community 91"
-Cohesion: 0.14
-Nodes (4): Flow, Repeat, UserPreferencesKeys, UserPreferencesStore
+Cohesion: 0.10
+Nodes (8): DataStoreModule, Context, DataStore, Preferences, Flow, Repeat, UserPreferencesKeys, UserPreferencesStore
 
 ### Community 92 - "Community 92"
 Cohesion: 0.21
@@ -684,22 +698,22 @@ Nodes (7): LibrarySection, All, Followed, Liked, Preferred, RecentlyListened, Sa
 
 ### Community 94 - "Community 94"
 Cohesion: 0.12
-Nodes (6): FeedRemoteDataSource, FeedRemoteDataSourceImpl, toRecentNewFeedResponse(), toRecentNewFeedResponses(), RecentNewFeedResponse, FeedRemoteDataSourceTest
+Nodes (6): FeedRemoteDataSource, FeedRemoteDataSourceImpl, toRecentFeedResponse(), toRecentFeedResponses(), RecentFeedResponse, FeedRemoteDataSourceTest
 
 ### Community 95 - "Community 95"
-Cohesion: 0.19
+Cohesion: 0.17
 Nodes (3): Flow, Repeat, UserRepositoryImpl
 
 ### Community 98 - "Community 98"
-Cohesion: 0.14
-Nodes (21): EpisodiveScaffold(), FadeTopBarLayout(), FadeTopBarLayoutContent(), FadeTopBarLayoutPreview(), ImageVector, LazyListState, Modifier, PaddingValues (+13 more)
+Cohesion: 0.23
+Nodes (13): EpisodiveScaffold(), FadeTopBarLayout(), FadeTopBarLayoutContent(), FadeTopBarLayoutPreview(), ImageVector, LazyListState, Modifier, PaddingValues (+5 more)
 
 ### Community 99 - "Community 99"
 Cohesion: 0.14
 Nodes (13): FadingEdgeText(), Color, Modifier, TextStyle, FontFamily, FontStyle, FontWeight, TextAlign (+5 more)
 
 ### Community 100 - "Community 100"
-Cohesion: 0.15
+Cohesion: 0.14
 Nodes (3): Flow, Repeat, UserRepository
 
 ### Community 101 - "Community 101"
@@ -719,11 +733,11 @@ Cohesion: 0.18
 Nodes (8): AndroidApplicationComposeConventionPlugin, Plugin, Project, AndroidLibraryComposeConventionPlugin, Plugin, Project, configureAndroidCompose(), CommonExtension
 
 ### Community 108 - "Community 108"
-Cohesion: 0.18
+Cohesion: 0.20
 Nodes (3): Flow, PagingSource, SoundbiteDao
 
 ### Community 109 - "Community 109"
-Cohesion: 0.17
+Cohesion: 0.15
 Nodes (3): Flow, Repeat, UserPreferencesDataSource
 
 ### Community 111 - "Community 111"
@@ -739,8 +753,8 @@ Cohesion: 0.23
 Nodes (7): Bundle, Intent, ListenableFuture, MainActivity, ComponentActivity, ComponentName, MediaController
 
 ### Community 114 - "Community 114"
-Cohesion: 0.19
-Nodes (6): Intent, PendingIntent, MediaNotificationService, ToggleLikedEpisodeUseCase, ImmutableList, MediaSessionService
+Cohesion: 0.26
+Nodes (5): Intent, PendingIntent, MediaNotificationService, ImmutableList, MediaSessionService
 
 ### Community 115 - "Community 115"
 Cohesion: 0.20
@@ -758,8 +772,12 @@ Nodes (11): ButtonColors, EpisodiveButton(), EpisodiveButtonContent(), Episodive
 Cohesion: 0.20
 Nodes (7): ImageModule, Context, ImageLoader, OkHttpClient, ImageCacheInterceptor, Interceptor, Response
 
+### Community 119 - "Community 119"
+Cohesion: 0.19
+Nodes (17): ErrorScreen(), ErrorScreenPreview(), Modifier, GradientColors, CategorySelectionScreen(), CompletionScreen(), CompletionScreenPreview(), Flow (+9 more)
+
 ### Community 120 - "Community 120"
-Cohesion: 0.23
+Cohesion: 0.19
 Nodes (3): DaoModule, EpisodiveDatabase, RoomDatabase
 
 ### Community 121 - "Community 121"
@@ -791,8 +809,8 @@ Cohesion: 0.24
 Nodes (9): Color, Modifier, WaveAnimationIcon(), WaveAnimationIconPreview(), ClipAnimationIconText(), ClipAnimationIconTextPreview(), EpisodiveIconText(), Color (+1 more)
 
 ### Community 130 - "Community 130"
-Cohesion: 0.27
-Nodes (11): ui/Channel.kt, ChannelItem(), ChannelItemPreview(), ChannelSection(), Modifier, HomeRoute(), HomeScreen(), HomeScreenPreview() (+3 more)
+Cohesion: 0.48
+Nodes (6): HomeRoute(), HomeScreen(), HomeScreenPreview(), itemWithDivider(), Modifier, Podcast
 
 ### Community 131 - "Community 131"
 Cohesion: 0.18
@@ -807,8 +825,8 @@ Cohesion: 0.18
 Nodes (7): HidePlayerBottomSheet, Podcast, NavigateToPodcast, PlayerEffect, ShowPlayerBottomSheet, ShowUnsaveSnackbar, SleepTimerExpired
 
 ### Community 137 - "Community 137"
-Cohesion: 0.40
-Nodes (10): LazyListState, Modifier, Podcast, RecentSearchesSection(), RecentSearchItem(), SearchContentsOnCollapse(), SearchResultsOnExpand(), SearchRoute() (+2 more)
+Cohesion: 0.26
+Nodes (13): EpisodiveSearchBar(), EpisodiveSearchBarExpandPreview(), Modifier, LazyListState, Modifier, Podcast, RecentSearchesSection(), RecentSearchItem() (+5 more)
 
 ### Community 138 - "Community 138"
 Cohesion: 0.20
@@ -827,24 +845,24 @@ Cohesion: 0.25
 Nodes (3): EpisodeSyncScheduler, EpisodeSyncSchedulerTest, Context
 
 ### Community 146 - "Community 146"
-Cohesion: 0.16
-Nodes (8): Context, WidgetDispatcher, All, NowPlayingChanged, WidgetUpdateRequest, GlanceWidgetDispatcher, Context, WidgetDispatcherModule
+Cohesion: 0.25
+Nodes (4): Context, WidgetDispatcher, GlanceWidgetDispatcher, WidgetDispatcherModule
 
 ### Community 149 - "Community 149"
 Cohesion: 0.33
-Nodes (9): EpisodiveIconButton(), EpisodiveIconButtonDefaults, EpisodiveIconProgressButton(), EpisodiveIconToggleButton(), IconButtonColors, Modifier, Shape, ControlPanelBottom() (+1 more)
+Nodes (8): EpisodiveIconButton(), EpisodiveIconButtonDefaults, EpisodiveIconProgressButton(), EpisodiveIconToggleButton(), IconButtonColors, Modifier, Shape, IconToggleButtonColors
 
 ### Community 151 - "Community 151"
 Cohesion: 0.50
 Nodes (7): PodcastSnapshot, FeedArea(), FeedCell(), FeedGrid(), FeedStrip(), Bitmap, GlanceModifier
 
 ### Community 153 - "Community 153"
-Cohesion: 0.24
-Nodes (11): ErrorScreen(), ErrorScreenPreview(), Modifier, Flow, Modifier, PagingData, Podcast, PodcastHeader() (+3 more)
+Cohesion: 0.23
+Nodes (13): component/Background.kt, EpisodiveBackground(), EpisodiveGradientBackground(), EpisodiveGradientBackgroundPreview(), Modifier, Flow, Modifier, PagingData (+5 more)
 
 ### Community 154 - "Community 154"
-Cohesion: 0.33
-Nodes (3): toRecentFeedResponse(), toRecentFeedResponses(), RecentFeedResponse
+Cohesion: 0.15
+Nodes (12): ClearQuery, ClickEpisode, ClickFind, ClickPlayingEpisode, ClickPodcast, LibraryAction, QueryChanged, SelectSection (+4 more)
 
 ### Community 155 - "Community 155"
 Cohesion: 0.29
@@ -867,8 +885,8 @@ Cohesion: 0.46
 Nodes (7): PagingSource, loadAsSnapshot(), loadNextPage(), loadPage(), loadPrevPage(), Key, Value
 
 ### Community 165 - "Community 165"
-Cohesion: 0.21
-Nodes (8): EpisodiveWidgetLayout, feedHeightOf(), FeedMode, GRID, NONE, STRIP, forSize(), nowPlayingThumbOf()
+Cohesion: 0.36
+Nodes (7): feedHeightOf(), FeedMode, GRID, NONE, STRIP, forSize(), nowPlayingThumbOf()
 
 ### Community 166 - "Community 166"
 Cohesion: 0.43
@@ -886,9 +904,13 @@ Nodes (4): EpisodiveNavigationState, NavKey, rememberEpisodiveNavigationState(),
 Cohesion: 0.33
 Nodes (3): database/di/DataSourceModule.kt, DataSourceModule, io
 
+### Community 173 - "Community 173"
+Cohesion: 0.14
+Nodes (3): Flow, RecentSearchLocalDataSource, RecentSearchLocalDataSourceTest
+
 ### Community 174 - "Community 174"
-Cohesion: 0.38
-Nodes (4): DataStoreModule, Context, DataStore, Preferences
+Cohesion: 0.17
+Nodes (11): ClearQuery, ClearRecentSearches, ClickCategory, ClickEpisode, ClickPodcast, ClickRecentSearch, ClickSearch, QueryChanged (+3 more)
 
 ### Community 175 - "Community 175"
 Cohesion: 0.38
@@ -930,6 +952,10 @@ Nodes (3): RecentFeed, toRecentFeed(), toRecentFeeds()
 Cohesion: 0.33
 Nodes (4): Repeat, ALL, OFF, ONE
 
+### Community 194 - "Community 194"
+Cohesion: 0.22
+Nodes (5): All, NowPlayingChanged, WidgetUpdater, WidgetUpdateRequest, Context
+
 ### Community 195 - "Community 195"
 Cohesion: 0.33
 Nodes (4): Description, Retrofit, TestWatcher, RetrofitRule
@@ -938,9 +964,17 @@ Nodes (4): Description, Retrofit, TestWatcher, RetrofitRule
 Cohesion: 0.40
 Nodes (3): toRecentNewValueFeedResponse(), toRecentNewValueFeedResponses(), RecentNewValueFeedResponse
 
+### Community 197 - "Community 197"
+Cohesion: 0.36
+Nodes (8): EpisodiveCenterTopAppBar(), EpisodiveCenterTopAppBarPreview(), EpisodiveTopAppBar(), IconButtonColors, ImageVector, Modifier, TopAppBarScrollBehavior, TopAppBarColors
+
 ### Community 198 - "Community 198"
 Cohesion: 0.40
 Nodes (3): toTrendingFeedResponse(), toTrendingFeedResponses(), TrendingFeedResponse
+
+### Community 199 - "Community 199"
+Cohesion: 0.39
+Nodes (7): AnnotatedString, addLinksToAnnotatedString(), filterOverlappingMatches(), findAllMatches(), HtmlTextContainer(), isValidMatch(), Color
 
 ### Community 200 - "Community 200"
 Cohesion: 0.33
@@ -975,8 +1009,8 @@ Cohesion: 0.50
 Nodes (3): HiltConventionPlugin, Plugin, Project
 
 ### Community 209 - "Community 209"
-Cohesion: 0.50
-Nodes (5): Clean Architecture 계층 (UI→Domain→Data→Sources), MVI 패턴 (State/Action/Effect/ViewModel), MVI 패턴 (Copilot 가이드), Clean Architecture 계층 구조 (README), MVI 패턴 (README)
+Cohesion: 0.67
+Nodes (3): MVI 패턴 (Copilot 가이드), Clean Architecture 계층 구조 (README), MVI 패턴 (README)
 
 ### Community 210 - "Community 210"
 Cohesion: 0.40
@@ -987,8 +1021,8 @@ Cohesion: 0.40
 Nodes (4): EpisodivePlayers, Clip, Main, Player
 
 ### Community 214 - "Community 214"
-Cohesion: 0.67
-Nodes (3): channelEntries(), ChannelRoute, NavKey
+Cohesion: 0.33
+Nodes (3): toRecentNewFeedResponse(), toRecentNewFeedResponses(), RecentNewFeedResponse
 
 ### Community 215 - "Community 215"
 Cohesion: 0.60
@@ -1063,16 +1097,28 @@ Cohesion: 0.60
 Nodes (3): gradlew script, die(), warn()
 
 ### Community 239 - "Community 239"
-Cohesion: 0.67
-Nodes (3): EpisodiveSearchBar(), EpisodiveSearchBarExpandPreview(), Modifier
+Cohesion: 0.40
+Nodes (3): TrendingFeed, toTrendingFeed(), toTrendingFeeds()
 
 ### Community 240 - "Community 240"
 Cohesion: 0.50
 Nodes (3): EpisodiveTagDefaults, EpisodiveTopicTag(), Modifier
 
+### Community 241 - "Community 241"
+Cohesion: 0.40
+Nodes (4): EpisodiveChipDefaults, EpisodiveFilterChip(), Modifier, Shape
+
 ### Community 297 - "Community 297"
 Cohesion: 0.67
 Nodes (4): ui/Category.kt, CategoryItem(), CategoryItemPreview(), Modifier
+
+### Community 298 - "Community 298"
+Cohesion: 0.67
+Nodes (3): clipEntries(), ClipRoute, NavKey
+
+### Community 299 - "homeEntries"
+Cohesion: 0.67
+Nodes (3): homeEntries(), HomeRoute, NavKey
 
 ### Community 300 - "Community 300"
 Cohesion: 0.67
@@ -1082,33 +1128,25 @@ Nodes (3): NavKey, searchEntries(), SearchRoute
 Cohesion: 0.50
 Nodes (3): EpisodiveWidgetReceiver, GlanceAppWidget, GlanceAppWidgetReceiver
 
-### Community 303 - "Community 303"
-Cohesion: 0.67
-Nodes (3): EpisodiveInterceptor (SHA-1 인증 헤더), ResponseListWrapper (feeds/items/channels 통합), Podcast Index API
-
-## Ambiguous Edges - Review These
-- `백그라운드 에피소드 동기화 (WorkManager 3시간 주기)` → `CASE3 온보딩 Paging 상태 분리 (#80)`  [AMBIGUOUS]
-  docs/portfolio/PORTFOLIO.md · relation: conceptually_related_to
-
 ## Knowledge Gaps
-- **382 isolated node(s):** `app/build.gradle.kts`, `Player`, `Loading`, `FirstLaunch`, `NotFirstLaunch` (+377 more)
+- **413 isolated node(s):** `기술 스택`, `git worktree 작업 시 필수: local.properties 복사`, `Core 모듈 (11개)`, `Feature 모듈 (8개)`, `컨벤션 플러그인 (build-logic/convention/)` (+408 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **191 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **189 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **What is the exact relationship between `백그라운드 에피소드 동기화 (WorkManager 3시간 주기)` and `CASE3 온보딩 Paging 상태 분리 (#80)`?**
-  _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `Episode` connect `Episode Repository Interface` to `Community 130`, `Flow Combine Utilities`, `Search Feature (MVI)`, `Community 136`, `Community 137`, `Home Feature (MVI)`, `Download DI Module`, `Library Screen Tests`, `Dual Player DI Module`, `Episode Repository Impl`, `Podcast Detail Feature`, `Clip Feature (MVI)`, `Player Repository Impl`, `Community 25`, `Community 26`, `Community 27`, `Community 153`, `Community 30`, `Community 32`, `Community 39`, `Community 46`, `Community 47`, `Community 52`, `Community 313`, `Community 314`, `Community 57`, `Community 316`, `Community 58`, `Community 318`, `Community 63`, `Community 60`, `Community 61`, `Community 62`, `Community 81`, `Community 217`, `Community 218`, `Community 219`, `Community 220`, `Community 221`, `Community 222`, `Community 92`, `Community 249`, `Community 114`, `Community 242`, `Community 243`, `Community 244`, `Community 245`, `Community 247`, `Community 248`, `Community 246`, `Community 250`, `Community 254`?**
-  _High betweenness centrality (0.321) - this node is a cross-community bridge._
-- **Why does `Category` connect `Domain Model & Categories` to `Flow Combine Utilities`, `Search Feature (MVI)`, `Onboarding Feature`, `Enum Type Converters`, `Library Screen Tests`, `Episode Repository Impl`, `Episode Repository Interface`, `Community 297`, `Community 47`, `Community 53`, `Community 56`, `Community 323`, `Community 83`, `Community 91`, `Community 95`, `Community 100`, `Community 228`, `Community 229`, `Community 106`, `Community 236`, `Community 109`, `Community 255`?**
-  _High betweenness centrality (0.109) - this node is a cross-community bridge._
-- **Why does `RepositoryModule` connect `Dual Player DI Module` to `Community 94`, `Community 77`, `Community 78`, `Community 39`?**
-  _High betweenness centrality (0.055) - this node is a cross-community bridge._
-- **What connects `app/build.gradle.kts`, `Player`, `Loading` to the rest of the system?**
-  _392 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `Episode` connect `Episode Repository Interface` to `Community 130`, `Search Feature (MVI)`, `Community 136`, `Community 137`, `Home Feature (MVI)`, `Download DI Module`, `Library Screen Tests`, `Dual Player DI Module`, `Episode Repository Impl`, `Podcast Detail Feature`, `Clip Feature (MVI)`, `Player Repository Impl`, `Community 25`, `Community 26`, `Community 27`, `Community 153`, `Community 30`, `Community 32`, `Community 39`, `Community 46`, `Community 47`, `Community 52`, `Community 313`, `Community 314`, `ToggleLikedEpisodeUseCase`, `Community 316`, `Community 57`, `Community 318`, `Community 63`, `Community 58`, `Community 60`, `Community 61`, `Community 62`, `Community 75`, `Community 81`, `Community 217`, `Community 218`, `Community 219`, `Community 220`, `Community 221`, `Community 222`, `Community 92`, `Community 249`, `Community 114`, `Community 242`, `Community 243`, `Community 244`, `Community 245`, `Community 247`, `Community 248`, `Community 246`, `Community 250`, `Community 254`?**
+  _High betweenness centrality (0.343) - this node is a cross-community bridge._
+- **Why does `Category` connect `Domain Model & Categories` to `Search Feature (MVI)`, `Onboarding Feature`, `Enum Type Converters`, `Library Screen Tests`, `Episode Repository Impl`, `Episode Repository Interface`, `Community 297`, `Community 47`, `Community 53`, `Community 56`, `Community 323`, `Community 75`, `Community 83`, `Community 91`, `Community 95`, `Community 100`, `Community 228`, `Community 229`, `Community 106`, `Community 236`, `Community 109`, `Community 255`?**
+  _High betweenness centrality (0.125) - this node is a cross-community bridge._
+- **Why does `EpisodiveTheme()` connect `Community 84` to `Community 129`, `Community 130`, `Community 135`, `Community 137`, `Library Screen Tests`, `Community 153`, `Community 27`, `Community 28`, `Community 30`, `Community 160`, `Community 32`, `Community 297`, `Community 46`, `Community 47`, `Community 50`, `Community 58`, `Community 60`, `Community 61`, `Community 62`, `Community 63`, `Community 197`, `Community 74`, `Community 215`, `Community 92`, `Community 98`, `Community 111`, `Community 113`, `Community 117`, `Community 119`?**
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **What connects `기술 스택`, `git worktree 작업 시 필수: local.properties 복사`, `Core 모듈 (11개)` to the rest of the system?**
+  _422 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Domain Model & Categories` be split into smaller, more focused modules?**
   _Cohesion score 0.017543859649122806 - nodes in this community are weakly interconnected._
 - **Should `Clip Player DataSource Tests` be split into smaller, more focused modules?**
   _Cohesion score 0.030303030303030304 - nodes in this community are weakly interconnected._
+- **Should `Flow Combine Utilities` be split into smaller, more focused modules?**
+  _Cohesion score 0.06453634085213032 - nodes in this community are weakly interconnected._
