@@ -1,0 +1,33 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v graphify >/dev/null 2>&1; then graphify hook-guard search; else cat >/dev/null; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v graphify >/dev/null 2>&1; then graphify hook-guard read; else cat >/dev/null; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-.}/scripts/graphify-grep-guard.sh\"; [ -f \"$f\" ] || exit 0; sh \"$f\""
+          }
+        ]
+      }
+    ]
+  }
+}
