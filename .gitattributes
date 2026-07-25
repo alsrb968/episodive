@@ -32,16 +32,3 @@
 *.ico binary
 *.jar binary
 *.keystore binary
-
-# graphify 산출물 (graphify가 자동 생성 — 사람이 직접 편집하지 않는다)
-# graph.html이 4.7MB라 GitHub 언어 통계가 이 저장소를 HTML 프로젝트로 표시하는 것을 막는다.
-# linguist-generated는 언어 통계·코드 검색에서 빼고 PR diff를 기본 접힘으로 만든다.
-graphify-out/** linguist-generated=true
-
-# 대용량이라 diff를 만들어도 읽을 수 없다. git 차원에서 diff 생성 자체를 막는다.
-graphify-out/graph.html -diff
-graphify-out/graph.json -diff
-
-# GRAPH_REPORT.md는 예외 — 사람이 읽고 GitHub 코드 검색으로 찾는 문서라
-# 통계·검색·diff에 그대로 남긴다. (뒤에 오는 규칙이 위 graphify-out/** 를 덮는다)
-graphify-out/GRAPH_REPORT.md linguist-generated=false

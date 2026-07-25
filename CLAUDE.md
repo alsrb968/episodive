@@ -311,7 +311,9 @@ Android 관련 작업은 **`android` (Antigravity CLI, `/usr/local/bin/android`)
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+The knowledge graph at graphify-out/ — god nodes, community structure, cross-file relationships — is
+**local-only and not committed**. Generate it once per clone with `graphify update .` (AST-only, no API
+cost); the rules below apply only once it exists. See `## graphify 로컬 셋업`.
 
 Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
@@ -326,14 +328,18 @@ Rules:
 - 조회 결과가 불충분하거나 최신 변경이 의심될 때만 Read/Grep으로 fallback한다.
 - 구조적 변경 시 커밋 전 `/graphify --update`를 실행한다.
 
-## graphify 팀 셋업
+## graphify 로컬 셋업
+
+**graphify 산출물(`graphify-out/`)은 커밋하지 않는다.** 28MB짜리 자동 생성물(그중 `graph.html`이
+4.7MB)이라 PR diff를 덮고 브랜치마다 충돌한다. `.gitignore` 대상이며 **각자 로컬에서 생성**한다.
 
 **Claude PreToolUse 가드는 `.claude/settings.json`에 커밋되어 있다.** clone하면 그대로 적용되므로
-설정할 것이 없다. 반면 **git 훅은 `.git/hooks`에 있어 버전 관리가 안 되므로** 각 기여자가
-**clone 후 한 번** 직접 설치해야 한다.
+설정할 것이 없다. 반면 **그래프와 git 훅은 로컬 자산**이므로(훅은 `.git/hooks`에 있어 버전 관리가 안 된다)
+각 기여자가 **clone 후 한 번** 직접 만든다.
 
 ```bash
-graphify install                # graphify 0.9.12 (버전 고정 — 다르면 그래프 diff 노이즈 발생)
+graphify install                # graphify 0.9.12 (버전 고정 — 아래 Grep 가드가 이 버전 동작에 기댄다)
+graphify update .               # 그래프 최초 생성 (AST-only, API 비용 없음). 이후 갱신도 같은 명령
 graphify hook install           # post-commit·post-checkout 훅 설치
 rm -f .git/hooks/post-checkout  # post-checkout 훅은 제거한다 (아래 참고)
 ```
@@ -342,7 +348,8 @@ rm -f .git/hooks/post-checkout  # post-checkout 훅은 제거한다 (아래 참�
 덮어써서, 커밋된 설정의 두 가지 보완(머신 독립 경로, 아래 Grep 가드)을 날려버린다. 이미 실행했다면
 `git checkout -- .claude/settings.json`으로 되돌린다.
 
-graphify가 PATH에 없어도 훅은 조용히 통과하므로, graphify를 설치하지 않은 기여자도 작업에 지장이 없다.
+graphify가 PATH에 없어도 훅은 조용히 통과하고, 가드는 `graphify-out/graph.json`이 없으면 발화하지
+않는다. graphify를 설치하지 않은 기여자도 작업에 지장이 없다.
 
 ### PreToolUse 가드 구성
 
@@ -359,7 +366,7 @@ graphify가 PATH에 없어도 훅은 조용히 통과하므로, graphify를 설�
 
 ### 동작 규칙
 
-- post-commit 훅은 커밋 **후** `git diff HEAD~1`로 바뀐 **코드** 파일만 감지해 그래프를 재생성한다. 따라서 커밋 직후 `graphify-out/`가 dirty로 남으면 **별도 커밋**한다(훅은 자동 커밋하지 않으며, 그대로 둔다).
+- post-commit 훅은 커밋 **후** `git diff HEAD~1`로 바뀐 **코드** 파일만 감지해 그래프를 재생성한다. 산출물이 무시 대상이라 재생성돼도 작업 트리는 깨끗하게 유지된다 — 별도 커밋할 것이 없다.
 - 문서/이미지만 변경한 경우 훅이 무시하므로 그때만 `graphify update .`(또는 `/graphify --update`)를 수동 실행한다.
-- **post-checkout 훅은 제거한다.** `graphify hook install`이 함께 설치하지만, 이 훅은 브랜치 전환마다 **전체 재빌드**를 돌리고 `GRAPHIFY_SKIP_HOOK`을 무시하며 shrink-guard와 맞물려 그래프 노드를 누적시켜 `graphify-out/`를 계속 dirty하게 만든다. post-commit 훅만으로 충분하다. (그래프가 누적으로 부풀면 `graphify update . --force`로 리셋 가능.)
-- `graphify-out/`은 `.gitattributes`에서 `linguist-generated=true`로 표시되어 GitHub 언어 통계·코드 검색에서 빠진다(4.7MB짜리 `graph.html` 때문에 HTML 프로젝트로 표시되던 문제). 단 `GRAPH_REPORT.md`는 사람이 읽는 문서라 예외로 남겨 두었다.
+- **post-checkout 훅은 제거한다.** `graphify hook install`이 함께 설치하지만, 이 훅은 브랜치 전환마다 **전체 재빌드**를 돌리고 `GRAPHIFY_SKIP_HOOK`을 무시한다. post-commit 훅만으로 충분하다. (그래프가 누적으로 부풀면 `graphify update . --force`로 리셋 가능.)
+- 그래프는 로컬 전용이므로 브랜치를 오가면 현재 체크아웃과 어긋날 수 있다. 조회 결과가 최신 코드와 다르면 `graphify update .`로 갱신한 뒤 다시 조회한다.
