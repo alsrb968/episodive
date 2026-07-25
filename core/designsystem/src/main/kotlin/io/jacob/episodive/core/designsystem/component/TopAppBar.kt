@@ -43,6 +43,7 @@ fun EpisodiveTopAppBar(
         titleContentColor = MaterialTheme.colorScheme.onSurface,
         actionIconContentColor = MaterialTheme.colorScheme.onSurface,
     ),
+    navigationIconScrim: Color = EpisodiveTopAppBarDefaults.navigationIconScrim(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
@@ -62,7 +63,7 @@ fun EpisodiveTopAppBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.32f)),
+                    .background(navigationIconScrim),
             ) {
                 Icon(
                     imageVector = navigationIcon,
@@ -106,6 +107,7 @@ fun EpisodiveCenterTopAppBar(
         actionIconContentColor = MaterialTheme.colorScheme.onSurface,
     ),
     iconButtonColors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+    navigationIconScrim: Color = EpisodiveTopAppBarDefaults.navigationIconScrim(),
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     onNavigationClick: () -> Unit = {},
@@ -130,7 +132,7 @@ fun EpisodiveCenterTopAppBar(
                     .padding(start = 12.dp)
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.32f)),
+                    .background(navigationIconScrim),
             ) {
                 Icon(
                     imageVector = navigationIcon,
@@ -188,4 +190,16 @@ private fun EpisodiveCenterTopAppBarPreview() {
             actionIconContentDescription = "Action icon",
         )
     }
+}
+
+object EpisodiveTopAppBarDefaults {
+    /**
+     * 배경이 비치는 탑바에서 네비게이션 아이콘 뒤에 까는 원.
+     *
+     * 검정 고정이면 라이트 테마에서 어두운 아이콘과 겹쳐 구분되지 않는다. 표면색을 쓰면
+     * 다크에서는 어두운 원 + 밝은 아이콘, 라이트에서는 밝은 원 + 어두운 아이콘이 된다.
+     */
+    @Composable
+    fun navigationIconScrim(): Color =
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.32f)
 }

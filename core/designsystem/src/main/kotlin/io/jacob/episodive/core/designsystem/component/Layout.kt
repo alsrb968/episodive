@@ -252,11 +252,16 @@ private fun FadeTopBarLayoutContent(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (showTopBar) 1f else 0f)
             ),
             iconButtonColors = IconButtonDefaults.iconButtonColors(
-                // 버튼 자체가 이미 검정 32% 원을 깔고 있다(원본 줄 322). 여기서 밝은
-                // onSurface 를 덧칠하면 어두운 원이 뿌연 회색으로 뜬다. 스크롤로 탑바가
-                // 채워지면 원이 필요 없으므로 그때만 투명하게 둔다.
+                // 버튼 뒤 원은 EpisodiveCenterTopAppBar 가 navigationIconScrim 으로 그린다.
+                // 여기서 또 칠하면 두 겹이 된다.
                 containerColor = Color.Transparent,
             ),
+            // 스크롤로 탑바가 채워지면 뒤에 비칠 배경이 없으므로 원도 지운다.
+            navigationIconScrim = if (showTopBar) {
+                Color.Transparent
+            } else {
+                EpisodiveTopAppBarDefaults.navigationIconScrim()
+            },
             title = {
                 AnimatedVisibility(
                     visible = showTopBar,

@@ -62,6 +62,7 @@ fun EpisodiveGradientBackground(
     content: @Composable () -> Unit,
 ) {
     val currentTopColor by rememberUpdatedState(gradientColors.top)
+    val currentBottomColor by rememberUpdatedState(gradientColors.bottom)
     Box(
         modifier = modifier
             .background(
@@ -69,19 +70,33 @@ fun EpisodiveGradientBackground(
             )
             .drawWithCache {
                 // v2: 화면 상단만 물들이고 82% 지점부터 투명하게 사라진다.
-                val topGradient = Brush.verticalGradient(
-                    0f to if (currentTopColor == Color.Unspecified) {
-                        Color.Transparent
-                    } else {
-                        currentTopColor
-                    },
-                    0.82f to Color.Transparent,
-                    startY = 0f,
-                    endY = size.height,
-                )
+                val topGradient = if (currentTopColor == Color.Unspecified) {
+                    null
+                } else {
+                    Brush.verticalGradient(
+                        0f to currentTopColor,
+                        0.82f to Color.Transparent,
+                        startY = 0f,
+                        endY = size.height,
+                    )
+                }
+
+                // 아래에서 올라오는 스크림. 온보딩 하단 CTA 가 이것만 넘기므로 빼면
+                // 버튼·인디케이터 뒤로 목록이 그대로 비친다.
+                val bottomGradient = if (currentBottomColor == Color.Unspecified) {
+                    null
+                } else {
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        1f to currentBottomColor,
+                        startY = 0f,
+                        endY = size.height,
+                    )
+                }
 
                 onDrawBehind {
-                    drawRect(topGradient)
+                    topGradient?.let { drawRect(it) }
+                    bottomGradient?.let { drawRect(it) }
                 }
             },
     ) {

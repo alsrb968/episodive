@@ -44,6 +44,7 @@ import io.jacob.episodive.core.designsystem.component.FadingEdgeText
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
+import io.jacob.episodive.core.designsystem.theme.surfaceContainerHighDark
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -55,6 +56,12 @@ import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.ui.R as uiR
 import kotlin.time.Duration.Companion.seconds
+
+/**
+ * 미니플레이어 틴트의 바탕이 되는 표면색. 전경(제목·부제·좋아요·진행바 트랙)이 전부
+ * 흰색이라 라이트/다크 어느 테마에서도 어두워야 한다 — 다크 스킴 값으로 고정한다.
+ */
+private val PlayerBarTintSurface = surfaceContainerHighDark
 
 /** 커버 추출색을 미니플레이어 표면색 쪽으로 섞는 비율 (0 = 추출색 그대로). */
 private const val PlayerBarTintStartBlend = 0.45f
@@ -173,11 +180,14 @@ internal fun PlayerBarContent(
     onPlayOrPause: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
-    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    // 미니플레이어는 콘텐츠 위에 떠 있는 어두운 틴트 칩이고 전경이 전부 흰색이다.
+    // 블렌드 대상을 테마 표면색으로 두면 라이트 테마에서 배경이 근백색이 되어 글자가
+    // 사라지므로, 테마와 무관한 다크 표면색으로 고정한다.
+    val surfaceColor = PlayerBarTintSurface
 
     // 미니플레이어 배경은 지금 재생 중인 커버에서 뽑은 색으로 흐른다. 팔레트가 준비되기
-    // 전에는 카드 표면색을 써서 색이 튀지 않게 한다. 추출색을 그대로 깔지 않고 카드
-    // 표면색 쪽으로 눌러 쓰는 이유는, 밝은 커버에서 뽑힌 색 위에서는 흰 제목이 묻히기 때문이다.
+    // 전에는 그 표면색을 써서 색이 튀지 않게 한다. 추출색을 그대로 깔지 않고 표면색 쪽으로
+    // 눌러 쓰는 이유는, 밝은 커버에서 뽑힌 색 위에서는 흰 제목이 묻히기 때문이다.
     var dominantColor by remember { mutableStateOf(surfaceColor) }
     val barGradient = remember(dominantColor, surfaceColor) {
         Brush.linearGradient(

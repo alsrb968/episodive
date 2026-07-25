@@ -244,28 +244,6 @@ internal fun OnboardingScreen(
                         }
                     }
 
-                    if (isWelcomePage) {
-                        Spacer(modifier = Modifier.height(18.dp))
-
-                        val loginPrefix = stringResource(R.string.feature_onboarding_welcome_login_prefix)
-                        val loginAction = stringResource(R.string.feature_onboarding_welcome_login_action)
-                        Text(
-                            text = buildAnnotatedString {
-                                append(loginPrefix)
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.SemiBold,
-                                    ),
-                                ) {
-                                    append(loginAction)
-                                }
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
                 }
             }
         }

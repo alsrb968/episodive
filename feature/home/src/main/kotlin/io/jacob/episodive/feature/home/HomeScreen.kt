@@ -70,6 +70,7 @@ import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.channelTestDataList
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.liveEpisodeTestDataList
@@ -441,7 +442,8 @@ private fun HomeContinueListeningHero(
     onClick: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
-    val remainMinutes = episode.remain?.inWholeMinutes
+    val remain = episode.remain
+    val leftLabel = stringResource(uiR.string.core_ui_left)
 
     // 카드 배경은 이 에피소드 커버에서 뽑은 색으로 흐른다. 팔레트가 준비되기 전에는
     // 기존 브랜드 그라디언트를 그대로 쓴다.
@@ -522,7 +524,9 @@ private fun HomeContinueListeningHero(
                 )
 
                 Text(
-                    text = if (remainMinutes != null) "${remainMinutes}분 남음" else "",
+                    // 목록 행과 같은 표기를 쓴다. 분 단위로 직접 만들면 로케일이 안 붙고
+                    // 1분 미만이 "0분 남음"이 된다.
+                    text = remain?.let { "${it.toHumanReadable()} $leftLabel" }.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.7f),
                     maxLines = 1,

@@ -450,7 +450,7 @@ private fun RecentSearchesSection(
             )
 
             Text(
-                text = SearchClearAllLabel,
+                text = stringResource(R.string.feature_search_clear_recent_searches),
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
                 // v1 은 아이콘 버튼이라 contentDescription 이 있었다. 텍스트 링크로 바뀌면서
@@ -583,8 +583,6 @@ private fun RecentSearchItem(
 /** 접힌 검색 화면에서 히스토리 칩이 흐를 수 있는 최대 줄 수. */
 private const val RecentSearchChipMaxLines = 5
 
-// 검색 히스토리 "전체 삭제" 라벨 — 결과 화면 전용 문구라 별도 string 리소스 없이 로컬로 둔다.
-private const val SearchClearAllLabel = "전체 삭제"
 private const val SearchClearAllContentDescription = "Clear recent searches"
 
 // 에피소드 히스토리 커버 반경(9dp) — 팟캐스트(12dp=MaterialTheme.shapes.small)와 달리 토큰에 없는 값.

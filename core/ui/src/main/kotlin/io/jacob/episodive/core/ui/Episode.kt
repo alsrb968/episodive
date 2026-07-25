@@ -82,8 +82,15 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-/** 재생 중인 에피소드 행의 강조 배경 (원본 줄 436) — 토큰에 없는 일회성 값. */
-private val PlayingRowBackground = Color(0xFF2C2320)
+/**
+ * 재생 중인 에피소드 행의 강조 배경 (원본 줄 436의 #2C2320).
+ *
+ * 행의 제목·부제는 테마 색(onSurface/onSurfaceVariant)이라 배경만 다크 값으로 고정하면
+ * 라이트 테마에서 검은 배경 위 검은 글씨가 된다. 다크 스킴에서 #24201D 로 원본과 거의
+ * 같은 토큰을 쓰고, 라이트에서는 그 테마의 밝은 표면색이 오게 한다.
+ */
+private val PlayingRowBackground: Color
+    @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
 
 /** 재생 중 행의 강조 배경이 행 바깥으로 번지는 폭과 모서리 반경. */
 private val PlayingRowBleed = 8.dp
