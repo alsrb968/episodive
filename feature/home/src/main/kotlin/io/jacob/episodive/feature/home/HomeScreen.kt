@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -31,8 +30,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -61,9 +58,7 @@ import androidx.compose.ui.unit.em
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveDragHandle
-import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.StateImage
-import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveHeroGradientEnd
@@ -341,9 +336,6 @@ fun LazyListScope.itemWithDivider(
     }
 }
 
-// 인사말은 별도 문구 리소스가 없어 이 파일에서만 쓰는 짧은 안내 문구로 둔다.
-private const val HomeGreeting = "오늘도 좋은 하루 되세요"
-
 /** 이어듣기 캐러셀이 바텀시트 밖으로 내밀 수 있는 최대 높이. */
 private val HomeHeroMaxPeekHeight = 240.dp
 
@@ -357,7 +349,7 @@ private val HomeHeroSheetGap = 6.dp
  * 이어듣기 카드가 차지하는 화면 폭 비율. 1 보다 작게 두어 다음 카드가 오른쪽에 살짝
  * 걸치게 하고, 그것으로 옆으로 넘길 수 있다는 신호를 준다.
  */
-private const val HomeHeroWidthFraction = 0.88f
+private const val HomeHeroWidthFraction = 0.78f
 
 /** 커버 팔레트가 준비되기 전 쓰는 이어듣기 카드 그라디언트 양 끝. */
 private val HomeHeroFallbackStart = EpisodiveHeroGradientStart
@@ -370,13 +362,10 @@ private val HomeHeroFallbackEnd = EpisodiveHeroGradientEnd
 private const val HomeHeroGradientStartBlend = 0.2f
 private const val HomeHeroGradientEndBlend = 0.6f
 
-/**
- * 재생 버튼 뒤에 까는 광채. 카드 안쪽 여백 18 + 버튼 반지름 22 = 모서리에서 40dp 가
- * 버튼 중심이므로, 우하단 정렬한 원(지름 120)을 20dp 씩 밀어 그 중심에 맞춘다.
- */
-private val HomeHeroGlowSize = 120.dp
-private val HomeHeroGlowOffset = 20.dp
-private const val HomeHeroGlowAlpha = 0.35f
+/** 이어듣기 카드 안쪽 여백과 커버 크기. */
+private val HomeHeroPadding = 14.dp
+private const val HomeHeroCoverSizeDp = 60
+private val HomeHeroCoverSize = HomeHeroCoverSizeDp.dp
 
 @Composable
 private fun HomeHeader(
@@ -398,14 +387,6 @@ private fun HomeHeader(
                 bottom = 8.dp,
             ),
     ) {
-        Text(
-            text = HomeGreeting,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
         Text(
             text = title,
             style = MaterialTheme.typography.headlineLarge,
@@ -448,7 +429,6 @@ private fun HomeContinueListeningRow(
                 modifier = Modifier.fillParentMaxWidth(HomeHeroWidthFraction),
                 episode = episode,
                 onClick = { onEpisodeClick(episode) },
-                onPlayClick = { onEpisodeClick(episode) },
             )
         }
     }
@@ -459,7 +439,6 @@ private fun HomeContinueListeningHero(
     modifier: Modifier = Modifier,
     episode: Episode,
     onClick: () -> Unit,
-    onPlayClick: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
     val remainMinutes = episode.remain?.inWholeMinutes
@@ -483,32 +462,14 @@ private fun HomeContinueListeningHero(
             .clip(MaterialTheme.shapes.extraLarge)
             .background(heroGradient)
             .clickable(onClick = onClick)
-            .padding(18.dp),
+            .padding(HomeHeroPadding),
     ) {
-        // 재생 버튼에서 번지는 광채. 카드 모서리에 따로 떠 있으면 무엇의 빛인지 알 수 없어
-        // 버튼 중심에 맞춰 그 뒤에 깐다. 카드가 clip 되므로 넘치는 부분은 잘린다.
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .offset(x = HomeHeroGlowOffset, y = HomeHeroGlowOffset)
-                .size(HomeHeroGlowSize)
-                .background(
-                    brush = Brush.radialGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = HomeHeroGlowAlpha),
-                            Color.Transparent,
-                        )
-                    ),
-                    shape = CircleShape,
-                )
-        )
-
         Column {
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StateImage(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(EpisodiveShapes.coverForSize(72)),
+                        .size(HomeHeroCoverSize)
+                        .clip(EpisodiveShapes.coverForSize(HomeHeroCoverSizeDp)),
                     imageUrl = episode.image.ifEmpty { episode.feedImage },
                     contentDescription = episode.title,
                     // 카드 그라디언트를 이 커버 색으로 물들이기 위해 위로 올린다.
@@ -538,50 +499,33 @@ private fun HomeContinueListeningHero(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
+            // 남은 시간은 진행바 아래가 아니라 재생 버튼이 있던 오른쪽 끝에 둔다.
+            // 한 줄로 합치면서 카드 높이도 그만큼 줄어든다.
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(dimension.progressThickness)
-                            .clip(CircleShape),
-                        progress = { episode.progress },
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = Color.White.copy(alpha = 0.16f),
-                        // M3 기본 gapSize 4dp 를 끄지 않으면 채움과 트랙 사이가 끊겨 보인다.
-                        // 원본은 끊김 없는 한 줄이다 (원본 줄 185).
-                        gapSize = (-4).dp,
-                        drawStopIndicator = {},
-                    )
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(dimension.progressThickness)
+                        .clip(CircleShape),
+                    progress = { episode.progress },
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = Color.White.copy(alpha = 0.16f),
+                    // M3 기본 gapSize 4dp 를 끄지 않으면 채움과 트랙 사이가 끊겨 보인다.
+                    // 원본은 끊김 없는 한 줄이다 (원본 줄 185).
+                    gapSize = (-4).dp,
+                    drawStopIndicator = {},
+                )
 
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = if (remainMinutes != null) "${remainMinutes}분 남음" else "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f),
-                    )
-                }
-
-                EpisodiveIconButton(
-                    onClick = onPlayClick,
-                    modifier = Modifier.size(44.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                    icon = {
-                        Icon(
-                            imageVector = EpisodiveIcons.Play,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
+                Text(
+                    text = if (remainMinutes != null) "${remainMinutes}분 남음" else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.7f),
+                    maxLines = 1,
                 )
             }
         }
