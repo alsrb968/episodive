@@ -19,3 +19,5 @@ local.properties
 .claude/settings.local.json
 .claude/worktrees/
 .omc/
+# graphify 산출물 — 로컬 전용. clone 후 `graphify update .`로 각자 생성한다.
+graphify-out/
