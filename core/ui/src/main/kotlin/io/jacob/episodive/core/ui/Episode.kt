@@ -1,5 +1,11 @@
 package io.jacob.episodive.core.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapPosition
@@ -35,11 +41,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,7 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
 import androidx.paging.compose.LazyPagingItems
 import io.jacob.episodive.core.designsystem.component.ClipAnimationIconText
-import io.jacob.episodive.core.designsystem.component.EpisodiveIconProgressButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.SectionHeader
@@ -71,18 +85,58 @@ import kotlin.time.Instant
 /** 재생 중인 에피소드 행의 강조 배경 (원본 줄 436) — 토큰에 없는 일회성 값. */
 private val PlayingRowBackground = Color(0xFF2C2320)
 
-/**
- * 에피소드 행 재생 버튼. 원 지름은 [EpisodePlayButtonSize] 로 두 상태가 같고, 재생 중일 때
- * 두르는 진행률 링까지 담을 [EpisodePlaySlotSize] 를 상태와 무관하게 항상 확보한다.
- * 이 자리를 상태에 따라 바꾸면 재생 중인 행만 높이가 달라진다.
- */
-private val EpisodePlayButtonSize = 34.dp
-private val EpisodePlaySlotSize = 40.dp
-private val EpisodePlayIconSize = 15.dp
-
 /** 재생 중 행의 강조 배경이 행 바깥으로 번지는 폭과 모서리 반경. */
 private val PlayingRowBleed = 8.dp
 private val PlayingRowCornerRadius = 12.dp
+
+/** 강조 배경 테두리를 도는 프로그레스 — 획 두께, 둘레에서 차지하는 길이, 한 바퀴 시간. */
+private val PlayingRowIndicatorWidth = 2.dp
+private const val PlayingRowIndicatorSweep = 0.22f
+private const val PlayingRowIndicatorDurationMs = 1600
+
+/**
+ * 강조 배경 테두리를 한 방향으로 계속 도는 무한 프로그레스.
+ *
+ * 청취 진행률이 아니라 "이 항목이 지금 돌고 있다"는 표시라 [phase] 는 항상 0→1 을 반복한다.
+ * 경로와 측정기는 크기가 바뀔 때만 다시 만들고, 매 프레임에는 잘라낼 구간만 계산한다.
+ */
+private fun Modifier.playingRowIndicator(
+    phase: State<Float>,
+    color: Color,
+): Modifier = drawWithCache {
+    val stroke = Stroke(width = PlayingRowIndicatorWidth.toPx(), cap = StrokeCap.Round)
+    val inset = stroke.width / 2f
+    val radius = (PlayingRowCornerRadius.toPx() - inset).coerceAtLeast(0f)
+
+    val outline = Path().apply {
+        addRoundRect(
+            RoundRect(
+                rect = Rect(inset, inset, size.width - inset, size.height - inset),
+                cornerRadius = CornerRadius(radius),
+            )
+        )
+    }
+    val measure = PathMeasure().apply { setPath(outline, forceClosed = true) }
+    val total = measure.length
+    val segment = Path()
+
+    onDrawWithContent {
+        drawContent()
+        if (total <= 0f) return@onDrawWithContent
+
+        val start = phase.value * total
+        val end = start + total * PlayingRowIndicatorSweep
+
+        segment.reset()
+        measure.getSegment(start, minOf(end, total), segment, startWithMoveTo = true)
+        // 끝점이 한 바퀴를 넘어가면 남은 만큼을 시작 지점에서 이어 붙인다.
+        if (end > total) {
+            measure.getSegment(0f, end - total, segment, startWithMoveTo = true)
+        }
+
+        drawPath(path = segment, color = color, style = stroke)
+    }
+}
 
 /**
  * 레이아웃 크기는 그대로 두고, 노드 자체만 사방 [bleed] 만큼 넓혀 그 자리에 배경·리플이
@@ -170,8 +224,6 @@ fun LazyListScope.episodeItems(
 fun EpisodeItem(
     modifier: Modifier = Modifier,
     episode: Episode,
-    // 재생 중인 항목의 링에 쓰는 진행률. 기본값은 에피소드가 들고 있는 청취 진행률이다.
-    progress: Float = episode.progress,
     // 지금 재생 중인지. 기본값은 앱이 제공하는 현재 재생 에피소드와 비교해 스스로 판단하므로
     // 호출부가 따로 넘기지 않아도 목록 어디서든 재생 중인 한 항목만 강조된다.
     isPlaying: Boolean = episode.id == LocalNowPlayingEpisodeId.current,
@@ -180,6 +232,26 @@ fun EpisodeItem(
     onToggleSaved: () -> Unit = {},
 ) {
     val dimension = LocalDimensionTheme.current
+    val indicatorColor = MaterialTheme.colorScheme.primary
+
+    // 재생 중 표시는 강조 배경 테두리를 도는 무한 프로그레스다. 청취 진행률이 아니라
+    // "지금 이 항목이 돌고 있다"만 나타내므로 한 바퀴를 일정한 속도로 계속 돈다.
+    val indicatorPhase = if (isPlaying) {
+        rememberInfiniteTransition(label = "playingRow").animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = PlayingRowIndicatorDurationMs,
+                    easing = LinearEasing,
+                ),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "playingRowIndicator",
+        )
+    } else {
+        null
+    }
 
     Row(
         modifier = modifier
@@ -188,6 +260,14 @@ fun EpisodeItem(
             // 레이아웃 크기는 그대로라 재생 중인 행만 폭·높이가 달라지지 않고, 리플이
             // 눌린 영역도 강조 배경과 정확히 같은 모양이 된다.
             .bleedingRowSurface(PlayingRowBleed)
+            .then(
+                // clip 바깥에 둬야 테두리 획이 절반으로 잘리지 않는다.
+                if (indicatorPhase != null) {
+                    Modifier.playingRowIndicator(indicatorPhase, indicatorColor)
+                } else {
+                    Modifier
+                }
+            )
             .clip(RoundedCornerShape(PlayingRowCornerRadius))
             .then(
                 // 강조 배경은 현재 재생 항목에만 (원본 줄 436).
@@ -233,82 +313,35 @@ fun EpisodeItem(
             )
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // 링이 들어갈 자리는 두 상태 모두 같게 잡아 행 높이가 흔들리지 않게 한다.
-            Box(
-                modifier = Modifier.size(EpisodePlaySlotSize),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (isPlaying) {
-                    // 재생 중인 항목만 브랜드 레드로 채우고 청취 진행률을 원형 링으로 두른다.
-                    EpisodiveIconProgressButton(
-                        onClick = onClick,
-                        size = EpisodePlaySlotSize,
-                        progress = progress,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.primary,
-                        ),
-                        icon = {
-                            Icon(
-                                modifier = Modifier.fillMaxSize(),
-                                imageVector = EpisodiveIcons.Play,
-                                contentDescription = "Playing",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        },
-                    )
-                } else {
-                    // 대기 상태는 중립 표면 위 재생 아이콘 — 레드는 재생 중 표시로만 남긴다.
-                    Box(
-                        modifier = Modifier
-                            .size(EpisodePlayButtonSize)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .clickable { onClick() },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(EpisodePlayIconSize),
-                            imageVector = EpisodiveIcons.Play,
-                            contentDescription = "Play",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+        // 재생 버튼은 두지 않는다 — 행 전체가 이미 재생 동작이고, 재생 중인 항목은
+        // 강조 배경 테두리를 도는 프로그레스로 구분된다.
+        EpisodiveIconToggleButton(
+            modifier = Modifier.size(19.dp),
+            checked = episode.isLiked,
+            onCheckedChange = { onToggleLiked() },
+            colors = IconButtonDefaults.iconToggleButtonColors(
+                checkedContainerColor = Color.Transparent,
+                checkedContentColor = MaterialTheme.colorScheme.primary,
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            icon = {
+                Icon(
+                    modifier = Modifier.size(19.dp),
+                    imageVector = EpisodiveIcons.Like,
+                    contentDescription = "Like",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            checkedIcon = {
+                Icon(
+                    modifier = Modifier.size(19.dp),
+                    imageVector = EpisodiveIcons.LikeFilled,
+                    contentDescription = "Unlike",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
-
-            EpisodiveIconToggleButton(
-                modifier = Modifier.size(19.dp),
-                checked = episode.isLiked,
-                onCheckedChange = { onToggleLiked() },
-                colors = IconButtonDefaults.iconToggleButtonColors(
-                    checkedContainerColor = Color.Transparent,
-                    checkedContentColor = MaterialTheme.colorScheme.primary,
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                icon = {
-                    Icon(
-                        modifier = Modifier.size(19.dp),
-                        imageVector = EpisodiveIcons.Like,
-                        contentDescription = "Like",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                checkedIcon = {
-                    Icon(
-                        modifier = Modifier.size(19.dp),
-                        imageVector = EpisodiveIcons.LikeFilled,
-                        contentDescription = "Unlike",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            )
-        }
+        )
     }
 }
 
