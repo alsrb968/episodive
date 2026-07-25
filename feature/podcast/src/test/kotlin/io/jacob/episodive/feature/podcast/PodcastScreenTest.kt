@@ -54,6 +54,15 @@ class PodcastScreenTest {
         }
     }
 
+    /**
+     * 팔로우 버튼은 220dp 커버 + 설명 아래에 있어 기본 테스트 창에서는 화면 밖이다.
+     * 검증·클릭 전에 먼저 그 자리까지 스크롤한다.
+     */
+    private fun scrollToFollowButton(label: String) {
+        composeTestRule.onNode(hasScrollAction())
+            .performScrollToNode(hasText(label))
+    }
+
     // --- Display tests ---
 
     @Test
@@ -70,6 +79,7 @@ class PodcastScreenTest {
     fun followButtonIsDisplayed() {
         setPodcastScreen()
 
+        scrollToFollowButton("Follow")
         composeTestRule.onNodeWithText("Follow").assertIsDisplayed()
     }
 
@@ -97,6 +107,7 @@ class PodcastScreenTest {
         )
         setPodcastScreen(podcast = followedPodcast)
 
+        scrollToFollowButton("Unfollow")
         composeTestRule.onNodeWithText("Unfollow").assertIsDisplayed()
     }
 
@@ -143,6 +154,7 @@ class PodcastScreenTest {
         var called = false
         setPodcastScreen(onFollowClick = { called = true })
 
+        scrollToFollowButton("Follow")
         composeTestRule.onNodeWithText("Follow").performClick()
         assert(called)
     }
@@ -167,6 +179,7 @@ class PodcastScreenTest {
             onFollowClick = { called = true },
         )
 
+        scrollToFollowButton("Unfollow")
         composeTestRule.onNodeWithText("Unfollow").performClick()
         assert(called)
     }
@@ -210,6 +223,7 @@ class PodcastScreenTest {
         val unfollowedPodcast = podcastTestData.copy(followedAt = null)
         setPodcastScreen(podcast = unfollowedPodcast)
 
+        scrollToFollowButton("Follow")
         composeTestRule.onNodeWithText("Follow").assertIsDisplayed()
     }
 }

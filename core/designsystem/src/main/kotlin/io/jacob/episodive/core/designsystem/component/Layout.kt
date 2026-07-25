@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.text.TextStyle
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 
 @Composable
@@ -66,7 +68,9 @@ fun EpisodiveScaffold(
                     title = {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.headlineMedium,
+                            // 화면 제목은 34/800/-.03em (원본 줄 232, 485). headlineMedium(28)은
+                            // 한 단계 작아서 v2 의 오버사이즈 타이포 대비가 죽는다.
+                            style = MaterialTheme.typography.displaySmall,
                         )
                     },
                     navigationIcon = navigationIcon,
@@ -81,6 +85,7 @@ fun EpisodiveScaffold(
                 subTitle()
             }
         },
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets
             .exclude(WindowInsets.navigationBars)
     ) { paddingValues ->
@@ -95,13 +100,15 @@ fun EpisodiveScaffold(
 fun SectionHeader(
     modifier: Modifier = Modifier,
     title: String,
-    titleStyle: TextStyle = MaterialTheme.typography.headlineSmall,
+    titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
     actionIcon: ImageVector? = null,
     actionIconContentDescription: String? = null,
     onActionClick: () -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -109,7 +116,7 @@ fun SectionHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = dimension.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -126,19 +133,19 @@ fun SectionHeader(
                 ) {
                     Icon(
                         imageVector = actionIcon,
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         contentDescription = actionIconContentDescription
                     )
                 }
             }
         }
 
+        Spacer(modifier = Modifier.height(14.dp))
+
         Column(
             modifier = Modifier.padding(contentPadding)
         ) {
             content()
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -155,11 +162,14 @@ fun SubSectionHeader(
             .fillMaxWidth()
     ) {
         Text(
+            // 대제목(SectionHeader)은 좌우 20dp 다. 여기만 사방 16dp 면 같은 화면에서
+            // 두 헤더의 좌측 선이 4dp 어긋나고, 디자인에 없는 상하 여백까지 붙는다.
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = LocalDimensionTheme.current.screenPadding),
             text = title,
-            style = MaterialTheme.typography.titleSmall,
+            // 원본 소제목은 14~15/700 (원본 줄 235·266).
+            style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
@@ -242,7 +252,10 @@ private fun FadeTopBarLayoutContent(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (showTopBar) 1f else 0f)
             ),
             iconButtonColors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (showTopBar) 0f else .3f)
+                // 버튼 자체가 이미 검정 32% 원을 깔고 있다(원본 줄 322). 여기서 밝은
+                // onSurface 를 덧칠하면 어두운 원이 뿌연 회색으로 뜬다. 스크롤로 탑바가
+                // 채워지면 원이 필요 없으므로 그때만 투명하게 둔다.
+                containerColor = Color.Transparent,
             ),
             title = {
                 AnimatedVisibility(

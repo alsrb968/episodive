@@ -4,15 +4,19 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -27,17 +31,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.jacob.episodive.core.designsystem.component.DominantRegion
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
-import io.jacob.episodive.core.designsystem.component.EpisodiveSeeker
 import io.jacob.episodive.core.designsystem.component.FadingEdgeText
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -50,6 +56,10 @@ import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.ui.R as uiR
 import kotlin.time.Duration.Companion.seconds
 
+/** 커버 추출색을 미니플레이어 표면색 쪽으로 섞는 비율 (0 = 추출색 그대로). */
+private const val PlayerBarTintStartBlend = 0.45f
+private const val PlayerBarTintEndBlend = 0.9f
+
 @Composable
 fun PlayerBar(
     modifier: Modifier = Modifier,
@@ -58,10 +68,17 @@ fun PlayerBar(
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean = { _, _ -> false },
     expandSignal: Int = 0,
     collapseSignal: Int = 0,
+    onNowPlayingChange: (Long?) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     var isShowPlayer by remember { mutableStateOf(false) }
+
+    // 목록 화면이 "이 항목이 재생 중인가"를 알 수 있도록 현재 에피소드 id 를 위로 올린다.
+    val nowPlayingId = (state as? PlayerState.Success)?.nowPlaying?.id
+    LaunchedEffect(nowPlayingId) {
+        onNowPlayingChange(nowPlayingId)
+    }
 
     // 외부(위젯 now-playing 딥링크)에서 시그널이 증가하면 플레이어 시트를 펼친다.
     // 일회성 effect 대신 상태 기반이라 콜드 스타트 타이밍에도 유실되지 않는다.
@@ -155,51 +172,69 @@ internal fun PlayerBarContent(
     onToggleLike: () -> Unit,
     onPlayOrPause: () -> Unit,
 ) {
-    var dominantColor by remember { mutableStateOf(Color.DarkGray) }
+    val dimension = LocalDimensionTheme.current
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHigh
+
+    // 미니플레이어 배경은 지금 재생 중인 커버에서 뽑은 색으로 흐른다. 팔레트가 준비되기
+    // 전에는 카드 표면색을 써서 색이 튀지 않게 한다. 추출색을 그대로 깔지 않고 카드
+    // 표면색 쪽으로 눌러 쓰는 이유는, 밝은 커버에서 뽑힌 색 위에서는 흰 제목이 묻히기 때문이다.
+    var dominantColor by remember { mutableStateOf(surfaceColor) }
+    val barGradient = remember(dominantColor, surfaceColor) {
+        Brush.linearGradient(
+            colors = listOf(
+                lerp(dominantColor, surfaceColor, PlayerBarTintStartBlend),
+                lerp(dominantColor, surfaceColor, PlayerBarTintEndBlend),
+            ),
+            start = Offset.Zero,
+            end = Offset(1000f, 176f),
+        )
+    }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(LocalDimensionTheme.current.playerBarHeight)
-            .padding(horizontal = 6.dp)
-            .padding(bottom = 6.dp),
-        shape = MaterialTheme.shapes.medium,
+            .height(dimension.playerBarHeight)
+            .padding(horizontal = dimension.playerBarMargin),
+        shape = EpisodiveShapes.miniPlayer,
         colors = CardDefaults.cardColors(
-            containerColor = dominantColor,
+            containerColor = Color.Transparent,
         ),
-        elevation = CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
         onClick = onExpand
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(barGradient)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 StateImage(
                     modifier = Modifier
-                        .size(50.dp)
-                        .clip(MaterialTheme.shapes.medium),
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(11.dp)),
                     imageUrl = nowPlaying.image.ifEmpty { nowPlaying.feedImage },
                     contentDescription = nowPlaying.title,
                     onDominantColorExtracted = { dominantColor = it },
-                    dominantRegion = DominantRegion.Top,
-                    clearFilters = false,
-                    brightnessAdjustment = -0.5f
                 )
 
                 Column(
                     modifier = Modifier
                         .weight(1f),
-                    verticalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     FadingEdgeText(
                         modifier = Modifier
                             .fillMaxWidth(),
                         text = nowPlaying.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
                         maxLines = 1,
                     )
 
@@ -207,78 +242,85 @@ internal fun PlayerBarContent(
                         modifier = Modifier
                             .fillMaxWidth(),
                         text = podcast.title,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.72f),
                         maxLines = 1,
                     )
                 }
 
                 EpisodiveIconToggleButton(
                     modifier = Modifier
-                        .size(32.dp),
+                        .size(21.dp),
                     checked = nowPlaying.isLiked,
                     onCheckedChange = { onToggleLike() },
                     colors = IconButtonDefaults.iconToggleButtonColors(
                         checkedContainerColor = Color.Transparent,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedContentColor = Color.White.copy(alpha = 0.85f),
                         containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = Color.White.copy(alpha = 0.85f),
                     ),
                     icon = {
                         Icon(
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(21.dp),
                             imageVector = EpisodiveIcons.Like,
                             contentDescription = "Like",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White.copy(alpha = 0.85f)
                         )
                     },
                     checkedIcon = {
                         Icon(
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(21.dp),
                             imageVector = EpisodiveIcons.LikeFilled,
                             contentDescription = "Unlike",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White.copy(alpha = 0.85f)
                         )
                     }
                 )
 
                 EpisodiveIconToggleButton(
+                    modifier = Modifier
+                        .size(38.dp),
                     checked = isPlaying,
                     onCheckedChange = { onPlayOrPause() },
                     colors = IconButtonDefaults.iconToggleButtonColors(
                         checkedContainerColor = MaterialTheme.colorScheme.primary,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedContentColor = Color.White,
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = Color.White,
                     ),
                     icon = {
                         Icon(
+                            modifier = Modifier.size(18.dp),
                             imageVector = EpisodiveIcons.Play,
                             contentDescription = "Play",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White
                         )
                     },
                     checkedIcon = {
                         Icon(
+                            modifier = Modifier.size(18.dp),
                             imageVector = EpisodiveIcons.Pause,
                             contentDescription = "Pause",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White
                         )
                     }
                 )
             }
 
-            EpisodiveSeeker(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(dimension.progressThicknessThin)
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 6.dp),
-                progress = progress,
-                onSeekTo = {},
-                chapters = chapters,
-                onChapterName = {},
-                isControllable = false,
-            )
+                    .background(Color.White.copy(alpha = 0.2f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress.positionRatio)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+            }
         }
     }
 }

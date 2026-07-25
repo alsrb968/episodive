@@ -252,6 +252,9 @@ internal fun LibraryScreen(
     }
 }
 
+/** 보관함 "전체" 탭에서 섹션과 섹션 사이 간격. */
+private val LibrarySectionSpacing = 30.dp
+
 @Composable
 private fun AllSectionContent(
     modifier: Modifier = Modifier,
@@ -267,6 +270,8 @@ private fun AllSectionContent(
     onEpisodeClick: (Episode) -> Unit,
     onPodcastClick: (Podcast) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     LazyColumn(
         modifier = modifier
             .padding(paddingValues)
@@ -276,7 +281,9 @@ private fun AllSectionContent(
     ) {
         item {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                // 섹션 사이는 리스트 항목 사이보다 확실히 넓어야 한다. 16dp 로 두면
+                // 앞 캐러셀 카드와 다음 섹션 제목이 붙어 어디서 끊기는지 읽히지 않는다.
+                verticalArrangement = Arrangement.spacedBy(LibrarySectionSpacing),
             ) {
                 if (playedEpisodes.isNotEmpty()) {
                     PlayedEpisodeRowSection(
@@ -328,7 +335,7 @@ private fun AllSectionContent(
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(dimension.screenPadding),
                         text = stringResource(R.string.feature_library_not_found_results),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -338,7 +345,7 @@ private fun AllSectionContent(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
 }
@@ -351,6 +358,7 @@ private fun RecentlyListenedContent(
     playedEpisodesPaging: Flow<PagingData<SeparatedUiModel<Episode>>>,
     onPlayedEpisodeClick: (Episode) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
     val items = playedEpisodesPaging.collectAsLazyPagingItems()
 
     LazyColumn(
@@ -381,7 +389,7 @@ private fun RecentlyListenedContent(
                     PlayedEpisodeItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .animateItem(),
                         playedEpisode = episode,
                         onClick = { onPlayedEpisodeClick(episode) },
@@ -394,7 +402,7 @@ private fun RecentlyListenedContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .padding(vertical = 8.dp),
                         text = date,
                         style = MaterialTheme.typography.titleMedium,
@@ -405,7 +413,7 @@ private fun RecentlyListenedContent(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
 }
@@ -419,6 +427,7 @@ private fun LikedContent(
     onLikedEpisodeClick: (Episode) -> Unit,
     onToggleLiked: (Episode) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
     val items = likedEpisodesPaging.collectAsLazyPagingItems()
 
     LazyColumn(
@@ -449,7 +458,7 @@ private fun LikedContent(
                     EpisodeItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .animateItem(),
                         episode = episode,
                         onClick = { onLikedEpisodeClick(episode) },
@@ -463,7 +472,7 @@ private fun LikedContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .padding(vertical = 8.dp),
                         text = date,
                         style = MaterialTheme.typography.titleMedium,
@@ -474,7 +483,7 @@ private fun LikedContent(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
 }
@@ -488,6 +497,7 @@ private fun SavedContent(
     onSavedEpisodeClick: (Episode) -> Unit,
     onToggleSaved: (Episode) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
     val items = savedEpisodesPaging.collectAsLazyPagingItems()
 
     LazyColumn(
@@ -518,7 +528,7 @@ private fun SavedContent(
                     EpisodeItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .animateItem(),
                         episode = episode,
                         onClick = { onSavedEpisodeClick(episode) },
@@ -533,7 +543,7 @@ private fun SavedContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .padding(vertical = 8.dp),
                         text = date,
                         style = MaterialTheme.typography.titleMedium,
@@ -544,7 +554,7 @@ private fun SavedContent(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
 }
@@ -558,6 +568,7 @@ private fun FollowedContent(
     onFollowedPodcastClick: (Podcast) -> Unit,
     onToggleFollowed: (Podcast) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
     val items = followedPodcastsPaging.collectAsLazyPagingItems()
 
     LazyColumn(
@@ -588,7 +599,7 @@ private fun FollowedContent(
                     PodcastDetailItem(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .animateItem(),
                         podcast = podcast,
                         onClick = { onFollowedPodcastClick(podcast) },
@@ -602,7 +613,7 @@ private fun FollowedContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = dimension.screenPadding)
                             .padding(vertical = 8.dp),
                         text = date,
                         style = MaterialTheme.typography.titleMedium,
@@ -614,7 +625,7 @@ private fun FollowedContent(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
 }
@@ -629,22 +640,27 @@ private fun PreferredContent(
     onCategoryClick: (Category) -> Unit = {},
     onTogglePreferred: (Category) -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
+
     LazyColumn(
         modifier = modifier
             .padding(paddingValues)
             .nestedScroll(nestedScrollConnection),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(dimension.screenPadding),
     ) {
         item {
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimension.chipSpacing),
+                verticalArrangement = Arrangement.spacedBy(dimension.chipSpacing),
             ) {
                 selectableCategories.forEach {
                     val category = it.category
                     EpisodiveFilterChip(
                         selected = it.isSelected,
                         onSelectedChange = { _ -> onTogglePreferred(category) },
+                        // 카테고리 칩도 pill 이다 (원본 줄 144). 이것만 사각 8dp 면
+                        // 바로 위 섹션 필터의 pill 칩과 모양이 어긋난다.
+                        pill = true,
                         label = { Text(text = category.label) },
                     )
                 }
@@ -652,7 +668,7 @@ private fun PreferredContent(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
 }
@@ -666,6 +682,7 @@ private fun FindBar(
     onFind: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(scrollState.isScrollInProgress) {
@@ -677,7 +694,7 @@ private fun FindBar(
     SearchBar(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = dimension.screenPadding)
             .padding(bottom = 16.dp),
         windowInsets = WindowInsets(0, 0, 0, 0),
         inputField = {
@@ -718,11 +735,18 @@ private fun SectionFilter(
         LibrarySection.Followed to stringResource(R.string.feature_library_filter_followed),
         LibrarySection.Preferred to stringResource(R.string.feature_library_filter_preferred),
     )
+    val dimension = LocalDimensionTheme.current
 
     LazyRow(
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // 원본은 칩 행 아래 16px 을 띄우고 리스트가 시작한다 (원본 줄 486).
+        // 이게 없으면 칩이 바로 아래 섹션 헤더에 붙는다.
+        contentPadding = PaddingValues(
+            start = dimension.screenPadding,
+            end = dimension.screenPadding,
+            bottom = 16.dp,
+        ),
+        horizontalArrangement = Arrangement.spacedBy(dimension.chipSpacing)
     ) {
         items(
             items = LibrarySection.entries,
@@ -731,6 +755,7 @@ private fun SectionFilter(
             EpisodiveFilterChip(
                 selected = currentSection == section,
                 onSelectedChange = { if (it) onSectionChange(section) },
+                pill = true,
                 label = { Text(sectionNames[section] ?: "") },
             )
         }
@@ -781,6 +806,8 @@ private fun PlayedEpisodeRowSection(
     playedEpisodes: List<Episode>,
     onPlayedEpisodeClick: (Episode) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     SectionHeader(
         modifier = modifier,
         title = title,
@@ -796,8 +823,8 @@ private fun PlayedEpisodeRowSection(
                 .fillMaxWidth(),
             state = lazyListState,
             flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
         ) {
             items(
                 count = playedEpisodes.size,
@@ -820,6 +847,8 @@ private fun EpisodeRowSection(
     episodes: List<Episode>,
     onEpisodeClick: (Episode) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     SectionHeader(
         modifier = modifier,
         title = title,
@@ -835,8 +864,8 @@ private fun EpisodeRowSection(
                 .fillMaxWidth(),
             state = lazyListState,
             flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
         ) {
             items(
                 count = episodes.size,
@@ -858,6 +887,8 @@ private fun CategorySection(
     categories: List<Category>,
     onCategoryClick: (Category) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     SectionHeader(
         modifier = modifier,
         title = title,
@@ -873,8 +904,8 @@ private fun CategorySection(
                 .fillMaxWidth(),
             state = lazyListState,
             flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
         ) {
             items(
                 items = categories,

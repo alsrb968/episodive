@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -36,13 +37,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.offset
 import androidx.paging.compose.LazyPagingItems
 import io.jacob.episodive.core.designsystem.component.ClipAnimationIconText
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconProgressButton
@@ -52,7 +55,9 @@ import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.SubSectionHeader
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.mapper.toHumanReadable
@@ -63,6 +68,45 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+/** 재생 중인 에피소드 행의 강조 배경 (원본 줄 436) — 토큰에 없는 일회성 값. */
+private val PlayingRowBackground = Color(0xFF2C2320)
+
+/**
+ * 에피소드 행 재생 버튼. 원 지름은 [EpisodePlayButtonSize] 로 두 상태가 같고, 재생 중일 때
+ * 두르는 진행률 링까지 담을 [EpisodePlaySlotSize] 를 상태와 무관하게 항상 확보한다.
+ * 이 자리를 상태에 따라 바꾸면 재생 중인 행만 높이가 달라진다.
+ */
+private val EpisodePlayButtonSize = 34.dp
+private val EpisodePlaySlotSize = 40.dp
+private val EpisodePlayIconSize = 15.dp
+
+/** 재생 중 행의 강조 배경이 행 바깥으로 번지는 폭과 모서리 반경. */
+private val PlayingRowBleed = 8.dp
+private val PlayingRowCornerRadius = 12.dp
+
+/**
+ * 레이아웃 크기는 그대로 두고, 노드 자체만 사방 [bleed] 만큼 넓혀 그 자리에 배경·리플이
+ * 그려지게 한다. 안쪽에 같은 값의 padding 을 물려 내용 위치는 원래대로 돌린다.
+ *
+ * 강조 배경을 drawBehind 로 바깥에 그리면 리플은 행 크기 그대로라 눌렀을 때 밝아지는
+ * 사각형과 강조 영역이 어긋나 보인다.
+ */
+private fun Modifier.bleedingRowSurface(bleed: Dp) = layout { measurable, constraints ->
+    val extra = bleed.roundToPx() * 2
+    val placeable = measurable.measure(constraints.offset(horizontal = extra, vertical = extra))
+
+    layout(placeable.width - extra, placeable.height - extra) {
+        placeable.place(-extra / 2, -extra / 2)
+    }
+}
+
+/** 클립 화면 인용문/출처는 배경 이미지 위에 얹히므로 테마 색이 아닌 고정 흰 계열을 쓴다 (원본 줄 461~462). */
+private val ClipQuoteSourceColor = Color.White.copy(alpha = 0.82f)
+
+// 클립 카드 위 스크림. 화면 배경이 클립 커버 색을 따라 바뀌므로, 특정 색조를 덧칠하지 않고
+// 중립 검정으로만 눌러 커버 색이 그대로 살아 있게 한다 (원본 줄 455).
+private val ClipCardScrimColor = Color.Black.copy(alpha = 0.52f)
+
 @Composable
 fun EpisodesSection(
     modifier: Modifier = Modifier,
@@ -72,6 +116,8 @@ fun EpisodesSection(
     onToggleLikedEpisode: (Episode) -> Unit,
     onToggleSavedEpisode: (Episode) -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
+
     SectionHeader(
         modifier = modifier,
         title = title,
@@ -79,14 +125,12 @@ fun EpisodesSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = dimension.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(dimension.listItemSpacing)
         ) {
             episodes.forEach { episode ->
                 EpisodeItem(
                     episode = episode,
-                    progress = 0f,
-                    isLoading = false,
                     onClick = { onEpisodeClick(episode) },
                     onToggleLiked = { onToggleLikedEpisode(episode) },
                     onToggleSaved = { onToggleSavedEpisode(episode) },
@@ -113,8 +157,8 @@ fun LazyListScope.episodeItems(
         EpisodeItem(
             modifier = itemModifier,
             episode = episode,
-            progress = 0f,
-            isLoading = index == playingIndex,
+            // 재생목록은 큐에서의 현재 위치를 알고 있으므로 그것으로 직접 표시한다.
+            isPlaying = index == playingIndex,
             onClick = { onEpisodeClick(episode) },
             onToggleLiked = { onToggleLikedEpisode(episode) },
             onToggleSaved = { onToggleSavedEpisode(episode) },
@@ -126,37 +170,50 @@ fun LazyListScope.episodeItems(
 fun EpisodeItem(
     modifier: Modifier = Modifier,
     episode: Episode,
-    progress: Float = 0f,
-    isLoading: Boolean = false,
+    // 재생 중인 항목의 링에 쓰는 진행률. 기본값은 에피소드가 들고 있는 청취 진행률이다.
+    progress: Float = episode.progress,
+    // 지금 재생 중인지. 기본값은 앱이 제공하는 현재 재생 에피소드와 비교해 스스로 판단하므로
+    // 호출부가 따로 넘기지 않아도 목록 어디서든 재생 중인 한 항목만 강조된다.
+    isPlaying: Boolean = episode.id == LocalNowPlayingEpisodeId.current,
     onClick: () -> Unit,
     onToggleLiked: () -> Unit,
     onToggleSaved: () -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .clickable { onClick() },
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+            // 강조 배경과 클릭 리플은 행보다 사방 8dp 넓은 둥근 영역에 함께 그린다.
+            // 레이아웃 크기는 그대로라 재생 중인 행만 폭·높이가 달라지지 않고, 리플이
+            // 눌린 영역도 강조 배경과 정확히 같은 모양이 된다.
+            .bleedingRowSurface(PlayingRowBleed)
+            .clip(RoundedCornerShape(PlayingRowCornerRadius))
+            .then(
+                // 강조 배경은 현재 재생 항목에만 (원본 줄 436).
+                if (isPlaying) Modifier.background(PlayingRowBackground) else Modifier
+            )
+            .clickable { onClick() }
+            .padding(PlayingRowBleed),
+        // 원본의 리스트 행 gap 은 12 다 (원본 줄 247·297·350).
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         StateImage(
             modifier = Modifier
-                .size(72.dp)
-                .clip(MaterialTheme.shapes.largeIncreased),
+                .size(dimension.thumbnailSmall)
+                .clip(MaterialTheme.shapes.medium),
             imageUrl = episode.image.ifEmpty { episode.feedImage },
             contentDescription = episode.title,
         )
 
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceAround
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = episode.title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -169,7 +226,7 @@ fun EpisodeItem(
 
             Text(
                 text = subTitle,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -177,53 +234,80 @@ fun EpisodeItem(
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            EpisodiveIconProgressButton(
-                modifier = Modifier.size(32.dp),
-                onClick = onClick,
-                isLoading = isLoading,
-                progress = progress,
-                icon = {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = EpisodiveIcons.Play,
-                        contentDescription = "Play",
+            // 링이 들어갈 자리는 두 상태 모두 같게 잡아 행 높이가 흔들리지 않게 한다.
+            Box(
+                modifier = Modifier.size(EpisodePlaySlotSize),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isPlaying) {
+                    // 재생 중인 항목만 브랜드 레드로 채우고 청취 진행률을 원형 링으로 두른다.
+                    EpisodiveIconProgressButton(
+                        onClick = onClick,
+                        size = EpisodePlaySlotSize,
+                        progress = progress,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                        icon = {
+                            Icon(
+                                modifier = Modifier.fillMaxSize(),
+                                imageVector = EpisodiveIcons.Play,
+                                contentDescription = "Playing",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        },
                     )
-                },
-            )
+                } else {
+                    // 대기 상태는 중립 표면 위 재생 아이콘 — 레드는 재생 중 표시로만 남긴다.
+                    Box(
+                        modifier = Modifier
+                            .size(EpisodePlayButtonSize)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .clickable { onClick() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(EpisodePlayIconSize),
+                            imageVector = EpisodiveIcons.Play,
+                            contentDescription = "Play",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
 
             EpisodiveIconToggleButton(
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(19.dp),
                 checked = episode.isLiked,
                 onCheckedChange = { onToggleLiked() },
                 colors = IconButtonDefaults.iconToggleButtonColors(
                     checkedContainerColor = Color.Transparent,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedContentColor = MaterialTheme.colorScheme.primary,
                     containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
                 icon = {
                     Icon(
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(19.dp),
                         imageVector = EpisodiveIcons.Like,
                         contentDescription = "Like",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 checkedIcon = {
                     Icon(
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(19.dp),
                         imageVector = EpisodiveIcons.LikeFilled,
                         contentDescription = "Unlike",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             )
-
         }
     }
 }
@@ -235,6 +319,8 @@ fun PlayingEpisodesSection(
     playingEpisodes: List<Episode>,
     onEpisodeClick: (Episode) -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     SubSectionHeader(
         modifier = modifier,
         title = stringResource(R.string.core_ui_continue),
@@ -258,8 +344,8 @@ fun PlayingEpisodesSection(
                 .fillMaxWidth(),
             state = lazyListState,
             flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
             // 짧은 캐러셀은 빠른 스와이프의 드래그 구간만으로도 가장자리 stretch 가 쌓여
             // 릴리즈 시 움찔거림이 생기므로 overscroll 을 사용하지 않는다.
             overscrollEffect = null,
@@ -312,11 +398,13 @@ fun PlayingEpisodeItem(
     playedEpisode: Episode,
     onClick: () -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     Surface(
         modifier = modifier
             .size(width = 192.dp, height = 84.dp),
-        shape = MaterialTheme.shapes.largeIncreased,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         onClick = onClick
     ) {
         Row(
@@ -328,7 +416,7 @@ fun PlayingEpisodeItem(
             StateImage(
                 modifier = Modifier
                     .size(68.dp)
-                    .clip(MaterialTheme.shapes.largeIncreased),
+                    .clip(EpisodiveShapes.coverForSize(68)),
                 imageUrl = playedEpisode.image.ifEmpty { playedEpisode.feedImage },
                 contentDescription = playedEpisode.title,
             )
@@ -341,14 +429,14 @@ fun PlayingEpisodeItem(
                     text = playedEpisode.playedAt?.toRelativeDate() ?: playedEpisode.feedTitle
                     ?: "",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
 
                 Text(
                     text = playedEpisode.title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -359,10 +447,10 @@ fun PlayingEpisodeItem(
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
+                        .height(dimension.progressThicknessThin)
                         .clip(CircleShape),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     gapSize = (-4).dp,
                     drawStopIndicator = {},
                     progress = {
@@ -387,31 +475,46 @@ fun PlayedEpisodeItem(
     showMoreInfo: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     Row(
         modifier = modifier
             .clickable { onClick() },
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(13.dp),
     ) {
         StateImage(
             modifier = Modifier
-                .size(68.dp)
-                .clip(MaterialTheme.shapes.largeIncreased),
+                .size(dimension.thumbnailMedium)
+                .clip(EpisodiveShapes.miniPlayer),
             imageUrl = playedEpisode.image.ifEmpty { playedEpisode.feedImage },
             contentDescription = playedEpisode.title,
         )
 
         Column(
-            modifier = Modifier,
+            // weight 가 없으면 열 폭이 가장 긴 자식(제목)에 맞춰져, 제목이 짧은 항목만
+            // 진행바가 뭉텅 짧아진다. 원본은 진행바가 항상 텍스트 열 전체 폭이다 (원본 줄 496).
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = playedEpisode.title,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                minLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+
+            playedEpisode.feedTitle?.let { feedTitle ->
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = feedTitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -423,37 +526,45 @@ fun PlayedEpisodeItem(
                 LinearProgressIndicator(
                     modifier = Modifier
                         .weight(1f)
-                        .height(4.dp)
+                        .height(dimension.progressThickness)
                         .clip(CircleShape),
                     color = if (playedEpisode.isCompleted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     gapSize = (-4).dp,
                     drawStopIndicator = {},
                     progress = { playedEpisode.progress },
                 )
 
                 Text(
-                    text = "${(playedEpisode.progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = if (playedEpisode.isCompleted) {
+                        stringResource(R.string.core_ui_completed)
+                    } else {
+                        "${(playedEpisode.progress * 100).toInt()}%"
+                    },
+                    // 진행률 라벨은 굵기 지정이 없는 메타다 (원본 줄 496).
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
 
-            if (showMoreInfo) {
+            // 완료 항목은 진행률 자리에 이미 "완료"가 찍히므로 여기서 반복하지 않는다.
+            // 남길 내용이 없으면 줄 자체를 그리지 않아 빈 여백도 남지 않게 한다.
+            val moreInfo = when {
+                playedEpisode.isCompleted -> ""
+                playedEpisode.remain != null ->
+                    "${playedEpisode.remain?.toHumanReadable()} ${stringResource(R.string.core_ui_left)}"
+
+                else -> ""
+            }
+
+            if (showMoreInfo && moreInfo.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text =
-                        if (playedEpisode.isCompleted) stringResource(R.string.core_ui_completed)
-                        else if (playedEpisode.remain != null) "${playedEpisode.remain?.toHumanReadable()} ${
-                            stringResource(
-                                R.string.core_ui_left
-                            )
-                        }"
-                        else "",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = moreInfo,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -478,7 +589,7 @@ fun EpisodeDetailItem(
         StateImage(
             modifier = Modifier
                 .size(200.dp)
-                .clip(MaterialTheme.shapes.extraLarge),
+                .clip(MaterialTheme.shapes.large),
             imageUrl = episode.image.ifEmpty { episode.feedImage },
             contentDescription = episode.title,
         )
@@ -492,7 +603,7 @@ fun EpisodeDetailItem(
 
         Text(
             text = subTitle,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -502,7 +613,7 @@ fun EpisodeDetailItem(
             text = episode.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
 
@@ -532,10 +643,11 @@ fun EpisodeClipItem(
     onClick: () -> Unit,
     onPlayEpisode: () -> Unit,
     onToggleLikedEpisode: () -> Unit,
+    onDominantColorExtracted: ((Color) -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        shape = MaterialTheme.shapes.largeIncreased,
+        shape = MaterialTheme.shapes.extraLarge,
         onClick = onClick,
         color = Color.Transparent,
     ) {
@@ -550,21 +662,24 @@ fun EpisodeClipItem(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.6f)
-                .background(MaterialTheme.colorScheme.background)
+                .background(ClipCardScrimColor)
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            // 디자인의 클립 카드는 텍스트가 좌측에 붙는다(원본 줄 460). 커버만 중앙이고
+            // 나머지가 좌측이면 정렬 기준이 둘로 갈려 어색해진다.
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
         ) {
             Card(
+                // 고정 250dp 는 목업(344px)보다 넓은 실기기에서 카드 안에 작게 떠 보인다.
                 modifier = Modifier
-                    .size(250.dp),
-                shape = MaterialTheme.shapes.largeIncreased,
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+                shape = MaterialTheme.shapes.extraLarge,
                 elevation = CardDefaults.cardElevation(defaultElevation = 24.dp),
             ) {
                 StateImage(
@@ -572,30 +687,32 @@ fun EpisodeClipItem(
                         .fillMaxSize(),
                     imageUrl = episode.image.ifEmpty { episode.feedImage },
                     contentDescription = episode.title,
+                    // 화면 배경 그라디언트를 이 커버 색으로 물들이기 위해 위로 올린다.
+                    onDominantColorExtracted = onDominantColorExtracted,
                 )
             }
 
             Column(
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // 인용문 — 19/800 흰색 (원본 줄 461).
                 Text(
                     text = episode.title,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
                 )
 
-                HtmlTextContainer(
-                    text = episode.description ?: "",
-                    enableLinks = false,
-                ) {
+                // 출처 — 12.5/rgba(255,255,255,.82) (원본 줄 462).
+                episode.feedTitle?.let { feedTitle ->
                     Text(
-                        text = it,
-                        maxLines = 6,
+                        text = feedTitle,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ClipQuoteSourceColor,
                     )
                 }
             }
@@ -617,22 +734,22 @@ fun EpisodeClipItem(
                     onCheckedChange = { onToggleLikedEpisode() },
                     colors = IconButtonDefaults.iconToggleButtonColors(
                         checkedContainerColor = Color.Transparent,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedContentColor = MaterialTheme.colorScheme.primary,
                         containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = Color.White,
                     ),
                     icon = {
                         Icon(
                             imageVector = EpisodiveIcons.Like,
                             contentDescription = "Like",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White
                         )
                     },
                     checkedIcon = {
                         Icon(
                             imageVector = EpisodiveIcons.LikeFilled,
                             contentDescription = "Unlike",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
@@ -650,14 +767,14 @@ fun EpisodeClipItem(
                         Icon(
                             imageVector = EpisodiveIcons.Play,
                             contentDescription = "Play",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     checkedIcon = {
                         Icon(
                             imageVector = EpisodiveIcons.Pause,
                             contentDescription = "Pause",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 )
@@ -672,8 +789,6 @@ private fun EpisodeItemPreview() {
     EpisodiveTheme {
         EpisodeItem(
             episode = episodeTestData.copy(likedAt = Instant.fromEpochSeconds(1234)),
-            progress = 0f,
-            isLoading = false,
             onClick = {},
             onToggleLiked = {},
             onToggleSaved = {},

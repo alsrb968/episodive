@@ -10,18 +10,19 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -45,7 +47,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,22 +59,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.jacob.episodive.core.designsystem.component.DominantRegion
-import io.jacob.episodive.core.designsystem.component.EpisodiveButton
-import io.jacob.episodive.core.designsystem.component.EpisodiveCenterTopAppBar
 import io.jacob.episodive.core.designsystem.component.EpisodiveDial
 import io.jacob.episodive.core.designsystem.component.EpisodiveDragHandle
-import io.jacob.episodive.core.designsystem.component.EpisodiveGradientBackground
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconProgressButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveSwipeDismissSnackbarHost
@@ -85,11 +91,11 @@ import io.jacob.episodive.core.designsystem.component.FadingEdgeText
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
-import io.jacob.episodive.core.designsystem.theme.GradientColors
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Chapter
-import io.jacob.episodive.core.model.DownloadStatus
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
@@ -106,7 +112,40 @@ import io.jacob.episodive.core.ui.episodeItems
 
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.time.Duration.Companion.seconds
+
+/** v2: 앨범아트 팔레트 색을 뽑기 전 기본 그라디언트 시작색(원본 줄 366). */
+private val PlayerGradientDefaultTop = Color(0xFF7A3527)
+private const val PlayerBackgroundGradientAngle = 193f
+
+/** 그라디언트 중간·어두운 스톱이 커버 색에서 배경으로 섞이는 비율. */
+private const val PlayerGradientMidBlend = 0.42f
+private const val PlayerGradientDarkBlend = 0.78f
+
+/** v2: 하단 반투명 컨트롤 바 — 5단계 shape 사다리에 없는 26px 고정 반경(원본 줄 380). */
+private val PlayerControlBarHeight = 52.dp
+private val PlayerControlBarShape = RoundedCornerShape(26.dp)
+private val PlayerControlBarMarginTop = 8.dp
+private val PlayerControlBarMarginBottom = 24.dp
+
+/** 컨트롤 바 안에 들어가는 다운로드 진행률 링의 바깥 지름 — 바 높이보다 작아야 한다. */
+private val PlayerDownloadRingSize = 40.dp
+
+/** v2: 배속 다이얼 시트의 큰 숫자 — 타이포 스케일에 없는 일회성 크기(원본 줄 393). */
+private val PlayerDialValueTextStyle = TextStyle(fontSize = 42.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.02).em)
+private val PlayerDialUnitTextStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Normal)
+
+/** v2: 슬립 타이머 남은 시간 숫자 — 타이포 스케일에 없는 일회성 크기(원본 줄 413). */
+private val PlayerSleepTimerValueTextStyle = TextStyle(fontSize = 40.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.02.em)
+
+/**
+ * 슬립 타이머 프리셋 원 지름. 목업 폭(344 - 좌우 22)에 다섯 개가 8dp 간격으로 한 줄에
+ * 들어가는 크기다. 이보다 크면 좁은 기기에서 줄이 넘어간다.
+ */
+private val PlayerSleepTimerPresetSize = 52.dp
 
 @Composable
 fun PlayerBottomSheet(
@@ -170,6 +209,9 @@ fun PlayerBottomSheet(
         sheetState = sheetState,
         dragHandle = null,
         scrimColor = Color.Transparent,
+        // 시트 기본 배경(surfaceContainerLow)을 그대로 두면 커버 그라디언트가 끝나는
+        // 지점부터 색이 한 단 밝게 끊긴다. 그라디언트의 마지막 스톱과 같은 색으로 맞춘다.
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = { WindowInsets(0) },
         properties = ModalBottomSheetProperties(
             shouldDismissOnBackPress = true,
@@ -261,13 +303,15 @@ internal fun PlayerScreen(
     onCancelSleepTimer: () -> Unit = {},
     onSleepTimerEndOfEpisode: () -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
     val listState = rememberLazyListState()
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
     var showSpeedSheet by remember { mutableStateOf(false) }
     var showPlaylistSheet by remember { mutableStateOf(false) }
     var showSleepTimerSheet by remember { mutableStateOf(false) }
     var chapterIndex by remember { mutableStateOf(0) }
-    var dominantColor by remember { mutableStateOf(Color.DarkGray) }
+    var dominantColor by remember { mutableStateOf(PlayerGradientDefaultTop) }
+    val backgroundColor = MaterialTheme.colorScheme.background
 
 
     LazyColumn(
@@ -280,13 +324,25 @@ internal fun PlayerScreen(
         overscrollEffect = null,
     ) {
         item {
-            EpisodiveGradientBackground(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillParentMaxHeight(0.92f),
-                gradientColors = GradientColors(
-                    top = dominantColor,
-                )
+                    .fillParentMaxHeight(0.92f)
+                    // v2: 193도 · 4단계 스톱 구조를 유지하되, 중간 스톱까지 전부 앨범아트
+                    // 팔레트 색에서 파생시킨다. 고정 레드 스톱을 끼우면 커버가 무슨 색이든
+                    // 배경이 늘 붉게 나온다.
+                    .drawWithCache {
+                        val (start, end) = angledGradientEndpoints(PlayerBackgroundGradientAngle, size)
+                        val brush = Brush.linearGradient(
+                            0f to dominantColor,
+                            0.30f to lerp(dominantColor, backgroundColor, PlayerGradientMidBlend),
+                            0.58f to lerp(dominantColor, backgroundColor, PlayerGradientDarkBlend),
+                            0.82f to backgroundColor,
+                            start = start,
+                            end = end,
+                        )
+                        onDrawBehind { drawRect(brush) }
+                    },
             ) {
                 Column(
                     modifier = Modifier
@@ -294,41 +350,62 @@ internal fun PlayerScreen(
                         .padding(top = systemBarsPadding.calculateTopPadding()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    EpisodiveCenterTopAppBar(
-                        title = {},
-                        navigationIcon = EpisodiveIcons.CaretDown,
-                        navigationIconContentDescription = "Down",
-                        actionIcon = if (nowPlaying.isLiked) EpisodiveIcons.LikeFilled else EpisodiveIcons.Like,
-                        actionIconContentDescription = "Like",
-                        onNavigationClick = onCollapse,
-                        onActionClick = onToggleLike,
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            scrolledContainerColor = Color.Transparent,
-                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
-                        windowInsets = WindowInsets(0),
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp, start = 20.dp, end = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // 커버 그라디언트 위에 원형 배경을 깔면 두 버튼만 뿌옇게 떠 보인다.
+                        // 아이콘만 남기고 배경은 두지 않는다.
+                        EpisodiveIconButton(
+                            modifier = Modifier.size(dimension.iconButtonSize),
+                            onClick = onCollapse,
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.size(22.dp),
+                                    imageVector = EpisodiveIcons.CaretDown,
+                                    contentDescription = "Down",
+                                )
+                            }
+                        )
+
+                        EpisodiveIconButton(
+                            modifier = Modifier.size(dimension.iconButtonSize),
+                            onClick = onToggleLike,
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.size(22.dp),
+                                    imageVector = if (nowPlaying.isLiked) EpisodiveIcons.LikeFilled else EpisodiveIcons.Like,
+                                    contentDescription = "Like",
+                                )
+                            }
+                        )
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                            .aspectRatio(1f),
+                            .padding(horizontal = 26.dp)
+                            .aspectRatio(1f)
+                            .shadow(
+                                elevation = 30.dp,
+                                shape = EpisodiveShapes.playerCover,
+                                ambientColor = Color.Black,
+                                spotColor = Color.Black,
+                            ),
                     ) {
                         StateImage(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clip(MaterialTheme.shapes.extraExtraLarge),
+                                .clip(EpisodiveShapes.playerCover),
                             size = 600,
                             imageUrl = nowPlaying.image.ifEmpty { nowPlaying.feedImage },
                             contentDescription = nowPlaying.title,
                             onDominantColorExtracted = { dominantColor = it },
-                            dominantRegion = DominantRegion.Top,
-                            brightnessAdjustment = -0.2f
                         )
 
                         PushUpCue(
@@ -343,20 +420,10 @@ internal fun PlayerScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .padding(horizontal = 30.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        FadingEdgeText(
-                            modifier = Modifier
-                                .clickable { onPodcastClick(podcast) },
-                            text = podcast.title,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                        )
-
                         FadingEdgeText(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -366,9 +433,20 @@ internal fun PlayerScreen(
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                         )
+
+                        FadingEdgeText(
+                            modifier = Modifier
+                                .clickable { onPodcastClick(podcast) },
+                            text = podcast.title,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                        )
                     }
 
                     ControlPanelProgress(
+                        modifier = Modifier.padding(top = 16.dp),
                         isPlaying = isPlaying,
                         progress = progress,
                         chapters = chapters,
@@ -395,8 +473,6 @@ internal fun PlayerScreen(
                         onList = { showPlaylistSheet = true },
                         onToggleSave = onToggleSave,
                     )
-
-                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
         }
@@ -463,6 +539,19 @@ internal fun PlayerScreen(
     }
 }
 
+/** CSS `linear-gradient(angleDeg, ...)` 각도 규약을 Compose 선형 그라디언트의 시작/끝 좌표로 변환한다. */
+private fun angledGradientEndpoints(angleDegrees: Float, size: Size): Pair<Offset, Offset> {
+    val angleRad = Math.toRadians(angleDegrees.toDouble())
+    val width = size.width
+    val height = size.height
+    val length = abs(width * sin(angleRad)) + abs(height * cos(angleRad))
+    val centerX = width / 2f
+    val centerY = height / 2f
+    val dx = (length / 2 * sin(angleRad)).toFloat()
+    val dy = (length / 2 * cos(angleRad)).toFloat()
+    return Offset(centerX - dx, centerY + dy) to Offset(centerX + dx, centerY - dy)
+}
+
 @Composable
 fun PushUpCue(
     modifier: Modifier = Modifier,
@@ -479,16 +568,14 @@ fun PushUpCue(
             modifier = modifier
                 .fillMaxSize()
                 .background(
+                    // v2: 커버 하단 자막 오버레이 — 위(투명)에서 아래(검정 60%)로(원본 줄 371).
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Transparent,
-                            MaterialTheme.colorScheme.surface,
+                            Color.Black.copy(alpha = 0.6f),
                         ),
-                        startY = 0f,
-                        endY = Float.POSITIVE_INFINITY,
                     ),
-                    shape = MaterialTheme.shapes.extraExtraLarge,
+                    shape = EpisodiveShapes.playerCover,
                 ),
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -508,18 +595,16 @@ fun PushUpCue(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 18.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = text,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -538,7 +623,7 @@ private fun ControlPanelProgress(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 30.dp),
     ) {
         Column(
             modifier = Modifier,
@@ -607,16 +692,18 @@ private fun ControlPanelBottom(
     onList: () -> Unit = {},
     onToggleSave: () -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
+
     Column(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(start = 26.dp, end = 26.dp, top = 14.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -625,7 +712,7 @@ private fun ControlPanelBottom(
                 onClick = onBackward,
                 icon = {
                     Icon(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(31.dp),
                         imageVector = EpisodiveIcons.Replay15,
                         contentDescription = "Replay",
                     )
@@ -637,7 +724,7 @@ private fun ControlPanelBottom(
                 onClick = onPrevious,
                 icon = {
                     Icon(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(25.dp),
                         imageVector = EpisodiveIcons.SkipPrevious,
                         contentDescription = "Previous",
                     )
@@ -645,28 +732,28 @@ private fun ControlPanelBottom(
             )
 
             EpisodiveIconToggleButton(
-                modifier = Modifier.size(68.dp),
+                modifier = Modifier.size(dimension.playButtonSize),
                 checked = isPlaying,
                 onCheckedChange = { onPlayOrPause() },
                 icon = {
                     Icon(
-                        modifier = Modifier.size(36.dp),
+                        modifier = Modifier.size(34.dp),
                         imageVector = EpisodiveIcons.Play,
                         contentDescription = "Play",
                     )
                 },
                 checkedIcon = {
                     Icon(
-                        modifier = Modifier.size(36.dp),
+                        modifier = Modifier.size(34.dp),
                         imageVector = EpisodiveIcons.Pause,
                         contentDescription = "Pause",
                     )
                 },
                 colors = IconButtonDefaults.iconToggleButtonColors(
-                    checkedContainerColor = MaterialTheme.colorScheme.onBackground,
-                    checkedContentColor = MaterialTheme.colorScheme.background,
-                    containerColor = MaterialTheme.colorScheme.onBackground,
-                    contentColor = MaterialTheme.colorScheme.background,
+                    checkedContainerColor = MaterialTheme.colorScheme.onSurface,
+                    checkedContentColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
                 )
             )
 
@@ -675,7 +762,7 @@ private fun ControlPanelBottom(
                 onClick = onNext,
                 icon = {
                     Icon(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(25.dp),
                         imageVector = EpisodiveIcons.SkipNext,
                         contentDescription = "Next",
                     )
@@ -687,7 +774,7 @@ private fun ControlPanelBottom(
                 onClick = onForward,
                 icon = {
                     Icon(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(31.dp),
                         imageVector = EpisodiveIcons.Forward30,
                         contentDescription = "Forward",
                     )
@@ -695,109 +782,127 @@ private fun ControlPanelBottom(
             )
         }
 
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = dimension.screenPadding)
+                .padding(top = PlayerControlBarMarginTop, bottom = PlayerControlBarMarginBottom)
+                .height(PlayerControlBarHeight)
+                .clip(PlayerControlBarShape)
+                .background(Color.White.copy(alpha = 0.08f))
+                .border(1.dp, Color.White.copy(alpha = 0.08f), PlayerControlBarShape),
         ) {
-            val decimalFormat = DecimalFormat("#.#")
-
-            EpisodiveTextButton(
-//                modifier = Modifier.size(56.dp),
-                onClick = onSpeed,
-                contentPadding = PaddingValues(0.dp)
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                // SpaceAround 는 요소 사이 여백을 균등하게 두지만 요소 폭이 제각각이면
+                // (여기서는 "1x" 텍스트만 넓다) 아이콘 중심 간격이 어긋난다. 슬롯을 똑같이
+                // 나눠 각 아이콘이 자기 칸 중앙에 오게 한다.
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    style = MaterialTheme.typography.titleLarge,
-                    text = "${decimalFormat.format(speed)}x"
-                )
-            }
+                val decimalFormat = DecimalFormat("#.#")
 
-            EpisodiveIconButton(
-                modifier = Modifier.size(32.dp),
-                onClick = onSleepTimer,
-                icon = {
-                    val moonTint = when {
-                        sleepTimerRemainingMs == null -> MaterialTheme.colorScheme.onSurface
-                        sleepTimerRemainingMs <= PlayerViewModel.FADE_OUT_DURATION_MS -> {
-                            val fraction = sleepTimerRemainingMs / PlayerViewModel.FADE_OUT_DURATION_MS.toFloat()
-                            lerp(
-                                MaterialTheme.colorScheme.onSurface,
-                                MaterialTheme.colorScheme.primary,
-                                fraction,
+                EpisodiveTextButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onSpeed,
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        text = "${decimalFormat.format(speed)}x"
+                    )
+                }
+
+                EpisodiveIconButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onSleepTimer,
+                    icon = {
+                        val moonTint = when {
+                            sleepTimerRemainingMs == null -> MaterialTheme.colorScheme.onSurfaceVariant
+                            sleepTimerRemainingMs <= PlayerViewModel.FADE_OUT_DURATION_MS -> {
+                                val fraction = sleepTimerRemainingMs / PlayerViewModel.FADE_OUT_DURATION_MS.toFloat()
+                                lerp(
+                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                    MaterialTheme.colorScheme.primary,
+                                    fraction,
+                                )
+                            }
+                            else -> MaterialTheme.colorScheme.primary
+                        }
+                        Icon(
+                            modifier = Modifier.size(21.dp),
+                            imageVector = EpisodiveIcons.Moon,
+                            contentDescription = stringResource(R.string.feature_player_sleep_timer),
+                            tint = moonTint,
+                        )
+                    }
+                )
+
+                if (isDownloading) {
+                    EpisodiveIconProgressButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onToggleSave() },
+                        // 컨트롤 바 높이(52dp) 안에 링이 들어가야 위아래가 잘리지 않는다.
+                        size = PlayerDownloadRingSize,
+                        // 크기 확정 전(progress 0)에는 무한 스피너, 진행률이 잡히면 실제 %로 표시
+                        isLoading = downloadProgress <= 0f,
+                        progress = downloadProgress,
+                        // 활성 색은 같은 바에 있는 슬립 타이머와 같은 primary 다. 링만 색으로
+                        // 표시하고 안쪽 원은 비워, 바 안의 다른 아이콘들과 같은 평면으로 둔다.
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                        icon = {
+                            Icon(
+                                modifier = Modifier.size(21.dp),
+                                imageVector = EpisodiveIcons.Download,
+                                contentDescription = "Downloading",
+                            )
+                        },
+                    )
+                } else {
+                    EpisodiveIconToggleButton(
+                        modifier = Modifier.weight(1f),
+                        checked = isSaved,
+                        onCheckedChange = { onToggleSave() },
+                        colors = IconButtonDefaults.iconToggleButtonColors(
+                            checkedContainerColor = Color.Transparent,
+                            // 다운로드 완료(활성)도 슬립 타이머 활성과 같은 primary 로 맞춘다.
+                            checkedContentColor = MaterialTheme.colorScheme.primary,
+                            containerColor = Color.Transparent,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                        icon = {
+                            Icon(
+                                modifier = Modifier.size(21.dp),
+                                imageVector = EpisodiveIcons.Download,
+                                contentDescription = "Save",
+                            )
+                        },
+                        checkedIcon = {
+                            Icon(
+                                modifier = Modifier.size(21.dp),
+                                imageVector = EpisodiveIcons.DownloadDone,
+                                contentDescription = "Unsave",
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
-                        else -> MaterialTheme.colorScheme.primary
-                    }
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = EpisodiveIcons.Moon,
-                        contentDescription = stringResource(R.string.feature_player_sleep_timer),
-                        tint = moonTint,
                     )
                 }
-            )
 
-            if (isDownloading) {
-                EpisodiveIconProgressButton(
-                    modifier = Modifier.size(32.dp),
-                    onClick = { onToggleSave() },
-                    // 크기 확정 전(progress 0)에는 무한 스피너, 진행률이 잡히면 실제 %로 표시
-                    isLoading = downloadProgress <= 0f,
-                    progress = downloadProgress,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
+                EpisodiveIconButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onList,
                     icon = {
                         Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = EpisodiveIcons.Download,
-                            contentDescription = "Downloading",
-                        )
-                    },
-                )
-            } else {
-                EpisodiveIconToggleButton(
-                    modifier = Modifier.size(32.dp),
-                    checked = isSaved,
-                    onCheckedChange = { onToggleSave() },
-                    colors = IconButtonDefaults.iconToggleButtonColors(
-                        checkedContainerColor = Color.Transparent,
-                        checkedContentColor = MaterialTheme.colorScheme.onSurface,
-                        containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                    icon = {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = EpisodiveIcons.Download,
-                            contentDescription = "Save",
-                        )
-                    },
-                    checkedIcon = {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = EpisodiveIcons.DownloadDone,
-                            contentDescription = "Unsave",
+                            modifier = Modifier.size(21.dp),
+                            imageVector = EpisodiveIcons.TransitionTop,
+                            contentDescription = "List",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 )
             }
-
-            EpisodiveIconButton(
-                modifier = Modifier.size(32.dp),
-                onClick = onList,
-                icon = {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = EpisodiveIcons.TransitionTop,
-                        contentDescription = "List",
-                    )
-                }
-            )
         }
     }
 }
@@ -982,24 +1087,51 @@ private fun PlaylistSheet(
 
     ModalBottomSheet(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxHeight(0.78f)
             .windowInsetsPadding(WindowInsets.statusBars),
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        shape = EpisodiveShapes.bottomSheet,
         dragHandle = { EpisodiveDragHandle() }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Column(
+            modifier = Modifier.fillMaxSize(),
         ) {
-            episodeItems(
-                episodes = playlist,
-                playingIndex = playingIndex,
-                onEpisodeClick = onEpisodeClick,
-                onToggleLikedEpisode = onToggleLikedEpisode,
-                onToggleSavedEpisode = onToggleSavedEpisode,
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 22.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.feature_player_playlist_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                Text(
+                    text = stringResource(R.string.feature_player_playlist_queue_count, playlist.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                episodeItems(
+                    episodes = playlist,
+                    playingIndex = playingIndex,
+                    onEpisodeClick = onEpisodeClick,
+                    onToggleLikedEpisode = onToggleLikedEpisode,
+                    onToggleSavedEpisode = onToggleSavedEpisode,
+                )
+            }
         }
     }
 }
@@ -1033,14 +1165,13 @@ private fun SleepTimerSheet(
         }
     }
 
+    // 한 줄에 들어가는 다섯 개까지만 둔다. 줄바꿈되면 시트가 세로로 늘어나 다이얼·버튼이 밀린다.
     val timerPresets = remember {
         listOf(
             30L * 1000,
             5L * 60 * 1000,
             10L * 60 * 1000,
-            15L * 60 * 1000,
             30L * 60 * 1000,
-            45L * 60 * 1000,
             60L * 60 * 1000,
         )
     }
@@ -1051,19 +1182,22 @@ private fun SleepTimerSheet(
         modifier = modifier.fillMaxWidth(),
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        shape = EpisodiveShapes.bottomSheet,
         dragHandle = { EpisodiveDragHandle() }
     ) {
         Box {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize(),
+                    .animateContentSize()
+                    .padding(horizontal = 22.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = stringResource(R.string.feature_player_sleep_timer),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
@@ -1082,67 +1216,72 @@ private fun SleepTimerSheet(
                     }
                     else -> MaterialTheme.colorScheme.primary
                 }
-                Text(
-                    text = String.format("%d:%02d", minutes, seconds),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = timerColor,
-                )
+                val moonColor = if (isActive) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
 
-                FlowRow(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(26.dp),
+                        imageVector = EpisodiveIcons.Moon,
+                        contentDescription = null,
+                        tint = moonColor,
+                    )
+
+                    Text(
+                        text = String.format("%d:%02d", minutes, seconds),
+                        style = PlayerSleepTimerValueTextStyle,
+                        color = timerColor,
+                    )
+                }
+
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     timerPresets.forEach { durationMs ->
                         val totalSeconds = (durationMs / 1000).toInt()
-                        val label = if (totalSeconds < 60) "${totalSeconds}s"
-                        else stringResource(R.string.feature_player_sleep_timer_minutes, totalSeconds / 60)
-                        EpisodiveButton(
-                            modifier = Modifier.size(48.dp),
-                            onClick = { handleAction { onSetTimer(durationMs) } },
-                            shape = CircleShape,
-                            contentPadding = PaddingValues(0.dp),
-                            buttonColors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.titleSmall,
+                        // 단위는 로케일 리소스가 붙인다 (한국어 "초/분", 영어 "s/m").
+                        val label = if (totalSeconds < 60) {
+                            stringResource(R.string.feature_player_sleep_timer_seconds, totalSeconds)
+                        } else {
+                            stringResource(
+                                R.string.feature_player_sleep_timer_minutes,
+                                totalSeconds / 60
                             )
                         }
+                        PlayerPresetCircle(
+                            size = PlayerSleepTimerPresetSize,
+                            label = label,
+                            selected = false,
+                            onClick = { handleAction { onSetTimer(durationMs) } },
+                        )
                     }
                 }
 
-                EpisodiveButton(
+                PlayerSheetActionButton(
                     onClick = { handleAction { onEndOfEpisode() } },
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-                    buttonColors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.feature_player_sleep_timer_end_of_episode),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    icon = EpisodiveIcons.SkipNext,
+                    text = stringResource(R.string.feature_player_sleep_timer_end_of_episode),
+                )
 
                 AnimatedVisibility(visible = isActive) {
-                    EpisodiveButton(
+                    PlayerSheetActionButton(
                         onClick = { onCancel() },
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-                        buttonColors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                    ) {
-                        Text(
-                            text = stringResource(R.string.feature_player_sleep_timer_cancel),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        icon = EpisodiveIcons.Close,
+                        text = stringResource(R.string.feature_player_sleep_timer_cancel),
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1166,58 +1305,167 @@ private fun SpeedSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val decimalFormat = DecimalFormat("#.#")
     val manualSpeed = remember { listOf(0.5f, 1f, 1.5f, 2f, 3.5f) }
-    val isDefaultSpeed = speed == 1f
 
     ModalBottomSheet(
         modifier = modifier
             .fillMaxWidth(),
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        shape = EpisodiveShapes.bottomSheet,
         dragHandle = { EpisodiveDragHandle() }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 22.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "${decimalFormat.format(speed)}${stringResource(R.string.feature_player_speed)}",
-                style = MaterialTheme.typography.headlineMedium,
-                color = if (isDefaultSpeed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                text = stringResource(R.string.feature_player_playback_speed),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = decimalFormat.format(speed),
+                    style = PlayerDialValueTextStyle,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                Text(
+                    text = stringResource(R.string.feature_player_speed),
+                    style = PlayerDialUnitTextStyle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
             EpisodiveDial(
+                modifier = Modifier.padding(top = 6.dp),
                 value = speed,
                 onValueChange = onSpeedChange,
             )
 
             Row(
+                modifier = Modifier.padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
             ) {
-                manualSpeed.forEach { speed ->
-                    EpisodiveButton(
-                        modifier = Modifier
-                            .size(48.dp),
-                        onClick = { onSpeedChange(speed) },
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(0.dp),
-                        buttonColors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    ) {
-                        Text(
-                            text = decimalFormat.format(speed),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
+                manualSpeed.forEach { presetSpeed ->
+                    PlayerPresetCircle(
+                        size = 52.dp,
+                        label = "${decimalFormat.format(presetSpeed)}x",
+                        selected = speed == presetSpeed,
+                        onClick = { onSpeedChange(presetSpeed) },
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+    }
+}
+
+/** v2: 배속·슬립타이머 시트가 공유하는 원형 프리셋 (원본 줄 396, 415). */
+@Composable
+private fun PlayerPresetCircle(
+    modifier: Modifier = Modifier,
+    size: Dp,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .then(
+                if (selected) {
+                    Modifier.shadow(
+                        elevation = 8.dp,
+                        shape = CircleShape,
+                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    )
+                } else {
+                    Modifier
+                },
+            )
+            .clip(CircleShape)
+            .background(
+                if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    // 시트 배경(surfaceContainer)과 한 단계 차이인 surfaceContainerHigh 로는
+                    // 버튼 경계가 보이지 않는다. 두 단계 위 표면에 테두리까지 둘러 분리한다.
+                    MaterialTheme.colorScheme.surfaceContainerHighest
+                },
+            )
+            .then(
+                if (selected) {
+                    Modifier
+                } else {
+                    Modifier.border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                        CircleShape,
+                    )
+                },
+            )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+            ),
+            color = if (selected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        )
+    }
+}
+
+/** v2: 슬립타이머 시트의 "에피소드 끝까지" / "타이머 취소" pill 버튼(원본 줄 422~423). */
+@Composable
+private fun PlayerSheetActionButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    containerColor: Color,
+    contentColor: Color,
+    icon: ImageVector,
+    text: String,
+    fontWeight: FontWeight = FontWeight.SemiBold,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clip(EpisodiveShapes.pill)
+            .background(containerColor)
+            .clickable { onClick() },
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            modifier = Modifier.size(18.dp),
+            imageVector = icon,
+            contentDescription = null,
+            tint = contentColor,
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = fontWeight),
+            color = contentColor,
+        )
     }
 }
 

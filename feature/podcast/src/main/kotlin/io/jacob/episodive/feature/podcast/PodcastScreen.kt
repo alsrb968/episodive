@@ -1,20 +1,28 @@
 package io.jacob.episodive.feature.podcast
 
+import android.content.Intent
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,16 +35,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import io.jacob.episodive.core.designsystem.component.DominantRegion
 import io.jacob.episodive.core.designsystem.component.EpisodiveButton
-import io.jacob.episodive.core.designsystem.component.EpisodiveGradientBackground
+import io.jacob.episodive.core.designsystem.component.EpisodiveButtonDefaults
+import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
@@ -45,8 +61,8 @@ import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.screen.LoadingScreen
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
-import io.jacob.episodive.core.designsystem.theme.GradientColors
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
@@ -55,10 +71,19 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.ui.EpisodeItem
 import kotlinx.coroutines.flow.Flow
-
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import io.jacob.episodive.core.ui.R as uiR
+
+/** 커버 팔레트가 준비되기 전 쓰는 히어로 그라디언트 시작색, 그리고 그라디언트가 깔리는 높이. */
+private val PodcastHeaderGradientFallback = Color(0xFF6B2A20)
+private val PodcastHeaderGradientHeight = 480.dp
+
+private val PodcastHeaderTopPadding = 28.dp
+private val PodcastHeaderCoverSize = 220.dp
+
+/** 팔로우 버튼 폭 — 화면 폭을 다 채우면 지나치게 길쭉해 보인다. */
+private val PodcastFollowButtonWidth = 190.dp
 
 @Composable
 internal fun PodcastRoute(
@@ -128,6 +153,12 @@ internal fun PodcastScreen(
     val episodesPaging = episodes.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val dimension = LocalDimensionTheme.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+    // 상단 그라디언트는 커버 아트에서 뽑은 색에서 시작해 화면 배경으로 흘러 내려간다.
+    var dominantColor by remember { mutableStateOf(PodcastHeaderGradientFallback) }
 
     FadeTopBarLayout(
         modifier = modifier,
@@ -140,27 +171,68 @@ internal fun PodcastScreen(
             modifier = Modifier
                 .fillMaxSize(),
             state = listState,
+            // 커버가 상태바 시계와 겹치지 않도록 위를, 마지막 에피소드가 미니플레이어에
+            // 가리지 않도록 아래를 띄운다.
+            contentPadding = PaddingValues(
+                top = statusBarTop,
+                bottom = dimension.playerBarSpace,
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
                 PodcastHeader(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    // 그라디언트를 리스트 뒤에 따로 깔지 않고 헤더 항목이 직접 그린다.
+                    // 그래야 스크롤할 때 커버와 같이 위로 올라간다. 항목 높이와 무관하게
+                    // 리스트 최상단(상태바 뒤)부터 정해진 높이만큼 칠하고, 뒤따르는 항목들이
+                    // 그 위에 그려지므로 넘치는 부분이 콘텐츠를 가리지 않는다.
+                    modifier = Modifier
+                        .drawWithCache {
+                            val topOffset = -statusBarTop.toPx()
+                            val gradientHeight = PodcastHeaderGradientHeight.toPx()
+                            val brush = Brush.verticalGradient(
+                                0f to dominantColor,
+                                0.46f to lerp(dominantColor, backgroundColor, 0.62f),
+                                0.86f to backgroundColor,
+                                startY = topOffset,
+                                endY = topOffset + gradientHeight,
+                            )
+                            onDrawBehind {
+                                drawRect(
+                                    brush = brush,
+                                    topLeft = Offset(0f, topOffset),
+                                    size = Size(size.width, gradientHeight),
+                                )
+                            }
+                        }
+                        .padding(horizontal = dimension.screenPadding),
                     podcast = podcast,
                     onFollowClick = onFollowClick,
+                    onDominantColorExtracted = { dominantColor = it },
                 )
             }
 
             item {
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(
+                        start = dimension.screenPadding,
+                        end = dimension.screenPadding,
+                        top = 20.dp,
+                        bottom = 16.dp,
+                    )
+                )
             }
 
             item {
                 Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(
+                        start = dimension.screenPadding,
+                        end = dimension.screenPadding,
+                        bottom = 14.dp,
+                    ),
                     text = stringResource(R.string.feature_podcast_all_episodes_format).format(
                         podcast.episodeCount
                     ),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }
@@ -172,7 +244,7 @@ internal fun PodcastScreen(
             ) { index ->
                 episodesPaging[index]?.let { episode ->
                     EpisodeItem(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = dimension.screenPadding),
                         episode = episode,
                         onClick = {
                             val visibleEpisodes = episodesPaging.itemSnapshotList.items
@@ -185,7 +257,7 @@ internal fun PodcastScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+                Spacer(modifier = Modifier.height(dimension.playerBarHeight))
             }
         }
 
@@ -213,67 +285,113 @@ private fun PodcastHeader(
     modifier: Modifier = Modifier,
     podcast: Podcast,
     onFollowClick: () -> Unit,
+    onDominantColorExtracted: (Color) -> Unit = {},
 ) {
     val isFollowed = podcast.isFollowed
-    var dominantColor by remember { mutableStateOf(Color.DarkGray) }
+    val context = LocalContext.current
 
-    EpisodiveGradientBackground(
-        gradientColors = GradientColors(
-            top = dominantColor,
-        )
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = PodcastHeaderTopPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(top = 110.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        StateImage(
+            modifier = Modifier
+                .size(PodcastHeaderCoverSize)
+                .shadow(
+                    elevation = 20.dp,
+                    shape = EpisodiveShapes.heroCover,
+                    ambientColor = Color.Black.copy(alpha = 0.7f),
+                    spotColor = Color.Black.copy(alpha = 0.7f),
+                )
+                .clip(shape = EpisodiveShapes.heroCover),
+            imageUrl = podcast.image,
+            contentDescription = podcast.title,
+            onDominantColorExtracted = onDominantColorExtracted,
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Text(
+            text = podcast.author,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.tertiary,
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = podcast.title,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        HtmlTextContainer(text = podcast.description) {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                // 제목·저자는 중앙 정렬이지만 설명은 여러 줄로 흐르므로 중앙 정렬하면
+                // 줄마다 좌우 끝이 들쭉날쭉해져 읽기 어렵다.
+                textAlign = TextAlign.Start,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
         ) {
-            StateImage(
-                modifier = Modifier
-                    .size(220.dp)
-                    .clip(shape = MaterialTheme.shapes.extraExtraLarge),
-                imageUrl = podcast.image,
-                contentDescription = podcast.title,
-                onDominantColorExtracted = { dominantColor = it },
-                dominantRegion = DominantRegion.Top,
-                brightnessAdjustment = -0.2f
-            )
-
-            Text(
-                text = podcast.author,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-
-            Text(
-                text = podcast.title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-
             EpisodiveButton(
+                // 옆의 공유 버튼과 같은 높이로 맞춘다. 높이가 다르면 두 버튼이 한 줄에
+                // 있는데도 서로 어긋나 보인다. 폭은 화면을 다 채우지 않고 내용에 맞춰
+                // 잡는다 — 화면 폭만큼 늘리면 알약이 지나치게 길쭉해진다.
+                modifier = Modifier
+                    .width(PodcastFollowButtonWidth)
+                    .height(LocalDimensionTheme.current.buttonHeightCompact),
                 onClick = onFollowClick,
-                shape = MaterialTheme.shapes.large,
-                buttonColors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFollowed) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
-                ),
+                buttonColors = if (isFollowed) {
+                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                } else {
+                    EpisodiveButtonDefaults.filledButtonColors()
+                },
                 text = { Text(stringResource(if (isFollowed) uiR.string.core_ui_unfollow else uiR.string.core_ui_follow)) },
                 leadingIcon = {
                     Icon(
+                        modifier = Modifier.size(19.dp),
                         imageVector = if (isFollowed) EpisodiveIcons.PersonRemove else EpisodiveIcons.PersonAdd,
                         contentDescription = null
                     )
                 },
             )
 
-            HtmlTextContainer(text = podcast.description) {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+            EpisodiveIconButton(
+                modifier = Modifier.size(LocalDimensionTheme.current.buttonHeightCompact),
+                onClick = {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, podcast.link.ifEmpty { podcast.url })
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, null))
+                },
+                shape = EpisodiveShapes.pill,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                icon = {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = EpisodiveIcons.WorldShare,
+                        contentDescription = "Share",
+                    )
+                },
+            )
         }
     }
 }

@@ -1,12 +1,17 @@
 package io.jacob.episodive.core.designsystem.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -14,8 +19,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
@@ -28,22 +36,39 @@ fun EpisodiveTopAppBar(
     navigationIconContentDescription: String? = null,
     actionIcon: ImageVector? = null,
     actionIconContentDescription: String? = null,
-    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
+        containerColor = Color.Transparent,
+        scrolledContainerColor = Color.Transparent,
+        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        actionIconContentColor = MaterialTheme.colorScheme.onSurface,
+    ),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
 ) {
     TopAppBar(
-        title = title,
+        title = {
+            ProvideTextStyle(value = MaterialTheme.typography.titleMedium) {
+                title()
+            }
+        },
         navigationIcon = {
             if (navigationIcon == null) return@TopAppBar
             if (navigationIconContentDescription == null) return@TopAppBar
 
-            IconButton(onClick = onNavigationClick) {
+            IconButton(
+                onClick = onNavigationClick,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.32f)),
+            ) {
                 Icon(
                     imageVector = navigationIcon,
                     contentDescription = navigationIconContentDescription,
                     tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         },
@@ -73,7 +98,13 @@ fun EpisodiveCenterTopAppBar(
     navigationIconContentDescription: String? = null,
     actionIcon: ImageVector? = null,
     actionIconContentDescription: String? = null,
-    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
+        containerColor = Color.Transparent,
+        scrolledContainerColor = Color.Transparent,
+        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        actionIconContentColor = MaterialTheme.colorScheme.onSurface,
+    ),
     iconButtonColors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
@@ -81,7 +112,11 @@ fun EpisodiveCenterTopAppBar(
     onActionClick: () -> Unit = {},
 ) {
     CenterAlignedTopAppBar(
-        title = title,
+        title = {
+            ProvideTextStyle(value = MaterialTheme.typography.titleMedium) {
+                title()
+            }
+        },
         navigationIcon = {
             if (navigationIcon == null) return@CenterAlignedTopAppBar
             if (navigationIconContentDescription == null) return@CenterAlignedTopAppBar
@@ -89,11 +124,19 @@ fun EpisodiveCenterTopAppBar(
             IconButton(
                 onClick = onNavigationClick,
                 colors = iconButtonColors,
+                modifier = Modifier
+                    // M3 가 주는 시작 여백은 4dp 뿐이라, 40dp 원형 배경이 화면 왼쪽 끝에
+                    // 붙어 버린다. 원본은 left:16px 이므로 모자란 만큼 더한다 (원본 줄 322).
+                    .padding(start = 12.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.32f)),
             ) {
                 Icon(
                     imageVector = navigationIcon,
                     contentDescription = navigationIconContentDescription,
                     tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         },

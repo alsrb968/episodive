@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -27,6 +29,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,14 +41,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,10 +66,13 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveGradientBackgroun
 import io.jacob.episodive.core.designsystem.component.LoadingWheel
 import io.jacob.episodive.core.designsystem.component.scrollbar.DraggableScrollbar
 import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
+import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.screen.LoadingScreen
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.GradientColors
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Podcast
@@ -70,6 +84,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+
+// v2: 토큰에 없는 온보딩 전용 일회성 값 (design/V2-SPEC.md 원본 줄 121~160)
+private val WelcomeGlowOffsetX = (-60).dp
+private val WelcomeGlowOffsetY = (-80).dp
+private val WelcomeGlowSize = 320.dp
+private val WelcomeGlowBlur = 8.dp
+private val WelcomeCtaHeight = 58.dp
+private val CategoryChipShape = RoundedCornerShape(22.dp)
+private val PagerIndicatorInactiveSize = 8.dp
+private val PagerIndicatorActiveWidth = 26.dp
+private val PagerIndicatorActiveShape = RoundedCornerShape(4.dp)
 
 @Composable
 fun OnboardingRoute(
@@ -157,6 +182,8 @@ internal fun OnboardingScreen(
         }
 
         if (pagerState.currentPage != OnboardingPage.lastIndex()) {
+            val isWelcomePage = pagerState.currentPage == OnboardingPage.Welcome.ordinal
+
             EpisodiveGradientBackground(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -169,10 +196,10 @@ internal fun OnboardingScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .padding(top = 100.dp)
+                        .padding(horizontal = 24.dp)
+                        .padding(top = 100.dp, bottom = 34.dp)
                         .align(Alignment.BottomCenter),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     PagerIndicator(
                         modifier = Modifier
@@ -181,14 +208,64 @@ internal fun OnboardingScreen(
                         currentPage = pagerState.currentPage
                     )
 
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     EpisodiveButton(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
+                            .fillMaxWidth()
+                            .height(if (isWelcomePage) WelcomeCtaHeight else LocalDimensionTheme.current.buttonHeight),
+                        shape = EpisodiveShapes.pill,
                         onClick = onNextPage,
-                        text = { Text(text = stringResource(R.string.feature_onboarding_next)) },
                         enabled = true,
-                    )
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(9.dp, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    if (isWelcomePage) {
+                                        R.string.feature_onboarding_welcome_cta
+                                    } else {
+                                        R.string.feature_onboarding_next
+                                    },
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+
+                            if (isWelcomePage) {
+                                Icon(
+                                    imageVector = EpisodiveIcons.CaretRight,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                        }
+                    }
+
+                    if (isWelcomePage) {
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        val loginPrefix = stringResource(R.string.feature_onboarding_welcome_login_prefix)
+                        val loginAction = stringResource(R.string.feature_onboarding_welcome_login_action)
+                        Text(
+                            text = buildAnnotatedString {
+                                append(loginPrefix)
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontWeight = FontWeight.SemiBold,
+                                    ),
+                                ) {
+                                    append(loginAction)
+                                }
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }
@@ -199,37 +276,54 @@ internal fun OnboardingScreen(
 private fun WelcomeScreen(
     modifier: Modifier = Modifier,
 ) {
-    EpisodiveGradientBackground(
+    Box(
         modifier = modifier
             .fillMaxSize(),
-        gradientColors = GradientColors(
-            top = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        )
     ) {
+        // v2: 좌상단 레드 radial 글로우
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(50.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(30.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.feature_onboarding_undraw_relax_mode),
-                    contentDescription = "Welcome Image",
-                )
+                .offset(x = WelcomeGlowOffsetX, y = WelcomeGlowOffsetY)
+                .size(WelcomeGlowSize)
+                .blur(WelcomeGlowBlur)
+                .background(
+                    brush = Brush.radialGradient(
+                        colorStops = arrayOf(
+                            0f to MaterialTheme.colorScheme.primary.copy(alpha = 0.32f),
+                            0.68f to Color.Transparent,
+                        ),
+                    ),
+                ),
+        )
 
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    text = stringResource(R.string.feature_onboarding_welcome_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 30.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.feature_onboarding_undraw_relax_mode),
+                contentDescription = "Welcome Image",
+                modifier = Modifier
+                    .fillMaxWidth(),
+            )
+
+            Spacer(modifier = Modifier.height(34.dp))
+
+            Text(
+                text = stringResource(R.string.feature_onboarding_welcome_title),
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = stringResource(R.string.feature_onboarding_welcome_description),
+                style = MaterialTheme.typography.bodyLarge.copy(lineHeight = MaterialTheme.typography.bodyLarge.fontSize * 1.65f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -251,46 +345,49 @@ private fun CategorySelectionScreen(
     ) {
         LazyColumn(
             state = lazyListState,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 16.dp + systemBarsPadding.calculateTopPadding(),
-                bottom = 16.dp + systemBarsPadding.calculateBottomPadding() + 64.dp
+                top = systemBarsPadding.calculateTopPadding(),
+                bottom = systemBarsPadding.calculateBottomPadding() + 64.dp
             ),
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("onboarding:categorySelection"),
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.feature_onboarding_category_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, top = 26.dp, bottom = 8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.feature_onboarding_category_title),
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
 
-            item {
-                Text(
-                    text = stringResource(R.string.feature_onboarding_category_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.feature_onboarding_category_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             item {
                 FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 22.dp, vertical = 18.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     categories.forEach {
                         EpisodiveFilterChip(
                             selected = it.isSelected,
                             onSelectedChange = { _ -> onCategoryCheckedChanged(it.category) },
+                            shape = CategoryChipShape,
                             label = { Text(text = it.category.label) },
                         )
                     }
@@ -342,34 +439,33 @@ private fun PodcastSelectionScreen(
 
         LazyColumn(
             state = lazyListState,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
             contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 16.dp + systemBarsPadding.calculateTopPadding(),
-                bottom = 16.dp + systemBarsPadding.calculateBottomPadding() + 64.dp
+                start = 20.dp,
+                end = 20.dp,
+                top = systemBarsPadding.calculateTopPadding() + 16.dp,
+                bottom = systemBarsPadding.calculateBottomPadding() + 64.dp
             ),
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("onboarding:podcastSelection"),
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.feature_onboarding_podcast_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-            }
+                Column {
+                    Text(
+                        text = stringResource(R.string.feature_onboarding_podcast_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
 
-            item {
-                Text(
-                    text = stringResource(R.string.feature_onboarding_podcast_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.feature_onboarding_podcast_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             items(
@@ -457,24 +553,22 @@ private fun PagerIndicator(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
     ) {
         repeat(pageCount) { page ->
+            val isActive = page == currentPage
             Box(
                 modifier = Modifier
-                    .width(if (page == currentPage) 24.dp else 8.dp)
-                    .height(8.dp)
-                    .clip(CircleShape)
+                    .width(if (isActive) PagerIndicatorActiveWidth else PagerIndicatorInactiveSize)
+                    .height(PagerIndicatorInactiveSize)
+                    .clip(if (isActive) PagerIndicatorActiveShape else CircleShape)
                     .background(
-                        if (page == currentPage)
+                        if (isActive)
                             MaterialTheme.colorScheme.primary
                         else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            MaterialTheme.colorScheme.surfaceContainerHigh
                     )
             )
-            if (page < pageCount - 1) {
-                Spacer(modifier = Modifier.width(8.dp))
-            }
         }
     }
 }

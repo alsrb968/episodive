@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_onboarding_welcome_title">언제 어디서나\n매력적인 콘텐츠에 액세스하기</string>
+    <string name="feature_onboarding_welcome_description">앨범아트 색으로 물드는 몰입형 플레이어.\n당신의 취향을 아는 팟캐스트.</string>
+    <string name="feature_onboarding_welcome_cta">시작하기</string>
+    <string name="feature_onboarding_welcome_login_prefix">이미 계정이 있어요 · </string>
+    <string name="feature_onboarding_welcome_login_action">로그인</string>
     <string name="feature_onboarding_category_title">당신의 카테고리를 선택하세요</string>
     <string name="feature_onboarding_category_description">좋아하는 팟캐스트 장르를\n세 개 이상 선택하세요.</string>
     <string name="feature_onboarding_category_more_categories">3개 이상 선택해주세요.</string>

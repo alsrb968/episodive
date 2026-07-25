@@ -2,8 +2,30 @@ package io.jacob.episodive.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Red Primary - #F5332C 기반
-val primaryLight = Color(0xFFF5332C)
+// ---------------------------------------------------------------------------
+// Episodive v2 — warm near-black 팔레트
+//
+// 디자인 원본(design/Episodive-v2.dc.html)의 CSS 변수를 그대로 옮긴다.
+//   --bg  #16110E   --surf #1E1714   --card #271E1A
+//   --fg  #F4EAE6   --mut  #A2938D
+//   --red #F5372B   --line rgba(255,255,255,.07)
+// 다크가 기준 테마다. 라이트는 디자인에 정의가 없어 기존 값을 유지하되
+// 브랜드 primary만 v2 레드로 맞춘다.
+// ---------------------------------------------------------------------------
+
+// 브랜드 상수 — M3 롤에 담기지 않는 값들 (그라디언트, 미니플레이어 등에서 직접 참조)
+val EpisodiveRed = Color(0xFFF5372B)
+val EpisodiveRedDim = Color(0xFF4A1A14)
+val EpisodiveRedContainer = Color(0xFF8B1E1A)
+val EpisodiveOnRedContainer = Color(0xFFFFDAD6)
+val EpisodiveRedLight = Color(0xFFFF9A90)
+
+// 미니플레이어 / 이어듣기 히어로 그라디언트 양 끝
+val EpisodiveHeroGradientStart = Color(0xFF5A271D)
+val EpisodiveHeroGradientEnd = Color(0xFF2B1712)
+
+// Red Primary - #F5372B 기반
+val primaryLight = Color(0xFFF5372B)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFFFFDAD6)
 val onPrimaryContainerLight = Color(0xFF410002)
@@ -49,48 +71,55 @@ val surfaceContainerHighLight = Color(0xFFF3E4E4)
 val surfaceContainerHighestLight = Color(0xFFEDDEDE)
 
 
-// Red Primary - #F5332C 기반
-val primaryDark = Color(0xFFF5332C)
+// --- Dark: 디자인 원본 값 ---
+
+// primary = --red / container = nav pill·재생 버튼 배경 (#8B1E1A)
+val primaryDark = Color(0xFFF5372B)
 val onPrimaryDark = Color(0xFFFFFFFF)
 val primaryContainerDark = Color(0xFF8B1E1A)
 val onPrimaryContainerDark = Color(0xFFFFDAD6)
 
-// Secondary - Red의 변형
-val secondaryDark = Color(0xFFFF5449)
-val onSecondaryDark = Color(0xFF000000)
-val secondaryContainerDark = Color(0xFF9C2B23)
-val onSecondaryContainerDark = Color(0xFFFFE0DE)
+// secondary — 선택된 칩과 nav pill이 primaryContainer와 같은 톤을 쓴다
+val secondaryDark = Color(0xFFFF9A90)
+val onSecondaryDark = Color(0xFF2B0402)
+val secondaryContainerDark = Color(0xFF8B1E1A)
+val onSecondaryContainerDark = Color(0xFFFFDAD6)
 
-// Tertiary - Red-Orange 보완색
-val tertiaryDark = Color(0xFFFF7043)
-val onTertiaryDark = Color(0xFF2D0900)
-val tertiaryContainerDark = Color(0xFF5C1A00)
-val onTertiaryContainerDark = Color(0xFFFFDBCC)
+// tertiary — 강조 라벨("이어 듣기", 진행자명, 재생 중 표시)
+val tertiaryDark = Color(0xFFFF9A90)
+val onTertiaryDark = Color(0xFF2B0402)
+val tertiaryContainerDark = Color(0xFF5A271D)
+val onTertiaryContainerDark = Color(0xFFFFDAD6)
 
-val errorDark = Color(0xFFFF6B6B)
-val onErrorDark = Color(0xFF370001)
-val errorContainerDark = Color(0xFF5F1213)
-val onErrorContainerDark = Color(0xFFFFDAD6)
+// error — 오프라인 배너 (bg #3A1A17 / text #FF9A90)
+val errorDark = Color(0xFFFF9A90)
+val onErrorDark = Color(0xFF2B0402)
+val errorContainerDark = Color(0xFF3A1A17)
+val onErrorContainerDark = Color(0xFFFF9A90)
 
-// Neutral - Dark Background 계열 (더 명확한 구분)
-val backgroundDark = Color(0xFF1C1B1B)
-val onBackgroundDark = Color(0xFFECE0DF)
-val surfaceDark = Color(0xFF1C1B1B)
-val onSurfaceDark = Color(0xFFECE0DF)
-val surfaceVariantDark = Color(0xFF534341)
-val onSurfaceVariantDark = Color(0xFFD8C2BE)
+// Neutral - warm near-black 엘리베이션 사다리
+//
+// 원본 CSS 는 R 이 B 보다 8~13 높은 웜 뉴트럴이라 화면 전체에 붉은 기가 돈다.
+// 브랜드 레드(primary)와 겹쳐 배경까지 붉게 보이므로, 색조는 유지하되 R-B 격차를
+// 대략 절반으로 줄여 중성 웜그레이에 가깝게 낮춘다. 밝기(평균 채널값)는 그대로다.
+val backgroundDark = Color(0xFF14100F)          // --bg  (원본 #16110E)
+val onBackgroundDark = Color(0xFFEFEAE8)        // --fg  (원본 #F4EAE6)
+val surfaceDark = Color(0xFF14100F)             // --bg
+val onSurfaceDark = Color(0xFFEFEAE8)           // --fg
+val surfaceVariantDark = Color(0xFF24201D)      // --card (원본 #271E1A)
+val onSurfaceVariantDark = Color(0xFF9A928E)    // --mut  (원본 #A2938D)
 
-val outlineDark = Color(0xFF9F8C89)
-val outlineVariantDark = Color(0xFF534341)
+val outlineDark = Color(0xFF9A928E)
+val outlineVariantDark = Color(0x12FFFFFF)      // --line: rgba(255,255,255,.07)
 val scrimDark = Color(0xFF000000)
-val inverseSurfaceDark = Color(0xFFECE0DF)
-val inverseOnSurfaceDark = Color(0xFF362F2F)
-val inversePrimaryDark = Color(0xFFFFB3A6)
+val inverseSurfaceDark = Color(0xFFEFEAE8)
+val inverseOnSurfaceDark = Color(0xFF14100F)
+val inversePrimaryDark = Color(0xFFF5372B)
 
-val surfaceDimDark = Color(0xFF1C1B1B)
-val surfaceBrightDark = Color(0xFF433B3A)
-val surfaceContainerLowestDark = Color(0xFF171515)
-val surfaceContainerLowDark = Color(0xFF252323)
-val surfaceContainerDark = Color(0xFF292727)
-val surfaceContainerHighDark = Color(0xFF343131)
-val surfaceContainerHighestDark = Color(0xFF3F3C3C)
+val surfaceDimDark = Color(0xFF110F0E)
+val surfaceBrightDark = Color(0xFF302B29)
+val surfaceContainerLowestDark = Color(0xFF110F0E)   // 클립 화면 nav
+val surfaceContainerLowDark = Color(0xFF1B1817)      // --surf: nav bar, 컴포넌트 카드
+val surfaceContainerDark = Color(0xFF211F1E)         // 바텀시트
+val surfaceContainerHighDark = Color(0xFF24201D)     // --card: 칩, 필드, 그리드 카드
+val surfaceContainerHighestDark = Color(0xFF302B29)  // 스낵바

@@ -4,7 +4,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -13,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -36,6 +40,7 @@ fun EpisodiveSwipeDismissSnackbarHost(
         Snackbar(
             snackbarData = snackbarData,
             modifier = Modifier
+                .heightIn(min = 50.dp)
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .draggable(
                     orientation = Orientation.Vertical,
@@ -50,6 +55,10 @@ fun EpisodiveSwipeDismissSnackbarHost(
                         }
                     },
                 ),
+            shape = EpisodiveShapes.field,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            actionContentColor = MaterialTheme.colorScheme.primary,
         )
     }
 }

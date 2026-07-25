@@ -19,6 +19,7 @@ import dev.vivvvek.seeker.SeekerDefaults
 import dev.vivvvek.seeker.Segment
 import dev.vivvvek.seeker.rememberSeekerState
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Chapter
 import io.jacob.episodive.core.model.Progress
@@ -39,9 +40,9 @@ fun EpisodiveSeeker(
     val interactionSource = remember { MutableInteractionSource() }
     val isDragging by interactionSource.collectIsDraggedAsState()
 
-    val progressHeight = 4.dp
-    val gap by animateDpAsState(if (isDragging) 4.dp else 2.dp)
-    val thumbRadius by animateDpAsState(if (isDragging) 10.dp else 6.dp)
+    val progressHeight = LocalDimensionTheme.current.progressThickness
+    val gap by animateDpAsState(if (isDragging) 10.dp else 8.dp)
+    val thumbRadius by animateDpAsState(if (isDragging) 9.dp else 7.dp)
 
     var thumbPosition by remember { mutableFloatStateOf(0f) }
 
@@ -76,11 +77,11 @@ fun EpisodiveSeeker(
         enabled = isControllable,
         colors = SeekerDefaults.seekerColors(
             progressColor = MaterialTheme.colorScheme.primary,
-            readAheadColor = MaterialTheme.colorScheme.primaryContainer,
-            trackColor = MaterialTheme.colorScheme.outline,
+            readAheadColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f),
             thumbColor = if (isControllable) MaterialTheme.colorScheme.primary else Color.Transparent,
             disabledProgressColor = MaterialTheme.colorScheme.primary,
-            disabledTrackColor = MaterialTheme.colorScheme.outline,
+            disabledTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f),
             disabledThumbColor = if (isControllable) MaterialTheme.colorScheme.primary else Color.Transparent,
         ),
         dimensions = SeekerDefaults.seekerDimensions(
