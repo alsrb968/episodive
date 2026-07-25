@@ -26,6 +26,10 @@ import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.mapper.toLongMillis
 import kotlin.time.Duration.Companion.seconds
 
+/** 챕터 구간 사이 간격 — 드래그 중에만 조금 벌려 어디를 잡고 있는지 보이게 한다. */
+private val SeekerChapterGap = 2.dp
+private val SeekerChapterGapDragged = 4.dp
+
 @Composable
 fun EpisodiveSeeker(
     modifier: Modifier = Modifier,
@@ -41,7 +45,8 @@ fun EpisodiveSeeker(
     val isDragging by interactionSource.collectIsDraggedAsState()
 
     val progressHeight = LocalDimensionTheme.current.progressThickness
-    val gap by animateDpAsState(if (isDragging) 10.dp else 8.dp)
+    // 챕터 사이 간격. 넓히면 트랙이 토막난 것처럼 보여, 챕터 경계만 알아볼 만큼으로 둔다.
+    val gap by animateDpAsState(if (isDragging) SeekerChapterGapDragged else SeekerChapterGap)
     val thumbRadius by animateDpAsState(if (isDragging) 9.dp else 7.dp)
 
     var thumbPosition by remember { mutableFloatStateOf(0f) }
