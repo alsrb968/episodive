@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -45,7 +47,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconText
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
-import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
@@ -287,7 +288,10 @@ private fun ChannelPodcastCard(
             text = podcast.title,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 2,
+            // 제목이 한 줄인 카드와 두 줄인 카드의 높이가 달라지지 않도록 항상 두 줄을
+            // 차지하게 한다. 그리드는 항목 높이를 맞춰 주지 않아 카드 배경이 들쭉날쭉해진다.
+            minLines = ChannelPodcastCardTitleLines,
+            maxLines = ChannelPodcastCardTitleLines,
             overflow = TextOverflow.Ellipsis,
         )
 
@@ -309,49 +313,56 @@ private fun ChannelFooter(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            // SectionHeader 는 화면 기본 여백(20dp)을 자체적으로 넣는다. 그리드가 이미
+            // 12dp 를 두고 있어 합이 32dp 까지 밀리므로 여기서는 쓰지 않고, 채널 제목·카드
+            // 내용과 같은 24dp 선에 맞도록 모자란 12dp 만 더한다.
+            .padding(horizontal = ChannelHeaderHorizontalPadding - ChannelGridHorizontalPadding),
     ) {
-        SectionHeader(
-            title = stringResource(R.string.feature_channel_introduction),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Text(
-                text = channel.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Text(
+            text = stringResource(R.string.feature_channel_introduction),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
 
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-            )
+        Spacer(modifier = Modifier.height(14.dp))
 
-            val uriHandler = LocalUriHandler.current
+        Text(
+            text = channel.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
-            EpisodiveIconText(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { uriHandler.openUri(channel.link) }
-                    .padding(vertical = 20.dp),
-                icon = {
-                    Icon(
-                        modifier = Modifier.size(18.dp),
-                        imageVector = EpisodiveIcons.WorldShare,
-                        contentDescription = "Website",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.feature_channel_website),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                iconLead = false
-            )
-        }
+        HorizontalDivider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+        )
+
+        val uriHandler = LocalUriHandler.current
+
+        EpisodiveIconText(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { uriHandler.openUri(channel.link) }
+                .padding(vertical = 20.dp),
+            icon = {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    imageVector = EpisodiveIcons.WorldShare,
+                    contentDescription = "Website",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.feature_channel_website),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            },
+            iconLead = false
+        )
     }
 }
 
@@ -367,6 +378,9 @@ private val ChannelGridHorizontalPadding = 12.dp
 
 /** 커버 추출색을 카드 배경으로 쓸 때의 농도. */
 private const val ChannelPodcastCardBackgroundAlpha = 0.55f
+
+/** 카드 제목이 항상 차지하는 줄 수 — 줄 수가 다르면 카드 높이가 어긋난다. */
+private const val ChannelPodcastCardTitleLines = 2
 
 /** 헤더 "채널" 라벨 색 및 자간 (원본 줄 324) */
 private val ChannelLabelColor = Color(0xFF8FB4D6)

@@ -93,13 +93,17 @@ private val PlayingRowCornerRadius = 12.dp
  * 강조 배경 테두리 표시.
  *
  * 테두리 전체는 항상 [PlayingRowIndicatorBaseAlpha] 로 은은하게 깔리고, 그 위를
- * [PlayingRowIndicatorSweep] 만큼의 구간이 꼬리에서 머리로 진해지며 돈다.
+ * [PlayingRowIndicatorSweep] 만큼의 구간 [PlayingRowIndicatorCount] 개가 둘레를
+ * 균등하게 나눈 자리에서 꼬리에서 머리로 진해지며 함께 돈다.
  */
 private val PlayingRowIndicatorWidth = 1.5.dp
-private const val PlayingRowIndicatorSweep = 0.32f
+private const val PlayingRowIndicatorSweep = 0.22f
 private const val PlayingRowIndicatorDurationMs = 2600
 private const val PlayingRowIndicatorBaseAlpha = 0.16f
 private const val PlayingRowIndicatorHeadAlpha = 0.58f
+
+/** 둘레를 도는 구간 수 — 둘레를 균등하게 나눈 자리에서 함께 돈다. */
+private const val PlayingRowIndicatorCount = 2
 
 /** 도는 구간을 몇 토막으로 나눠 그릴지 — 토막마다 알파를 올려 꼬리가 자연스럽게 흐려진다. */
 private const val PlayingRowIndicatorSteps = 8
@@ -141,21 +145,24 @@ private fun Modifier.playingRowIndicator(
             style = stroke,
         )
 
-        val head = phase.value * total
         val sweep = total * PlayingRowIndicatorSweep
 
-        repeat(PlayingRowIndicatorSteps) { step ->
-            val from = head + sweep * step / PlayingRowIndicatorSteps
-            val to = head + sweep * (step + 1) / PlayingRowIndicatorSteps
+        repeat(PlayingRowIndicatorCount) { index ->
+            val head = (phase.value + index.toFloat() / PlayingRowIndicatorCount) * total
 
-            segment.reset()
-            measure.appendSegment(segment, from, to, total)
+            repeat(PlayingRowIndicatorSteps) { step ->
+                val from = head + sweep * step / PlayingRowIndicatorSteps
+                val to = head + sweep * (step + 1) / PlayingRowIndicatorSteps
 
-            val ratio = (step + 1f) / PlayingRowIndicatorSteps
-            val alpha = PlayingRowIndicatorBaseAlpha +
-                    (PlayingRowIndicatorHeadAlpha - PlayingRowIndicatorBaseAlpha) * ratio
+                segment.reset()
+                measure.appendSegment(segment, from, to, total)
 
-            drawPath(path = segment, color = color.copy(alpha = alpha), style = stroke)
+                val ratio = (step + 1f) / PlayingRowIndicatorSteps
+                val alpha = PlayingRowIndicatorBaseAlpha +
+                        (PlayingRowIndicatorHeadAlpha - PlayingRowIndicatorBaseAlpha) * ratio
+
+                drawPath(path = segment, color = color.copy(alpha = alpha), style = stroke)
+            }
         }
     }
 }
