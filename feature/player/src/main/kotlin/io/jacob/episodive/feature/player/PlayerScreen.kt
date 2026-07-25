@@ -147,6 +147,10 @@ private val PlayerSleepTimerValueTextStyle = TextStyle(fontSize = 40.sp, fontWei
  */
 private val PlayerSleepTimerPresetSize = 52.dp
 
+/** 재생목록 항목 여백 — 위아래는 첫·마지막 항목의 강조 배경이 잘리지 않을 만큼만 둔다. */
+private val PlaylistHorizontalPadding = 16.dp
+private val PlaylistVerticalPadding = 8.dp
+
 @Composable
 fun PlayerBottomSheet(
     modifier: Modifier = Modifier,
@@ -1119,12 +1123,14 @@ private fun PlaylistSheet(
             }
 
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
+                modifier = Modifier.weight(1f),
+                // 재생 중 항목은 강조 배경이 행 바깥으로 번진다. 좌우 여백을 리스트에 걸면
+                // 그 번짐이 리스트 경계에서 잘리므로 여백은 항목에 준다.
+                contentPadding = PaddingValues(vertical = PlaylistVerticalPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 episodeItems(
+                    itemModifier = Modifier.padding(horizontal = PlaylistHorizontalPadding),
                     episodes = playlist,
                     playingIndex = playingIndex,
                     onEpisodeClick = onEpisodeClick,
