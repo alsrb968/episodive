@@ -89,13 +89,23 @@ private val PlayingRowBackground = Color(0xFF2C2320)
 private val PlayingRowBleed = 8.dp
 private val PlayingRowCornerRadius = 12.dp
 
-/** 강조 배경 테두리를 도는 프로그레스 — 획 두께, 둘레에서 차지하는 길이, 한 바퀴 시간. */
-private val PlayingRowIndicatorWidth = 2.dp
-private const val PlayingRowIndicatorSweep = 0.22f
-private const val PlayingRowIndicatorDurationMs = 1600
+/**
+ * 강조 배경 테두리 표시.
+ *
+ * 테두리 전체는 항상 [PlayingRowIndicatorBaseAlpha] 로 은은하게 깔리고, 그 위를
+ * [PlayingRowIndicatorSweep] 만큼의 구간이 꼬리에서 머리로 진해지며 돈다.
+ */
+private val PlayingRowIndicatorWidth = 1.5.dp
+private const val PlayingRowIndicatorSweep = 0.32f
+private const val PlayingRowIndicatorDurationMs = 2600
+private const val PlayingRowIndicatorBaseAlpha = 0.16f
+private const val PlayingRowIndicatorHeadAlpha = 0.58f
+
+/** 도는 구간을 몇 토막으로 나눠 그릴지 — 토막마다 알파를 올려 꼬리가 자연스럽게 흐려진다. */
+private const val PlayingRowIndicatorSteps = 8
 
 /**
- * 강조 배경 테두리를 한 방향으로 계속 도는 무한 프로그레스.
+ * 강조 배경 테두리를 한 방향으로 계속 도는 무한 표시.
  *
  * 청취 진행률이 아니라 "이 항목이 지금 돌고 있다"는 표시라 [phase] 는 항상 0→1 을 반복한다.
  * 경로와 측정기는 크기가 바뀔 때만 다시 만들고, 매 프레임에는 잘라낼 구간만 계산한다.
@@ -104,7 +114,8 @@ private fun Modifier.playingRowIndicator(
     phase: State<Float>,
     color: Color,
 ): Modifier = drawWithCache {
-    val stroke = Stroke(width = PlayingRowIndicatorWidth.toPx(), cap = StrokeCap.Round)
+    // 토막을 이어 붙이므로 끝을 둥글리지 않는다. 둥글리면 이음매마다 혹이 생긴다.
+    val stroke = Stroke(width = PlayingRowIndicatorWidth.toPx(), cap = StrokeCap.Butt)
     val inset = stroke.width / 2f
     val radius = (PlayingRowCornerRadius.toPx() - inset).coerceAtLeast(0f)
 
@@ -124,17 +135,41 @@ private fun Modifier.playingRowIndicator(
         drawContent()
         if (total <= 0f) return@onDrawWithContent
 
-        val start = phase.value * total
-        val end = start + total * PlayingRowIndicatorSweep
+        drawPath(
+            path = outline,
+            color = color.copy(alpha = PlayingRowIndicatorBaseAlpha),
+            style = stroke,
+        )
 
-        segment.reset()
-        measure.getSegment(start, minOf(end, total), segment, startWithMoveTo = true)
-        // 끝점이 한 바퀴를 넘어가면 남은 만큼을 시작 지점에서 이어 붙인다.
-        if (end > total) {
-            measure.getSegment(0f, end - total, segment, startWithMoveTo = true)
+        val head = phase.value * total
+        val sweep = total * PlayingRowIndicatorSweep
+
+        repeat(PlayingRowIndicatorSteps) { step ->
+            val from = head + sweep * step / PlayingRowIndicatorSteps
+            val to = head + sweep * (step + 1) / PlayingRowIndicatorSteps
+
+            segment.reset()
+            measure.appendSegment(segment, from, to, total)
+
+            val ratio = (step + 1f) / PlayingRowIndicatorSteps
+            val alpha = PlayingRowIndicatorBaseAlpha +
+                    (PlayingRowIndicatorHeadAlpha - PlayingRowIndicatorBaseAlpha) * ratio
+
+            drawPath(path = segment, color = color.copy(alpha = alpha), style = stroke)
         }
+    }
+}
 
-        drawPath(path = segment, color = color, style = stroke)
+/** 시작점이 한 바퀴를 넘어가면 앞쪽으로 돌아와 이어 붙인다. */
+private fun PathMeasure.appendSegment(destination: Path, from: Float, to: Float, total: Float) {
+    val start = from % total
+    val end = start + (to - from)
+
+    if (end <= total) {
+        getSegment(start, end, destination, startWithMoveTo = true)
+    } else {
+        getSegment(start, total, destination, startWithMoveTo = true)
+        getSegment(0f, end - total, destination, startWithMoveTo = true)
     }
 }
 

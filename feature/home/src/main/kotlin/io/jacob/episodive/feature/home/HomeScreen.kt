@@ -370,6 +370,14 @@ private val HomeHeroFallbackEnd = EpisodiveHeroGradientEnd
 private const val HomeHeroGradientStartBlend = 0.2f
 private const val HomeHeroGradientEndBlend = 0.6f
 
+/**
+ * 재생 버튼 뒤에 까는 광채. 카드 안쪽 여백 18 + 버튼 반지름 22 = 모서리에서 40dp 가
+ * 버튼 중심이므로, 우하단 정렬한 원(지름 120)을 20dp 씩 밀어 그 중심에 맞춘다.
+ */
+private val HomeHeroGlowSize = 120.dp
+private val HomeHeroGlowOffset = 20.dp
+private const val HomeHeroGlowAlpha = 0.35f
+
 @Composable
 private fun HomeHeader(
     modifier: Modifier = Modifier,
@@ -477,15 +485,17 @@ private fun HomeContinueListeningHero(
             .clickable(onClick = onClick)
             .padding(18.dp),
     ) {
+        // 재생 버튼에서 번지는 광채. 카드 모서리에 따로 떠 있으면 무엇의 빛인지 알 수 없어
+        // 버튼 중심에 맞춰 그 뒤에 깐다. 카드가 clip 되므로 넘치는 부분은 잘린다.
         Box(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = 30.dp, y = (-30).dp)
-                .size(120.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = HomeHeroGlowOffset, y = HomeHeroGlowOffset)
+                .size(HomeHeroGlowSize)
                 .background(
                     brush = Brush.radialGradient(
                         listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = HomeHeroGlowAlpha),
                             Color.Transparent,
                         )
                     ),
