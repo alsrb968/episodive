@@ -60,17 +60,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import io.jacob.episodive.core.designsystem.component.EpisodiveButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveGradientBackground
-import io.jacob.episodive.core.designsystem.component.LoadingWheel
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.scrollbar.DraggableScrollbar
 import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.GradientColors
@@ -82,7 +82,10 @@ import io.jacob.episodive.core.model.SelectableCategory
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.designsystem.component.EpisodiveFilterChip
 import io.jacob.episodive.core.ui.PodcastDetailItem
+import io.jacob.episodive.core.ui.PodcastDetailItemSkeleton
 import io.jacob.episodive.core.ui.displayName
+import io.jacob.episodive.core.ui.pagingAppendState
+import io.jacob.episodive.core.ui.pagingRefreshState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
@@ -126,7 +129,7 @@ fun OnboardingRoute(
     }
 
     when (val s = state) {
-        is OnboardingState.Loading -> LoadingScreen()
+        is OnboardingState.Loading -> OnboardingSkeleton(modifier = modifier)
 
         is OnboardingState.Success -> OnboardingScreen(
             modifier = modifier,
@@ -140,6 +143,86 @@ fun OnboardingRoute(
         )
 
         is OnboardingState.Error -> ErrorScreen(message = s.message)
+    }
+}
+
+/**
+ * 로딩 중 실제로 보이는 화면은 페이저 0페이지([OnboardingPage.Welcome])뿐이다. 카테고리·
+ * 추천 팟캐스트가 오기 전에도 그 레이아웃을 그대로 흉내내 화면이 비어 있지 않게 한다.
+ *
+ * 제목·본문과 달리 인디케이터·CTA 자리는 실제 웰컴 페이지가 쓰는 치수 상수를 그대로
+ * 참조한다 — 정적인 크롬이라 데이터가 아니라 레이아웃이 문제이므로, 로딩이 끝나고 실제
+ * [OnboardingScreen] 으로 바뀔 때 자리가 튀지 않아야 한다.
+ */
+@Composable
+private fun OnboardingSkeleton(
+    modifier: Modifier = Modifier,
+) {
+    SkeletonContainer(
+        modifier = modifier.fillMaxSize(),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 30.dp),
+            ) {
+                SkeletonLine(
+                    style = MaterialTheme.typography.displaySmall,
+                    widthFraction = 0.9f,
+                )
+                SkeletonLine(
+                    style = MaterialTheme.typography.displaySmall,
+                    widthFraction = 0.65f,
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                SkeletonLine(style = MaterialTheme.typography.bodyLarge)
+                SkeletonLine(style = MaterialTheme.typography.bodyLarge)
+                SkeletonLine(
+                    style = MaterialTheme.typography.bodyLarge,
+                    widthFraction = 0.5f,
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = CtaBottomPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterHorizontally),
+                ) {
+                    repeat(OnboardingPage.count) { page ->
+                        val isActive = page == OnboardingPage.Welcome.ordinal
+                        SkeletonBox(
+                            modifier = Modifier
+                                .width(if (isActive) PagerIndicatorActiveWidth else PagerIndicatorInactiveSize)
+                                .height(PagerIndicatorInactiveSize),
+                            shape = if (isActive) PagerIndicatorActiveShape else CircleShape,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(CtaIndicatorGap))
+
+                // 로딩 중 보이는 건 Welcome 페이지라 CTA 도 Welcome 전용 높이를 쓴다.
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(WelcomeCtaHeight),
+                    shape = EpisodiveShapes.pill,
+                )
+            }
+        }
     }
 }
 
@@ -432,36 +515,6 @@ private fun PodcastSelectionScreen(
         modifier = modifier
             .fillMaxSize(),
     ) {
-        val podcastsSize = podcastsPaging.itemCount
-        val refreshState = podcastsPaging.loadState.refresh
-
-        // itemCount 만 보고 로딩을 그리면 결과가 0건인 카테고리 조합에서 스피너가 영원히 돈다.
-        // 로딩이 끝났는지(NotLoading)와 실패했는지(Error)를 갈라 안내 문구를 대신 띄운다.
-        if (podcastsSize == 0) {
-            when (refreshState) {
-                is LoadState.NotLoading, is LoadState.Error -> Text(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 32.dp),
-                    text = stringResource(
-                        if (refreshState is LoadState.Error) {
-                            R.string.feature_onboarding_podcast_error
-                        } else {
-                            R.string.feature_onboarding_podcast_empty
-                        }
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-
-                is LoadState.Loading -> LoadingWheel(
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
-            return
-        }
-
         LazyColumn(
             state = lazyListState,
             verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -493,6 +546,17 @@ private fun PodcastSelectionScreen(
                 }
             }
 
+            // 헤더는 로딩 중에도 보여야 한다 — itemCount 만으로 조기 return 하던 예전 방식은
+            // 헤더까지 함께 가려 로딩 중 "관심 있는 팟캐스트를 골라 주세요" 안내조차 안 보였다.
+            // pagingRefreshState 는 헤더 다음 항목으로만 끼어들어 로딩·빈 목록·오류를 대신한다.
+            pagingRefreshState(
+                items = podcastsPaging,
+                key = "onboarding:podcasts",
+                loading = { PodcastSelectionSkeleton(count = 4) },
+                empty = { PodcastSelectionEmptyMessage() },
+                error = { PodcastSelectionErrorMessage() },
+            )
+
             items(
                 count = podcastsPaging.itemCount,
                 key = { podcastsPaging.peek(it)?.id ?: it },
@@ -506,23 +570,75 @@ private fun PodcastSelectionScreen(
                     onToggleFollowed = { onToggleFollowedPodcast(podcast) },
                 )
             }
+
+            pagingAppendState(
+                items = podcastsPaging,
+                key = "onboarding:podcasts",
+                loading = { PodcastSelectionSkeleton(count = 2) },
+            )
         }
         lazyListState.DraggableScrollbar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(vertical = 12.dp)
                 .align(Alignment.TopEnd),
-            state = lazyListState.scrollbarState(itemsAvailable = podcastsSize),
+            state = lazyListState.scrollbarState(itemsAvailable = podcastsPaging.itemCount),
             orientation = Orientation.Vertical,
             onThumbMoved = { thumbPosition ->
                 scope.launch {
-                    val itemIndex = (thumbPosition * podcastsSize).toInt()
-                        .coerceIn(0, podcastsSize - 1)
+                    val itemIndex = (thumbPosition * podcastsPaging.itemCount).toInt()
+                        .coerceIn(0, podcastsPaging.itemCount - 1)
                     lazyListState.scrollToItem(itemIndex)
                 }
             }
         )
     }
+}
+
+/**
+ * [PodcastDetailItem] 로딩 자리. [count] 만큼 쌓는다.
+ *
+ * 간격은 실제 목록의 verticalArrangement(18.dp)와 맞춰야 로딩이 끝나고 실제 항목으로
+ * 바뀔 때 레이아웃이 튀지 않는다.
+ */
+@Composable
+private fun PodcastSelectionSkeleton(modifier: Modifier = Modifier, count: Int) {
+    SkeletonContainer(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            repeat(count) {
+                PodcastDetailItemSkeleton()
+            }
+        }
+    }
+}
+
+@Composable
+private fun PodcastSelectionEmptyMessage(modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
+        text = stringResource(R.string.feature_onboarding_podcast_empty),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun PodcastSelectionErrorMessage(modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 24.dp),
+        text = stringResource(R.string.feature_onboarding_podcast_error),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
@@ -603,6 +719,14 @@ private fun PagerIndicator(
 private fun WelcomeScreenPreview() {
     EpisodiveTheme {
         WelcomeScreen()
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun OnboardingSkeletonPreview() {
+    EpisodiveTheme {
+        OnboardingSkeleton()
     }
 }
 
