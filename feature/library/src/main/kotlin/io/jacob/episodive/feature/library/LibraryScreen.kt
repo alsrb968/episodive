@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,18 +42,22 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import io.jacob.episodive.core.designsystem.component.EpisodiveChipDefaults
 import io.jacob.episodive.core.designsystem.component.EpisodiveFilterChip
 import io.jacob.episodive.core.designsystem.component.EpisodiveScaffold
 import io.jacob.episodive.core.designsystem.component.SectionHeader
+import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -65,13 +70,19 @@ import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.CategoryItem
 import io.jacob.episodive.core.ui.EpisodeDetailItem
+import io.jacob.episodive.core.ui.EpisodeDetailItemSkeleton
 import io.jacob.episodive.core.ui.EpisodeItem
+import io.jacob.episodive.core.ui.EpisodeItemSkeleton
 import io.jacob.episodive.core.ui.PlayedEpisodeItem
+import io.jacob.episodive.core.ui.PlayedEpisodeItemSkeleton
 import io.jacob.episodive.core.ui.PodcastDetailItem
+import io.jacob.episodive.core.ui.PodcastDetailItemSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
+import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
 import io.jacob.episodive.core.ui.displayName
+import io.jacob.episodive.core.ui.pagingAppendState
+import io.jacob.episodive.core.ui.pagingRefreshState
 import kotlinx.coroutines.flow.Flow
-
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -99,7 +110,7 @@ fun LibraryRoute(
     }
 
     when (val s = state) {
-        is LibraryState.Loading -> LoadingScreen()
+        is LibraryState.Loading -> LibrarySkeleton(modifier = modifier)
 
         is LibraryState.Success -> LibraryScreen(
             modifier = modifier,
@@ -136,6 +147,94 @@ fun LibraryRoute(
         is LibraryState.Error -> ErrorScreen(message = s.message)
     }
 }
+
+/**
+ * 보관함 화면 로딩 자리. 제목은 실제 [EpisodiveScaffold] 로 그대로 그리고, 탭 칩 자리와
+ * "전체" 탭의 대표 섹션 3개(최근 들은 에피소드·좋아요 표시한 에피소드·팔로우한 팟캐스트)
+ * 자리만 스켈레톤으로 채운다. 섹션 3개면 뷰포트를 채우므로 나머지 섹션은 그리지 않는다.
+ */
+@Composable
+private fun LibrarySkeleton(modifier: Modifier = Modifier) {
+    val dimension = LocalDimensionTheme.current
+
+    EpisodiveScaffold(
+        modifier = modifier,
+        title = stringResource(R.string.feature_library_title),
+        subTitle = {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                // 실제 SectionFilter 처럼 스크롤 가능한 자리지만, 로딩 중에 끌리면 없는
+                // 콘텐츠를 만지는 것처럼 보인다. 스크롤을 막아 "곧 채워질 자리"로만 읽히게 한다.
+                userScrollEnabled = false,
+                // 원본은 칩 행 아래 16px 을 띄운다(SectionFilter 와 동일, 원본 줄 748).
+                contentPadding = PaddingValues(
+                    start = dimension.screenPadding,
+                    end = dimension.screenPadding,
+                    bottom = 16.dp,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(dimension.chipSpacing),
+            ) {
+                items(LibraryFilterChipSkeletonWidths) { width ->
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(LibraryFilterChipSkeletonHeight)
+                            .width(width),
+                        shape = EpisodiveChipDefaults.PillShape,
+                    )
+                }
+            }
+        },
+    ) { paddingValues, _ ->
+        SkeletonContainer(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(LibrarySectionSpacing),
+            ) {
+                Column {
+                    SectionHeaderSkeleton()
+
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        userScrollEnabled = false,
+                        horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+                        contentPadding = PaddingValues(horizontal = dimension.screenPadding),
+                    ) {
+                        items(2) {
+                            PlayedEpisodeItemSkeleton(modifier = Modifier.width(250.dp))
+                        }
+                    }
+                }
+
+                Column {
+                    SectionHeaderSkeleton()
+
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        userScrollEnabled = false,
+                        horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+                        contentPadding = PaddingValues(horizontal = dimension.screenPadding),
+                    ) {
+                        items(2) {
+                            EpisodeDetailItemSkeleton()
+                        }
+                    }
+                }
+
+                PodcastsSectionSkeleton(count = 3)
+            }
+        }
+    }
+}
+
+/** 탭 칩 6개 자리의 폭. 실제 라벨 길이가 제각각인 것처럼 살짝씩 다르게 준다. */
+private val LibraryFilterChipSkeletonWidths = listOf(48.dp, 64.dp, 56.dp, 52.dp, 62.dp, 58.dp)
+
+/** M3 FilterChip 기본 높이. */
+private val LibraryFilterChipSkeletonHeight = 32.dp
 
 @Composable
 internal fun LibraryScreen(
@@ -368,6 +467,14 @@ private fun RecentlyListenedContent(
             .nestedScroll(nestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        pagingRefreshState(
+            items = items,
+            key = "library:played",
+            loading = { PlayedEpisodeListSkeleton(count = 5) },
+            empty = { LibraryEmptyMessage(text = stringResource(R.string.feature_library_recently_listened_empty)) },
+            error = { LibraryLoadErrorMessage() },
+        )
+
         items(
             count = items.itemCount,
             key = items.itemKey {
@@ -377,11 +484,10 @@ private fun RecentlyListenedContent(
                 }
             },
             contentType = {
-                when (items[it]) {
-                    is SeparatedUiModel.Content -> "episode"
-                    is SeparatedUiModel.Separator -> "separator"
-                    null -> "loading"
-                }
+                // peek 은 get 과 달리 페이지 로드를 부르지 않는다. enablePlaceholders=false 라
+                // 이 범위에서 null 은 오지 않지만, 단정 대신 기본값으로 흘려보내 크래시 여지를
+                // 남기지 않는다.
+                if (items.peek(it) is SeparatedUiModel.Separator) "separator" else "episode"
             }
         ) { index ->
             when (val item = items[index] ?: return@items) {
@@ -413,6 +519,12 @@ private fun RecentlyListenedContent(
             }
         }
 
+        pagingAppendState(
+            items = items,
+            key = "library:played",
+            loading = { PlayedEpisodeListSkeleton(count = 2) },
+        )
+
         item {
             Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
@@ -437,6 +549,14 @@ private fun LikedContent(
             .nestedScroll(nestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        pagingRefreshState(
+            items = items,
+            key = "library:liked",
+            loading = { LibraryEpisodeListSkeleton(count = 6) },
+            empty = { LibraryEmptyMessage(text = stringResource(R.string.feature_library_liked_empty)) },
+            error = { LibraryLoadErrorMessage() },
+        )
+
         items(
             count = items.itemCount,
             key = items.itemKey {
@@ -446,11 +566,10 @@ private fun LikedContent(
                 }
             },
             contentType = {
-                when (items[it]) {
-                    is SeparatedUiModel.Content -> "episode"
-                    is SeparatedUiModel.Separator -> "separator"
-                    null -> "loading"
-                }
+                // peek 은 get 과 달리 페이지 로드를 부르지 않는다. enablePlaceholders=false 라
+                // 이 범위에서 null 은 오지 않지만, 단정 대신 기본값으로 흘려보내 크래시 여지를
+                // 남기지 않는다.
+                if (items.peek(it) is SeparatedUiModel.Separator) "separator" else "episode"
             }
         ) { index ->
             when (val item = items[index] ?: return@items) {
@@ -483,6 +602,12 @@ private fun LikedContent(
             }
         }
 
+        pagingAppendState(
+            items = items,
+            key = "library:liked",
+            loading = { LibraryEpisodeListSkeleton(count = 2) },
+        )
+
         item {
             Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
@@ -507,6 +632,14 @@ private fun SavedContent(
             .nestedScroll(nestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        pagingRefreshState(
+            items = items,
+            key = "library:saved",
+            loading = { LibraryEpisodeListSkeleton(count = 6) },
+            empty = { LibraryEmptyMessage(text = stringResource(R.string.feature_library_saved_empty)) },
+            error = { LibraryLoadErrorMessage() },
+        )
+
         items(
             count = items.itemCount,
             key = items.itemKey {
@@ -516,11 +649,10 @@ private fun SavedContent(
                 }
             },
             contentType = {
-                when (items[it]) {
-                    is SeparatedUiModel.Content -> "episode"
-                    is SeparatedUiModel.Separator -> "separator"
-                    null -> "loading"
-                }
+                // peek 은 get 과 달리 페이지 로드를 부르지 않는다. enablePlaceholders=false 라
+                // 이 범위에서 null 은 오지 않지만, 단정 대신 기본값으로 흘려보내 크래시 여지를
+                // 남기지 않는다.
+                if (items.peek(it) is SeparatedUiModel.Separator) "separator" else "episode"
             }
         ) { index ->
             when (val item = items[index] ?: return@items) {
@@ -554,6 +686,12 @@ private fun SavedContent(
             }
         }
 
+        pagingAppendState(
+            items = items,
+            key = "library:saved",
+            loading = { LibraryEpisodeListSkeleton(count = 2) },
+        )
+
         item {
             Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
@@ -578,6 +716,14 @@ private fun FollowedContent(
             .nestedScroll(nestedScrollConnection),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        pagingRefreshState(
+            items = items,
+            key = "library:followed",
+            loading = { FollowedPodcastListSkeleton(count = 3) },
+            empty = { LibraryEmptyMessage(text = stringResource(R.string.feature_library_followed_empty)) },
+            error = { LibraryLoadErrorMessage() },
+        )
+
         items(
             count = items.itemCount,
             key = items.itemKey {
@@ -587,11 +733,10 @@ private fun FollowedContent(
                 }
             },
             contentType = {
-                when (items[it]) {
-                    is SeparatedUiModel.Content -> "podcast"
-                    is SeparatedUiModel.Separator -> "separator"
-                    null -> "loading"
-                }
+                // peek 은 get 과 달리 페이지 로드를 부르지 않는다. enablePlaceholders=false 라
+                // 이 범위에서 null 은 오지 않지만, 단정 대신 기본값으로 흘려보내 크래시 여지를
+                // 남기지 않는다.
+                if (items.peek(it) is SeparatedUiModel.Separator) "separator" else "podcast"
             }
         ) { index ->
             when (val item = items[index] ?: return@items) {
@@ -625,10 +770,104 @@ private fun FollowedContent(
 
         }
 
+        pagingAppendState(
+            items = items,
+            key = "library:followed",
+            loading = { FollowedPodcastListSkeleton(count = 2) },
+        )
+
         item {
             Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
         }
     }
+}
+
+/**
+ * [RecentlyListenedContent] 목록 로딩 자리. 줄 간격·좌우 여백은 실제 목록(위 LazyColumn)과
+ * 같은 값을 써야 로딩이 끝나고 실제 항목으로 바뀔 때 레이아웃이 튀지 않는다.
+ */
+@Composable
+private fun PlayedEpisodeListSkeleton(modifier: Modifier = Modifier, count: Int) {
+    val dimension = LocalDimensionTheme.current
+
+    SkeletonContainer(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimension.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            repeat(count) {
+                PlayedEpisodeItemSkeleton(modifier = Modifier.fillMaxWidth())
+            }
+        }
+    }
+}
+
+/** [LikedContent]·[SavedContent] 목록 로딩 자리. 두 탭 모두 같은 [EpisodeItem] 치수를 쓴다. */
+@Composable
+private fun LibraryEpisodeListSkeleton(modifier: Modifier = Modifier, count: Int) {
+    val dimension = LocalDimensionTheme.current
+
+    SkeletonContainer(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimension.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            repeat(count) {
+                EpisodeItemSkeleton()
+            }
+        }
+    }
+}
+
+/** [FollowedContent] 목록 로딩 자리. */
+@Composable
+private fun FollowedPodcastListSkeleton(modifier: Modifier = Modifier, count: Int) {
+    val dimension = LocalDimensionTheme.current
+
+    SkeletonContainer(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimension.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            repeat(count) {
+                PodcastDetailItemSkeleton(modifier = Modifier.fillMaxWidth())
+            }
+        }
+    }
+}
+
+/** 탭 4개가 공유하는 빈 목록 안내 문구. 탭마다 다른 [text] 를 받는다. */
+@Composable
+private fun LibraryEmptyMessage(modifier: Modifier = Modifier, text: String) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = LocalDimensionTheme.current.screenPadding, vertical = 24.dp),
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+}
+
+/** 탭 4개가 공유하는 로드 실패 안내 문구. 실패 원인(네트워크)이 탭마다 다르지 않아 문구를 하나로 둔다. */
+@Composable
+private fun LibraryLoadErrorMessage(modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = LocalDimensionTheme.current.screenPadding, vertical = 24.dp),
+        text = stringResource(R.string.feature_library_load_error),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -954,5 +1193,13 @@ private fun LibraryScreenPreview() {
                 )
             },
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun LibrarySkeletonPreview() {
+    EpisodiveTheme {
+        LibrarySkeleton()
     }
 }
