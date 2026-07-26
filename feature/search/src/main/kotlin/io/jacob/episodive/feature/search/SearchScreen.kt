@@ -43,12 +43,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveScaffold
 import io.jacob.episodive.core.designsystem.component.EpisodiveSearchBar
 import io.jacob.episodive.core.designsystem.component.SectionHeader
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.scrollbar.DraggableScrollbar
 import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
@@ -61,7 +62,9 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.ui.EpisodeItem
 import io.jacob.episodive.core.ui.EpisodesSection
+import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
+import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -85,7 +88,7 @@ fun SearchRoute(
     }
 
     when (val s = state) {
-        is SearchState.Loading -> LoadingScreen()
+        is SearchState.Loading -> SearchSkeleton()
         is SearchState.Success -> {
             SearchScreen(
                 modifier = modifier,
@@ -106,6 +109,47 @@ fun SearchRoute(
         }
 
         is SearchState.Error -> ErrorScreen(message = s.message)
+    }
+}
+
+/**
+ * 검색 화면 로딩 자리. 제목은 실제 [EpisodiveScaffold] 로 그대로 그리고, 검색바·트렌딩
+ * 팟캐스트·최근 에피소드 섹션 자리만 스켈레톤으로 채운다. 최근 검색 칩은 신규 사용자에게는
+ * 아예 나타나지 않는 콘텐츠라 그리지 않는다 — 그리고 실제로 없으면 그 자체가 레이아웃 점프다.
+ */
+@Composable
+private fun SearchSkeleton(modifier: Modifier = Modifier) {
+    val dimension = LocalDimensionTheme.current
+
+    EpisodiveScaffold(
+        modifier = modifier,
+        title = stringResource(R.string.feature_search_title),
+    ) { paddingValues, _ ->
+        SkeletonContainer(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimension.screenPadding)
+                        .height(dimension.fieldHeight),
+                    shape = EpisodiveShapes.searchBar,
+                )
+
+                // 실제 EpisodiveSearchBar 접힘 상태의 bottom padding(18dp)과 같은 간격을
+                // 둬, 로딩이 실제 콘텐츠로 바뀔 때 첫 섹션 위치가 튀지 않게 한다.
+                Spacer(modifier = Modifier.height(18.dp))
+
+                PodcastsSectionSkeleton(count = 3)
+
+                HorizontalDivider(modifier = Modifier.padding(12.dp))
+
+                EpisodesSectionSkeleton(count = 3)
+            }
+        }
     }
 }
 
@@ -679,5 +723,13 @@ private fun SearchScreenOnExpandRecentSearchPreview() {
             episodes = episodeTestDataList,
             isExpanded = true,
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun SearchSkeletonPreview() {
+    EpisodiveTheme {
+        SearchSkeleton()
     }
 }
