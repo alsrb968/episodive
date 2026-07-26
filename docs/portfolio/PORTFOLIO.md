@@ -37,8 +37,8 @@
 | 항목 | 수치 |
 |:--|:--|
 | 모듈 수 | **21개** (Core 11 · Feature 9 · App 1) |
-| 코드 규모 | Kotlin **510개 파일 · 약 53,600줄** |
-| 커밋 | **81개** (feat 39 · fix 16 · refactor 7 · test 6 · docs 6) |
+| 코드 규모 | Kotlin **561개 파일 · 약 59,000줄** |
+| 커밋 | **92개** (feat 39 · fix 17 · refactor 9 · docs 9 · chore 8 · test 6) |
 | 테스트 커버리지 | **라인 81.7%** (2026.03 기준, 모듈별 최대 100%) |
 | 컨벤션 플러그인 | **12개** (Gradle build-logic 빌드 표준화) |
 
@@ -51,7 +51,7 @@
 | 온보딩 | 홈 | 검색 | 팟캐스트 상세 |
 |:--:|:--:|:--:|:--:|
 | <img src="images/onboarding.png" width="200"> | <img src="images/home.png" width="200"> | <img src="images/search.png" width="200"> | <img src="images/podcast.png" width="200"> |
-| 카테고리 선택 → 맞춤 팟캐스트 추천·팔로우 | 이어듣기 · 팔로우 피드 · 랜덤/트렌딩 | 팟캐스트·에피소드 통합 검색 + 히스토리 | 앨범 아트 기반 동적 테마 · 에피소드 목록 |
+| 한글 카테고리 선택 → 맞춤 팟캐스트 팔로우 | 최신 피드 · 랜덤/인기 · 라이브, 빈 섹션 자동 숨김 | 팟캐스트·에피소드 통합 검색 + 검색 기록 | 커버 히어로 + 대표색 동적 테마 · 에피소드 목록 |
 
 ---
 
@@ -62,7 +62,7 @@
 | 플레이어 | 보관함 | 클립 | 홈 화면 위젯 |
 |:--:|:--:|:--:|:--:|
 | <img src="images/player.png" width="200"> | <img src="images/library.png" width="200"> | <img src="images/clip.png" width="200"> | <img src="images/widget.png" width="200"> |
-| 배속 · 슬립타이머 · 다운로드 · ±15/30초 | 최근 들었던 · 좋아요 · 팔로우 필터 | 사운드바이트 카드 스와이프 탐색 | Glance 위젯에서 바로 재생 제어 |
+| 배속 다이얼 · 슬립타이머 · 다운로드 · ±15/30초 | 필터 칩으로 기록 · 좋아요 · 저장 · 팔로우 전환 | 사운드바이트 카드 세로 스와이프 탐색 | Glance 위젯에서 바로 재생 제어 |
 
 ---
 
@@ -73,6 +73,7 @@
 | 영역 | 기술 |
 |:--|:--|
 | **언어 / UI** | Kotlin 2.2 · Jetpack Compose (Material3) |
+| **디자인 시스템** | Pretendard 6웨이트 · 시맨틱 셰이프/치수 토큰 · CompositionLocal 테마 |
 | **아키텍처** | Clean Architecture · MVI · 멀티모듈 · Offline-First |
 | **비동기** | Coroutines · Flow · StateFlow / SharedFlow |
 | **DI** | Hilt (+ Hilt Worker, qualifier 기반 듀얼 플레이어) |
@@ -142,7 +143,26 @@ abstract class RemoteUpdater<Query : CacheableQuery, Response, Entity, Output : 
 
 <!--class:content-->
 
-## 7. 문제 해결 · CASE 1 — 스크롤 fling 움찔거림 제거 <span class="tag">#79</span>
+## 7. 디자인 시스템 v2 리디자인 <span class="tag">#90 #91</span>
+
+기능을 채운 뒤 **344×746 목업(1px = 1dp)** 을 기준으로 표현 계층을 다시 짰습니다. ViewModel·UseCase·Repository·Room·네트워크와 **MVI 시그니처는 그대로 둔 채** `:core:designsystem`·`:core:ui`만 교체해 49개 파일을 개편했습니다.
+
+| 영역 | 내용 |
+|:--|:--|
+| **타이포** | Pretendard 6웨이트(Light ~ ExtraBold) — Display / Headline / Title을 ExtraBold로 올려 위계 강조 |
+| **셰이프** | `EpisodiveShapes` 시맨틱 토큰 — field 14 · searchBar 20 · card 24 · bottomSheet 28 · playerCover 36 · heroCover 40 (dp) · pill |
+| **치수** | `DimensionTheme` + `LocalDimensionTheme` — 목업 수치를 CompositionLocal 한곳에 모아 화면별 하드코딩 제거 |
+| **색상** | 다크 뉴트럴의 붉은 끼 완화 · 스플래시/윈도우 배경까지 테마와 정합 |
+
+- **대표색 추출 단일화** — 화면마다 제각각이던 Palette 사용을 `EpisodiveDominantColor` 하나로 통합(홈 위젯 방식 기준). `DominantRegion`으로 추출 영역을 지정해 커버 비율이 달라도 같은 색이 나오도록 보정
+- **실기 렌더 대조 교정** — 목업과 에뮬레이터 렌더를 직접 대조해 교정하고, 코드리뷰에서 확정된 결함 9건 반영(라이트 테마에서 전경이 사라지던 3건 포함)
+- **로케일 대응** — Podcast Index 영문 `label`은 API·DB 매칭용으로 유지하고, 표시명만 `:core:ui`에서 한글 112종으로 분리
+
+---
+
+<!--class:content-->
+
+## 8. 문제 해결 · CASE 1 — 스크롤 fling 움찔거림 제거 <span class="tag">#79</span>
 
 **증상** — 홈 시트 리스트·가로 캐러셀·전체 플레이어에서 스크롤이 멈추는 순간 콘텐츠가 반대 방향으로 튕김.
 
@@ -156,7 +176,7 @@ abstract class RemoteUpdater<Query : CacheableQuery, Response, Entity, Output : 
 
 <!--class:content-->
 
-## 8. 문제 해결 · CASE 2 — 오프라인 재생 & 다운로드 상태 견고화 <span class="tag">#77 #78</span>
+## 9. 문제 해결 · CASE 2 — 오프라인 재생 & 다운로드 상태 견고화 <span class="tag">#77 #78</span>
 
 **증상** — 다운로드를 완료해도 항상 스트리밍 URL로 재생되어 **오프라인 재생이 동작하지 않았고**, 다운로드 아이콘이 누르자마자 완료로 바뀌거나 완료 후 무한 스피너로 남는 등 상태 표시가 불안정.
 
@@ -173,7 +193,7 @@ abstract class RemoteUpdater<Query : CacheableQuery, Response, Entity, Output : 
 
 <!--class:content-->
 
-## 9. 문제 해결 · CASE 3 — 온보딩 Paging 상태 분리 <span class="tag">#80</span>
+## 10. 문제 해결 · CASE 3 — 온보딩 Paging 상태 분리 <span class="tag">#80</span>
 
 **증상** — 온보딩 채널 선택 화면에서 팔로우 버튼을 누를 때마다 리스트가 처음부터 다시 로드되어 스크롤 위치가 튀고 항목 순서가 바뀜.
 
@@ -189,7 +209,7 @@ abstract class RemoteUpdater<Query : CacheableQuery, Response, Entity, Output : 
 
 <!--class:content-->
 
-## 10. 테스트 & 품질
+## 11. 테스트 & 품질
 
 **전체 라인 커버리지 81.7%** (2026.03 기준) — 도메인·데이터·프레젠테이션 로직을 폭넓게 검증했습니다.
 
@@ -218,8 +238,8 @@ Now in Android급 멀티모듈·컨벤션 플러그인·Offline-First를 21개 �
 **2. 미디어 도메인 깊이**
 Media3 · MediaSession · 백그라운드 재생 · 다운로드/오프라인 · Glance 위젯까지 미디어 앱의 핵심 난제를 커버.
 
-**3. UX를 프레임 단위로 디버깅**
-스크롤 움찔거림·상태 깜빡임 같은 미묘한 결함을 정량 측정하고 근본 원인부터 수정.
+**3. UX를 토큰과 프레임 단위로**
+목업 기준 디자인 시스템을 토큰으로 재설계하고, 스크롤 움찔거림·상태 깜빡임 같은 미묘한 결함은 정량 측정해 근본 원인부터 수정.
 
 **4. 품질에 대한 태도**
 81.7% 테스트 커버리지, 커밋마다 문제·원인·해결·검증을 기록하는 습관.
