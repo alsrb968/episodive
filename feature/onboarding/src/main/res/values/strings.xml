@@ -9,5 +9,7 @@
     <string name="feature_onboarding_next">Next</string>
     <string name="feature_onboarding_podcast_title">You may interested</string>
     <string name="feature_onboarding_podcast_description">Tailored to your preferred genres,\nhere are the podcasts that best align\nwith your interests.</string>
+    <string name="feature_onboarding_podcast_empty">No podcasts matched the categories you picked.\nGo back to choose different ones, or just continue.</string>
+    <string name="feature_onboarding_podcast_error">Couldn\'t load podcasts.\nCheck your connection, or just continue.</string>
     <string name="feature_onboarding_completion_title">Great picks! We\'re\nfinding best podcasts\nfor you!</string>
 </resources>

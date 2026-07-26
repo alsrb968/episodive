@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import io.jacob.episodive.core.designsystem.component.EpisodiveButton
@@ -432,11 +433,32 @@ private fun PodcastSelectionScreen(
             .fillMaxSize(),
     ) {
         val podcastsSize = podcastsPaging.itemCount
+        val refreshState = podcastsPaging.loadState.refresh
 
+        // itemCount 만 보고 로딩을 그리면 결과가 0건인 카테고리 조합에서 스피너가 영원히 돈다.
+        // 로딩이 끝났는지(NotLoading)와 실패했는지(Error)를 갈라 안내 문구를 대신 띄운다.
         if (podcastsSize == 0) {
-            LoadingWheel(
-                modifier = Modifier.align(Alignment.Center),
-            )
+            when (refreshState) {
+                is LoadState.NotLoading, is LoadState.Error -> Text(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 32.dp),
+                    text = stringResource(
+                        if (refreshState is LoadState.Error) {
+                            R.string.feature_onboarding_podcast_error
+                        } else {
+                            R.string.feature_onboarding_podcast_empty
+                        }
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+
+                is LoadState.Loading -> LoadingWheel(
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
             return
         }
 
