@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_podcast_all_episodes_format">All episodes (%d)</string>
+    <string name="feature_podcast_episodes_empty">No episodes yet.</string>
+    <string name="feature_podcast_episodes_error">Couldn\'t load episodes.\nCheck your connection and try again.</string>
 </resources>

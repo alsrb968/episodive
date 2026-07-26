@@ -14,4 +14,9 @@
     <string name="feature_library_section_preferred_categories">Preferred categories</string>
     <string name="feature_library_find_your_library">Find your library</string>
     <string name="feature_library_not_found_results">No results found.</string>
+    <string name="feature_library_recently_listened_empty">No episodes listened to yet.</string>
+    <string name="feature_library_liked_empty">No liked episodes yet.</string>
+    <string name="feature_library_saved_empty">No saved episodes yet.</string>
+    <string name="feature_library_followed_empty">No followed podcasts yet.</string>
+    <string name="feature_library_load_error">Couldn\'t load your library.\nCheck your connection and try again.</string>
 </resources>

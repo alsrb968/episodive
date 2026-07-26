@@ -140,7 +140,7 @@ fun SectionHeader(
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(SectionHeaderContentSpacing))
 
         Column(
             modifier = Modifier.padding(contentPadding)
@@ -149,6 +149,37 @@ fun SectionHeader(
         }
     }
 }
+
+/**
+ * [SectionHeader] 의 제목 자리.
+ *
+ * 좌우 여백과 제목-콘텐츠 간격을 실제 헤더와 같은 상수에서 가져온다. 값을 베껴 두면 헤더를
+ * 손볼 때 스켈레톤만 남아 전환할 때마다 몇 px 씩 튄다.
+ */
+@Composable
+fun SectionHeaderSkeleton(
+    modifier: Modifier = Modifier,
+    titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
+    titleWidthFraction: Float = SectionHeaderSkeletonTitleWidth,
+) {
+    val dimension = LocalDimensionTheme.current
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        SkeletonLine(
+            modifier = Modifier.padding(horizontal = dimension.screenPadding),
+            style = titleStyle,
+            widthFraction = titleWidthFraction,
+        )
+
+        Spacer(modifier = Modifier.height(SectionHeaderContentSpacing))
+    }
+}
+
+private val SectionHeaderContentSpacing = 14.dp
+private const val SectionHeaderSkeletonTitleWidth = 0.4f
 
 @Composable
 fun SubSectionHeader(

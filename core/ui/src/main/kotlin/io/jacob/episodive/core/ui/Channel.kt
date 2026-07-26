@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,16 +27,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.component.SectionHeader
+import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
+import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.testing.model.channelTestData
+import io.jacob.episodive.core.testing.model.channelTestDataList
 
 @Composable
 fun ChannelSection(
@@ -75,6 +82,34 @@ fun ChannelSection(
                     channel = channel,
                     onClick = { onChannelClick(channel.id) }
                 )
+            }
+        }
+    }
+}
+
+/** [ChannelSection] 로딩 자리. 헤더와 카드 개수만큼의 캐러셀을 그대로 흉내낸다. */
+@Composable
+fun ChannelSectionSkeleton(
+    modifier: Modifier = Modifier,
+    count: Int = 3,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        SectionHeaderSkeleton()
+
+        val dimension = LocalDimensionTheme.current
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
+            // 일반 Row 는 화면 밖으로 넘치는 마지막 카드 폭이 0으로 찌그러진다. LazyRow 로
+            // 실제 폭을 유지한 채 잘려 보이게 해야 "옆으로 더 있다"가 로딩 중에도 읽힌다.
+            userScrollEnabled = false,
+        ) {
+            items(count) {
+                ChannelItemSkeleton()
             }
         }
     }
@@ -129,6 +164,46 @@ fun ChannelItem(
     }
 }
 
+/**
+ * [ChannelItem] 로딩 자리. 커버와 캡션 각각에 모양을 주지 않고 카드 전체를 통째로
+ * extraLarge 로 클립한다 — 둘을 따로 클립하면 이미지·캡션이 맞닿는 경계에 실제 카드에는
+ * 없는 라운딩이 생겨버린다.
+ */
+@Composable
+fun ChannelItemSkeleton(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .width(ChannelItemWidth)
+            .clip(MaterialTheme.shapes.extraLarge),
+    ) {
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f),
+            shape = RectangleShape,
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ChannelItemCaptionHeight)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                SkeletonLine(style = MaterialTheme.typography.labelMedium)
+                SkeletonLine(style = MaterialTheme.typography.labelMedium, widthFraction = 0.7f)
+                SkeletonLine(style = MaterialTheme.typography.labelMedium, widthFraction = 0.4f)
+            }
+        }
+    }
+}
+
 @DevicePreviews
 @Composable
 private fun ChannelItemPreview() {
@@ -137,5 +212,38 @@ private fun ChannelItemPreview() {
             channel = channelTestData,
             onClick = {}
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun ChannelItemSkeletonPreview() {
+    EpisodiveTheme {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            ChannelItem(
+                channel = channelTestData,
+                onClick = {}
+            )
+            ChannelItemSkeleton()
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun ChannelSectionSkeletonPreview() {
+    EpisodiveTheme {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            ChannelSection(
+                title = "Preview",
+                channels = channelTestDataList.take(3),
+                onChannelClick = {},
+            )
+            ChannelSectionSkeleton()
+        }
     }
 }

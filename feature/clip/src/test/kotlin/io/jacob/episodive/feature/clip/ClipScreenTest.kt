@@ -1,13 +1,20 @@
 package io.jacob.episodive.feature.clip
 
+import android.content.Context
+import android.provider.Settings
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.paging.LoadState
+import androidx.paging.LoadStates
 import androidx.paging.PagingData
+import androidx.test.core.app.ApplicationProvider
+import io.jacob.episodive.core.designsystem.component.SkeletonDefaults
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Playback
@@ -16,6 +23,7 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,6 +34,18 @@ class ClipScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    @Before
+    fun disableSystemAnimations() {
+        // 스켈레톤의 shimmer는 rememberInfiniteTransition 기반이라 애니메이션이 켜진 채로
+        // 테스트를 돌리면 waitForIdle()이 영원히 대기한다. SkeletonDefaults.shimmerEnabled()가
+        // 이 값을 읽으므로 0으로 두면 shimmer 자체가 꺼진다.
+        Settings.Global.putFloat(
+            ApplicationProvider.getApplicationContext<Context>().contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            0f,
+        )
+    }
 
     private val clipEpisodes = episodeTestDataList.map {
         it.copy(
@@ -60,6 +80,20 @@ class ClipScreenTest {
         }
     }
 
+    /** loadState를 직접 통제해야 하는 테스트용 — setClipScreen은 항상 완료된 상태만 만든다. */
+    private fun setClipScreenWithPagingData(pagingData: PagingData<Episode>) {
+        composeTestRule.setContent {
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flowOf(pagingData),
+                    playback = Playback.IDLE,
+                    progress = Progress(0.seconds, 0.seconds, 0.seconds),
+                    isPlaying = false,
+                )
+            }
+        }
+    }
+
     @Test
     fun whenEpisodesExist_clipItemsAreRendered() {
         setClipScreen()
@@ -79,6 +113,46 @@ class ClipScreenTest {
 
         composeTestRule.onNodeWithText(episodeTestDataList.first().title, substring = true)
             .assertDoesNotExist()
+    }
+
+    // --- New: refreshPhase 분기 — itemCount만 보면 결과 0건/실패에서 스피너가 영원히 도는
+    // 버그의 재발 방지선 ---
+
+    @Test
+    fun whenResultsEmptyAndRefreshComplete_emptyMessageShownWithoutSkeleton() {
+        setClipScreenWithPagingData(
+            PagingData.from(
+                emptyList(),
+                sourceLoadStates = LoadStates(
+                    refresh = LoadState.NotLoading(endOfPaginationReached = true),
+                    prepend = LoadState.NotLoading(endOfPaginationReached = true),
+                    append = LoadState.NotLoading(endOfPaginationReached = true),
+                ),
+            )
+        )
+
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        composeTestRule.onNodeWithText(context.getString(R.string.feature_clip_empty))
+            .assertExists()
+        composeTestRule.onNodeWithTag(SkeletonDefaults.TEST_TAG)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun whenRefreshLoading_skeletonShown() {
+        setClipScreenWithPagingData(
+            PagingData.from(
+                emptyList(),
+                sourceLoadStates = LoadStates(
+                    refresh = LoadState.Loading,
+                    prepend = LoadState.NotLoading(endOfPaginationReached = true),
+                    append = LoadState.NotLoading(endOfPaginationReached = true),
+                ),
+            )
+        )
+
+        composeTestRule.onNodeWithTag(SkeletonDefaults.TEST_TAG)
+            .assertExists()
     }
 
     @Test

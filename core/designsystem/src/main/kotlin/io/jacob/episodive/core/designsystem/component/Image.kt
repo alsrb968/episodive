@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +62,8 @@ fun StateImage(
         ImageRequest.Builder(context)
             .data(imageUrl)
             .size(size)
+            // 플레이스홀더에서 실제 이미지로 툭 끊기지 않게 넘긴다.
+            .crossfade(ImageCrossfadeMs)
             .apply {
                 if (onDominantColorExtracted != null) {
                     allowHardware(false)
@@ -93,6 +96,14 @@ fun StateImage(
             is AsyncImagePainter.State.Empty,
             is AsyncImagePainter.State.Loading,
                 -> {
+                // 여기에 shimmer 를 넣지 않는다. 스켈레톤 카드가 사라지고 실제 카드가 뜬 직후
+                // 이미지는 아직 로딩 중인 경우가 많아 "끝난 줄 알았는데 또 반짝"이 되고,
+                // 스크롤 중에는 늘 몇 장이 로딩 중이라 목록이 상시 명멸한다. 정지된 면으로 둔다.
+                Box(
+                    modifier = Modifier
+                        .background(placeholderBrush)
+                        .fillMaxSize()
+                )
             }
 
             is AsyncImagePainter.State.Error,
@@ -131,6 +142,8 @@ fun StateImage(
     }
 }
 
+private const val ImageCrossfadeMs = 200
+
 /** 팟캐스트별로 고정된 시드 색을 순환 배정해 커버 아트 플레이스홀더에 변주를 준다. */
 private val CoverPlaceholderSeeds = listOf(
     Color(0xFFC6472F),
@@ -140,15 +153,28 @@ private val CoverPlaceholderSeeds = listOf(
     Color(0xFFC99A2E),
     Color(0xFF3A7D5B),
 )
-private val CoverPlaceholderEnd = Color(0xFF1A1413)
 
+/**
+ * 시드를 표면색 쪽으로 얼마나 끌어올지.
+ *
+ * 시드를 날것 그대로 쓰면 라이트 테마에서 채도 높은 어두운 사각형이 되고, 무엇보다 스켈레톤
+ * 커버 블록(surfaceContainerHigh 단색)과 색이 달라 스켈레톤이 걷힌 자리에서 커버만 색이
+ * 확 바뀐다. 강하게 섞어 두면 팟캐스트별 미세한 변주는 남으면서 전환이 조용해진다.
+ */
+private const val CoverPlaceholderSeedBlend = 0.8f
+
+@Composable
 internal fun thumbnailPlaceholderDefaultBrush(imageUrl: String? = null): Brush {
+    val base = MaterialTheme.colorScheme.surfaceContainerHigh
+    val end = MaterialTheme.colorScheme.surfaceContainer
+
     val seed = imageUrl
         ?.let { CoverPlaceholderSeeds[abs(it.hashCode()) % CoverPlaceholderSeeds.size] }
         ?: CoverPlaceholderSeeds.first()
+    val blended = lerp(seed, base, CoverPlaceholderSeedBlend)
 
     return Brush.linearGradient(
-        colorStops = arrayOf(0f to seed, 0.18f to seed, 1f to CoverPlaceholderEnd),
+        colorStops = arrayOf(0f to blended, 0.18f to blended, 1f to end),
     )
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -47,10 +49,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconText
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -80,7 +84,9 @@ internal fun ChannelRoute(
     }
 
     when (val s = state) {
-        is ChannelState.Loading -> LoadingScreen()
+        is ChannelState.Loading -> ChannelSkeleton(
+            onBackClick = { viewModel.sendAction(ChannelAction.ClickBack) },
+        )
 
         is ChannelState.Success -> {
             ChannelScreen(
@@ -150,6 +156,98 @@ internal fun ChannelScreen(
 
             item(span = { GridItemSpan(2) }) {
                 ChannelFooter(channel = channel)
+            }
+        }
+    }
+}
+
+/**
+ * [ChannelScreen] 로딩 자리.
+ *
+ * 로딩이 길어지면 사용자가 빠져나갈 수 있어야 하므로 실제 화면과 같은 [FadeTopBarLayout] 으로
+ * 감싸 뒤로가기를 살려둔다. 카드는 히어로 아래 4장뿐이라 [LazyVerticalGrid] 대신 정적
+ * Column·Row 로 그린다 — 오프스크린 레이어 안에서 Lazy 그리드를 쓸 이유가 없다.
+ */
+@Composable
+private fun ChannelSkeleton(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+) {
+    val dimension = LocalDimensionTheme.current
+
+    FadeTopBarLayout(
+        modifier = modifier,
+        state = rememberLazyGridState(),
+        title = "",
+        onBack = onBackClick,
+    ) {
+        SkeletonContainer(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                // 히어로 자리. 실제 ChannelHero 와 같은 fullBleed 처리로 화면 폭 전체를 채운다.
+                SkeletonBox(
+                    modifier = Modifier
+                        .fullBleed(ChannelGridHorizontalPadding)
+                        .fillMaxWidth()
+                        .aspectRatio(ChannelHeroAspectRatio),
+                    shape = RectangleShape,
+                )
+
+                // 헤더 텍스트 자리. 실제로는 히어로 위에 겹쳐 뜨지만, 겹치면 같은 회색조 블록끼리
+                // 구분이 안 돼 스켈레톤에서는 히어로 아래에 순서대로 둔다.
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            top = ChannelHeaderTopPadding,
+                            bottom = ChannelHeaderBottomPadding,
+                            start = ChannelHeaderHorizontalPadding,
+                            end = ChannelHeaderHorizontalPadding,
+                        ),
+                ) {
+                    SkeletonLine(
+                        style = MaterialTheme.typography.labelMedium,
+                        widthFraction = 0.25f,
+                    )
+                    SkeletonLine(
+                        modifier = Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.headlineLarge,
+                        widthFraction = 0.6f,
+                    )
+                    SkeletonLine(
+                        modifier = Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        widthFraction = 0.45f,
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = ChannelGridHorizontalPadding,
+                            end = ChannelGridHorizontalPadding,
+                            bottom = dimension.playerBarSpace,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
+                    ) {
+                        ChannelPodcastCardSkeleton(modifier = Modifier.weight(1f))
+                        ChannelPodcastCardSkeleton(modifier = Modifier.weight(1f))
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
+                    ) {
+                        ChannelPodcastCardSkeleton(modifier = Modifier.weight(1f))
+                        ChannelPodcastCardSkeleton(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
@@ -306,6 +404,48 @@ private fun ChannelPodcastCard(
     }
 }
 
+/**
+ * [ChannelPodcastCard] 로딩 자리.
+ *
+ * 카드 배경은 커버에서 뽑는 동적인 색이라 스켈레톤 시점엔 알 수 없으므로 칠하지 않는다 —
+ * 모양만 클립해 실루엣을 맞춘다. 제목은 실제 카드처럼 minLines=maxLines=2 로 고정돼
+ * 있으므로 줄 수가 다르면 전환할 때 카드 높이가 튄다.
+ */
+@Composable
+private fun ChannelPodcastCardSkeleton(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .padding(12.dp),
+    ) {
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f),
+            shape = MaterialTheme.shapes.medium,
+        )
+
+        SkeletonLine(
+            modifier = Modifier.padding(top = 9.dp),
+            style = MaterialTheme.typography.labelMedium,
+        )
+
+        SkeletonLine(
+            style = MaterialTheme.typography.labelMedium,
+            widthFraction = 0.7f,
+        )
+
+        SkeletonLine(
+            modifier = Modifier.padding(top = 3.dp),
+            style = MaterialTheme.typography.labelSmall,
+            widthFraction = 0.5f,
+        )
+    }
+}
+
 @Composable
 private fun ChannelFooter(
     modifier: Modifier = Modifier,
@@ -402,6 +542,14 @@ private fun ChannelScreenPreview() {
             onBackClick = {},
             onPodcastClick = {},
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun ChannelSkeletonPreview() {
+    EpisodiveTheme {
+        ChannelSkeleton(onBackClick = {})
     }
 }
 
