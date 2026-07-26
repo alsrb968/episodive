@@ -65,6 +65,7 @@ import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.SelectableCategory
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.ui.R as uiR
@@ -79,6 +80,7 @@ import io.jacob.episodive.core.ui.PodcastDetailItem
 import io.jacob.episodive.core.ui.PodcastDetailItemSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
 import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
+import io.jacob.episodive.core.ui.asUiMessage
 import io.jacob.episodive.core.ui.displayName
 import io.jacob.episodive.core.ui.pagingAppendState
 import io.jacob.episodive.core.ui.pagingRefreshState
@@ -144,7 +146,15 @@ fun LibraryRoute(
             },
         )
 
-        is LibraryState.Error -> ErrorScreen(message = s.message)
+        is LibraryState.Error -> ErrorScreen(
+            message = s.error.asUiMessage(),
+            // 재시도해도 같은 결과가 오는 실패(없는 대상, 인증 실패)에는 버튼을 감춘다.
+            onRetry = if (s.error.isRetryable) {
+                { viewModel.sendAction(LibraryAction.Retry) }
+            } else {
+                null
+            },
+        )
     }
 }
 

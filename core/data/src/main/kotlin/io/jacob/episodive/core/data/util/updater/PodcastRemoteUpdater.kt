@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.withIndex
-import kotlin.time.Clock
+import kotlin.time.Instant
 
 class PodcastRemoteUpdater @AssistedInject constructor(
     private val podcastLocal: PodcastLocalDataSource,
@@ -135,13 +135,8 @@ class PodcastRemoteUpdater @AssistedInject constructor(
         podcastLocal.replacePodcasts(entities, query.key)
     }
 
-    override suspend fun isExpired(): Boolean {
-        val oldestCreatedAt = podcastLocal.getOldestCreatedAtByGroupKey(query.key)
-            ?: return true
-
-        val now = Clock.System.now()
-        return now - oldestCreatedAt > query.timeToLive
-    }
+    override suspend fun getOldestCachedAt(): Instant? =
+        podcastLocal.getOldestCreatedAtByGroupKey(query.key)
 
     override fun getPagingSource(): PagingSource<Int, PodcastWithExtrasView> {
         return podcastLocal.getPodcastsByGroupKeyPaging(query.key)

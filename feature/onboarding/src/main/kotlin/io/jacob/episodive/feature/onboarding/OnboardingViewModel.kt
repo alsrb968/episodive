@@ -12,8 +12,10 @@ import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.SetFirstLaunchOffUseCase
 import io.jacob.episodive.core.domain.usecase.user.ToggleCategoryUseCase
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.SelectableCategory
+import io.jacob.episodive.core.model.asDataError
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -64,22 +67,36 @@ class OnboardingViewModel @Inject constructor(
 
     // 팔로우 상태는 PagingData 를 무효화하지 않고 로컬 오버레이로만 반영한다.
     // (팔로우 토글이 리스트 전체를 refresh 시켜 스크롤이 튀는 문제 방지)
+    // state 와 별개의 stateIn 체인이라 실패해도 전체 화면을 Error 로 떨어뜨리지 않는다 — 대신
+    // 로그를 남기고 빈 집합으로 폴백해, 팟캐스트 선택 화면은 "전부 미팔로우"로만 보이게 한다.
     val followedPodcastIds: StateFlow<Set<Long>> =
         getFollowedPodcastsUseCase(max = Int.MAX_VALUE)
             .map { podcasts -> podcasts.map { it.id }.toSet() }
+            .catch { e ->
+                Timber.e(e, "Failed to load followed podcast ids")
+                emit(emptySet())
+            }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptySet(),
             )
 
-    val state: StateFlow<OnboardingState> = _categories.map { categories ->
-        OnboardingState.Success(
-            categories = categories,
-        ) as OnboardingState
-    }.catch { e ->
-        emit(OnboardingState.Error(e.message ?: "An unknown error occurred"))
-        e.printStackTrace()
+    // 재시도 액션이 들어오면 값을 증가시켜 아래 state 체인을 처음부터 다시 구독하게 한다.
+    private val retryTrigger = MutableStateFlow(0)
+
+    val state: StateFlow<OnboardingState> = retryTrigger.flatMapLatest {
+        // catch 를 flatMapLatest 안쪽(시도 1회 단위)에 둬야 한다. 바깥에 두면 예외를 잡은 뒤
+        // 전체 flow(retryTrigger 포함)가 완료돼 버려, 그 다음 retryTrigger 갱신이 와도 다시
+        // 구독을 시작할 수 없다 — retryTrigger 자체는 끝나지 않는 flow라 재시도가 먹통이 된다.
+        _categories.map { categories ->
+            OnboardingState.Success(
+                categories = categories,
+            ) as OnboardingState
+        }.catch { e ->
+            Timber.e(e, "온보딩 카테고리를 불러오지 못했다")
+            emit(OnboardingState.Error(e.asDataError()))
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -102,6 +119,7 @@ class OnboardingViewModel @Inject constructor(
                 is OnboardingAction.PreviousPage -> previousPage()
                 is OnboardingAction.ChooseCategory -> chooseCategory(action.category)
                 is OnboardingAction.ChoosePodcast -> choosePodcast(action.podcast)
+                is OnboardingAction.Retry -> retryTrigger.update { it + 1 }
             }
         }
     }
@@ -163,7 +181,7 @@ sealed interface OnboardingState {
         val categories: List<SelectableCategory>,
     ) : OnboardingState
 
-    data class Error(val message: String) : OnboardingState
+    data class Error(val error: DataError) : OnboardingState
 }
 
 sealed interface OnboardingAction {
@@ -171,6 +189,7 @@ sealed interface OnboardingAction {
     data object PreviousPage : OnboardingAction
     data class ChooseCategory(val category: Category) : OnboardingAction
     data class ChoosePodcast(val podcast: Podcast) : OnboardingAction
+    data object Retry : OnboardingAction
 }
 
 sealed interface OnboardingEffect {

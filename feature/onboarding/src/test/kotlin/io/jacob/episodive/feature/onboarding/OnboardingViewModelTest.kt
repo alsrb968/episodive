@@ -9,6 +9,7 @@ import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.SetFirstLaunchOffUseCase
 import io.jacob.episodive.core.domain.usecase.user.ToggleCategoryUseCase
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
@@ -26,6 +27,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class OnboardingViewModelTest {
 
@@ -91,7 +93,7 @@ class OnboardingViewModelTest {
         }
 
     @Test
-    fun `Given categories flow throws, When collecting, Then state is Error`() = runTest {
+    fun `Given categories flow throws, When collecting, Then state is Error with Unexpected DataError`() = runTest {
         every { getPreferredCategoriesUseCase() } returns kotlinx.coroutines.flow.flow {
             throw RuntimeException("Error")
         }
@@ -102,8 +104,42 @@ class OnboardingViewModelTest {
         viewModel.state.test {
             val state = awaitItem()
             assertTrue(state is OnboardingState.Error)
+            // RuntimeException 은 DataErrorException 이 아니므로 Unexpected 로 떨어져야 한다.
+            assertTrue((state as OnboardingState.Error).error is DataError.Unexpected)
         }
     }
+
+    @Test
+    fun `Given state is Error, When Retry action sent, Then categories flow is resubscribed and recovers`() =
+        runTest {
+            // 첫 구독에서만 던지고 이후 구독부터는 성공하는 flow로 재구독 여부를 검증한다.
+            var collectCount = 0
+            every { getPreferredCategoriesUseCase() } returns kotlinx.coroutines.flow.flow {
+                collectCount++
+                if (collectCount == 1) {
+                    throw RuntimeException("Error")
+                } else {
+                    emit(emptyList())
+                }
+            }
+            every { getUserRecommendedPodcastsPagingUseCase(any()) } returns flowOf(PagingData.empty())
+
+            val viewModel = createViewModel()
+
+            // action -> handleActions -> retryTrigger 갱신 -> flatMapLatest 재구독 -> inner flow
+            // 재수집 -> state 방출까지 여러 홉을 거친다. runTest 안에서 Turbine 의 awaitItem() 은
+            // (가상 시간이 아닌) 실제 벽시계 기준 3초 기본 타임아웃을 쓰므로, 이 홉이 많은 체인은
+            // 머신이 바쁠 때 기본값을 넘기기 쉽다 — 로직 문제가 아니라 여유가 부족한 것이라
+            // 타임아웃만 넉넉히 늘린다.
+            viewModel.state.test(timeout = 10.seconds) {
+                assertTrue(awaitItem() is OnboardingState.Error)
+
+                viewModel.sendAction(OnboardingAction.Retry)
+
+                assertTrue(awaitItem() is OnboardingState.Success)
+            }
+            assertEquals(2, collectCount)
+        }
 
     @Test
     fun `Given Welcome page, When NextPage action sent, Then MoveToPage CategorySelection effect emitted`() =

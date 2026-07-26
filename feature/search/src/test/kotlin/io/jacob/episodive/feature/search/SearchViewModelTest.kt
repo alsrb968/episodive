@@ -12,6 +12,8 @@ import io.jacob.episodive.core.domain.usecase.search.GetRecentSearchesUseCase
 import io.jacob.episodive.core.domain.usecase.search.SearchUseCase
 import io.jacob.episodive.core.domain.usecase.search.UpsertRecentSearchUseCase
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.DataError
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.model.RecentSearch
 import io.jacob.episodive.core.model.SearchResult
 import io.jacob.episodive.core.testing.model.episodeTestDataList
@@ -22,7 +24,9 @@ import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -115,18 +119,69 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `Given flow throws, When collecting, Then state is Error`() = runTest {
-        every { getRecentSearchesUseCase(any()) } returns kotlinx.coroutines.flow.flow {
-            throw RuntimeException("Error")
+    fun `Given flow throws unrecognized exception, When collecting, Then state is Error with Unexpected`() =
+        runTest {
+            val exception = RuntimeException("Error")
+            every { getRecentSearchesUseCase(any()) } returns kotlinx.coroutines.flow.flow {
+                throw exception
+            }
+            every { getRecentEpisodesUseCase(any()) } returns flowOf(emptyList())
+            every { getTrendingPodcastsUseCase(any()) } returns flowOf(emptyList())
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                val state = awaitItem()
+                assertTrue(state is SearchState.Error)
+                val error = (state as SearchState.Error).error
+                assertTrue(error is DataError.Unexpected)
+                // 코루틴이 flatMapLatest 경계를 넘으며 stacktrace 복구를 위해 RuntimeException을
+                // 복제해 참조 동일성이 깨진다 — message로만 비교한다.
+                assertEquals(exception.message, (error as DataError.Unexpected).throwable?.message)
+            }
         }
+
+    @Test
+    fun `Given flow throws DataErrorException, When collecting, Then state is Error with the mapped DataError`() =
+        runTest {
+            every { getRecentSearchesUseCase(any()) } returns kotlinx.coroutines.flow.flow {
+                throw DataErrorException(DataError.Offline)
+            }
+            every { getRecentEpisodesUseCase(any()) } returns flowOf(emptyList())
+            every { getTrendingPodcastsUseCase(any()) } returns flowOf(emptyList())
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                val state = awaitItem()
+                assertTrue(state is SearchState.Error)
+                assertEquals(DataError.Offline, (state as SearchState.Error).error)
+            }
+        }
+
+    @Test
+    fun `Given Retry action, When sent, Then upstream flow chain is resubscribed`() = runTest {
+        every { getRecentSearchesUseCase(any()) } returns flowOf(emptyList())
         every { getRecentEpisodesUseCase(any()) } returns flowOf(emptyList())
         every { getTrendingPodcastsUseCase(any()) } returns flowOf(emptyList())
 
         val viewModel = createViewModel()
 
         viewModel.state.test {
-            val state = awaitItem()
-            assertTrue(state is SearchState.Error)
+            assertEquals(SearchState.Loading, awaitItem())
+            // Advance past debounce(500L) on _searchResult
+            mainDispatcherRule.testDispatcher.scheduler.advanceTimeBy(600)
+            assertTrue(awaitItem() is SearchState.Success)
+
+            viewModel.sendAction(SearchAction.Retry)
+            advanceUntilIdle()
+
+            // retryTrigger 가 바뀌면 flatMapLatest 가 상위 체인(getRecentSearchesUseCase 호출부터)을
+            // 통째로 재구독한다. Success 값 자체는 이전과 구조적으로 같아 StateFlow가 재방출을
+            // 걸러내므로, 두 번째 awaitItem() 대신 UseCase 호출 횟수로 재구독을 검증한다.
+            verify(exactly = 2) { getRecentSearchesUseCase(any()) }
+
+            cancelAndIgnoreRemainingEvents()
         }
     }
 

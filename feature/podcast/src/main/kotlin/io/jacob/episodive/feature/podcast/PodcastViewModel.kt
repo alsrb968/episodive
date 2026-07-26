@@ -13,17 +13,23 @@ import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.asDataError
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel(assistedFactory = PodcastViewModel.Factory::class)
 class PodcastViewModel @AssistedInject constructor(
@@ -42,21 +48,27 @@ class PodcastViewModel @AssistedInject constructor(
 
     val episodesPaging = getEpisodesByPodcastIdPagingUseCase(id).cachedIn(viewModelScope)
 
-    val state: StateFlow<PodcastState> = getPodcastUseCase(id)
-        .map { podcast ->
-            podcast?.let {
-                PodcastState.Success(
-                    podcast = podcast,
-                )
-            } ?: PodcastState.Error("Podcast not found")
-        }.catch { e ->
-            emit(PodcastState.Error(e.message ?: "Unknown error"))
-            e.printStackTrace()
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = PodcastState.Loading
-        )
+    // 재시도는 소스 체인을 통째로 재구독해야 한다. getPodcastUseCase 는 콜드 Flow라
+    // 재구독해도 부작용이 없다.
+    private val retryTrigger = MutableStateFlow(0)
+
+    val state: StateFlow<PodcastState> = retryTrigger.flatMapLatest {
+        getPodcastUseCase(id)
+            .map { podcast ->
+                podcast?.let {
+                    PodcastState.Success(
+                        podcast = podcast,
+                    )
+                } ?: PodcastState.Error(DataError.NotFound)
+            }.catch { e ->
+                Timber.e(e, "팟캐스트 상세를 불러오지 못했다 (id=$id)")
+                emit(PodcastState.Error(e.asDataError()))
+            }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = PodcastState.Loading
+    )
 
     private val _action = MutableSharedFlow<PodcastAction>(extraBufferCapacity = 1)
 
@@ -74,6 +86,7 @@ class PodcastViewModel @AssistedInject constructor(
                 is PodcastAction.PlayEpisode -> playEpisode(action.episode, action.visibleEpisodes)
                 is PodcastAction.ToggleLikedEpisode -> toggleLikedEpisode(action.episode)
                 is PodcastAction.ToggleSavedEpisode -> toggleSavedEpisode(action.episode)
+                is PodcastAction.Retry -> retry()
             }
         }
     }
@@ -108,6 +121,10 @@ class PodcastViewModel @AssistedInject constructor(
             _effect.emit(PodcastEffect.ShowUnsaveSnackbar(episode))
         }
     }
+
+    private fun retry() {
+        retryTrigger.update { it + 1 }
+    }
 }
 
 sealed interface PodcastEffect {
@@ -121,7 +138,7 @@ sealed interface PodcastState {
         val podcast: Podcast,
     ) : PodcastState
 
-    data class Error(val message: String) : PodcastState
+    data class Error(val error: DataError) : PodcastState
 }
 
 sealed interface PodcastAction {
@@ -132,4 +149,5 @@ sealed interface PodcastAction {
     ) : PodcastAction
     data class ToggleLikedEpisode(val episode: Episode) : PodcastAction
     data class ToggleSavedEpisode(val episode: Episode) : PodcastAction
+    data object Retry : PodcastAction
 }

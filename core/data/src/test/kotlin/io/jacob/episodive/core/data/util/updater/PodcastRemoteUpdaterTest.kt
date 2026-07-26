@@ -4,8 +4,11 @@ import androidx.paging.PagingConfig
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.util.query.PodcastQuery
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
+import io.jacob.episodive.core.database.model.PodcastWithExtrasView
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Channel
+import io.jacob.episodive.core.model.DataError
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.model.Medium
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
@@ -20,10 +23,16 @@ import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.net.SocketTimeoutException
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 
 class PodcastRemoteUpdaterTest {
     @get:Rule
@@ -78,6 +87,116 @@ class PodcastRemoteUpdaterTest {
                 podcastLocal.getOldestCreatedAtByGroupKey("feedId:123")
                 podcastRemote.getPodcastByFeedId(any())
                 podcastLocal.replacePodcasts(any(), "feedId:123")
+            }
+        }
+
+    @Test
+    fun `Given cached podcasts and expired cache, When remote fetch fails, Then emit cached podcasts without replacing`() =
+        runTest {
+            // Given
+            val feedId = 123L
+            val query = PodcastQuery.FeedId(feedId)
+            val updater = PodcastRemoteUpdater(
+                podcastLocal = podcastLocal,
+                podcastRemote = podcastRemote,
+                feedRemote = feedRemote,
+                query = query,
+            )
+            val cachedPodcasts = listOf(mockk<PodcastWithExtrasView>(relaxed = true))
+            coEvery {
+                podcastLocal.getPodcastsByGroupKey(any(), any())
+            } returns flowOf(cachedPodcasts)
+            coEvery {
+                podcastLocal.getOldestCreatedAtByGroupKey(any())
+            } returns Clock.System.now() - 2.hours
+            coEvery {
+                podcastRemote.getPodcastByFeedId(any())
+            } throws RuntimeException("network error")
+
+            // When & Then
+            // 원격 갱신이 실패해도 Flow 가 끊기지 않고 캐시가 그대로 방출돼야 한다.
+            updater.getFlowList(count = 10).test {
+                assertEquals(cachedPodcasts, awaitItem())
+                awaitComplete()
+            }
+
+            coVerifySequence {
+                podcastLocal.getPodcastsByGroupKey("feedId:123", 10)
+                podcastLocal.getOldestCreatedAtByGroupKey("feedId:123")
+                podcastRemote.getPodcastByFeedId(any())
+            }
+        }
+
+    @Test
+    fun `Given no cached podcasts, When remote fetch fails, Then propagate the error`() =
+        runTest {
+            // Given
+            val feedId = 123L
+            val query = PodcastQuery.FeedId(feedId)
+            val updater = PodcastRemoteUpdater(
+                podcastLocal = podcastLocal,
+                podcastRemote = podcastRemote,
+                feedRemote = feedRemote,
+                query = query,
+            )
+            // SocketTimeoutException 을 던져 toDataError() 판별이 실제로 동작하는지까지 고정한다.
+            val error = SocketTimeoutException("network error")
+            coEvery {
+                podcastLocal.getPodcastsByGroupKey(any(), any())
+            } returns flowOf(emptyList())
+            coEvery {
+                podcastLocal.getOldestCreatedAtByGroupKey(any())
+            } returns null
+            coEvery {
+                podcastRemote.getPodcastByFeedId(any())
+            } throws error
+
+            // When & Then
+            // 보여줄 캐시가 없으면 예외를 삼키지 않고, 판별된 DataError 와 원인을 실어 올린다.
+            updater.getFlowList(count = 10).test {
+                val thrown = awaitError()
+                assertTrue(thrown is DataErrorException)
+                assertEquals(error, (thrown as DataErrorException).cause)
+                assertEquals(DataError.Timeout, thrown.error)
+            }
+
+            coVerifySequence {
+                podcastLocal.getPodcastsByGroupKey("feedId:123", 10)
+                podcastLocal.getOldestCreatedAtByGroupKey("feedId:123")
+                podcastRemote.getPodcastByFeedId(any())
+            }
+        }
+
+    @Test
+    fun `Given cached podcasts within TTL, When getFlowList called, Then skip remote fetch`() =
+        runTest {
+            // Given
+            val feedId = 123L
+            val query = PodcastQuery.FeedId(feedId)
+            val updater = PodcastRemoteUpdater(
+                podcastLocal = podcastLocal,
+                podcastRemote = podcastRemote,
+                feedRemote = feedRemote,
+                query = query,
+            )
+            val cachedPodcasts = listOf(mockk<PodcastWithExtrasView>(relaxed = true))
+            coEvery {
+                podcastLocal.getPodcastsByGroupKey(any(), any())
+            } returns flowOf(cachedPodcasts)
+            coEvery {
+                podcastLocal.getOldestCreatedAtByGroupKey(any())
+            } returns Clock.System.now()
+
+            // When
+            updater.getFlowList(count = 10).test {
+                assertEquals(cachedPodcasts, awaitItem())
+                awaitComplete()
+            }
+
+            // Then: TTL 이내라 원격 갱신을 아예 호출하지 않는다.
+            coVerifySequence {
+                podcastLocal.getPodcastsByGroupKey("feedId:123", 10)
+                podcastLocal.getOldestCreatedAtByGroupKey("feedId:123")
             }
         }
 

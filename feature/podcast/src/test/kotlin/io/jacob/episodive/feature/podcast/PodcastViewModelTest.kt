@@ -8,6 +8,8 @@ import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.ToggleFollowedUseCase
+import io.jacob.episodive.core.model.DataError
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestData
@@ -80,7 +82,7 @@ class PodcastViewModelTest {
     }
 
     @Test
-    fun `Given null podcast, When flow emits, Then state is Error`() = runTest {
+    fun `Given null podcast, When flow emits, Then state is Error with NotFound`() = runTest {
         every { getPodcastUseCase(1L) } returns flowOf(null)
         every { getEpisodesByPodcastIdPagingUseCase(any()) } returns flowOf(PagingData.empty())
 
@@ -89,25 +91,68 @@ class PodcastViewModelTest {
         viewModel.state.test {
             val state = awaitItem()
             assertTrue(state is PodcastState.Error)
-            assertEquals("Podcast not found", (state as PodcastState.Error).message)
+            assertEquals(DataError.NotFound, (state as PodcastState.Error).error)
         }
     }
 
     @Test
-    fun `Given flow throws, When collecting, Then state is Error`() = runTest {
-        every { getPodcastUseCase(1L) } returns kotlinx.coroutines.flow.flow {
-            throw RuntimeException("Network error")
-        }
-        every { getEpisodesByPodcastIdPagingUseCase(any()) } returns flowOf(PagingData.empty())
+    fun `Given flow throws unrecognized exception, When collecting, Then state is Error with Unexpected`() =
+        runTest {
+            val exception = RuntimeException("Network error")
+            every { getPodcastUseCase(1L) } returns kotlinx.coroutines.flow.flow {
+                throw exception
+            }
+            every { getEpisodesByPodcastIdPagingUseCase(any()) } returns flowOf(PagingData.empty())
 
-        val viewModel = createViewModel()
+            val viewModel = createViewModel()
 
-        viewModel.state.test {
-            val state = awaitItem()
-            assertTrue(state is PodcastState.Error)
-            assertEquals("Network error", (state as PodcastState.Error).message)
+            viewModel.state.test {
+                val state = awaitItem()
+                assertTrue(state is PodcastState.Error)
+                val error = (state as PodcastState.Error).error
+                assertTrue(error is DataError.Unexpected)
+                assertEquals(exception, (error as DataError.Unexpected).throwable)
+            }
         }
-    }
+
+    @Test
+    fun `Given flow throws DataErrorException, When collecting, Then state is Error with the mapped DataError`() =
+        runTest {
+            every { getPodcastUseCase(1L) } returns kotlinx.coroutines.flow.flow {
+                throw DataErrorException(DataError.Offline)
+            }
+            every { getEpisodesByPodcastIdPagingUseCase(any()) } returns flowOf(PagingData.empty())
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                val state = awaitItem()
+                assertTrue(state is PodcastState.Error)
+                assertEquals(DataError.Offline, (state as PodcastState.Error).error)
+            }
+        }
+
+    @Test
+    fun `Given Retry action after error, When sent, Then getPodcastUseCase is resubscribed`() =
+        runTest {
+            var callCount = 0
+            every { getPodcastUseCase(1L) } answers {
+                callCount++
+                if (callCount == 1) flowOf(null) else flowOf(podcastTestData)
+            }
+            every { getEpisodesByPodcastIdPagingUseCase(any()) } returns flowOf(PagingData.empty())
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                assertTrue(awaitItem() is PodcastState.Error)
+
+                viewModel.sendAction(PodcastAction.Retry)
+
+                assertTrue(awaitItem() is PodcastState.Success)
+            }
+            assertEquals(2, callCount)
+        }
 
     @Test
     fun `Given ToggleFollowed action, When sent, Then toggleFollowedUseCase is invoked with id`() =

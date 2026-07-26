@@ -18,16 +18,22 @@ import io.jacob.episodive.core.domain.usecase.podcast.GetLocalTrendingPodcastsUs
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserTrendingPodcastsUseCase
 import io.jacob.episodive.core.model.Channel
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.asDataError
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,42 +53,48 @@ class HomeViewModel @Inject constructor(
     private val saveEpisodeUseCase: SaveEpisodeUseCase,
 ) : ViewModel() {
 
-    val state: StateFlow<HomeState> = combine(
-        getPlayingEpisodesUseCase(max = FEED_MAX),
-        getUserRecentPodcastsUseCase(max = FEED_MAX),
-        getMyRandomEpisodesUseCase(max = COMPACT_MAX),
-        getUserTrendingPodcastsUseCase(max = FEED_MAX),
-        getFollowedPodcastsUseCase(max = FEED_MAX),
-        getLocalTrendingPodcastsUseCase(max = FEED_MAX),
-        getForeignTrendingPodcastsUseCase(max = FEED_MAX),
-        getLiveEpisodesUseCase(max = COMPACT_MAX),
-        getChannelsUseCase(),
-    ) {
-            playingEpisodes,
-            userRecentPodcasts,
-            randomEpisodes,
-            userTrendingPodcasts,
-            followedPodcasts,
-            localTrendingPodcasts,
-            foreignTrendingPodcasts,
-            liveEpisodes,
-            channels,
-        ->
+    // 재시도 시 9개 소스 전부를 다시 구독해야 해서 combine 전체를 flatMapLatest 로 감싼다.
+    // 값을 증가시키기만 하면 되므로 트리거 자체의 내용은 의미가 없다.
+    private val retryTrigger = MutableStateFlow(0)
 
-        HomeState.Success(
-            playingEpisodes = playingEpisodes,
-            userRecentPodcasts = userRecentPodcasts,
-            randomEpisodes = randomEpisodes,
-            userTrendingPodcasts = userTrendingPodcasts,
-            followedPodcasts = followedPodcasts,
-            localTrendingPodcasts = localTrendingPodcasts,
-            foreignTrendingPodcasts = foreignTrendingPodcasts,
-            liveEpisodes = liveEpisodes,
-            channels = channels
-        ) as HomeState
-    }.catch { e ->
-        emit(HomeState.Error(e.message ?: "An unknown error occurred"))
-        e.printStackTrace()
+    val state: StateFlow<HomeState> = retryTrigger.flatMapLatest {
+        combine(
+            getPlayingEpisodesUseCase(max = FEED_MAX),
+            getUserRecentPodcastsUseCase(max = FEED_MAX),
+            getMyRandomEpisodesUseCase(max = COMPACT_MAX),
+            getUserTrendingPodcastsUseCase(max = FEED_MAX),
+            getFollowedPodcastsUseCase(max = FEED_MAX),
+            getLocalTrendingPodcastsUseCase(max = FEED_MAX),
+            getForeignTrendingPodcastsUseCase(max = FEED_MAX),
+            getLiveEpisodesUseCase(max = COMPACT_MAX),
+            getChannelsUseCase(),
+        ) {
+                playingEpisodes,
+                userRecentPodcasts,
+                randomEpisodes,
+                userTrendingPodcasts,
+                followedPodcasts,
+                localTrendingPodcasts,
+                foreignTrendingPodcasts,
+                liveEpisodes,
+                channels,
+            ->
+
+            HomeState.Success(
+                playingEpisodes = playingEpisodes,
+                userRecentPodcasts = userRecentPodcasts,
+                randomEpisodes = randomEpisodes,
+                userTrendingPodcasts = userTrendingPodcasts,
+                followedPodcasts = followedPodcasts,
+                localTrendingPodcasts = localTrendingPodcasts,
+                foreignTrendingPodcasts = foreignTrendingPodcasts,
+                liveEpisodes = liveEpisodes,
+                channels = channels
+            ) as HomeState
+        }.catch { e ->
+            Timber.e(e, "홈 데이터를 불러오지 못했다")
+            emit(HomeState.Error(e.asDataError()))
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -107,6 +119,7 @@ class HomeViewModel @Inject constructor(
                 is HomeAction.ToggleSavedEpisode -> toggleSavedEpisode(action.episode)
                 is HomeAction.ClickPodcast -> clickPodcast(action.podcastId)
                 is HomeAction.ClickChannel -> clickChannel(action.channelId)
+                is HomeAction.Retry -> retry()
             }
         }
     }
@@ -142,6 +155,10 @@ class HomeViewModel @Inject constructor(
         _effect.emit(HomeEffect.NavigateToChannel(channelId))
     }
 
+    private fun retry() {
+        retryTrigger.update { it + 1 }
+    }
+
     companion object {
         private const val FEED_MAX = 10
         private const val COMPACT_MAX = 6
@@ -162,7 +179,7 @@ sealed interface HomeState {
         val channels: List<Channel>,
     ) : HomeState
 
-    data class Error(val message: String) : HomeState
+    data class Error(val error: DataError) : HomeState
 }
 
 sealed interface HomeAction {
@@ -172,6 +189,7 @@ sealed interface HomeAction {
     data class ToggleSavedEpisode(val episode: Episode) : HomeAction
     data class ClickPodcast(val podcastId: Long) : HomeAction
     data class ClickChannel(val channelId: Long) : HomeAction
+    data object Retry : HomeAction
 }
 
 sealed interface HomeEffect {

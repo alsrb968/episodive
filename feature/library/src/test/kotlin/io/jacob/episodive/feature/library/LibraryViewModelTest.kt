@@ -19,6 +19,7 @@ import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetSelectableCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.ToggleCategoryUseCase
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.LibraryFindResult
 import io.jacob.episodive.core.model.SelectableCategory
 import io.jacob.episodive.core.testing.model.episodeTestData
@@ -31,6 +32,7 @@ import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -164,9 +166,10 @@ class LibraryViewModelTest {
         }
 
     @Test
-    fun `Given flow throws, When collecting, Then state is Error`() = runTest {
+    fun `Given flow throws, When collecting, Then state is Error with Unexpected DataError`() = runTest {
+        val thrown = RuntimeException("Error")
         every { getAllPlayedEpisodesUseCase(max = any()) } returns kotlinx.coroutines.flow.flow {
-            throw RuntimeException("Error")
+            throw thrown
         }
         every { getLikedEpisodesUseCase(max = any()) } returns flowOf(emptyList())
         every { getSavedEpisodesUseCase(max = any()) } returns flowOf(emptyList())
@@ -179,8 +182,48 @@ class LibraryViewModelTest {
         viewModel.state.test {
             val state = awaitItem()
             assertTrue(state is LibraryState.Error)
+            // RuntimeException 은 DataErrorException 이 아니므로 Unexpected 로 떨어져야 한다.
+            // 참조 동일성은 비교하지 않는다 — 코루틴의 스택트레이스 복구가 코루틴 경계를 넘을 때
+            // 예외를 복제해 새 인스턴스를 만들기 때문에 메시지·타입만 확인한다.
+            val error = (state as LibraryState.Error).error
+            assertTrue(error is DataError.Unexpected)
+            assertEquals(thrown.message, (error as DataError.Unexpected).throwable?.message)
         }
     }
+
+    @Test
+    fun `Given error state, When Retry action is sent, Then sources are resubscribed and state recovers`() =
+        runTest {
+            every { getAllPlayedEpisodesUseCase(max = any()) } returns kotlinx.coroutines.flow.flow {
+                throw RuntimeException("Error")
+            }
+            every { getLikedEpisodesUseCase(max = any()) } returns flowOf(emptyList())
+            every { getSavedEpisodesUseCase(max = any()) } returns flowOf(emptyList())
+            every { getFollowedPodcastsUseCase(max = any()) } returns flowOf(emptyList())
+            every { getPreferredCategoriesUseCase() } returns flowOf(emptyList())
+            every { getSelectableCategoriesUseCase() } returns flowOf(emptyList())
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                val errorState = awaitItem()
+                assertTrue(errorState is LibraryState.Error)
+
+                // 재시도 이후에는 정상 데이터가 오도록 스텁을 교체한다.
+                every { getAllPlayedEpisodesUseCase(max = any()) } returns flowOf(emptyList())
+
+                viewModel.sendAction(LibraryAction.Retry)
+                // _findResult 경로가 재구독되며 debounce(500L) 타이머가 다시 걸린다.
+                mainDispatcherRule.testDispatcher.scheduler.advanceTimeBy(600)
+
+                val state = awaitItem()
+                assertTrue(state is LibraryState.Success)
+            }
+
+            // 최초 구독 + Retry 로 인한 재구독, 총 2회 호출돼야 재시도가 실제로 소스를
+            // 다시 구독한다는 증거가 된다. 1회면 재시도가 캐시된 실패를 그대로 반환한 것.
+            verify(exactly = 2) { getAllPlayedEpisodesUseCase(max = any()) }
+        }
 
     @Test
     fun `Given ClickFind action, When sent, Then findQuery updates`() = runTest {

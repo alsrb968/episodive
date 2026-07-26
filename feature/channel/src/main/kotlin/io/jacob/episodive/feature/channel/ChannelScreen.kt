@@ -60,8 +60,10 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.channelTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
+import io.jacob.episodive.core.ui.asUiMessage
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -98,7 +100,16 @@ internal fun ChannelRoute(
             )
         }
 
-        is ChannelState.Error -> ErrorScreen(message = s.message)
+        is ChannelState.Error -> ErrorScreen(
+            message = s.error.asUiMessage(),
+            // NotFound 는 재시도해도 결과가 같으므로 버튼을 감춘다 — 눌러도 아무 일이
+            // 없으면 앱이 고장 난 것처럼 보인다.
+            onRetry = if (s.error.isRetryable) {
+                { viewModel.sendAction(ChannelAction.Retry) }
+            } else {
+                null
+            },
+        )
     }
 }
 
