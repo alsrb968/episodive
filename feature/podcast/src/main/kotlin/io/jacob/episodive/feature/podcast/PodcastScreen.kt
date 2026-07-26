@@ -55,6 +55,7 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveButtonDefaults
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.scrollbar.DraggableScrollbar
 import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
@@ -70,6 +71,9 @@ import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.ui.EpisodeItem
+import io.jacob.episodive.core.ui.EpisodeItemSkeleton
+import io.jacob.episodive.core.ui.pagingAppendState
+import io.jacob.episodive.core.ui.pagingRefreshState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -237,6 +241,21 @@ internal fun PodcastScreen(
                 )
             }
 
+            pagingRefreshState(
+                items = episodesPaging,
+                key = "podcast:episodes",
+                loading = {
+                    // 팟캐스트 메타데이터의 episodeCount 로 상한을 둔다. 실제 로드될 줄 수보다
+                    // 많이 그리면 목록이 채워지는 순간 그만큼 줄어들며 튄다.
+                    // 에피소드가 몇 개 올지 알면 그만큼만 그려 전환할 때 덜 튄다. 다만 피드가
+                    // episodeCount 를 0 으로 주는 경우가 있어 최소 한 줄은 남긴다 — 로딩 중에
+                    // 아무것도 없으면 멈춘 화면으로 보인다.
+                    EpisodeListSkeleton(count = podcast.episodeCount.coerceIn(1, 6))
+                },
+                empty = { EpisodesEmptyMessage() },
+                error = { EpisodesErrorMessage() },
+            )
+
             items(
                 count = episodesPaging.itemCount,
                 key = { episodesPaging.peek(it)?.id ?: it },
@@ -255,6 +274,12 @@ internal fun PodcastScreen(
                     )
                 }
             }
+
+            pagingAppendState(
+                items = episodesPaging,
+                key = "podcast:episodes",
+                loading = { EpisodeListSkeleton(count = 2) },
+            )
 
             item {
                 Spacer(modifier = Modifier.height(dimension.playerBarHeight))
@@ -278,6 +303,56 @@ internal fun PodcastScreen(
             }
         )
     }
+}
+
+/**
+ * 에피소드 목록 로딩 자리. [count] 만큼 [EpisodeItemSkeleton] 을 쌓는다.
+ *
+ * 줄 간격·좌우 여백은 실제 에피소드 목록([EpisodeItem] 호출부)과 같은 값을 써야, 로딩이
+ * 끝나고 실제 항목으로 바뀔 때 레이아웃이 튀지 않는다.
+ */
+@Composable
+private fun EpisodeListSkeleton(modifier: Modifier = Modifier, count: Int) {
+    val dimension = LocalDimensionTheme.current
+
+    SkeletonContainer(modifier = modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimension.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            repeat(count) {
+                EpisodeItemSkeleton()
+            }
+        }
+    }
+}
+
+@Composable
+private fun EpisodesEmptyMessage(modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = LocalDimensionTheme.current.screenPadding, vertical = 24.dp),
+        text = stringResource(R.string.feature_podcast_episodes_empty),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun EpisodesErrorMessage(modifier: Modifier = Modifier) {
+    Text(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = LocalDimensionTheme.current.screenPadding, vertical = 24.dp),
+        text = stringResource(R.string.feature_podcast_episodes_error),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable

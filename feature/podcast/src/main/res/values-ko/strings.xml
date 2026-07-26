@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_podcast_all_episodes_format">모든 에피소드 (%d)</string>
+    <string name="feature_podcast_episodes_empty">아직 등록된 에피소드가 없어요.</string>
+    <string name="feature_podcast_episodes_error">에피소드를 불러오지 못했어요.\n네트워크를 확인하고 다시 시도해 주세요.</string>
 </resources>
