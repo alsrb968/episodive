@@ -69,6 +69,7 @@ import io.jacob.episodive.core.ui.EpisodeItem
 import io.jacob.episodive.core.ui.PlayedEpisodeItem
 import io.jacob.episodive.core.ui.PodcastDetailItem
 import io.jacob.episodive.core.ui.PodcastsSection
+import io.jacob.episodive.core.ui.displayName
 import kotlinx.coroutines.flow.Flow
 
 import kotlinx.coroutines.flow.flowOf
@@ -661,7 +662,7 @@ private fun PreferredContent(
                         // 카테고리 칩도 pill 이다 (원본 줄 144). 이것만 사각 8dp 면
                         // 바로 위 섹션 필터의 pill 칩과 모양이 어긋난다.
                         pill = true,
-                        label = { Text(text = category.label) },
+                        label = { Text(text = category.displayName()) },
                     )
                 }
             }

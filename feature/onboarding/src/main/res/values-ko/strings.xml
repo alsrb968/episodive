@@ -9,5 +9,7 @@
     <string name="feature_onboarding_next">다음</string>
     <string name="feature_onboarding_podcast_title">당신이 선호할만한 것들</string>
     <string name="feature_onboarding_podcast_description">당신이 선호하는 장르에 맞춰,\n당신의 관심사에 가장 잘 맞는\n팟캐스트를 소개합니다.</string>
+    <string name="feature_onboarding_podcast_empty">선택한 카테고리에 맞는 팟캐스트를 찾지 못했어요.\n이전으로 돌아가 다시 고르거나, 그냥 넘어가도 괜찮아요.</string>
+    <string name="feature_onboarding_podcast_error">팟캐스트를 불러오지 못했어요.\n네트워크를 확인하거나, 그냥 넘어가도 괜찮아요.</string>
     <string name="feature_onboarding_completion_title">정말 좋은 선택이에요!\n당신에게 딱 맞는\n최고의 팟캐스트를 찾아드릴게요!</string>
 </resources>
