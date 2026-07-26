@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -32,6 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -57,9 +59,12 @@ import androidx.compose.ui.unit.em
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveDragHandle
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
+import io.jacob.episodive.core.designsystem.component.SkeletonCover
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveHeroGradientEnd
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -77,7 +82,9 @@ import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.ui.ChannelSection
 import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.EpisodesSection
+import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
+import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
 
 
 @Composable
@@ -107,7 +114,7 @@ internal fun HomeRoute(
     }
 
     when (val s = state) {
-        is HomeState.Loading -> LoadingScreen()
+        is HomeState.Loading -> HomeSkeleton()
 
         is HomeState.Success -> HomeScreen(
             modifier = modifier
@@ -537,6 +544,142 @@ private fun HomeContinueListeningHero(
                 )
             }
         }
+    }
+}
+
+/** 이어듣기 히어로 자리가 처음 측정되기 전까지 시트 배경이 잡을 임시 높이. */
+private val HomeHeroSkeletonInitialHeight = 130.dp
+
+/**
+ * 로딩 자리. 화면 제목은 데이터와 무관한 정적 크롬이라 그대로 렌더하고, 이어듣기 히어로와
+ * 시트 안 섹션 2개(캐러셀 1 + 세로 리스트 1)만 흉내낸다. 8개 섹션을 다 그리면 뒤쪽은 아무도
+ * 못 보면서 컴포지션 비용만 내고, `section()` 헬퍼(L230-241)가 빈 섹션을 스킵하는 탓에 실제
+ * 화면은 보통 3~5개 섹션만 뜨는데 8개를 그리면 스크롤 길이가 절반으로 줄며 스크롤바가 튄다.
+ */
+@Composable
+private fun HomeSkeleton(modifier: Modifier = Modifier) {
+    val dimension = LocalDimensionTheme.current
+    val density = LocalDensity.current
+
+    // 시트 배경이 시작할 위치. 실제 화면(L159-165)과 같은 패턴으로, 히어로 자리를 측정해
+    // 첫 프레임 이후 정확한 값으로 갱신한다 — 텍스트 줄 수에 따라 높이가 바뀌므로 고정값을
+    // 넣으면 어긋난다.
+    var heroAreaHeight by remember { mutableStateOf(HomeHeroSkeletonInitialHeight) }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        HomeHeader(title = stringResource(R.string.feature_home_title))
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 시트 배경은 SkeletonContainer 바깥의 별도 노드에서 먼저 칠한다. 안에서 칠하면
+            // shimmerSweep 의 오프스크린 레이어 전체가 "그려진 픽셀"이 되어 화면이 통째로
+            // 균일하게 쓸린다.
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = heroAreaHeight),
+                shape = EpisodiveShapes.bottomSheet,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+            ) {}
+
+            SkeletonContainer(modifier = Modifier.fillMaxSize()) {
+                Column {
+                    Column(
+                        modifier = Modifier.onSizeChanged { size ->
+                            heroAreaHeight = with(density) { size.height.toDp() }
+                        },
+                    ) {
+                        HomeContinueListeningHeroSkeleton(
+                            modifier = Modifier
+                                .fillMaxWidth(HomeHeroWidthFraction)
+                                .padding(start = dimension.screenPadding),
+                        )
+
+                        Spacer(modifier = Modifier.height(HomeHeroSheetGap))
+                    }
+
+                    // 드래그 핸들은 데이터와 무관한 정적 크롬이라 실제 컴포저블을 그대로 쓴다.
+                    EpisodiveDragHandle()
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 캐러셀 1개 + 세로 리스트 1개. 어떤 섹션인지 특정하지 않는 중립적 모양으로
+                    // 그린다 — 첫 섹션이 "나의 최근 피드"(신규 사용자는 빈 값)일 수도, "랜덤
+                    // 에피소드"일 수도 있다.
+                    PodcastsSectionSkeleton(count = 3)
+
+                    HorizontalDivider(modifier = Modifier.padding(16.dp))
+
+                    EpisodesSectionSkeleton(count = 3)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 이어듣기 카드([HomeContinueListeningHero])와 같은 폭·안쪽 여백을 쓰되 그라디언트 배경은
+ * 칠하지 않는다 — [SkeletonContainer] 안에서 배경을 칠하면 오프스크린 레이어 전체가 "그려진
+ * 픽셀"이 되어 화면이 통째로 균일하게 쓸린다.
+ */
+@Composable
+private fun HomeContinueListeningHeroSkeleton(modifier: Modifier = Modifier) {
+    val dimension = LocalDimensionTheme.current
+
+    Column(modifier = modifier.padding(HomeHeroPadding)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SkeletonCover(
+                size = HomeHeroCoverSize,
+                shape = EpisodiveShapes.coverForSize(HomeHeroCoverSizeDp),
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                SkeletonLine(
+                    style = MaterialTheme.typography.labelSmall,
+                    widthFraction = 0.3f,
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                SkeletonLine(
+                    style = MaterialTheme.typography.titleSmall,
+                    widthFraction = 0.9f,
+                )
+                SkeletonLine(
+                    style = MaterialTheme.typography.titleSmall,
+                    widthFraction = 0.55f,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(dimension.progressThickness),
+                shape = CircleShape,
+            )
+
+            SkeletonLine(
+                modifier = Modifier.width(56.dp),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun HomeSkeletonPreview() {
+    EpisodiveTheme {
+        HomeSkeleton()
     }
 }
 
