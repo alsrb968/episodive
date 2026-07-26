@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_clip_title">Clip</string>
+    <string name="feature_clip_empty">No clips to play right now.\nFollow more podcasts and they\'ll show up here.</string>
+    <string name="feature_clip_error">Couldn\'t load clips.\nCheck your connection and try again.</string>
 </resources>

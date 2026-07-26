@@ -1,6 +1,7 @@
 package io.jacob.episodive.feature.clip
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -43,7 +46,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
+import io.jacob.episodive.core.designsystem.component.SkeletonContainer
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -52,6 +55,9 @@ import io.jacob.episodive.core.model.Playback
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.ui.EpisodeClipItem
+import io.jacob.episodive.core.ui.EpisodeClipItemSkeleton
+import io.jacob.episodive.core.ui.PagingRefreshPhase
+import io.jacob.episodive.core.ui.refreshPhase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -191,9 +197,26 @@ fun EpisodeClipPager(
 ) {
     val episodesPaging = episodes.collectAsLazyPagingItems()
 
-    if (episodesPaging.itemCount == 0) {
-        LoadingScreen()
-        return
+    // itemCount 만 보고 로딩을 그리면 결과가 0건이거나 로드가 실패했을 때 스피너가 영원히
+    // 돈다(OnboardingScreen.kt 의 PodcastSelectionScreen 이 겪은 것과 같은 함정). refreshPhase()
+    // 로 로딩/빈 목록/오류를 갈라 각각 다른 화면을 보여준다.
+    when (episodesPaging.refreshPhase()) {
+        PagingRefreshPhase.Loading -> {
+            ClipSkeleton(modifier)
+            return
+        }
+
+        PagingRefreshPhase.Empty -> {
+            ClipMessage(modifier, stringResource(R.string.feature_clip_empty))
+            return
+        }
+
+        PagingRefreshPhase.Error -> {
+            ClipMessage(modifier, stringResource(R.string.feature_clip_error))
+            return
+        }
+
+        PagingRefreshPhase.Content -> Unit
     }
 
     val pagerState = rememberPagerState(
@@ -292,6 +315,66 @@ fun EpisodeClipPager(
             modifier = Modifier.align(Alignment.TopStart),
             title = stringResource(R.string.feature_clip_title),
             progress = titleProgress,
+        )
+    }
+}
+
+/**
+ * 첫 화면 로딩 자리. 페이저가 아직 없으니 카드 한 장만 보여준다.
+ *
+ * 제목은 스켈레톤으로 흉내내지 않고 [ClipTitle] 을 그대로 렌더한다 — 정적 문자열이라 실제
+ * 화면으로 넘어갈 때 흔들리지 않아야 하기 때문이다. progress 는 1f 로 고정해 완전히 보이는
+ * 상태로 둔다(스와이프가 없으니 밀려 올라갈 일도 없다).
+ */
+@Composable
+private fun ClipSkeleton(modifier: Modifier = Modifier) {
+    val titleProgress = remember { mutableFloatStateOf(1f) }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            // SkeletonContainer 바깥에서 칠한다 — 안에서 칠하면 shimmerSweep 의 오프스크린
+            // 레이어 전체가 "그려진 픽셀"이 되어 화면이 통째로 균일하게 쓸린다.
+            .background(ClipBackgroundFallback),
+    ) {
+        SkeletonContainer(
+            // 실제 VerticalPager의 contentPadding(L263-269)과 동일하게 맞춘다.
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = ClipPageHorizontalPadding,
+                    end = ClipPageHorizontalPadding,
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
+                            ClipTitleHeight,
+                    bottom = LocalDimensionTheme.current.playerBarSpace + ClipPageBottomGap,
+                ),
+        ) {
+            EpisodeClipItemSkeleton(modifier = Modifier.fillMaxSize())
+        }
+
+        ClipTitle(
+            modifier = Modifier.align(Alignment.TopStart),
+            title = stringResource(R.string.feature_clip_title),
+            progress = titleProgress,
+        )
+    }
+}
+
+/** 클립 결과가 없거나 로드에 실패했을 때의 안내 문구. */
+@Composable
+private fun ClipMessage(modifier: Modifier = Modifier, message: String) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(ClipBackgroundFallback),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 32.dp),
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
     }
 }

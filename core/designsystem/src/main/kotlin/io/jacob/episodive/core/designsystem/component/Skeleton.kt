@@ -172,11 +172,15 @@ fun SkeletonContainer(
         modifier = modifier
             .graphicsLayer { alpha = appear.value }
             .shimmerSweep(enabled = shimmerEnabled)
+            // testTag는 clearAndSetSemantics **바깥**(앞)에 둔다. clearAndSetSemantics는
+            // 같은 노드의 체인에서 자기 뒤에 오는 시맨틱스 기여까지 지운다 — testTag를 뒤에
+            // 두면 태그 자체가 사라져 onNodeWithTag(SkeletonDefaults.TEST_TAG)로 이 노드를
+            // 찾을 수 없게 된다(실측: printToLog에 TestTag 속성이 누락됨).
+            .testTag(SkeletonDefaults.TEST_TAG)
             .clearAndSetSemantics {
                 this.contentDescription = contentDescription
                 liveRegion = LiveRegionMode.Polite
-            }
-            .testTag(SkeletonDefaults.TEST_TAG),
+            },
         content = content,
     )
 }

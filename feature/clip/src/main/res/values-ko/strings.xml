@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feature_clip_title">클립</string>
+    <string name="feature_clip_empty">지금 재생할 클립이 없어요.\n팟캐스트를 더 구독하면 여기에 쌓여요.</string>
+    <string name="feature_clip_error">클립을 불러오지 못했어요.\n네트워크를 확인하고 다시 시도해 주세요.</string>
 </resources>
