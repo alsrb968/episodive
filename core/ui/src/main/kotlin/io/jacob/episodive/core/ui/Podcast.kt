@@ -184,6 +184,13 @@ private fun rememberPodcastTextSectionMinHeight(): Dp {
 
 private val DetailItemCoverSize = 96.dp
 
+/**
+ * 제목 줄과 메타 줄 사이 간격은 이 버튼 지름이 정한다 — 제목 Row 의 높이가 둘 중 큰 쪽,
+ * 즉 버튼 높이로 잡히기 때문이다. 기본값 46dp 로는 제목 아래 빈 공간이 그만큼 벌어진다.
+ */
+private val DetailItemFollowButtonSize = 34.dp
+private val DetailItemFollowIconSize = 16.dp
+
 @Composable
 fun PodcastDetailItem(
     modifier: Modifier = Modifier,
@@ -222,23 +229,24 @@ fun PodcastDetailItem(
                     text = podcast.title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 EpisodiveIconToggleButton(
                     checked = isFollowed,
                     onCheckedChange = { onToggleFollowed() },
+                    size = DetailItemFollowButtonSize,
                     icon = {
                         Icon(
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(DetailItemFollowIconSize),
                             imageVector = EpisodiveIcons.PersonAdd,
                             contentDescription = podcast.title,
                         )
                     },
                     checkedIcon = {
                         Icon(
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(DetailItemFollowIconSize),
                             imageVector = EpisodiveIcons.PersonRemove,
                             contentDescription = podcast.title,
                         )

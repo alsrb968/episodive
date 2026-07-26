@@ -56,6 +56,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -80,6 +81,7 @@ import io.jacob.episodive.core.model.SelectableCategory
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.designsystem.component.EpisodiveFilterChip
 import io.jacob.episodive.core.ui.PodcastDetailItem
+import io.jacob.episodive.core.ui.displayName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
@@ -92,9 +94,14 @@ private val WelcomeGlowSize = 320.dp
 private val WelcomeGlowBlur = 8.dp
 private val WelcomeCtaHeight = 58.dp
 private val CategoryChipShape = RoundedCornerShape(22.dp)
+private val CategoryChipHorizontalGap = 10.dp
+private val CategoryChipVerticalGap = 4.dp
 private val PagerIndicatorInactiveSize = 8.dp
 private val PagerIndicatorActiveWidth = 26.dp
 private val PagerIndicatorActiveShape = RoundedCornerShape(4.dp)
+private val CtaIndicatorGap = 20.dp
+private val CtaBottomPadding = 34.dp
+private val CtaContentGap = 12.dp
 
 @Composable
 fun OnboardingRoute(
@@ -197,7 +204,7 @@ internal fun OnboardingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
-                        .padding(top = 100.dp, bottom = 34.dp)
+                        .padding(top = 100.dp, bottom = CtaBottomPadding)
                         .align(Alignment.BottomCenter),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -208,7 +215,7 @@ internal fun OnboardingScreen(
                         currentPage = pagerState.currentPage
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(CtaIndicatorGap))
 
                     EpisodiveButton(
                         modifier = Modifier
@@ -306,6 +313,21 @@ private fun WelcomeScreen(
     }
 }
 
+/**
+ * 하단 CTA 오버레이(인디케이터 + 버튼)가 덮는 높이.
+ *
+ * 오버레이는 Pager 위에 `BottomCenter`로 떠 있어 스크롤 콘텐츠를 가린다. 스크롤 화면은 이만큼을
+ * 하단 contentPadding 으로 비워야 마지막 항목이 버튼 뒤로 들어가지 않는다. 오버레이가 시스템
+ * 내비게이션 영역까지 덮으므로 여기에 systemBars 하단 인셋을 더하면 이중이 된다.
+ */
+@Composable
+private fun bottomOverlayPadding(): Dp =
+    PagerIndicatorInactiveSize +
+        CtaIndicatorGap +
+        LocalDimensionTheme.current.buttonHeight +
+        CtaBottomPadding +
+        CtaContentGap
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CategorySelectionScreen(
@@ -325,7 +347,7 @@ private fun CategorySelectionScreen(
             state = lazyListState,
             contentPadding = PaddingValues(
                 top = systemBarsPadding.calculateTopPadding(),
-                bottom = systemBarsPadding.calculateBottomPadding() + 64.dp
+                bottom = bottomOverlayPadding(),
             ),
             modifier = Modifier
                 .fillMaxSize()
@@ -358,15 +380,18 @@ private fun CategorySelectionScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 22.dp, vertical = 18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        space = CategoryChipHorizontalGap,
+                        alignment = Alignment.CenterHorizontally,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(CategoryChipVerticalGap),
                 ) {
                     categories.forEach {
                         EpisodiveFilterChip(
                             selected = it.isSelected,
                             onSelectedChange = { _ -> onCategoryCheckedChanged(it.category) },
                             shape = CategoryChipShape,
-                            label = { Text(text = it.category.label) },
+                            label = { Text(text = it.category.displayName()) },
                         )
                     }
                 }
@@ -422,7 +447,7 @@ private fun PodcastSelectionScreen(
                 start = 20.dp,
                 end = 20.dp,
                 top = systemBarsPadding.calculateTopPadding() + 16.dp,
-                bottom = systemBarsPadding.calculateBottomPadding() + 64.dp
+                bottom = bottomOverlayPadding(),
             ),
             modifier = Modifier
                 .fillMaxSize()

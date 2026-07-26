@@ -34,6 +34,7 @@ fun EpisodiveIconToggleButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     shape: Shape = CircleShape,
+    size: Dp = EpisodiveIconButtonDefaults.CheckedIconButtonSize,
     colors: IconToggleButtonColors = IconButtonDefaults.iconToggleButtonColors(
         checkedContainerColor = MaterialTheme.colorScheme.primary,
         checkedContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -53,7 +54,7 @@ fun EpisodiveIconToggleButton(
     FilledIconToggleButton(
         checked = checked,
         onCheckedChange = onCheckedChange,
-        modifier = modifier.size(EpisodiveIconButtonDefaults.CheckedIconButtonSize),
+        modifier = modifier.size(size),
         enabled = enabled,
         shape = shape,
         colors = colors,
