@@ -9,15 +9,19 @@ Podcast Index Api 활용한 팟캐스트 앱
 |                     **온보딩**                     |                   **홈**                    |                    **검색**                    |                    **팟캐스트**                    |
 |:----------------------------------------------:|:------------------------------------------:|:--------------------------------------------:|:----------------------------------------------:|
 | <img src="docs/gifs/onboarding.gif" width="150"> | <img src="docs/gifs/home.gif" width="150"> | <img src="docs/gifs/search.gif" width="150"> | <img src="docs/gifs/podcast.gif" width="150"> |
+|             카테고리 선택 → 맞춤 팟캐스트 팔로우             |          최신 피드 · 랜덤/인기 · 라이브 피드          |         팟캐스트·에피소드 통합 검색 + 검색 기록         |          앨범 아트 기반 동적 테마 · 에피소드 목록          |
 
 |                    **플레이어**                    |                    **보관함**                    |                   **클립**                   |                    **위젯**                    |
 |:--------------------------------------------:|:---------------------------------------------:|:------------------------------------------:|:--------------------------------------------:|
 | <img src="docs/gifs/player.gif" width="150"> | <img src="docs/gifs/library.gif" width="150"> | <img src="docs/gifs/clip.gif" width="150"> | <img src="docs/gifs/widget.gif" width="150"> |
+|      배속 다이얼 · 슬립타이머 · ±15/30초 시킹      |        필터 칩으로 기록·좋아요·팔로우 전환        |        사운드바이트 카드 세로 스와이프 탐색        |        Glance 위젯에서 바로 재생 제어        |
+
+> 위 GIF는 v2 디자인(2026.07) 기준으로 재촬영했습니다.
 
 # 주요 기능
 
-- **온보딩**: 선호 카테고리 및 팟캐스트 선택으로 개인화된 경험 제공
-- **홈**: 최근 재생 에피소드, 트렌딩 팟캐스트, 랜덤 에피소드, 라이브 방송 등 다양한 콘텐츠 피드
+- **온보딩**: 선호 카테고리(한글 표시명 112종) 및 팟캐스트 선택으로 개인화된 경험 제공
+- **홈**: 최근 재생 에피소드, 트렌딩 팟캐스트, 랜덤 에피소드, 라이브 방송 등 다양한 콘텐츠 피드 (데이터가 없는 섹션은 자동 숨김)
 - **검색**: 팟캐스트 및 에피소드 검색, 최근 검색 히스토리, 최신 콘텐츠 탐색
 - **라이브러리**: 구독, 좋아요, 재생 기록 등 사용자 데이터 관리
 - **클립**: 사운드바이트 및 짧은 구간 미리듣기 기능
@@ -26,6 +30,7 @@ Podcast Index Api 활용한 팟캐스트 앱
 - **백그라운드 동기화**: WorkManager 기반 3시간 주기 에피소드 동기화 및 새 에피소드 알림
 - **홈 화면 위젯**: Glance 기반 위젯으로 홈 화면에서 바로 재생 제어 및 팔로우 피드 확인
 - **Last Play**: 마지막 재생 위치 기억 및 이어듣기
+- **동적 테마**: 앨범 아트에서 추출한 대표색을 플레이어·상세·미니플레이어·위젯 배경에 일관되게 적용
 
 # 아키텍처
 
@@ -88,6 +93,33 @@ Data Sources: Network (:core:network) | Database (:core:database) | DataStore (:
 |:-------|:-------------------------------|
 | `:app` | 네비게이션 및 의존성 통합을 담당하는 메인 애플리케이션 |
 
+# 디자인 시스템
+
+v2 디자인(2026.07)은 **344×746 목업(1px = 1dp)** 을 기준으로 재정비했습니다. ViewModel·UseCase·Repository·Room·네트워크 로직과 MVI 시그니처는 그대로 두고 `:core:designsystem`·`:core:ui`의 표현 계층만 교체했습니다.
+
+## 토큰
+
+| 영역 | 내용 |
+|:----|:----|
+| **타이포그래피** | Pretendard 6웨이트(Light ~ ExtraBold) — Display / Headline / Title은 ExtraBold로 위계 강조 |
+| **셰이프** | `EpisodiveShapes` 시맨틱 토큰 — field 14 · miniPlayer 18 · searchBar 20 · card 24 · bottomSheet 28 · playerCover 36 · heroCover 40 (dp) · pill 50% |
+| **치수** | `DimensionTheme` + `LocalDimensionTheme` CompositionLocal — 목업 기준 간격·썸네일·버튼 높이를 한곳에서 관리 |
+| **색상** | 다크 뉴트럴의 붉은 끼 완화, 스플래시·윈도우 배경까지 테마와 정합 |
+
+## 동적 색상 추출
+
+앨범 아트 대표색 추출을 `EpisodiveDominantColor` 하나로 통일했습니다(기존 홈 위젯 방식 기준).
+
+```kotlin
+object EpisodiveDominantColor {
+    fun extract(bitmap: Bitmap, region: DominantRegion = DominantRegion.Full): Color?
+    fun darken(argb: Int): Int
+}
+```
+
+- `DominantRegion`으로 추출 영역을 지정 → 커버 비율이 다른 화면에서도 같은 색이 나옵니다
+- 플레이어·팟캐스트 상세·미니플레이어·홈 위젯이 동일한 추출 결과를 공유합니다
+
 # 기술 스택
 
 ## Android
@@ -96,6 +128,7 @@ Data Sources: Network (:core:network) | Database (:core:database) | DataStore (:
 - **Target SDK**: 36 (Android 16)
 - **Language**: Kotlin 2.2.21
 - **UI Framework**: Jetpack Compose (BOM 2025.12.00)
+- **Typography**: Pretendard (Light ~ ExtraBold 6웨이트)
 - **Build**: Gradle AGP 8.13.1, KSP 2.3.1
 
 ## 핵심 라이브러리
@@ -230,7 +263,9 @@ sealed interface SearchEffect {
 
 ## 개발 문서
 
+- [디자인 시스템](DESIGN.md) - 색상·타이포·컴포넌트 카탈로그
 - [구현 체크리스트](docs/IMPLEMENTATION_CHECKLIST.md) - 기능 구현 진행 상황
+- [포트폴리오](docs/portfolio/PORTFOLIO.md) - 프로젝트 소개 슬라이드
 
 ---
 
