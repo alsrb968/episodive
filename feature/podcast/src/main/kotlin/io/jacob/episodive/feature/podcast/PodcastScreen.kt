@@ -55,13 +55,15 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveButtonDefaults
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.FadeTopBarLayout
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
 import io.jacob.episodive.core.designsystem.component.SkeletonContainer
+import io.jacob.episodive.core.designsystem.component.SkeletonCover
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.scrollbar.DraggableScrollbar
 import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
-import io.jacob.episodive.core.designsystem.screen.LoadingScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
@@ -120,7 +122,7 @@ internal fun PodcastRoute(
     }
 
     when (val s = state) {
-        is PodcastState.Loading -> LoadingScreen()
+        is PodcastState.Loading -> PodcastSkeleton(onBackClick = onBackClick)
 
         is PodcastState.Success -> {
             PodcastScreen(
@@ -306,6 +308,28 @@ internal fun PodcastScreen(
 }
 
 /**
+ * [EpisodeItemSkeleton] 을 [count] 줄 쌓는다. 컨테이너를 갖지 않는다 — 화면 하나에는
+ * [SkeletonContainer] 가 하나여야 하므로([PodcastSkeleton] 처럼 이미 바깥에 컨테이너가 있는
+ * 자리에서) 중첩 없이 끼워 넣기 위한 버전이다. 독립된 로딩 영역이면 [EpisodeListSkeleton] 을
+ * 대신 쓴다.
+ */
+@Composable
+private fun EpisodeSkeletonRows(modifier: Modifier = Modifier, count: Int) {
+    val dimension = LocalDimensionTheme.current
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = dimension.screenPadding),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        repeat(count) {
+            EpisodeItemSkeleton()
+        }
+    }
+}
+
+/**
  * 에피소드 목록 로딩 자리. [count] 만큼 [EpisodeItemSkeleton] 을 쌓는다.
  *
  * 줄 간격·좌우 여백은 실제 에피소드 목록([EpisodeItem] 호출부)과 같은 값을 써야, 로딩이
@@ -313,19 +337,8 @@ internal fun PodcastScreen(
  */
 @Composable
 private fun EpisodeListSkeleton(modifier: Modifier = Modifier, count: Int) {
-    val dimension = LocalDimensionTheme.current
-
     SkeletonContainer(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = dimension.screenPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            repeat(count) {
-                EpisodeItemSkeleton()
-            }
-        }
+        EpisodeSkeletonRows(count = count)
     }
 }
 
@@ -353,6 +366,153 @@ private fun EpisodesErrorMessage(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
     )
+}
+
+/**
+ * [PodcastScreen] 로딩 자리. [PodcastHeader] 아래 구조를 그대로 베낀다 — 실제 콘텐츠가
+ * 도착했을 때 레이아웃이 튀지 않으려면 자리 배치가 같아야 한다.
+ *
+ * `LoadingScreen()` 은 뒤로가기 버튼이 없어 로딩이 길어지면 화면을 빠져나갈 수 없었다.
+ * 실제 화면처럼 [FadeTopBarLayout] 으로 감싸면 뒤로가기가 산다 —
+ * `EpisodiveCenterTopAppBar` 의 뒤로가기 버튼은 스크롤에 따른 `showTopBar` 페이드와 무관하게
+ * 항상 그려진다. 이 화면엔 실제 스크롤 콘텐츠가 없어 `LazyListState` 는 그 시그니처를
+ * 맞추기 위한 빈 값이다.
+ */
+@Composable
+private fun PodcastSkeleton(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+) {
+    val dimension = LocalDimensionTheme.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+    FadeTopBarLayout(
+        modifier = modifier,
+        state = rememberLazyListState(),
+        title = "",
+        onBack = onBackClick,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                // 실제 헤더(PodcastHeader 호출부)와 같은 폴백 그라디언트를 미리 깔아 둔다.
+                // 안 깔면 커버가 도착해 대표색이 뽑히는 순간 배경이 통째로 바뀐다.
+                .drawWithCache {
+                    val topOffset = -statusBarTop.toPx()
+                    val gradientHeight = PodcastHeaderGradientHeight.toPx()
+                    val brush = Brush.verticalGradient(
+                        0f to PodcastHeaderGradientFallback,
+                        0.46f to lerp(PodcastHeaderGradientFallback, backgroundColor, 0.62f),
+                        0.86f to backgroundColor,
+                        startY = topOffset,
+                        endY = topOffset + gradientHeight,
+                    )
+                    onDrawBehind {
+                        drawRect(
+                            brush = brush,
+                            topLeft = Offset(0f, topOffset),
+                            size = Size(size.width, gradientHeight),
+                        )
+                    }
+                }
+                .padding(top = statusBarTop),
+        ) {
+            // 화면 하나엔 SkeletonContainer 가 하나여야 한다 — 여러 개면 구역마다 빛이
+            // 따로 흘러 로딩 표시가 아니라 고장 난 표시등으로 보인다. 그래서 에피소드
+            // 목록 자리는 자체 컨테이너를 가진 EpisodeListSkeleton 대신, 컨테이너 없는
+            // EpisodeSkeletonRows 를 이 컨테이너 안에 바로 끼워 넣는다.
+            SkeletonContainer(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimension.screenPadding)
+                            .padding(top = PodcastHeaderTopPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        SkeletonCover(
+                            size = PodcastHeaderCoverSize,
+                            shape = EpisodiveShapes.heroCover,
+                        )
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        // 폭을 고정해야 CenterHorizontally 로 실제 저자·제목처럼 짧게
+                        // 중앙에 놓인다 — SkeletonLine 기본값은 가로를 꽉 채운다.
+                        SkeletonLine(
+                            modifier = Modifier.width(96.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        SkeletonLine(
+                            modifier = Modifier.width(160.dp),
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            SkeletonLine(style = MaterialTheme.typography.bodySmall)
+                            SkeletonLine(style = MaterialTheme.typography.bodySmall)
+                            SkeletonLine(
+                                style = MaterialTheme.typography.bodySmall,
+                                widthFraction = 0.6f,
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                10.dp,
+                                Alignment.CenterHorizontally,
+                            ),
+                        ) {
+                            SkeletonBox(
+                                modifier = Modifier
+                                    .width(PodcastFollowButtonWidth)
+                                    .height(dimension.buttonHeightCompact),
+                                shape = EpisodiveShapes.pill,
+                            )
+
+                            SkeletonBox(
+                                modifier = Modifier.size(dimension.buttonHeightCompact),
+                                shape = EpisodiveShapes.pill,
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(
+                            start = dimension.screenPadding,
+                            end = dimension.screenPadding,
+                            top = 20.dp,
+                            bottom = 16.dp,
+                        )
+                    )
+
+                    SkeletonLine(
+                        modifier = Modifier.padding(
+                            start = dimension.screenPadding,
+                            end = dimension.screenPadding,
+                            bottom = 14.dp,
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        widthFraction = 0.35f,
+                    )
+
+                    EpisodeSkeletonRows(count = 4)
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -484,5 +644,13 @@ private fun PodcastScreenPreview() {
             onBackClick = {},
             onShowSnackbar = { _, _ -> false }
         )
+    }
+}
+
+@DevicePreviews
+@Composable
+private fun PodcastSkeletonPreview() {
+    EpisodiveTheme {
+        PodcastSkeleton(onBackClick = {})
     }
 }
