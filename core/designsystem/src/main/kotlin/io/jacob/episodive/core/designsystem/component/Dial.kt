@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
@@ -100,7 +101,8 @@ fun EpisodiveDial(
     range: ClosedFloatingPointRange<Float> = 0.5f..3.5f,
     steps: Int = 30,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
-    unselectedColor: Color = MaterialTheme.colorScheme.onPrimary,
+    unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.28f),
+    labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     val state = rememberDialState(value, range, steps)
     val scope = rememberCoroutineScope()
@@ -110,7 +112,7 @@ fun EpisodiveDial(
         modifier = modifier
     ) {
         val width = constraints.maxWidth.toFloat()
-        val stepWidth = with(density) { 30.dp.toPx() }
+        val stepWidth = with(density) { 28.dp.toPx() }
         val centerX = width / 2f
 
         Canvas(
@@ -131,6 +133,7 @@ fun EpisodiveDial(
                 stepWidth = stepWidth,
                 selectedColor = selectedColor,
                 unselectedColor = unselectedColor,
+                labelColor = labelColor,
             )
         }
     }
@@ -203,9 +206,12 @@ private fun DrawScope.drawDialContent(
     stepWidth: Float,
     selectedColor: Color,
     unselectedColor: Color,
+    labelColor: Color,
 ) {
-    val fadeWidth = 160.dp.toPx()
-    val textPaint = createTextPaint()
+    // 좌우 페이드 마스크 16%~84%
+    val fadeWidth = width * 0.16f
+    val textPaint = createTextPaint(labelColor)
+    val selectedTextPaint = createTextPaint(selectedColor, bold = true)
 
     // 눈금과 숫자 그리기
     for (i in 0..state.steps) {
@@ -222,7 +228,7 @@ private fun DrawScope.drawDialContent(
 
         // 숫자 표시 (매 5번째마다)
         if (i % 5 == 0) {
-            drawNumber(x, state.snapValues[i], fadeRatio, textPaint)
+            drawNumber(x, state.snapValues[i], fadeRatio, if (isSelected) selectedTextPaint else textPaint)
         }
     }
 
@@ -233,16 +239,17 @@ private fun DrawScope.drawDialContent(
 /**
  * 텍스트 페인트 생성
  */
-private fun DrawScope.createTextPaint(): android.graphics.Paint {
+private fun DrawScope.createTextPaint(color: Color, bold: Boolean = false): android.graphics.Paint {
     return Paint().asFrameworkPaint().apply {
-        color = android.graphics.Color.WHITE
-        textSize = 12.sp.toPx()
+        this.color = color.toArgb()
+        textSize = 11.sp.toPx()
         textAlign = android.graphics.Paint.Align.CENTER
+        isFakeBoldText = bold
     }
 }
 
 /**
- * Fade ratio 계산
+ * Fade ratio 계산 (좌우 16%~84% 구간에서 페이드)
  */
 private fun calculateFadeRatio(x: Float, width: Float, fadeWidth: Float): Float {
     return when {
@@ -264,8 +271,10 @@ private fun DrawScope.drawTick(
 ) {
     drawLine(
         color = if (isSelected) selectedColor else unselectedColor.copy(alpha = fadeRatio),
-        start = Offset(x, 70f),
-        end = Offset(x, if (isSelected) 55.dp.toPx() else 55.dp.toPx()),
+        // raw 픽셀 70f 를 쓰면 밀도마다 눈금 길이가 달라진다. 1x 기기에서는 시작점이
+        // 끝점(55dp=55px)보다 아래로 내려가 눈금이 뒤집힌다. 양쪽 모두 dp 로 맞춘다.
+        start = Offset(x, 23.dp.toPx()),
+        end = Offset(x, 55.dp.toPx()),
         strokeWidth = if (isSelected) 3.dp.toPx() else 2.dp.toPx(),
         cap = StrokeCap.Round
     )

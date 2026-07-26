@@ -22,15 +22,18 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,6 +45,7 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBar
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBarItem
 import io.jacob.episodive.feature.onboarding.OnboardingRoute
+import io.jacob.episodive.core.ui.LocalNowPlayingEpisodeId
 import io.jacob.episodive.feature.player.PlayerBar
 import io.jacob.episodive.navigation.EpisodiveNavHost
 
@@ -173,7 +177,11 @@ fun EpisodiveApp(
                         label = {
                             Text(
                                 text = text,
-                                style = MaterialTheme.typography.labelLarge,
+                                // 원본 내비 라벨은 11px, 선택 700 / 비선택 500 (원본 줄 213·214).
+                                // labelLarge(14/700)로 두면 라벨이 크고 선택 강조가 색에만 의존한다.
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                ),
                                 maxLines = 1
                             )
                         },
@@ -186,30 +194,48 @@ fun EpisodiveApp(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets
             .exclude(WindowInsets.statusBars),
         snackbarHost = {
+            // Scaffold 가 이미 스낵바를 하단 내비 위에 올려 주고, 그 내비가 시스템 인셋까지
+            // 품고 있다. 여기서 safeDrawing 을 한 번 더 주면 인셋이 이중으로 들어가 스낵바가
+            // 미니플레이어에서 한참 떠오른다. 미니플레이어가 차지하는 높이만 비우면 되고,
+            // 둘 사이 간격은 SnackbarHost 가 기본으로 두는 12dp 여백이 만든다.
             EpisodiveSwipeDismissSnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
-                    .padding(bottom = LocalDimensionTheme.current.playerBarHeight),
+                    .padding(bottom = LocalDimensionTheme.current.playerBarSpace),
             )
         },
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-        ) {
-            EpisodiveNavHost(
-                navigationState = appState.navigationState,
-                navigator = appState.navigator,
-                onShowSnackbar = onShowSnackbar,
-            )
+        val dimension = LocalDimensionTheme.current
 
-            PlayerBar(
-                onPodcastClick = { appState.navigateToPodcast(it) },
-                onShowSnackbar = onShowSnackbar,
-                expandSignal = expandPlayerSignal,
-                collapseSignal = collapsePlayerSignal,
-            )
+        // 미니플레이어가 들고 있는 현재 재생 에피소드를 화면 트리 전체에 내려, 어느 목록에서든
+        // 재생 중인 항목 하나만 강조되게 한다 (에피소드 행의 레드 재생 버튼 + 진행률 링).
+        var nowPlayingEpisodeId by remember { mutableStateOf<Long?>(null) }
+
+        CompositionLocalProvider(LocalNowPlayingEpisodeId provides nowPlayingEpisodeId) {
+            Box(
+                modifier = Modifier
+                    .padding(paddingValues)
+            ) {
+                // 미니플레이어는 화면 위에 떠 있다. 여기서 그 높이만큼 자리를 비워 두면
+                // 그 띠가 불투명한 배경으로 남아 화면이 잘리므로 비우지 않는다. 마지막
+                // 항목이 가리는 문제는 각 화면이 스크롤 끝에 playerBarSpace 를 두어 처리한다.
+                EpisodiveNavHost(
+                    navigationState = appState.navigationState,
+                    navigator = appState.navigator,
+                    onShowSnackbar = onShowSnackbar,
+                )
+
+                PlayerBar(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = dimension.playerBarBottomMargin),
+                    onPodcastClick = { appState.navigateToPodcast(it) },
+                    onShowSnackbar = onShowSnackbar,
+                    expandSignal = expandPlayerSignal,
+                    collapseSignal = collapsePlayerSignal,
+                    onNowPlayingChange = { nowPlayingEpisodeId = it },
+                )
+            }
         }
     }
 }

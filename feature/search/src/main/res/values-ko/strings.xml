@@ -11,4 +11,5 @@
     <string name="feature_search_recent_podcast_subtitle_no_author">팟캐스트</string>
     <string name="feature_search_recent_episode_subtitle">%1$s · 에피소드</string>
     <string name="feature_search_recent_episode_subtitle_no_feed">에피소드</string>
+    <string name="feature_search_clear_recent_searches">전체 삭제</string>
 </resources>

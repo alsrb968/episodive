@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_channel_label">Channel</string>
     <string name="feature_channel_subtitle_format">Channel • %dprograms</string>
     <string name="feature_channel_introduction">Introduction</string>
-    <string name="feature_channel_website">Website</string>
+    <string name="feature_channel_website">Open channel website</string>
 </resources>

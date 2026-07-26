@@ -17,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -33,22 +34,29 @@ fun EpisodiveViewToggleButton(
     compactText: @Composable () -> Unit = text,
     expandedText: @Composable () -> Unit = text,
 ) {
+    val contentColor = if (expanded) {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     TextButton(
         onClick = { onExpandedChange(!expanded) },
         modifier = modifier,
         enabled = enabled,
         colors = ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.onBackground,
+            contentColor = contentColor,
         ),
         contentPadding = contentPadding,
     ) {
         EpisodiveViewToggleContent(
+            expanded = expanded,
             text = if (expanded) expandedText else compactText,
             trailingIcon = {
                 Icon(
                     imageVector = if (expanded) EpisodiveIcons.Collapse else EpisodiveIcons.Expand,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground,
+                    tint = contentColor,
                 )
             },
         )
@@ -58,6 +66,7 @@ fun EpisodiveViewToggleButton(
 @Composable
 private fun EpisodiveViewToggleContent(
     modifier: Modifier = Modifier,
+    expanded: Boolean,
     text: @Composable () -> Unit,
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
@@ -75,7 +84,11 @@ private fun EpisodiveViewToggleContent(
                 modifier = Modifier
                     .size(38.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        color = if (expanded) {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            Color.Transparent
+                        },
                         shape = CircleShape,
                     ),
                 contentAlignment = Alignment.Center,

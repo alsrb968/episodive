@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Button
@@ -16,26 +17,44 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.component.EpisodiveButtonDefaults.OutlinedButtonBorderWidth
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 
 @Composable
 fun EpisodiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = ButtonDefaults.shape,
-    buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
+    shape: Shape = EpisodiveShapes.pill,
+    buttonColors: ButtonColors = EpisodiveButtonDefaults.filledButtonColors(),
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
+            .height(LocalDimensionTheme.current.buttonHeightCompact)
+            .then(
+                if (enabled) {
+                    Modifier.shadow(
+                        elevation = EpisodiveButtonDefaults.FilledButtonShadowElevation,
+                        shape = shape,
+                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    )
+                } else {
+                    Modifier
+                },
+            )
+            .alpha(if (enabled) 1f else EpisodiveButtonDefaults.DISABLED_BUTTON_ALPHA),
         shape = shape,
         colors = buttonColors,
         enabled = enabled,
@@ -48,8 +67,8 @@ fun EpisodiveButton(
 fun EpisodiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = ButtonDefaults.shape,
-    buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
+    shape: Shape = EpisodiveShapes.pill,
+    buttonColors: ButtonColors = EpisodiveButtonDefaults.filledButtonColors(),
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -77,23 +96,23 @@ fun EpisodiveButton(
 fun EpisodiveOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = ButtonDefaults.shape,
-    colors: ButtonColors = ButtonDefaults.outlinedButtonColors(
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ),
+    shape: Shape = EpisodiveShapes.pill,
+    colors: ButtonColors = EpisodiveButtonDefaults.outlinedButtonColors(),
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
+            .height(LocalDimensionTheme.current.buttonHeightCompact)
+            .alpha(if (enabled) 1f else EpisodiveButtonDefaults.DISABLED_BUTTON_ALPHA),
         shape = shape,
         enabled = enabled,
         colors = colors,
         border = BorderStroke(
             width = OutlinedButtonBorderWidth,
-            color = colors.contentColor,
+            color = if (enabled) colors.contentColor else colors.disabledContentColor,
         ),
         contentPadding = contentPadding,
         content = content,
@@ -104,7 +123,7 @@ fun EpisodiveOutlinedButton(
 fun EpisodiveOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = ButtonDefaults.shape,
+    shape: Shape = EpisodiveShapes.pill,
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -131,19 +150,19 @@ fun EpisodiveOutlinedButton(
 fun EpisodiveTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = ButtonDefaults.shape,
+    shape: Shape = EpisodiveShapes.pill,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
     TextButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
+            .height(LocalDimensionTheme.current.buttonHeightCompact)
+            .alpha(if (enabled) 1f else EpisodiveButtonDefaults.DISABLED_BUTTON_ALPHA),
         shape = shape,
         enabled = enabled,
-        colors = ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.onBackground,
-        ),
+        colors = EpisodiveButtonDefaults.textButtonColors(),
         contentPadding = contentPadding,
         content = content,
     )
@@ -153,7 +172,7 @@ fun EpisodiveTextButton(
 fun EpisodiveTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: Shape = ButtonDefaults.shape,
+    shape: Shape = EpisodiveShapes.pill,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     text: @Composable () -> Unit,
@@ -199,7 +218,32 @@ private fun EpisodiveButtonContent(
 
 object EpisodiveButtonDefaults {
     const val DISABLED_OUTLINED_BUTTON_BORDER_ALPHA = 0.12f
+    const val DISABLED_BUTTON_ALPHA = 0.5f
+    const val DISABLED_BUTTON_CONTAINER_ALPHA = 0.06f
     val OutlinedButtonBorderWidth = 1.dp
+    val FilledButtonShadowElevation = 12.dp
+
+    @Composable
+    fun filledButtonColors(): ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(
+            alpha = DISABLED_BUTTON_CONTAINER_ALPHA,
+        ),
+        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    @Composable
+    fun outlinedButtonColors(): ButtonColors = ButtonDefaults.outlinedButtonColors(
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    @Composable
+    fun textButtonColors(): ButtonColors = ButtonDefaults.textButtonColors(
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @ThemePreviews

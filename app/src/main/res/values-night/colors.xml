@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- v2 다크 배경 — 붉은 끼를 낮춘 값 (core/designsystem 의 backgroundDark). -->
+    <color name="app_background">#14100F</color>
+</resources>

@@ -42,7 +42,9 @@ import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
+import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.mapper.toHumanReadable
@@ -62,6 +64,7 @@ fun PodcastsSection(
         modifier = modifier,
         title = title,
     ) {
+        val dimension = LocalDimensionTheme.current
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
             lazyListState = lazyListState,
@@ -73,8 +76,10 @@ fun PodcastsSection(
                 .fillMaxWidth(),
             state = lazyListState,
             flingBehavior = flingBehavior,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
+            // 같은 화면의 채널·에피소드 섹션은 20dp 화면 패딩을 쓴다. 여기만 16dp 면
+            // 한 화면 안에 좌측 정렬선이 두 개 생긴다 (원본 줄 242).
+            horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
             // 짧은 캐러셀은 빠른 스와이프의 드래그 구간만으로도 가장자리 stretch 가 쌓여
             // 릴리즈 시 움찔거림이 생기므로 overscroll 을 사용하지 않는다.
             overscrollEffect = null,
@@ -117,29 +122,32 @@ fun PodcastItem(
         ?: "${podcast.episodeCount} ${stringResource(R.string.core_ui_episodes)}"
 
     Column(
-        modifier = modifier
-            .width(140.dp)
+        modifier = Modifier
+            // 기본 폭은 캐러셀 셀(118dp)이다. 그리드처럼 폭을 바깥에서 정하는 호출부가
+            // weight/fillMaxWidth 로 덮어쓸 수 있도록 modifier 보다 앞에 둔다.
+            .width(LocalDimensionTheme.current.coverCarousel)
+            .then(modifier)
             .clickable { onClick() },
     ) {
         StateImage(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(MaterialTheme.shapes.extraLarge),
+                .clip(MaterialTheme.shapes.large),
             imageUrl = podcast.image,
             contentDescription = podcast.title,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(CoverTitleSpacing))
 
         Column(
             modifier = Modifier.heightIn(min = textSectionMinHeight),
         ) {
             Text(
                 text = podcast.title,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
 
@@ -147,7 +155,9 @@ fun PodcastItem(
 
             Text(
                 text = subtitleText,
-                style = MaterialTheme.typography.labelMedium,
+                // 원본의 11~12px 메타는 굵기 지정이 없다(=400). labelSmall 은 700 이라
+                // 보조 정보가 제목만큼 굵어져 위계가 뭉개진다 (원본 줄 199·243).
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -156,6 +166,7 @@ fun PodcastItem(
     }
 }
 
+private val CoverTitleSpacing = 9.dp
 private val TextSectionSpacing = 4.dp
 
 @Composable
@@ -164,12 +175,14 @@ private fun rememberPodcastTextSectionMinHeight(): Dp {
     val typography = MaterialTheme.typography
     return remember(density, typography) {
         with(density) {
-            typography.bodyMedium.lineHeight.toDp() * 2 +
+            typography.labelMedium.lineHeight.toDp() +
                 TextSectionSpacing +
-                typography.labelMedium.lineHeight.toDp()
+                typography.bodySmall.lineHeight.toDp()
         }
     }
 }
+
+private val DetailItemCoverSize = 96.dp
 
 @Composable
 fun PodcastDetailItem(
@@ -185,8 +198,8 @@ fun PodcastDetailItem(
     ) {
         StateImage(
             modifier = Modifier
-                .size(96.dp)
-                .clip(MaterialTheme.shapes.extraLarge),
+                .size(DetailItemCoverSize)
+                .clip(EpisodiveShapes.coverForSize(96)),
             imageUrl = podcast.image,
             contentDescription = podcast.title,
         )
@@ -214,24 +227,19 @@ fun PodcastDetailItem(
                 )
 
                 EpisodiveIconToggleButton(
-                    modifier = Modifier
-                        .size(34.dp),
-                    shape = MaterialTheme.shapes.medium,
                     checked = isFollowed,
                     onCheckedChange = { onToggleFollowed() },
                     icon = {
                         Icon(
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(18.dp),
                             imageVector = EpisodiveIcons.PersonAdd,
-                            tint = MaterialTheme.colorScheme.onSurface,
                             contentDescription = podcast.title,
                         )
                     },
                     checkedIcon = {
                         Icon(
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(18.dp),
                             imageVector = EpisodiveIcons.PersonRemove,
-                            tint = MaterialTheme.colorScheme.onSurface,
                             contentDescription = podcast.title,
                         )
                     },
@@ -339,7 +347,7 @@ fun PodcastSimpleItem(
         StateImage(
             modifier = Modifier
                 .size(50.dp)
-                .clip(MaterialTheme.shapes.medium),
+                .clip(EpisodiveShapes.field),
             imageUrl = podcast.image,
             contentDescription = podcast.title,
         )
@@ -352,16 +360,17 @@ fun PodcastSimpleItem(
         ) {
             Text(
                 text = podcast.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
 
             Text(
                 text = podcast.ownerName.ifEmpty { podcast.author },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                // 저자명도 메타라 굵기 500 이 맞다 (원본 줄 326).
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -369,11 +378,13 @@ fun PodcastSimpleItem(
 
         EpisodiveOutlinedButton(
             onClick = onToggleFollowed,
+            shape = EpisodiveShapes.miniPlayer,
+            contentPadding = PaddingValues(horizontal = 15.dp, vertical = 7.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = if (podcast.isFollowed) {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 } else {
-                    MaterialTheme.colorScheme.onBackground
+                    MaterialTheme.colorScheme.onSurface
                 },
             ),
         ) {
@@ -382,7 +393,7 @@ fun PodcastSimpleItem(
                     if (podcast.isFollowed) R.string.core_ui_unfollow
                     else R.string.core_ui_follow
                 ),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }

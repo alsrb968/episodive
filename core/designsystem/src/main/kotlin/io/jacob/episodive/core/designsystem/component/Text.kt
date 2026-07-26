@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
@@ -44,7 +45,15 @@ fun FadingEdgeText(
 
     Box(
         modifier = modifier
-            .fadingEdgeMarquee()
+            .fadingEdgeMarquee(),
+        // Box 의 기본 정렬은 TopStart 다. 호출부가 fillMaxWidth 로 폭을 넓히면 내부 Text 는
+        // 자기 폭만 차지한 채 왼쪽에 붙어, textAlign 을 줘도 중앙/우측 정렬이 되지 않는다.
+        // 정렬을 Box 로 끌어올려 textAlign 과 일치시킨다.
+        contentAlignment = when (textAlign) {
+            TextAlign.Center -> Alignment.Center
+            TextAlign.End -> Alignment.CenterEnd
+            else -> Alignment.CenterStart
+        },
     ) {
         Text(
             text = prefixedText,

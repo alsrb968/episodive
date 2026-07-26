@@ -3,7 +3,13 @@
 
     <style name="NightAdjusted.Theme.Episodive" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <style name="Theme.Episodive" parent="NightAdjusted.Theme.Episodive" />
+    <style name="Theme.Episodive" parent="NightAdjusted.Theme.Episodive">
+        <!--
+          부모 플랫폼 테마의 기본 창 배경(라이트 흰색 / 다크 시스템 회색)을 쓰면 스플래시가
+          걷힌 뒤 Compose 첫 프레임이 그려지기 전까지 그 색이 비친다. 앱 배경색으로 맞춘다.
+        -->
+        <item name="android:windowBackground">@color/app_background</item>
+    </style>
 
     <style name="NightAdjusted.Theme.Splash" parent="Theme.SplashScreen">
         <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
@@ -11,6 +17,8 @@
     </style>
 
     <style name="Theme.Episodive.Splash" parent="NightAdjusted.Theme.Splash">
+        <!-- 색 리소스가 야간 설정에 따라 갈리므로 스플래시 스타일은 하나로 충분하다. -->
+        <item name="windowSplashScreenBackground">@color/app_background</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.Episodive</item>
     </style>

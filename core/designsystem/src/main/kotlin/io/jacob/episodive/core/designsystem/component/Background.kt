@@ -12,7 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -22,7 +21,6 @@ import io.jacob.episodive.core.designsystem.theme.GradientColors
 import io.jacob.episodive.core.designsystem.theme.LocalBackgroundTheme
 import io.jacob.episodive.core.designsystem.theme.LocalGradientColors
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
-import kotlin.math.tan
 
 /**
  * The main background for the app.
@@ -71,44 +69,34 @@ fun EpisodiveGradientBackground(
                 color = gradientColors.container
             )
             .drawWithCache {
-                // Compute the start and end coordinates such that the gradients are angled 11.06
-                // degrees off the vertical axis
-                val offset = size.height * tan(
-                    Math
-                        .toRadians(11.06)
-                        .toFloat(),
-                )
+                // v2: 화면 상단만 물들이고 82% 지점부터 투명하게 사라진다.
+                val topGradient = if (currentTopColor == Color.Unspecified) {
+                    null
+                } else {
+                    Brush.verticalGradient(
+                        0f to currentTopColor,
+                        0.82f to Color.Transparent,
+                        startY = 0f,
+                        endY = size.height,
+                    )
+                }
 
-                val start = Offset(size.width / 2 + offset / 2, 0f)
-                val end = Offset(size.width / 2 - offset / 2, size.height)
-
-                // Create the top gradient that fades out after the halfway point vertically
-                val topGradient = Brush.linearGradient(
-                    0f to if (currentTopColor == Color.Unspecified) {
-                        Color.Transparent
-                    } else {
-                        currentTopColor
-                    },
-                    0.724f to Color.Transparent,
-                    start = start,
-                    end = end,
-                )
-                // Create the bottom gradient that fades in before the halfway point vertically
-                val bottomGradient = Brush.linearGradient(
-                    0.2552f to Color.Transparent,
-                    1f to if (currentBottomColor == Color.Unspecified) {
-                        Color.Transparent
-                    } else {
-                        currentBottomColor
-                    },
-                    start = start,
-                    end = end,
-                )
+                // 아래에서 올라오는 스크림. 온보딩 하단 CTA 가 이것만 넘기므로 빼면
+                // 버튼·인디케이터 뒤로 목록이 그대로 비친다.
+                val bottomGradient = if (currentBottomColor == Color.Unspecified) {
+                    null
+                } else {
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        1f to currentBottomColor,
+                        startY = 0f,
+                        endY = size.height,
+                    )
+                }
 
                 onDrawBehind {
-                    // There is overlap here, so order is important
-                    drawRect(topGradient)
-                    drawRect(bottomGradient)
+                    topGradient?.let { drawRect(it) }
+                    bottomGradient?.let { drawRect(it) }
                 }
             },
     ) {

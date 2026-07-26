@@ -41,11 +41,30 @@ class OnboardingScreenTest {
     }
 
     @Test
-    fun nextButtonIsDisplayed() {
+    fun ctaButtonIsDisplayed() {
         composeTestRule.setContent {
             EpisodiveTheme {
                 OnboardingScreen(
                     pagerState = rememberPagerState(initialPage = 0) { OnboardingPage.entries.size },
+                    categories = Category.entries.map { SelectableCategory(it, false) },
+                    podcasts = flowOf(PagingData.from(podcastTestDataList)),
+                    onChooseCategory = {},
+                    onChoosePodcast = {},
+                    onNextPage = {},
+                )
+            }
+        }
+
+        // 첫 페이지의 CTA 는 "Get started" 다. "Next" 는 이후 페이지부터 나온다.
+        composeTestRule.onNodeWithText("Get started").assertIsDisplayed()
+    }
+
+    @Test
+    fun nextButtonIsDisplayedFromSecondPage() {
+        composeTestRule.setContent {
+            EpisodiveTheme {
+                OnboardingScreen(
+                    pagerState = rememberPagerState(initialPage = 1) { OnboardingPage.entries.size },
                     categories = Category.entries.map { SelectableCategory(it, false) },
                     podcasts = flowOf(PagingData.from(podcastTestDataList)),
                     onChooseCategory = {},

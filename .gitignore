@@ -21,3 +21,5 @@ local.properties
 .omc/
 # graphify 산출물 — 로컬 전용. clone 후 `graphify update .`로 각자 생성한다.
 graphify-out/
+# gstack 툴이 저장소 루트에 만드는 로컬 상태.
+.gstack/

@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -31,7 +32,15 @@ fun EpisodiveTab(
         modifier = modifier,
         enabled = enabled,
         text = {
-            val style = MaterialTheme.typography.labelLarge.copy(textAlign = TextAlign.Center)
+            val style = MaterialTheme.typography.bodyMedium.copy(
+                textAlign = TextAlign.Center,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
             ProvideTextStyle(
                 value = style,
                 content = {
@@ -84,5 +93,5 @@ private fun TabsPreview() {
 }
 
 object EpisodiveTabDefaults {
-    val TabTopPadding = 7.dp
+    val TabTopPadding = 8.dp
 }

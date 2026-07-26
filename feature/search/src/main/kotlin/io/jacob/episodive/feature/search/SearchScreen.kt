@@ -1,10 +1,13 @@
 package io.jacob.episodive.feature.search
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +33,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -44,6 +49,7 @@ import io.jacob.episodive.core.designsystem.component.scrollbar.scrollbarState
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.screen.LoadingScreen
+import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -126,7 +132,9 @@ internal fun SearchScreen(
         title = stringResource(R.string.feature_search_title),
     ) { paddingValues, nestedScrollConnection ->
         EpisodiveSearchBar(
-            modifier = modifier
+            // 바깥 modifier 는 이미 EpisodiveScaffold 에 넘겼다. 여기서 다시 붙이면
+            // 같은 modifier 가 두 번 적용된다.
+            modifier = Modifier
                 .padding(paddingValues),
             query = query,
             onQueryChange = onQueryChange,
@@ -138,11 +146,14 @@ internal fun SearchScreen(
             contentOnCollapse = {
                 SearchContentsOnCollapse(
                     modifier = Modifier,
+                    recentSearches = recentSearches,
                     episodes = episodes,
                     podcasts = podcasts,
                     onEpisodeClick = onEpisodeClick,
                     onToggleLikedEpisode = onToggleLikedEpisode,
                     onPodcastClick = onPodcastClick,
+                    onRecentSearchClick = onRecentSearchClick,
+                    onRemoveRecentSearch = onRemoveRecentSearch,
                 )
             },
             contentOnExpand = { scrollState ->
@@ -165,16 +176,34 @@ internal fun SearchScreen(
 @Composable
 private fun SearchContentsOnCollapse(
     modifier: Modifier = Modifier,
+    recentSearches: List<RecentSearch> = emptyList(),
     podcasts: List<Podcast>,
     episodes: List<Episode>,
     onEpisodeClick: (Episode) -> Unit = {},
     onToggleLikedEpisode: (Episode) -> Unit = {},
     onPodcastClick: (Podcast) -> Unit = {},
+    onRecentSearchClick: (RecentSearch) -> Unit = {},
+    onRemoveRecentSearch: (RecentSearch) -> Unit = {},
 ) {
+    val dimension = LocalDimensionTheme.current
+
     LazyColumn(
         modifier = modifier
             .fillMaxWidth(),
     ) {
+        if (recentSearches.isNotEmpty()) {
+            item {
+                RecentSearchChipsRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimension.screenPadding, vertical = 12.dp),
+                    recentSearches = recentSearches,
+                    onRecentSearchClick = onRecentSearchClick,
+                    onRemoveRecentSearch = onRemoveRecentSearch,
+                )
+            }
+        }
+
         if (podcasts.isNotEmpty()) {
             item {
                 PodcastsSection(
@@ -206,9 +235,88 @@ private fun SearchContentsOnCollapse(
         }
 
         item {
-            Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+            Spacer(modifier = Modifier.height(dimension.playerBarSpace))
         }
     }
+}
+
+@Composable
+private fun RecentSearchChipsRow(
+    modifier: Modifier = Modifier,
+    recentSearches: List<RecentSearch>,
+    onRecentSearchClick: (RecentSearch) -> Unit,
+    onRemoveRecentSearch: (RecentSearch) -> Unit,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(R.string.feature_search_section_recent_searches),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
+            // 접힌 상태의 히스토리는 화면 앞머리를 차지하므로 줄 수를 묶는다.
+            // 전체 목록은 검색창을 포커스하면 펼침 화면에서 볼 수 있다.
+            maxLines = RecentSearchChipMaxLines,
+        ) {
+            recentSearches.forEach { recentSearch ->
+                RecentSearchChip(
+                    label = recentSearch.displayLabel(),
+                    onClick = { onRecentSearchClick(recentSearch) },
+                    onRemove = { onRemoveRecentSearch(recentSearch) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentSearchChip(
+    modifier: Modifier = Modifier,
+    label: String,
+    onClick: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .clip(EpisodiveShapes.pill)
+            // --card(#271E1A) = surfaceContainerHigh. surfaceContainer 는 바텀시트용이라
+            // 한 단계 어두워, 같은 화면의 필터 칩과 미묘하게 다른 색이 된다 (원본 줄 237).
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .border(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant, shape = EpisodiveShapes.pill)
+            .clickable { onClick() }
+            .padding(start = 14.dp, end = 10.dp, top = 9.dp, bottom = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+
+        Icon(
+            imageVector = EpisodiveIcons.Close,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(15.dp)
+                .clickable { onRemove() },
+        )
+    }
+}
+
+private fun RecentSearch.displayLabel(): String = when (this) {
+    is RecentSearch.Query -> query
+    is RecentSearch.PodcastSearch -> title
+    is RecentSearch.EpisodeSearch -> title
 }
 
 @Composable
@@ -276,21 +384,22 @@ private fun SearchResultsOnExpand(
                     val episode = searchResult.episodes[index]
 
                     EpisodeItem(
+                        // 다른 리스트와 같은 화면 여백·항목 간격을 쓴다. 여기만 16/16 이면
+                        // 결과 화면에서 좌측 정렬선이 어긋난다 (원본 줄 296).
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = LocalDimensionTheme.current.screenPadding),
                         episode = episode,
-                        isLoading = false,
                         onClick = { onEpisodeClick(episode) },
                         onToggleLiked = { onToggleLikedEpisode(episode) }
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LocalDimensionTheme.current.listItemSpacing))
                 }
             }
 
             item {
-                Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarHeight))
+                Spacer(modifier = Modifier.height(LocalDimensionTheme.current.playerBarSpace))
             }
         }
 
@@ -321,19 +430,38 @@ private fun RecentSearchesSection(
     onRemoveRecentSearch: (RecentSearch) -> Unit,
     onClearRecentSearches: () -> Unit
 ) {
-    SectionHeader(
-        modifier = modifier,
-        title = title,
-        actionIcon = EpisodiveIcons.PlaylistX,
-        actionIconContentDescription = "Clear recent searches",
-        onActionClick = onClearRecentSearches,
+    val dimension = LocalDimensionTheme.current
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth(),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = dimension.headerPadding, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Text(
+                text = stringResource(R.string.feature_search_clear_recent_searches),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                // v1 은 아이콘 버튼이라 contentDescription 이 있었다. 텍스트 링크로 바뀌면서
+                // 스크린리더가 읽을 라벨이 사라졌으므로 명시적으로 붙인다.
+                modifier = Modifier
+                    .clickable { onClearRecentSearches() }
+                    .semantics { contentDescription = SearchClearAllContentDescription },
+            )
+        }
+
+        Column {
             recentSearches.forEach { recentSearch ->
                 RecentSearchItem(
                     recentSearch = recentSearch,
@@ -352,12 +480,15 @@ private fun RecentSearchItem(
     onClick: () -> Unit,
     onRemove: () -> Unit,
 ) {
+    val dimension = LocalDimensionTheme.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(4.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { onClick() }
+            .padding(horizontal = dimension.headerPadding, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         when (recentSearch) {
             is RecentSearch.Query -> {
@@ -365,9 +496,8 @@ private fun RecentSearchItem(
                     imageVector = EpisodiveIcons.History,
                     contentDescription = "Recent Search Icon",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = recentSearch.query,
                     style = MaterialTheme.typography.bodyLarge,
@@ -382,15 +512,14 @@ private fun RecentSearchItem(
                     imageUrl = recentSearch.imageUrl,
                     contentDescription = recentSearch.title,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(4.dp)),
+                        .size(42.dp)
+                        .clip(MaterialTheme.shapes.small),
                     contentScale = ContentScale.Crop,
                 )
-                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = recentSearch.title,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -413,15 +542,14 @@ private fun RecentSearchItem(
                     imageUrl = recentSearch.imageUrl,
                     contentDescription = recentSearch.title,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(4.dp)),
+                        .size(42.dp)
+                        .clip(EpisodeHistoryCoverShape),
                     contentScale = ContentScale.Crop,
                 )
-                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = recentSearch.title,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -441,15 +569,24 @@ private fun RecentSearchItem(
             }
         }
 
-        IconButton(onClick = { onRemove() }) {
-            Icon(
-                imageVector = EpisodiveIcons.Close,
-                contentDescription = "Remove Recent Search",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(
+            imageVector = EpisodiveIcons.Close,
+            contentDescription = "Remove Recent Search",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(17.dp)
+                .clickable { onRemove() },
+        )
     }
 }
+
+/** 접힌 검색 화면에서 히스토리 칩이 흐를 수 있는 최대 줄 수. */
+private const val RecentSearchChipMaxLines = 5
+
+private const val SearchClearAllContentDescription = "Clear recent searches"
+
+// 에피소드 히스토리 커버 반경(9dp) — 팟캐스트(12dp=MaterialTheme.shapes.small)와 달리 토큰에 없는 값.
+private val EpisodeHistoryCoverShape = RoundedCornerShape(9.dp)
 
 @DevicePreviews
 @Composable

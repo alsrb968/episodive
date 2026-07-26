@@ -11,4 +11,5 @@
     <string name="feature_search_recent_podcast_subtitle_no_author">Podcast</string>
     <string name="feature_search_recent_episode_subtitle">%1$s · Episode</string>
     <string name="feature_search_recent_episode_subtitle_no_feed">Episode</string>
+    <string name="feature_search_clear_recent_searches">Clear all</string>
 </resources>

@@ -7,7 +7,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -32,19 +31,20 @@ fun EpisodiveTheme(
         else -> lightScheme
     }
 
-    // Gradient colors
-    val emptyGradientColors = GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
+    // Gradient colors — v2는 화면 상단을 웜 레드(#5A271D)로 물들이고 배경으로 흘려보낸다
+    val emptyGradientColors = GradientColors(container = colorScheme.surface)
     val defaultGradientColors = GradientColors(
-        top = colorScheme.primaryContainer,
-        bottom = Color.Transparent,//colorScheme.inverseOnSurface,
-        container = Color.Transparent,//colorScheme.surface,
+        top = colorScheme.tertiaryContainer,
+        bottom = Color.Transparent,
+        container = Color.Transparent,
     )
     val gradientColors = defaultGradientColors
 
-    // Background theme
+    // Background theme — v2는 엘리베이션을 surface 밝기 사다리로 표현하므로
+    // M3의 tonal 오버레이를 쓰지 않는다 (쓰면 warm near-black에 보라 틴트가 낀다)
     val defaultBackgroundTheme = BackgroundTheme(
         color = colorScheme.surface,
-        tonalElevation = 2.dp,
+        tonalElevation = 0.dp,
     )
     val backgroundTheme = defaultBackgroundTheme
 
@@ -52,9 +52,7 @@ fun EpisodiveTheme(
     val tintTheme = TintTheme()
 
     // Dimension theme
-    val dimensionTheme = DimensionTheme(
-        playerBarHeight = 70.dp,
-    )
+    val dimensionTheme = DefaultDimensionTheme
 
     CompositionLocalProvider(
         LocalGradientColors provides gradientColors,
@@ -64,6 +62,7 @@ fun EpisodiveTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
+            shapes = EpisodiveShapeScheme,
             typography = EpisodiveTypography,
             content = content
         )
