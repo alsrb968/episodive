@@ -40,15 +40,21 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveOutlinedButton
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.SectionHeader
+import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonCover
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
+import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.podcastTestData
+import io.jacob.episodive.core.testing.model.podcastTestDataList
 
 @Stable
 @Composable
@@ -89,6 +95,36 @@ fun PodcastsSection(
                 subtitleProvider = subtitleProvider,
                 onPodcastClick = onPodcastClick
             )
+        }
+    }
+}
+
+/** [PodcastsSection] 로딩 자리. 실제와 같은 헤더·캐러셀 여백을 써서 전환 시 레이아웃이 튀지 않는다. */
+@Composable
+fun PodcastsSectionSkeleton(
+    modifier: Modifier = Modifier,
+    count: Int = 3,
+) {
+    val dimension = LocalDimensionTheme.current
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        SectionHeaderSkeleton()
+
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            // 아직 데이터가 없는 캐러셀이라 좌우로 끌리면 없는 콘텐츠를 만지는 것처럼
+            // 보인다. 스크롤을 막아 "곧 채워질 자리"로만 읽히게 한다.
+            userScrollEnabled = false,
+            horizontalArrangement = Arrangement.spacedBy(dimension.carouselSpacing),
+            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
+        ) {
+            items(count) {
+                PodcastItemSkeleton()
+            }
         }
     }
 }
@@ -161,6 +197,47 @@ fun PodcastItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** [PodcastItem] 로딩 자리. 커버 비율·텍스트 자리 상수를 그대로 참조해 전환 시 크기가 안 튄다. */
+@Composable
+fun PodcastItemSkeleton(
+    modifier: Modifier = Modifier,
+) {
+    val textSectionMinHeight = rememberPodcastTextSectionMinHeight()
+
+    Column(
+        modifier = Modifier
+            // 실제 PodcastItem과 동일하게 modifier보다 앞에 둬서, 그리드처럼 폭을
+            // 바깥에서 정하는 호출부가 weight/fillMaxWidth로 덮어쓸 수 있게 한다.
+            .width(LocalDimensionTheme.current.coverCarousel)
+            .then(modifier),
+    ) {
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f),
+            shape = MaterialTheme.shapes.large,
+        )
+
+        Spacer(modifier = Modifier.height(CoverTitleSpacing))
+
+        Column(
+            modifier = Modifier.heightIn(min = textSectionMinHeight),
+        ) {
+            SkeletonLine(
+                style = MaterialTheme.typography.labelMedium,
+                widthFraction = 0.85f,
+            )
+
+            Spacer(modifier = Modifier.height(TextSectionSpacing))
+
+            SkeletonLine(
+                style = MaterialTheme.typography.bodySmall,
+                widthFraction = 0.55f,
             )
         }
     }
@@ -339,6 +416,84 @@ fun PodcastDetailItem(
     }
 }
 
+/**
+ * [PodcastDetailItem] 로딩 자리.
+ *
+ * 설명은 실제와 같은 4줄 고정이다 — 줄 수가 다르면 데이터가 채워질 때 아래 레이아웃이
+ * 밀린다. 마지막 줄만 폭을 줄여 문단이 끝나는 자리처럼 보이게 한다.
+ */
+@Composable
+fun PodcastDetailItemSkeleton(
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+    ) {
+        SkeletonCover(size = DetailItemCoverSize)
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                SkeletonLine(
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall,
+                    widthFraction = 0.6f,
+                )
+
+                SkeletonBox(
+                    modifier = Modifier.size(DetailItemFollowButtonSize),
+                    shape = EpisodiveShapes.pill,
+                )
+            }
+
+            FlowRow(
+                modifier = Modifier,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // 소유자·발행일·에피소드 수 세 자리. 실제 EpisodiveIconText와 같은 12dp
+                // 아이콘 + 6dp 간격 리듬을 그대로 쓴다.
+                DetailItemMetaWidths.forEach { width ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        SkeletonBox(modifier = Modifier.size(12.dp))
+
+                        SkeletonLine(
+                            modifier = Modifier.width(width),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column {
+                repeat(DetailItemDescriptionLines) { index ->
+                    SkeletonLine(
+                        style = MaterialTheme.typography.bodySmall,
+                        widthFraction = if (index == DetailItemDescriptionLines - 1) 0.6f else 1f,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private val DetailItemMetaWidths = listOf(64.dp, 56.dp, 72.dp)
+private const val DetailItemDescriptionLines = 4
+
 @Composable
 fun PodcastSimpleItem(
     modifier: Modifier = Modifier,
@@ -447,5 +602,44 @@ private fun PodcastSimpleItemPreview() {
             onClick = {},
             onToggleFollowed = {},
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun PodcastItemSkeletonPreview() {
+    EpisodiveTheme {
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            PodcastItem(podcast = podcastTestData)
+            PodcastItemSkeleton()
+        }
+    }
+}
+
+// PodcastsSection·PodcastDetailItem은 폭을 스스로 채우는 컴포넌트라 PodcastItem처럼
+// Row로 나란히 두면 서로 폭을 다투다 찌그러진다. 위아래로 쌓아 비교한다.
+
+@ThemePreviews
+@Composable
+private fun PodcastsSectionSkeletonPreview() {
+    EpisodiveTheme {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            PodcastsSection(
+                title = "인기 팟캐스트",
+                podcasts = podcastTestDataList.take(3),
+            )
+            PodcastsSectionSkeleton()
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun PodcastDetailItemSkeletonPreview() {
+    EpisodiveTheme {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            PodcastDetailItem(podcast = podcastTestData)
+            PodcastDetailItemSkeleton()
+        }
     }
 }

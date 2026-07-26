@@ -66,6 +66,10 @@ import io.jacob.episodive.core.designsystem.component.ClipAnimationIconText
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.SectionHeader
+import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
+import io.jacob.episodive.core.designsystem.component.SkeletonBox
+import io.jacob.episodive.core.designsystem.component.SkeletonCover
+import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.SubSectionHeader
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
@@ -73,11 +77,13 @@ import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
+import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.model.mapper.toIntSeconds
 import io.jacob.episodive.core.model.mapper.toRelativeDate
 import io.jacob.episodive.core.testing.model.episodeTestData
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -243,6 +249,33 @@ fun EpisodesSection(
     }
 }
 
+/**
+ * [EpisodesSection] 로딩 자리. 실제 섹션이 LazyRow가 아니라 세로 Column이므로 카드를
+ * 가로로 늘어놓지 않고 [count]개를 세로로 쌓는다.
+ */
+@Composable
+fun EpisodesSectionSkeleton(
+    modifier: Modifier = Modifier,
+    count: Int = 3,
+) {
+    val dimension = LocalDimensionTheme.current
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        SectionHeaderSkeleton()
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimension.screenPadding),
+            verticalArrangement = Arrangement.spacedBy(dimension.listItemSpacing)
+        ) {
+            repeat(count) {
+                EpisodeItemSkeleton()
+            }
+        }
+    }
+}
+
 fun LazyListScope.episodeItems(
     itemModifier: Modifier = Modifier,
     episodes: List<Episode>,
@@ -390,6 +423,40 @@ fun EpisodeItem(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
+        )
+    }
+}
+
+/**
+ * [EpisodeItem] 로딩 자리. 재생 중 강조 배경·테두리는 로딩 상태에 의미가 없으므로 만들지
+ * 않고, 썸네일·텍스트·좋아요 자리만 같은 치수로 채운다.
+ */
+@Composable
+fun EpisodeItemSkeleton(modifier: Modifier = Modifier) {
+    val dimension = LocalDimensionTheme.current
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        // EpisodeItem 행의 gap(12dp)과 동일.
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SkeletonCover(size = dimension.thumbnailSmall)
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // 제목은 최대 2줄이라 항상 2줄을 그린다.
+            SkeletonLine(style = MaterialTheme.typography.labelLarge, widthFraction = 0.92f)
+            SkeletonLine(style = MaterialTheme.typography.labelLarge, widthFraction = 0.55f)
+            SkeletonLine(style = MaterialTheme.typography.bodySmall, widthFraction = 0.45f)
+        }
+
+        // 좋아요 토글 버튼과 같은 19dp 원.
+        SkeletonBox(
+            modifier = Modifier.size(19.dp),
+            shape = CircleShape,
         )
     }
 }
@@ -656,6 +723,57 @@ fun PlayedEpisodeItem(
     }
 }
 
+/**
+ * [PlayedEpisodeItem] 로딩 자리. 항목 폭은 실제와 마찬가지로 호출부가 [modifier]로
+ * 정한다(가로 캐러셀에서는 250dp 고정, 세로 목록에서는 fillMaxWidth) — 여기서 폭을
+ * 강제하면 둘 중 한 호출부는 어긋난다.
+ */
+@Composable
+fun PlayedEpisodeItemSkeleton(modifier: Modifier = Modifier) {
+    val dimension = LocalDimensionTheme.current
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(13.dp),
+    ) {
+        SkeletonCover(size = dimension.thumbnailMedium)
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            SkeletonLine(style = MaterialTheme.typography.labelLarge, widthFraction = 0.8f)
+
+            Spacer(modifier = Modifier.height(4.dp))
+            SkeletonLine(style = MaterialTheme.typography.bodySmall, widthFraction = 0.5f)
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                // 진행률 바 자리.
+                SkeletonBox(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(dimension.progressThickness),
+                    shape = CircleShape,
+                )
+
+                // "42%"/"완료" 라벨 자리.
+                SkeletonLine(
+                    modifier = Modifier.width(28.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            // 남은 시간 안내 줄 — showMoreInfo가 true인 일반적인 경우를 기준으로 둔다.
+            SkeletonLine(style = MaterialTheme.typography.bodySmall, widthFraction = 0.35f)
+        }
+    }
+}
+
 @Composable
 fun EpisodeDetailItem(
     modifier: Modifier = Modifier,
@@ -715,6 +833,39 @@ fun EpisodeDetailItem(
         }
     }
 }
+
+/**
+ * [EpisodeDetailItem] 로딩 자리. 설명은 실제와 같은 4줄 고정(minLines=maxLines=4)이라
+ * 줄 수를 어림하지 않고 정확히 [EpisodeDetailDescriptionLines]개를 그린다 — 마지막 줄만
+ * 짧게 줘 문단이 끝나는 자리처럼 보이게 한다.
+ */
+@Composable
+fun EpisodeDetailItemSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.width(200.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        // 이 커버만 코너 사다리를 벗어난다 — 실제가 shapes.large 로 클립하므로 그대로 맞춘다.
+        SkeletonCover(size = 200.dp, shape = MaterialTheme.shapes.large)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        SkeletonLine(style = MaterialTheme.typography.bodySmall, widthFraction = 0.6f)
+        SkeletonLine(style = MaterialTheme.typography.labelLarge, widthFraction = 0.85f)
+
+        // 설명 4줄 — 한 Text 안의 여러 줄이라 줄 사이에 별도 간격을 더하지 않는다.
+        Column {
+            repeat(EpisodeDetailDescriptionLines) { index ->
+                SkeletonLine(
+                    style = MaterialTheme.typography.bodySmall,
+                    widthFraction = if (index == EpisodeDetailDescriptionLines - 1) 0.5f else 1f,
+                )
+            }
+        }
+    }
+}
+
+private const val EpisodeDetailDescriptionLines = 4
 
 @Composable
 fun EpisodeClipItem(
@@ -865,6 +1016,46 @@ fun EpisodeClipItem(
     }
 }
 
+/**
+ * [EpisodeClipItem] 로딩 자리. 배경 블러 이미지·스크림·재생 컨트롤까지 그대로 옮기면
+ * 로딩 상태에서 의미 없는 디테일만 늘어나므로, 카드 틀 + 커버 블록 + 인용문 줄로
+ * 단순화한다. Surface의 색은 실제와 같은 Transparent를 그대로 둬 — 스켈레톤 블록은
+ * 화면 배경 위에서만 대비가 생기고, 블록끼리 겹쳐서는 구분되지 않는다 — 패딩(24dp)과
+ * 모서리(extraLarge)만 실제와 같게 맞춘다.
+ */
+@Composable
+fun EpisodeClipItemSkeleton(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = Color.Transparent,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+                shape = MaterialTheme.shapes.extraLarge,
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SkeletonLine(style = MaterialTheme.typography.titleMedium, widthFraction = 0.9f)
+                SkeletonLine(style = MaterialTheme.typography.titleMedium, widthFraction = 0.7f)
+                SkeletonLine(style = MaterialTheme.typography.bodySmall, widthFraction = 0.4f)
+            }
+        }
+    }
+}
+
 @DevicePreviews
 @Composable
 private fun EpisodeItemPreview() {
@@ -926,5 +1117,110 @@ private fun EpisodeClipItemPreview() {
             onPlayEpisode = {},
             onToggleLikedEpisode = {},
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun EpisodeItemSkeletonPreview() {
+    EpisodiveTheme {
+        val dimension = LocalDimensionTheme.current
+
+        // 실제 / 스켈레톤 / 실제 순으로 쌓아 좌우 정렬선이 어긋나면 바로 드러나게 한다.
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = dimension.screenPadding, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(dimension.listItemSpacing),
+        ) {
+            EpisodeItem(episode = episodeTestData, onClick = {}, onToggleLiked = {})
+            EpisodeItemSkeleton()
+            EpisodeItem(episode = episodeTestData, onClick = {}, onToggleLiked = {})
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun EpisodesSectionSkeletonPreview() {
+    EpisodiveTheme {
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            EpisodesSection(
+                title = "Preview",
+                episodes = episodeTestDataList.take(3),
+                onEpisodeClick = {},
+                onToggleLikedEpisode = {},
+            )
+            EpisodesSectionSkeleton()
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun PlayedEpisodeItemSkeletonPreview() {
+    EpisodiveTheme {
+        // 실제 항목 폭은 호출부가 정하므로(가로 캐러셀 250dp) 여기서도 같은 폭으로 감싼다.
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .width(250.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            PlayedEpisodeItem(playedEpisode = episodeTestData, onClick = {})
+            PlayedEpisodeItemSkeleton()
+            PlayedEpisodeItem(playedEpisode = episodeTestData, onClick = {})
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun EpisodeDetailItemSkeletonPreview() {
+    EpisodiveTheme {
+        // 고정 200dp 폭 카드라 나란히 둬도 서로 폭을 다투지 않는다.
+        Row(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            EpisodeDetailItem(episode = episodeTestData, onClick = {})
+            EpisodeDetailItemSkeleton()
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun EpisodeClipItemSkeletonPreview() {
+    EpisodiveTheme {
+        // 전체화면 카드라 위아래로 쌓아 비교한다 — 폭을 다투는 side-by-side는 둘 다 찌그러진다.
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(modifier = Modifier.width(220.dp).height(390.dp)) {
+                EpisodeClipItem(
+                    episode = episodeTestData,
+                    isPlaying = true,
+                    remaining = 45.seconds,
+                    onClick = {},
+                    onPlayEpisode = {},
+                    onToggleLikedEpisode = {},
+                )
+            }
+            Box(modifier = Modifier.width(220.dp).height(390.dp)) {
+                EpisodeClipItemSkeleton()
+            }
+        }
     }
 }

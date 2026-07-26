@@ -235,15 +235,21 @@ fun SkeletonLine(
     }
 }
 
-/** 커버 아트가 들어갈 자리. 반경은 [EpisodiveShapes.coverForSize] 사다리를 그대로 탄다. */
+/**
+ * 커버 아트가 들어갈 자리. 기본 반경은 [EpisodiveShapes.coverForSize] 사다리를 그대로 탄다.
+ *
+ * 사다리를 벗어나는 커버가 있다 — 예를 들어 200dp 커버를 `shapes.large`(22dp)로 클립하는
+ * 곳은 사다리 값(28dp)과 어긋난다. 그런 자리에서는 [shape] 로 실제 값을 그대로 넘긴다.
+ */
 @Composable
 fun SkeletonCover(
     size: Dp,
     modifier: Modifier = Modifier,
+    shape: Shape = EpisodiveShapes.coverForSize(size.value.roundToInt()),
 ) {
     SkeletonBox(
         modifier = modifier.size(size),
-        shape = EpisodiveShapes.coverForSize(size.value.roundToInt()),
+        shape = shape,
     )
 }
 
