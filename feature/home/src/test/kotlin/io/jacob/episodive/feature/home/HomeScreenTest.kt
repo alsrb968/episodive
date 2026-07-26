@@ -97,20 +97,16 @@ class HomeScreenTest {
     }
 
     @Test
-    fun allEmptySections_showsMyRecentPublished() {
+    fun emptySection_titleIsNotShown() {
+        // 데이터가 없는 섹션은 제목만 남지 않도록 통째로 빠진다.
         setHomeScreen(
-            playingEpisodes = emptyList(),
             userRecentPodcasts = emptyList(),
             randomEpisodes = emptyList(),
-            userTrendingPodcasts = emptyList(),
-            followedPodcasts = emptyList(),
-            localTrendingPodcasts = emptyList(),
-            foreignTrendingPodcasts = emptyList(),
-            liveEpisodes = emptyList(),
-            channels = emptyList(),
         )
 
-        composeTestRule.onNodeWithText("My recent published").assertIsDisplayed()
+        composeTestRule.onNodeWithText("My recent published").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Random episodes").assertDoesNotExist()
+        composeTestRule.onNodeWithText("My trending feeds").assertIsDisplayed()
     }
 
     // --- Individual section visibility tests ---
@@ -498,7 +494,7 @@ class HomeScreenTest {
     }
 
     @Test
-    fun savedEpisodesSection_allEmpty_showsMyRecentPublished() {
+    fun allEmpty_hidesEverySectionTitle() {
         setHomeScreen(
             playingEpisodes = emptyList(),
             userRecentPodcasts = emptyList(),
@@ -511,7 +507,8 @@ class HomeScreenTest {
             channels = emptyList(),
         )
 
-        composeTestRule.onNodeWithText("My recent published").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Random episodes").assertIsDisplayed()
+        composeTestRule.onNodeWithText("My recent published").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Random episodes").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Channels worth listening to").assertDoesNotExist()
     }
 }

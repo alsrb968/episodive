@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -225,7 +224,23 @@ internal fun HomeScreen(
                         // 상단 가장자리는 시트 드래그(collapse)가 피드백을 대신한다.
                         overscrollEffect = null,
                     ) {
-                        itemWithDivider {
+                        // 응답이 비어 온 섹션은 제목만 덩그러니 남으므로 통째로 건너뛴다.
+                        // 구분선은 섹션 뒤가 아니라 앞에 붙인다 — 그래야 앞 섹션이 비어도
+                        // 선이 겹치지 않고, 마지막 섹션 뒤에 선이 남지도 않는다.
+                        var sectionRendered = false
+                        fun section(
+                            items: Collection<*>,
+                            content: @Composable LazyItemScope.() -> Unit,
+                        ) {
+                            if (items.isEmpty()) return
+                            if (sectionRendered) {
+                                item { HorizontalDivider(modifier = Modifier.padding(16.dp)) }
+                            }
+                            sectionRendered = true
+                            item(content = content)
+                        }
+
+                        section(userRecentPodcasts) {
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_my_recent_feeds),
                                 podcasts = userRecentPodcasts,
@@ -236,7 +251,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        itemWithDivider {
+                        section(randomEpisodes) {
                             EpisodesSection(
                                 title = stringResource(R.string.feature_home_section_random_episodes),
                                 episodes = randomEpisodes,
@@ -246,7 +261,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        itemWithDivider {
+                        section(userTrendingPodcasts) {
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_my_trending_feeds),
                                 podcasts = userTrendingPodcasts,
@@ -257,7 +272,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        itemWithDivider {
+                        section(followedPodcasts) {
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_followed_podcasts),
                                 podcasts = followedPodcasts,
@@ -270,7 +285,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        itemWithDivider {
+                        section(localTrendingPodcasts) {
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_trending_in_local),
                                 podcasts = localTrendingPodcasts,
@@ -281,7 +296,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        itemWithDivider {
+                        section(foreignTrendingPodcasts) {
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_trending_in_foreign),
                                 podcasts = foreignTrendingPodcasts,
@@ -292,7 +307,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        itemWithDivider {
+                        section(liveEpisodes) {
                             EpisodesSection(
                                 title = stringResource(R.string.feature_home_section_live_episodes),
                                 episodes = liveEpisodes,
@@ -302,7 +317,7 @@ internal fun HomeScreen(
                             )
                         }
 
-                        item {
+                        section(channels) {
                             ChannelSection(
                                 title = stringResource(R.string.feature_home_section_channels),
                                 channels = channels,
@@ -323,17 +338,6 @@ internal fun HomeScreen(
                 }
             },
         )
-    }
-}
-
-fun LazyListScope.itemWithDivider(
-    key: Any? = null,
-    contentType: Any? = null,
-    content: @Composable LazyItemScope.() -> Unit,
-) {
-    item(key, contentType, content)
-    item {
-        HorizontalDivider(modifier = Modifier.padding(16.dp))
     }
 }
 

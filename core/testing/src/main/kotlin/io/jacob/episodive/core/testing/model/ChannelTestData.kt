@@ -25,4 +25,13 @@ val channelTestData = Channel(
     )
 )
 
-val channelTestDataList = List(10) { channelTestData }
+/**
+ * 같은 객체를 10번 담으면 id 가 전부 1 이라 LazyRow 의 `key = { it.id }` 가
+ * "Key 1 was already used" 로 터진다. 실제 채널 id 는 유일하므로 여기서도 나눠 준다.
+ */
+val channelTestDataList = List(10) { index ->
+    channelTestData.copy(
+        id = index + 1L,
+        title = "${channelTestData.title} ${index + 1}",
+    )
+}
