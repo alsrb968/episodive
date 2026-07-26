@@ -273,9 +273,19 @@ M3 3종 래퍼, 각각 `content` 슬롯 버전 + `text`/`leadingIcon` 편의 버
 
 | 컴포넌트 | 파일 | 사양 |
 |:----|:----|:----|
-| `StateImage` | `Image.kt` | Coil + Palette 대표색 추출 (§3.1) |
-| `LoadingWheel` | `LoadingWheel.kt` | M3 Expressive `ContainedLoadingIndicator` |
-| `LoadingScreen` / `ErrorScreen` | `screen/` | 화면 중앙 로딩/오류 텍스트 |
+| `StateImage` | `Image.kt` | Coil + Palette 대표색 추출 (§3.1). 로딩 중에는 `placeholderBrush`(팟캐스트별 시드색을 `surfaceContainerHigh` 쪽으로 섞은 그라디언트)를 깐다 — 스켈레톤과 톤을 맞춰 전환이 조용하다 |
+| `LoadingWheel` | `LoadingWheel.kt` | `CircularProgressIndicator` 32dp / stroke 3dp, `primary` + `surfaceContainerHigh` 트랙. **인라인 전용** — 화면 전체 로딩에는 스켈레톤을 쓴다 |
+| `ErrorScreen` | `screen/` | 화면 중앙 오류 텍스트 |
+
+**스켈레톤 (`Skeleton.kt`)** — 콘텐츠 로딩의 기본 표현. 원형 스피너는 무엇이 올지 알려주지 않아 대기가 길게 느껴지고, 데이터가 도착하는 순간 화면이 통째로 바뀐다.
+
+| 심볼 | 사양 |
+|:----|:----|
+| `Modifier.shimmerSweep` | 오프스크린 레이어 한 장 위를 `BlendMode.SrcAtop` 스윕. 띠 폭 0.6, 각도 18°, 1400ms. 하이라이트 `onSurface α0.07` (다크는 밝은 빛, 라이트는 어두운 빛) |
+| `SkeletonContainer` | **화면당 하나.** 빛·등장 페이드(120ms 지연 후 220ms)·접근성(`clearAndSetSemantics` + "불러오는 중")을 묶는다 |
+| `SkeletonBox` / `SkeletonLine` / `SkeletonCover` | 블록 / 텍스트 줄(자리는 `lineHeight`, 잉크는 72%) / 커버(`coverForSize` 사다리) |
+
+제약: 컨테이너에 배경을 칠하면 레이어 전체가 균일하게 쓸린다 — 배경은 바깥에서. 스크롤 리스트 전체에 걸면 스크롤마다 레이어가 무효화된다. 도메인 카드 스켈레톤은 `core/ui` 의 실제 컴포넌트 바로 아래에 둔다(치수 드리프트 방지).
 | `WaveAnimationIcon` | `AnimationIcon.kt` | 5개 막대(각 2dp, 16dp), 300~500ms 랜덤 웨이브, 100ms 위상차. 재생 파형 표시 |
 | `ClipAnimationIconText` | `IconText.kt` | 반투명 pill(`onBackground alpha 0.3f`, CircleShape) 안에 웨이브+시간 |
 
@@ -292,7 +302,7 @@ Now in Android 방식 커스텀 스크롤바.
 | 컴포넌트 | 파일 | 사양 |
 |:----|:----|:----|
 | `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외 |
-| `SectionHeader` | `Layout.kt` | 헤더 Row `padding 16dp`, 제목 `headlineSmall`, 우측 옵션 액션, 하단 16dp Spacer |
+| `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션, 하단 14dp Spacer. 로딩 자리는 `SectionHeaderSkeleton` |
 | `SubSectionHeader` | `Layout.kt` | 제목 `titleSmall`/`onSurfaceVariant` |
 | `FadeTopBarLayout` | `Layout.kt` | 스크롤 연동 페이드 탑바 (§3.4) |
 | `EpisodiveTopAppBar` / `EpisodiveCenterTopAppBar` | `TopAppBar.kt` | 좌측/중앙 정렬 상단바, 아이콘 tint `onSurface` |

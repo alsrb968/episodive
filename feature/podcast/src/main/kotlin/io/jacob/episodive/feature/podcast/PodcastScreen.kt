@@ -372,7 +372,7 @@ private fun EpisodesErrorMessage(modifier: Modifier = Modifier) {
  * [PodcastScreen] 로딩 자리. [PodcastHeader] 아래 구조를 그대로 베낀다 — 실제 콘텐츠가
  * 도착했을 때 레이아웃이 튀지 않으려면 자리 배치가 같아야 한다.
  *
- * `LoadingScreen()` 은 뒤로가기 버튼이 없어 로딩이 길어지면 화면을 빠져나갈 수 없었다.
+ * 종전에 쓰던 화면 중앙 스피너는 뒤로가기 버튼이 없어 로딩이 길어지면 빠져나갈 수 없었다.
  * 실제 화면처럼 [FadeTopBarLayout] 으로 감싸면 뒤로가기가 산다 —
  * `EpisodiveCenterTopAppBar` 의 뒤로가기 버튼은 스크롤에 따른 `showTopBar` 페이드와 무관하게
  * 항상 그려진다. 이 화면엔 실제 스크롤 콘텐츠가 없어 `LazyListState` 는 그 시그니처를
