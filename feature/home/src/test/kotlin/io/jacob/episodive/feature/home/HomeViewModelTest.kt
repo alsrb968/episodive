@@ -14,6 +14,7 @@ import io.jacob.episodive.core.domain.usecase.podcast.GetForeignTrendingPodcasts
 import io.jacob.episodive.core.domain.usecase.podcast.GetLocalTrendingPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserTrendingPodcastsUseCase
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.testing.model.channelTestDataList
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
@@ -23,6 +24,8 @@ import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -164,8 +167,35 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `Given one flow throws, When collecting, Then state is Error`() = runTest {
-        every { getPlayingEpisodesUseCase(max = any()) } returns kotlinx.coroutines.flow.flow {
+    fun `Given one flow throws, When collecting, Then state is Error with Unexpected cause`() =
+        runTest {
+            every { getPlayingEpisodesUseCase(max = any()) } returns flow {
+                throw RuntimeException("Error")
+            }
+            every { getUserRecentPodcastsUseCase(max = any()) } returns flowOf(emptyList())
+            every { getMyRandomEpisodesUseCase(max = any()) } returns flowOf(emptyList())
+            every { getUserTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
+            every { getFollowedPodcastsUseCase(max = any()) } returns flowOf(emptyList())
+            every { getLocalTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
+            every { getForeignTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
+            every { getLiveEpisodesUseCase(max = any()) } returns flowOf(emptyList())
+            every { getChannelsUseCase() } returns flowOf(emptyList())
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                val state = awaitItem()
+                assertTrue(state is HomeState.Error)
+                // RuntimeException 은 DataErrorException 이 아니므로 asDataError() 가
+                // Unexpected 로 접어 올린다 — 판별 로직 자체는 core:model 쪽 책임이라 여기서는
+                // ViewModel 이 그 결과를 그대로 State 에 실었는지만 확인한다.
+                assertTrue((state as HomeState.Error).error is DataError.Unexpected)
+            }
+        }
+
+    @Test
+    fun `Given Retry action after failure, When sent, Then flows are resubscribed`() = runTest {
+        every { getPlayingEpisodesUseCase(max = any()) } returns flow {
             throw RuntimeException("Error")
         }
         every { getUserRecentPodcastsUseCase(max = any()) } returns flowOf(emptyList())
@@ -180,8 +210,17 @@ class HomeViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.state.test {
-            val state = awaitItem()
-            assertTrue(state is HomeState.Error)
+            assertTrue(awaitItem() is HomeState.Error)
+
+            viewModel.sendAction(HomeAction.Retry)
+
+            // 재시도해도 같은 예외가 다시 나므로 State 는 여전히 Error 다. 다만 매번 새
+            // RuntimeException 인스턴스라 Throwable 의 기본 equals(참조 비교) 때문에 이전
+            // 값과 달라 StateFlow 가 재방출한다 — 그 자체가 flatMapLatest 가 실제로 재구독했다는
+            // 신호다. 값만으론 "같은 에러가 다시 온 것"과 "재시도가 아예 안 된 것"을 구분할 수
+            // 없으므로, combine 안의 소스 UseCase 호출 횟수로 재구독 여부를 명시적으로 검증한다.
+            assertTrue(awaitItem() is HomeState.Error)
+            verify(exactly = 2) { getPlayingEpisodesUseCase(max = any()) }
         }
     }
 

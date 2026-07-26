@@ -14,10 +14,12 @@ import io.jacob.episodive.core.domain.usecase.search.GetRecentSearchesUseCase
 import io.jacob.episodive.core.domain.usecase.search.SearchUseCase
 import io.jacob.episodive.core.domain.usecase.search.UpsertRecentSearchUseCase
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.RecentSearch
 import io.jacob.episodive.core.model.SearchResult
+import io.jacob.episodive.core.model.asDataError
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -65,24 +68,31 @@ class SearchViewModel @Inject constructor(
             }
         }
 
-    val state: StateFlow<SearchState> = combine(
-        _searchQuery,
-        _searchResult,
-        getRecentSearchesUseCase(RECENT_SEARCHES_LIMIT),
-        getRecentEpisodesUseCase(max = RECENT_EPISODES_MAX),
-        getTrendingPodcastsUseCase(max = TRENDING_PODCASTS_MAX),
-    ) { query, result, recentSearches, recentEpisodes, trendingPodcasts ->
-        SearchState.Success(
-            searchQuery = query,
-            searchResult = result,
-            recentSearches = recentSearches,
-            categories = Category.entries.toList(),
-            recentEpisodes = recentEpisodes,
-            trendingPodcasts = trendingPodcasts,
-        ) as SearchState
-    }.catch { e ->
-        emit(SearchState.Error(e.message ?: "An unknown error occurred"))
-        e.printStackTrace()
+    // 재시도는 소스 체인을 통째로 재구독해야 한다. 아래 5개 소스는 전부 콜드 Flow라 재구독해도
+    // 부작용이 없다. _searchResult 안에도 flatMapLatest 가 있지만 이 바깥의 flatMapLatest 는
+    // retry count 를 키로 쓰고 안쪽은 query 를 키로 쓰는, 서로 독립적인 체인이라 겹쳐도 문제없다.
+    private val retryTrigger = MutableStateFlow(0)
+
+    val state: StateFlow<SearchState> = retryTrigger.flatMapLatest {
+        combine(
+            _searchQuery,
+            _searchResult,
+            getRecentSearchesUseCase(RECENT_SEARCHES_LIMIT),
+            getRecentEpisodesUseCase(max = RECENT_EPISODES_MAX),
+            getTrendingPodcastsUseCase(max = TRENDING_PODCASTS_MAX),
+        ) { query, result, recentSearches, recentEpisodes, trendingPodcasts ->
+            SearchState.Success(
+                searchQuery = query,
+                searchResult = result,
+                recentSearches = recentSearches,
+                categories = Category.entries.toList(),
+                recentEpisodes = recentEpisodes,
+                trendingPodcasts = trendingPodcasts,
+            ) as SearchState
+        }.catch { e ->
+            Timber.e(e, "검색 화면 데이터를 불러오지 못했다")
+            emit(SearchState.Error(e.asDataError()))
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(60_000),
@@ -111,6 +121,7 @@ class SearchViewModel @Inject constructor(
                 is SearchAction.ClickPodcast -> clickPodcast(action.podcast)
                 is SearchAction.ClickEpisode -> clickEpisode(action.episode)
                 is SearchAction.ToggleLikedEpisode -> toggleLikedEpisode(action.episode)
+                is SearchAction.Retry -> retry()
             }
         }
     }
@@ -177,6 +188,10 @@ class SearchViewModel @Inject constructor(
         toggleLikedEpisodeUseCase(episode)
     }
 
+    private fun retry() {
+        retryTrigger.update { it + 1 }
+    }
+
     companion object {
         private const val SEARCH_MAX_RESULTS = 100
         private const val RECENT_SEARCHES_LIMIT = 100
@@ -196,7 +211,7 @@ sealed interface SearchState {
         val trendingPodcasts: List<Podcast>,
     ) : SearchState
 
-    data class Error(val message: String) : SearchState
+    data class Error(val error: DataError) : SearchState
 }
 
 sealed interface SearchAction {
@@ -210,6 +225,7 @@ sealed interface SearchAction {
     data class ClickPodcast(val podcast: Podcast) : SearchAction
     data class ClickEpisode(val episode: Episode) : SearchAction
     data class ToggleLikedEpisode(val episode: Episode) : SearchAction
+    data object Retry : SearchAction
 }
 
 sealed interface SearchEffect {

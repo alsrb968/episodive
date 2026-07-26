@@ -58,6 +58,7 @@ import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.RecentSearch
 import io.jacob.episodive.core.model.SearchResult
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.ui.EpisodeItem
@@ -65,6 +66,7 @@ import io.jacob.episodive.core.ui.EpisodesSection
 import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
 import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
+import io.jacob.episodive.core.ui.asUiMessage
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -108,7 +110,16 @@ fun SearchRoute(
             )
         }
 
-        is SearchState.Error -> ErrorScreen(message = s.message)
+        is SearchState.Error -> ErrorScreen(
+            message = s.error.asUiMessage(),
+            // NotFound·Unauthorized 는 재시도해도 결과가 같으므로 버튼을 감춘다 — 눌러도
+            // 아무 일이 없으면 앱이 고장 난 것처럼 보인다.
+            onRetry = if (s.error.isRetryable) {
+                { viewModel.sendAction(SearchAction.Retry) }
+            } else {
+                null
+            },
+        )
     }
 }
 

@@ -26,10 +26,12 @@ import io.jacob.episodive.core.domain.usecase.user.GetPreferredCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.GetSelectableCategoriesUseCase
 import io.jacob.episodive.core.domain.usecase.user.ToggleCategoryUseCase
 import io.jacob.episodive.core.model.Category
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.LibraryFindResult
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.SelectableCategory
+import io.jacob.episodive.core.model.asDataError
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -46,7 +48,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -84,6 +88,10 @@ class LibraryViewModel @Inject constructor(
         }
 
     private val _section = MutableStateFlow(LibrarySection.All)
+
+    // 재시도는 state 를 구성하는 소스 체인을 통째로 재구독해야 한다. 아래 소스들은 전부
+    // 재구독해도 부작용이 없는 것을 확인했다 (Paging 소스 3개는 이 체인과 분리돼 있어 대상이 아님).
+    private val retryTrigger = MutableStateFlow(0)
 
     val playedEpisodesPaging: Flow<PagingData<SeparatedUiModel<Episode>>> =
         getAllPlayedEpisodesPagingUseCase().map { pagingData ->
@@ -165,43 +173,45 @@ class LibraryViewModel @Inject constructor(
                 }
         }.cachedIn(viewModelScope)
 
-    val state: StateFlow<LibraryState> = combine(
-        _findQuery,
-        _findResult,
-        getAllPlayedEpisodesUseCase(max = SECTION_MAX),
-        getLikedEpisodesUseCase(max = SECTION_MAX),
-        getSavedEpisodesUseCase(max = SECTION_MAX),
-        getFollowedPodcastsUseCase(max = SECTION_MAX),
-        getPreferredCategoriesUseCase(),
-        getSelectableCategoriesUseCase(),
-        _section
-    ) { query, result, allPlayedEpisodes, likedEpisodes, savedEpisodes, followedPodcasts, preferredCategories, selectableCategories, section ->
-        if (query.isEmpty() && result.isAllEmpty) {
-            LibraryState.Success(
-                findQuery = query,
-                allPlayedEpisodes = allPlayedEpisodes,
-                likedEpisodes = likedEpisodes,
-                savedEpisodes = savedEpisodes,
-                followedPodcasts = followedPodcasts,
-                preferredCategories = preferredCategories,
-                selectableCategories = selectableCategories,
-                section = section,
-            ) as LibraryState
-        } else {
-            LibraryState.Success(
-                findQuery = query,
-                allPlayedEpisodes = result.playingEpisodes,
-                likedEpisodes = result.likedEpisodes,
-                savedEpisodes = result.savedEpisodes,
-                followedPodcasts = result.followedPodcasts,
-                preferredCategories = emptyList(),
-                selectableCategories = selectableCategories,
-                section = section,
-            ) as LibraryState
+    val state: StateFlow<LibraryState> = retryTrigger.flatMapLatest {
+        combine(
+            _findQuery,
+            _findResult,
+            getAllPlayedEpisodesUseCase(max = SECTION_MAX),
+            getLikedEpisodesUseCase(max = SECTION_MAX),
+            getSavedEpisodesUseCase(max = SECTION_MAX),
+            getFollowedPodcastsUseCase(max = SECTION_MAX),
+            getPreferredCategoriesUseCase(),
+            getSelectableCategoriesUseCase(),
+            _section
+        ) { query, result, allPlayedEpisodes, likedEpisodes, savedEpisodes, followedPodcasts, preferredCategories, selectableCategories, section ->
+            if (query.isEmpty() && result.isAllEmpty) {
+                LibraryState.Success(
+                    findQuery = query,
+                    allPlayedEpisodes = allPlayedEpisodes,
+                    likedEpisodes = likedEpisodes,
+                    savedEpisodes = savedEpisodes,
+                    followedPodcasts = followedPodcasts,
+                    preferredCategories = preferredCategories,
+                    selectableCategories = selectableCategories,
+                    section = section,
+                ) as LibraryState
+            } else {
+                LibraryState.Success(
+                    findQuery = query,
+                    allPlayedEpisodes = result.playingEpisodes,
+                    likedEpisodes = result.likedEpisodes,
+                    savedEpisodes = result.savedEpisodes,
+                    followedPodcasts = result.followedPodcasts,
+                    preferredCategories = emptyList(),
+                    selectableCategories = selectableCategories,
+                    section = section,
+                ) as LibraryState
+            }
+        }.catch { e ->
+            Timber.e(e, "보관함 데이터를 불러오지 못했다")
+            emit(LibraryState.Error(e.asDataError()))
         }
-    }.catch { e ->
-        emit(LibraryState.Error(e.message ?: "An unknown error occurred"))
-        e.printStackTrace()
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -231,6 +241,7 @@ class LibraryViewModel @Inject constructor(
                 is LibraryAction.ToggleFollowedPodcast -> toggleFollowedPodcast(action.podcast)
                 is LibraryAction.TogglePreferredCategory -> toggleCategory(action.category)
                 is LibraryAction.SelectSection -> selectSection(action.section)
+                is LibraryAction.Retry -> retry()
             }
         }
     }
@@ -286,6 +297,10 @@ class LibraryViewModel @Inject constructor(
         _section.emit(section)
     }
 
+    private fun retry() {
+        retryTrigger.update { it + 1 }
+    }
+
     companion object {
         private const val SECTION_MAX = 10
     }
@@ -304,7 +319,7 @@ sealed interface LibraryState {
         val section: LibrarySection,
     ) : LibraryState
 
-    data class Error(val message: String) : LibraryState
+    data class Error(val error: DataError) : LibraryState
 }
 
 sealed interface LibraryAction {
@@ -319,6 +334,7 @@ sealed interface LibraryAction {
     data class ToggleFollowedPodcast(val podcast: Podcast) : LibraryAction
     data class TogglePreferredCategory(val category: Category) : LibraryAction
     data class SelectSection(val section: LibrarySection) : LibraryAction
+    data object Retry : LibraryAction
 }
 
 sealed interface LibraryEffect {

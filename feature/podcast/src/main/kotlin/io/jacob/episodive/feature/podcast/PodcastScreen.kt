@@ -70,10 +70,12 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.ui.EpisodeItem
 import io.jacob.episodive.core.ui.EpisodeItemSkeleton
+import io.jacob.episodive.core.ui.asUiMessage
 import io.jacob.episodive.core.ui.pagingAppendState
 import io.jacob.episodive.core.ui.pagingRefreshState
 import kotlinx.coroutines.flow.Flow
@@ -140,7 +142,16 @@ internal fun PodcastRoute(
             )
         }
 
-        is PodcastState.Error -> ErrorScreen(message = s.message)
+        is PodcastState.Error -> ErrorScreen(
+            message = s.error.asUiMessage(),
+            // NotFound 는 재시도해도 결과가 같으므로 버튼을 감춘다 — 눌러도 아무 일이
+            // 없으면 앱이 고장 난 것처럼 보인다.
+            onRetry = if (s.error.isRetryable) {
+                { viewModel.sendAction(PodcastAction.Retry) }
+            } else {
+                null
+            },
+        )
     }
 }
 

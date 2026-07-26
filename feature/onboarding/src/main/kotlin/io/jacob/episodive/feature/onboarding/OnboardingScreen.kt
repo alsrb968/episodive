@@ -79,10 +79,12 @@ import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.SelectableCategory
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.designsystem.component.EpisodiveFilterChip
 import io.jacob.episodive.core.ui.PodcastDetailItem
 import io.jacob.episodive.core.ui.PodcastDetailItemSkeleton
+import io.jacob.episodive.core.ui.asUiMessage
 import io.jacob.episodive.core.ui.displayName
 import io.jacob.episodive.core.ui.pagingAppendState
 import io.jacob.episodive.core.ui.pagingRefreshState
@@ -142,7 +144,14 @@ fun OnboardingRoute(
             onNextPage = { viewModel.sendAction(OnboardingAction.NextPage) },
         )
 
-        is OnboardingState.Error -> ErrorScreen(message = s.message)
+        is OnboardingState.Error -> ErrorScreen(
+            message = s.error.asUiMessage(),
+            onRetry = if (s.error.isRetryable) {
+                { viewModel.sendAction(OnboardingAction.Retry) }
+            } else {
+                null
+            },
+        )
     }
 }
 

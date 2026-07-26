@@ -74,6 +74,7 @@ import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.channelTestDataList
 import io.jacob.episodive.core.testing.model.episodeTestDataList
@@ -85,6 +86,7 @@ import io.jacob.episodive.core.ui.EpisodesSection
 import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
 import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
+import io.jacob.episodive.core.ui.asUiMessage
 
 
 @Composable
@@ -136,7 +138,14 @@ internal fun HomeRoute(
             onChannelClick = { viewModel.sendAction(HomeAction.ClickChannel(it)) },
         )
 
-        is HomeState.Error -> ErrorScreen(message = s.message)
+        is HomeState.Error -> ErrorScreen(
+            message = s.error.asUiMessage(),
+            onRetry = if (s.error.isRetryable) {
+                { viewModel.sendAction(HomeAction.Retry) }
+            } else {
+                null
+            },
+        )
     }
 }
 
