@@ -16,7 +16,7 @@ import io.jacob.episodive.core.network.datasource.SoundbiteRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import io.jacob.episodive.core.network.model.EpisodeResponse
 import kotlinx.coroutines.flow.Flow
-import kotlin.time.Clock
+import kotlin.time.Instant
 
 class EpisodeRemoteUpdater @AssistedInject constructor(
     private val episodeLocal: EpisodeLocalDataSource,
@@ -72,13 +72,8 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
         episodeLocal.replaceEpisodes(entities, query.key)
     }
 
-    override suspend fun isExpired(): Boolean {
-        val oldestCreatedAt = episodeLocal.getOldestCreatedAtByGroupKey(query.key)
-            ?: return true
-
-        val now = Clock.System.now()
-        return now - oldestCreatedAt > query.timeToLive
-    }
+    override suspend fun getOldestCachedAt(): Instant? =
+        episodeLocal.getOldestCreatedAtByGroupKey(query.key)
 
     override fun getPagingSource(): PagingSource<Int, EpisodeWithExtrasView> {
         return episodeLocal.getEpisodesByGroupKeyPaging(query.key)
