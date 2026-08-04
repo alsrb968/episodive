@@ -74,6 +74,7 @@ import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.channelTestDataList
@@ -492,7 +493,7 @@ private fun HomeContinueListeningHero(
                     modifier = Modifier
                         .size(HomeHeroCoverSize)
                         .clip(EpisodiveShapes.coverForSize(HomeHeroCoverSizeDp)),
-                    imageUrl = episode.image.ifEmpty { episode.feedImage },
+                    imageUrl = episode.coverUrl,
                     contentDescription = episode.title,
                     // 카드 그라디언트를 이 커버 색으로 물들이기 위해 위로 올린다.
                     onDominantColorExtracted = { dominantColor = it },

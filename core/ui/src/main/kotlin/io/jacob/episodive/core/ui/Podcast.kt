@@ -52,6 +52,7 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
@@ -170,7 +171,7 @@ fun PodcastItem(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .clip(MaterialTheme.shapes.large),
-            imageUrl = podcast.image,
+            imageUrl = podcast.coverUrl,
             contentDescription = podcast.title,
         )
 
@@ -284,7 +285,7 @@ fun PodcastDetailItem(
             modifier = Modifier
                 .size(DetailItemCoverSize)
                 .clip(EpisodiveShapes.coverForSize(96)),
-            imageUrl = podcast.image,
+            imageUrl = podcast.coverUrl,
             contentDescription = podcast.title,
         )
 
@@ -511,7 +512,7 @@ fun PodcastSimpleItem(
             modifier = Modifier
                 .size(50.dp)
                 .clip(EpisodiveShapes.field),
-            imageUrl = podcast.image,
+            imageUrl = podcast.coverUrl,
             contentDescription = podcast.title,
         )
 

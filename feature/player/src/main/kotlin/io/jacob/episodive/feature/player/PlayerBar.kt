@@ -52,6 +52,7 @@ import io.jacob.episodive.core.model.Chapter
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.ui.R as uiR
@@ -229,7 +230,7 @@ internal fun PlayerBarContent(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(RoundedCornerShape(11.dp)),
-                    imageUrl = nowPlaying.image.ifEmpty { nowPlaying.feedImage },
+                    imageUrl = nowPlaying.coverUrl,
                     contentDescription = nowPlaying.title,
                     onDominantColorExtracted = { dominantColor = it },
                 )

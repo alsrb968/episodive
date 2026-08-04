@@ -70,6 +70,7 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestData
@@ -552,7 +553,7 @@ private fun PodcastHeader(
                     spotColor = Color.Black.copy(alpha = 0.7f),
                 )
                 .clip(shape = EpisodiveShapes.heroCover),
-            imageUrl = podcast.image,
+            imageUrl = podcast.coverUrl,
             contentDescription = podcast.title,
             onDominantColorExtracted = onDominantColorExtracted,
         )
