@@ -14,6 +14,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.mapper.toDurationMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -169,7 +170,8 @@ class PlayerDataSourceImpl @Inject constructor(
             .setDisplayTitle(title)
             .setSubtitle(feedTitle)
             .setDescription(description)
-            .setArtworkUri(image.ifEmpty { feedImage }.toUri())
+            // 빈 문자열을 넘기면 빈 Uri 가 그대로 들어가 잠금화면이 아트를 로드하려다 실패한다.
+            .setArtworkUri(coverUrl.ifBlank { null }?.toUri())
             .build()
 
         // 다운로드 완료 판정은 DB 상태가 아니라 실제 파일 존재로 한다.

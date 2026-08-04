@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.jacob.episodive.MainActivity
 import io.jacob.episodive.R
 import io.jacob.episodive.core.domain.usecase.episode.NewEpisodeResult
+import io.jacob.episodive.core.model.coverUrl
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -68,8 +69,9 @@ class EpisodeSyncNotificationHelper @Inject constructor(
 
         val latestEpisode = results.flatMap { it.episodes }
             .maxByOrNull { it.datePublished }
-        val largeIcon = latestEpisode?.image?.let { loadBitmap(it) }
-            ?: latestEpisode?.feedImage?.let { loadBitmap(it) }
+        // image 는 non-null String 이라 빈 문자열도 let 을 통과한다. 그대로 넘기면 실패가
+        // 뻔한 요청을 한 번 왕복시키므로 coverUrl 로 폴백을 마친 뒤 비어 있으면 아예 걷어낸다.
+        val largeIcon = latestEpisode?.coverUrl?.takeIf { it.isNotBlank() }?.let { loadBitmap(it) }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.media3_notification_small_icon)

@@ -7,6 +7,7 @@ import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.RecentSearch
 import io.jacob.episodive.core.model.RecentSearchType
+import io.jacob.episodive.core.model.coverUrl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -37,7 +38,7 @@ class RecentSearchRepositoryImpl @Inject constructor(
                 type = RecentSearchType.PODCAST,
                 contentId = podcast.id,
                 title = podcast.title,
-                imageUrl = podcast.artwork.ifEmpty { podcast.image },
+                imageUrl = podcast.coverUrl,
                 subtitle = podcast.ownerName.ifEmpty { podcast.author },
                 searchedAt = Clock.System.now(),
             )
@@ -50,7 +51,7 @@ class RecentSearchRepositoryImpl @Inject constructor(
                 type = RecentSearchType.EPISODE,
                 contentId = episode.id,
                 title = episode.title,
-                imageUrl = episode.image.ifEmpty { episode.feedImage },
+                imageUrl = episode.coverUrl,
                 subtitle = episode.feedTitle ?: episode.feedAuthor ?: "",
                 searchedAt = Clock.System.now(),
             )

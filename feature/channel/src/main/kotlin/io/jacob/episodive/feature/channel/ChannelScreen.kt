@@ -60,6 +60,7 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.core.testing.model.channelTestData
 import io.jacob.episodive.core.testing.model.podcastTestDataList
@@ -387,7 +388,7 @@ private fun ChannelPodcastCard(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .clip(MaterialTheme.shapes.medium),
-            imageUrl = podcast.image,
+            imageUrl = podcast.coverUrl,
             contentDescription = podcast.title,
             onDominantColorExtracted = { backgroundColor = it },
         )

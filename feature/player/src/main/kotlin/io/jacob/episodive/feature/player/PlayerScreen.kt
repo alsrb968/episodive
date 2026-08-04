@@ -99,6 +99,7 @@ import io.jacob.episodive.core.model.Chapter
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.model.mapper.toLongMillis
 import io.jacob.episodive.core.model.mapper.toMediaTime
@@ -407,7 +408,7 @@ internal fun PlayerScreen(
                                 .fillMaxSize()
                                 .clip(EpisodiveShapes.playerCover),
                             size = 600,
-                            imageUrl = nowPlaying.image.ifEmpty { nowPlaying.feedImage },
+                            imageUrl = nowPlaying.coverUrl,
                             contentDescription = nowPlaying.title,
                             onDominantColorExtracted = { dominantColor = it },
                         )

@@ -79,6 +79,7 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.model.mapper.toIntSeconds
 import io.jacob.episodive.core.model.mapper.toRelativeDate
@@ -365,7 +366,7 @@ fun EpisodeItem(
             modifier = Modifier
                 .size(dimension.thumbnailSmall)
                 .clip(MaterialTheme.shapes.medium),
-            imageUrl = episode.image.ifEmpty { episode.feedImage },
+            imageUrl = episode.coverUrl,
             contentDescription = episode.title,
         )
 
@@ -566,7 +567,7 @@ fun PlayingEpisodeItem(
                 modifier = Modifier
                     .size(68.dp)
                     .clip(EpisodiveShapes.coverForSize(68)),
-                imageUrl = playedEpisode.image.ifEmpty { playedEpisode.feedImage },
+                imageUrl = playedEpisode.coverUrl,
                 contentDescription = playedEpisode.title,
             )
 
@@ -635,7 +636,7 @@ fun PlayedEpisodeItem(
             modifier = Modifier
                 .size(dimension.thumbnailMedium)
                 .clip(EpisodiveShapes.miniPlayer),
-            imageUrl = playedEpisode.image.ifEmpty { playedEpisode.feedImage },
+            imageUrl = playedEpisode.coverUrl,
             contentDescription = playedEpisode.title,
         )
 
@@ -790,7 +791,7 @@ fun EpisodeDetailItem(
             modifier = Modifier
                 .size(200.dp)
                 .clip(MaterialTheme.shapes.large),
-            imageUrl = episode.image.ifEmpty { episode.feedImage },
+            imageUrl = episode.coverUrl,
             contentDescription = episode.title,
         )
 
@@ -888,8 +889,11 @@ fun EpisodeClipItem(
             modifier = Modifier
                 .fillMaxSize()
                 .blur(radius = 20.dp),
-            imageUrl = episode.image.ifEmpty { episode.feedImage },
+            imageUrl = episode.coverUrl,
             contentDescription = episode.title,
+            // 이건 카드 뒤에 깔리는 블러 배경이다. 커버가 없을 때 머리글자까지 얹으면
+            // 화면 폭만 한 글자가 흐리게 번져 앞의 커버와 겹친다.
+            title = null,
         )
 
         Box(
@@ -918,7 +922,7 @@ fun EpisodeClipItem(
                 StateImage(
                     modifier = Modifier
                         .fillMaxSize(),
-                    imageUrl = episode.image.ifEmpty { episode.feedImage },
+                    imageUrl = episode.coverUrl,
                     contentDescription = episode.title,
                     // 화면 배경 그라디언트를 이 커버 색으로 물들이기 위해 위로 올린다.
                     onDominantColorExtracted = onDominantColorExtracted,

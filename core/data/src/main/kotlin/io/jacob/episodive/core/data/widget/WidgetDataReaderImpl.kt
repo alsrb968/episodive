@@ -11,6 +11,7 @@ import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCa
 import io.jacob.episodive.core.domain.widget.NowPlayingSnapshot
 import io.jacob.episodive.core.domain.widget.PodcastSnapshot
 import io.jacob.episodive.core.domain.widget.WidgetDataReader
+import io.jacob.episodive.core.model.coverUrl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -54,7 +55,7 @@ class WidgetDataReaderImpl @Inject constructor(
             title = episode.title,
             feedTitle = podcastName,
             // 에피소드 자체 image 가 비어있으면 feed(팟캐스트) 이미지로 fallback.
-            imageUrl = episode.image.ifBlank { episode.feedImage }.ifBlank { null },
+            imageUrl = episode.coverUrl.ifBlank { null },
             isPlaying = isPlaying,
         )
     }
@@ -73,7 +74,7 @@ class WidgetDataReaderImpl @Inject constructor(
                         podcastId = episode.feedId,
                         title = episode.title,
                         feedTitle = episode.feedTitle?.takeIf { it.isNotBlank() } ?: podcast?.title,
-                        imageUrl = episode.image.ifBlank { episode.feedImage }.ifBlank { null },
+                        imageUrl = episode.coverUrl.ifBlank { null },
                         isPlaying = active != null && isPlaying,
                     )
                 }
@@ -93,7 +94,7 @@ class WidgetDataReaderImpl @Inject constructor(
                     PodcastSnapshot(
                         id = podcast.id,
                         title = podcast.title,
-                        imageUrl = podcast.image.ifBlank { podcast.artwork }.ifBlank { null },
+                        imageUrl = podcast.coverUrl.ifBlank { null },
                     )
                 }
             }
