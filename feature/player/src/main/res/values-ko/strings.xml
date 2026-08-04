@@ -12,7 +12,6 @@
     <string name="feature_player_sleep_timer_end_of_episode">에피소드 끝까지</string>
     <string name="feature_player_sleep_timer_expired">슬립 타이머가 종료되었습니다</string>
     <string name="feature_player_sleep_timer_minutes">%d분</string>
-    <string name="feature_player_sleep_timer_seconds">%d초</string>
     <string name="feature_player_sleep_timer_requires_playback">재생 중에만 슬립 타이머를 설정할 수 있습니다</string>
     <string name="feature_player_playlist_title">재생목록</string>
     <string name="feature_player_playlist_queue_count">%d개 대기 중</string>

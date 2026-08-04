@@ -1173,16 +1173,16 @@ private fun SleepTimerSheet(
     }
 
     // 한 줄에 들어가는 다섯 개까지만 둔다. 줄바꿈되면 시트가 세로로 늘어나 다이얼·버튼이 밀린다.
+    // 커스텀 시간 입력이 없어 이 다섯 개가 선택지의 전부이므로, 칸을 잠들지 않을 시간에 쓰지 않는다.
     val timerPresets = remember {
         listOf(
-            30L * 1000,
             5L * 60 * 1000,
             10L * 60 * 1000,
+            15L * 60 * 1000,
             30L * 60 * 1000,
             60L * 60 * 1000,
         )
     }
-    // TODO: 30초 프리셋은 테스트용. 출시 시 제거
     val isActive = remainingMs != null
 
     ModalBottomSheet(
@@ -1253,16 +1253,11 @@ private fun SleepTimerSheet(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     timerPresets.forEach { durationMs ->
-                        val totalSeconds = (durationMs / 1000).toInt()
-                        // 단위는 로케일 리소스가 붙인다 (한국어 "초/분", 영어 "s/m").
-                        val label = if (totalSeconds < 60) {
-                            stringResource(R.string.feature_player_sleep_timer_seconds, totalSeconds)
-                        } else {
-                            stringResource(
-                                R.string.feature_player_sleep_timer_minutes,
-                                totalSeconds / 60
-                            )
-                        }
+                        // 단위는 로케일 리소스가 붙인다 (한국어 "분", 영어 "m").
+                        val label = stringResource(
+                            R.string.feature_player_sleep_timer_minutes,
+                            (durationMs / 1000 / 60).toInt(),
+                        )
                         PlayerPresetCircle(
                             size = PlayerSleepTimerPresetSize,
                             label = label,
