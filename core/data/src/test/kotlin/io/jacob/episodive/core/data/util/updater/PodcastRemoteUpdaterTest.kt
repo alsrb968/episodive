@@ -636,8 +636,8 @@ class PodcastRemoteUpdaterTest {
 
             // Then
             coVerifySequence {
-                podcastLocal.getPodcastsByGroupKey("trending:ko:9,59", max)
-                podcastLocal.getOldestCreatedAtByGroupKey("trending:ko:9,59")
+                podcastLocal.getPodcastsByGroupKey("trending:preview:ko:9,59", max)
+                podcastLocal.getOldestCreatedAtByGroupKey("trending:preview:ko:9,59")
                 feedRemote.getTrendingFeeds(
                     max = max,
                     since = any(),
@@ -646,7 +646,7 @@ class PodcastRemoteUpdaterTest {
                     excludeCategories = any(),
                 )
                 podcastRemote.getPodcastByFeedId(any())
-                podcastLocal.replacePodcasts(any(), "trending:ko:9,59")
+                podcastLocal.replacePodcasts(any(), "trending:preview:ko:9,59")
             }
         }
 
@@ -695,7 +695,7 @@ class PodcastRemoteUpdaterTest {
 
             // Then
             coVerifySequence {
-                podcastLocal.getOldestCreatedAtByGroupKey("trending:ko:9,59")
+                podcastLocal.getOldestCreatedAtByGroupKey("trending:preview:ko:9,59")
                 feedRemote.getTrendingFeeds(
                     max = max,
                     since = any(),
@@ -704,8 +704,8 @@ class PodcastRemoteUpdaterTest {
                     excludeCategories = any(),
                 )
                 podcastRemote.getPodcastByFeedId(any())
-                podcastLocal.replacePodcasts(any(), "trending:ko:9,59")
-                podcastLocal.getPodcastsByGroupKeyPaging("trending:ko:9,59")
+                podcastLocal.replacePodcasts(any(), "trending:preview:ko:9,59")
+                podcastLocal.getPodcastsByGroupKeyPaging("trending:preview:ko:9,59")
             }
         }
 
@@ -748,8 +748,8 @@ class PodcastRemoteUpdaterTest {
 
             // Then
             coVerifySequence {
-                podcastLocal.getPodcastsByGroupKey("recent:ko:9,59", max)
-                podcastLocal.getOldestCreatedAtByGroupKey("recent:ko:9,59")
+                podcastLocal.getPodcastsByGroupKey("recent:preview:ko:9,59", max)
+                podcastLocal.getOldestCreatedAtByGroupKey("recent:preview:ko:9,59")
                 feedRemote.getRecentFeeds(
                     max = max,
                     since = any(),
@@ -758,7 +758,7 @@ class PodcastRemoteUpdaterTest {
                     excludeCategories = any(),
                 )
                 podcastRemote.getPodcastByFeedId(any())
-                podcastLocal.replacePodcasts(any(), "recent:ko:9,59")
+                podcastLocal.replacePodcasts(any(), "recent:preview:ko:9,59")
             }
         }
 
@@ -807,7 +807,7 @@ class PodcastRemoteUpdaterTest {
 
             // Then
             coVerifySequence {
-                podcastLocal.getOldestCreatedAtByGroupKey("recent:ko:9,59")
+                podcastLocal.getOldestCreatedAtByGroupKey("recent:preview:ko:9,59")
                 feedRemote.getRecentFeeds(
                     max = max,
                     since = any(),
@@ -816,8 +816,8 @@ class PodcastRemoteUpdaterTest {
                     excludeCategories = any(),
                 )
                 podcastRemote.getPodcastByFeedId(any())
-                podcastLocal.replacePodcasts(any(), "recent:ko:9,59")
-                podcastLocal.getPodcastsByGroupKeyPaging("recent:ko:9,59")
+                podcastLocal.replacePodcasts(any(), "recent:preview:ko:9,59")
+                podcastLocal.getPodcastsByGroupKeyPaging("recent:preview:ko:9,59")
             }
         }
 

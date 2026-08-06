@@ -39,9 +39,10 @@ sealed interface PodcastQuery : CacheableQuery {
         val max: Int,
         val language: String? = null,
         val categories: List<Category> = emptyList(),
+        val scope: QueryScope = QueryScope.PREVIEW,
     ) : PodcastQuery {
         override val key: String =
-            "${GroupKey.TRENDING}:${language ?: "all"}:${categories.toCommaString()}"
+            "${GroupKey.TRENDING}:${scope.value}:${language ?: "all"}:${categories.toCommaString()}"
         override val timeToLive: Duration = 1.hours
     }
 
@@ -49,9 +50,10 @@ sealed interface PodcastQuery : CacheableQuery {
         val max: Int,
         val language: String? = null,
         val categories: List<Category> = emptyList(),
+        val scope: QueryScope = QueryScope.PREVIEW,
     ) : PodcastQuery {
         override val key: String =
-            "${GroupKey.RECENT}:${language ?: "all"}:${categories.toCommaString()}"
+            "${GroupKey.RECENT}:${scope.value}:${language ?: "all"}:${categories.toCommaString()}"
         override val timeToLive: Duration = 1.hours
     }
 
