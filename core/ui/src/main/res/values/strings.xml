@@ -13,10 +13,13 @@
     <string name="core_ui_left">Left</string>
     <string name="core_ui_follow">Follow</string>
     <string name="core_ui_unfollow">Unfollow</string>
-    <string name="core_ui_snackbar_followed">팟캐스트를 구독했습니다</string>
-    <string name="core_ui_snackbar_unfollowed">구독을 해제했습니다</string>
-    <string name="core_ui_snackbar_unsaved">저장을 취소했습니다</string>
-    <string name="core_ui_snackbar_undo">실행 취소</string>
+    <string name="core_ui_snackbar_followed">Following this podcast</string>
+    <string name="core_ui_snackbar_unfollowed">Unfollowed</string>
+    <string name="core_ui_snackbar_unsaved">Removed from saved</string>
+    <string name="core_ui_snackbar_undo">Undo</string>
+
+    <!-- 섹션 헤더의 '더 보기' 버튼. %1$s 는 섹션 제목이라 스크린리더가 어느 섹션인지 읽는다. -->
+    <string name="core_ui_section_more_format">See all %1$s</string>
 
     <!--
       Category enum(:core:model)의 선언 순서와 1:1로 대응한다 — ordinal 을 인덱스로 조회하므로

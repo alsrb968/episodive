@@ -64,12 +64,19 @@ fun PodcastsSection(
     title: String,
     podcasts: List<Podcast>,
     subtitleProvider: ((Podcast) -> String)? = null,
-    onMore: () -> Unit = {},
+    onMore: (() -> Unit)? = null,
     onPodcastClick: (Podcast) -> Unit = {},
 ) {
     SectionHeader(
         modifier = modifier,
         title = title,
+        // 더 보기 어포던스는 onMore 유무로만 결정한다. 기본값을 빈 람다로 두면 갈 곳이 없는
+        // 화면에도 버튼이 뜨고, 눌러도 아무 일이 없다.
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(R.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val dimension = LocalDimensionTheme.current
         val lazyListState = rememberLazyListState()
@@ -105,6 +112,7 @@ fun PodcastsSection(
 fun PodcastsSectionSkeleton(
     modifier: Modifier = Modifier,
     count: Int = 3,
+    hasAction: Boolean = false,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -112,7 +120,7 @@ fun PodcastsSectionSkeleton(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        SectionHeaderSkeleton()
+        SectionHeaderSkeleton(hasAction = hasAction)
 
         LazyRow(
             modifier = Modifier

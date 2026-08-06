@@ -225,12 +225,19 @@ fun EpisodesSection(
     onEpisodeClick: (Episode) -> Unit,
     onToggleLikedEpisode: (Episode) -> Unit,
     onToggleSavedEpisode: (Episode) -> Unit = {},
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        // 더 보기 어포던스는 onMore 유무로만 결정한다 — PodcastsSection 과 같은 계약이다.
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(R.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         Column(
             modifier = Modifier
@@ -258,11 +265,12 @@ fun EpisodesSection(
 fun EpisodesSectionSkeleton(
     modifier: Modifier = Modifier,
     count: Int = 3,
+    hasAction: Boolean = false,
 ) {
     val dimension = LocalDimensionTheme.current
 
     Column(modifier = modifier.fillMaxWidth()) {
-        SectionHeaderSkeleton()
+        SectionHeaderSkeleton(hasAction = hasAction)
 
         Column(
             modifier = Modifier

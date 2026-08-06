@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,6 +37,7 @@ import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
 import io.jacob.episodive.core.designsystem.component.SkeletonBox
 import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
+import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -50,10 +52,17 @@ fun ChannelSection(
     title: String,
     channels: List<Channel>,
     onChannelClick: (Long) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     SectionHeader(
         modifier = modifier,
         title = title,
+        // 더 보기 어포던스는 onMore 유무로만 결정한다 — PodcastsSection 과 같은 계약이다.
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(R.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
@@ -92,11 +101,12 @@ fun ChannelSection(
 fun ChannelSectionSkeleton(
     modifier: Modifier = Modifier,
     count: Int = 3,
+    hasAction: Boolean = false,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
-        SectionHeaderSkeleton()
+        SectionHeaderSkeleton(hasAction = hasAction)
 
         val dimension = LocalDimensionTheme.current
 
@@ -130,8 +140,11 @@ fun ChannelItem(
     var backgroundColor by remember(channel.id) { mutableStateOf(fallbackColor) }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
+            // 기본 폭은 캐러셀 셀(250dp)이다. 그리드처럼 폭을 바깥에서 정하는 호출부가
+            // fillMaxWidth 로 덮어쓸 수 있도록 modifier 보다 앞에 둔다.
             .width(ChannelItemWidth)
+            .then(modifier)
             .clip(MaterialTheme.shapes.extraLarge)
             .clickable { onClick() },
     ) {
@@ -174,8 +187,11 @@ fun ChannelItemSkeleton(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
+            // 실제 ChannelItem과 동일하게 modifier보다 앞에 둬서, 그리드처럼 폭을 바깥에서
+            // 정하는 호출부가 fillMaxWidth로 덮어쓸 수 있게 한다.
             .width(ChannelItemWidth)
+            .then(modifier)
             .clip(MaterialTheme.shapes.extraLarge),
     ) {
         SkeletonBox(

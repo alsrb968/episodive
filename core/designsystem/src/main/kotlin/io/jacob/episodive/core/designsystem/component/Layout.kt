@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,6 +46,7 @@ import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
+import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 
 @Composable
 fun EpisodiveScaffold(
@@ -129,6 +131,10 @@ fun SectionHeader(
 
             if (actionIcon != null && actionIconContentDescription != null) {
                 IconButton(
+                    // 크기를 명시해 스켈레톤이 예약하는 자리와 정확히 같게 만든다. 기본값에
+                    // 맡기면 터치 타겟 보정으로 정해지는 값을 스켈레톤 쪽에서 베껴 적어야
+                    // 하고, 그 순간 둘이 어긋나기 시작한다.
+                    modifier = Modifier.size(SectionHeaderActionSize),
                     onClick = onActionClick
                 ) {
                     Icon(
@@ -155,12 +161,17 @@ fun SectionHeader(
  *
  * 좌우 여백과 제목-콘텐츠 간격을 실제 헤더와 같은 상수에서 가져온다. 값을 베껴 두면 헤더를
  * 손볼 때 스켈레톤만 남아 전환할 때마다 몇 px 씩 튄다.
+ *
+ * @param hasAction 실제 헤더에 더 보기 같은 액션이 붙는 자리면 true. 액션 버튼은 제목 한
+ *   줄보다 높아서 헤더 Row 전체를 키우므로, 그 높이를 미리 잡아 두지 않으면 데이터가
+ *   채워지는 순간 아래 콘텐츠가 통째로 밀린다.
  */
 @Composable
 fun SectionHeaderSkeleton(
     modifier: Modifier = Modifier,
     titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
     titleWidthFraction: Float = SectionHeaderSkeletonTitleWidth,
+    hasAction: Boolean = false,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -168,11 +179,24 @@ fun SectionHeaderSkeleton(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        SkeletonLine(
-            modifier = Modifier.padding(horizontal = dimension.screenPadding),
-            style = titleStyle,
-            widthFraction = titleWidthFraction,
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimension.screenPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SkeletonLine(
+                modifier = Modifier.weight(1f),
+                style = titleStyle,
+                widthFraction = titleWidthFraction,
+            )
+
+            if (hasAction) {
+                // 자리만 비워 둔다. 더 보기 버튼은 데이터와 무관한 정적 크롬이라, 여기서
+                // 함께 반짝이면 버튼도 로딩 중인 것처럼 읽힌다.
+                Spacer(modifier = Modifier.size(SectionHeaderActionSize))
+            }
+        }
 
         Spacer(modifier = Modifier.height(SectionHeaderContentSpacing))
     }
@@ -180,6 +204,9 @@ fun SectionHeaderSkeleton(
 
 private val SectionHeaderContentSpacing = 14.dp
 private const val SectionHeaderSkeletonTitleWidth = 0.4f
+
+/** [SectionHeader] 의 우측 액션 버튼 크기. 스켈레톤이 예약하는 자리도 이 값을 쓴다. */
+private val SectionHeaderActionSize = 48.dp
 
 @Composable
 fun SubSectionHeader(
@@ -343,6 +370,26 @@ private fun SectionHeaderPreview() {
                 text = "Content",
                 color = MaterialTheme.colorScheme.onSurface,
             )
+        }
+    }
+}
+
+/**
+ * 액션이 붙은 헤더와 그 스켈레톤을 위아래로 두어 헤더 높이가 같은지 눈으로 확인한다.
+ * 어긋나면 로딩에서 실제로 넘어갈 때 아래 콘텐츠가 그만큼 밀린다.
+ */
+@ThemePreviews
+@Composable
+private fun SectionHeaderSkeletonPreview() {
+    EpisodiveTheme {
+        Column {
+            SectionHeader(
+                title = "Preview",
+                actionIcon = EpisodiveIcons.CaretRight,
+                actionIconContentDescription = "See all Preview",
+                onActionClick = {},
+            )
+            SectionHeaderSkeleton(hasAction = true)
         }
     }
 }

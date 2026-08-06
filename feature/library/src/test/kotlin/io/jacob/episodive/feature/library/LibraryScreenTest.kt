@@ -1,7 +1,9 @@
 package io.jacob.episodive.feature.library
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -430,5 +432,21 @@ class LibraryScreenTest {
         )
 
         composeTestRule.onNodeWithText("Preferred categories").assertDoesNotExist()
+    }
+
+    @Test
+    fun allSection_noMoreActionIsShown() {
+        // 더 보기는 홈 전용이다. 보관함은 상단 칩으로 각 섹션의 전체 목록에 이미 도달할 수
+        // 있으므로 헤더에 버튼이 또 생기면 안 된다.
+        setLibraryScreen(
+            playedEpisodes = episodeTestDataList,
+            likedEpisodes = episodeTestDataList,
+            savedEpisodes = episodeTestDataList,
+            followedPodcasts = podcastTestDataList,
+        )
+
+        composeTestRule
+            .onAllNodesWithContentDescription("See all", substring = true)
+            .assertCountEquals(0)
     }
 }
