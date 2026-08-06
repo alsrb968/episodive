@@ -22,6 +22,7 @@ import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.asDataError
+import io.jacob.episodive.feature.home.navigation.HomeSection
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -119,6 +120,7 @@ class HomeViewModel @Inject constructor(
                 is HomeAction.ToggleSavedEpisode -> toggleSavedEpisode(action.episode)
                 is HomeAction.ClickPodcast -> clickPodcast(action.podcastId)
                 is HomeAction.ClickChannel -> clickChannel(action.channelId)
+                is HomeAction.ClickMore -> clickMore(action.section)
                 is HomeAction.Retry -> retry()
             }
         }
@@ -155,6 +157,10 @@ class HomeViewModel @Inject constructor(
         _effect.emit(HomeEffect.NavigateToChannel(channelId))
     }
 
+    private fun clickMore(section: HomeSection) = viewModelScope.launch {
+        _effect.emit(HomeEffect.NavigateToMore(section))
+    }
+
     private fun retry() {
         retryTrigger.update { it + 1 }
     }
@@ -189,11 +195,13 @@ sealed interface HomeAction {
     data class ToggleSavedEpisode(val episode: Episode) : HomeAction
     data class ClickPodcast(val podcastId: Long) : HomeAction
     data class ClickChannel(val channelId: Long) : HomeAction
+    data class ClickMore(val section: HomeSection) : HomeAction
     data object Retry : HomeAction
 }
 
 sealed interface HomeEffect {
     data class NavigateToPodcast(val podcastId: Long) : HomeEffect
     data class NavigateToChannel(val channelId: Long) : HomeEffect
+    data class NavigateToMore(val section: HomeSection) : HomeEffect
     data class ShowUnsaveSnackbar(val episode: Episode) : HomeEffect
 }

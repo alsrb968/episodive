@@ -8,6 +8,7 @@ import androidx.navigation3.ui.NavDisplay
 import io.jacob.episodive.feature.channel.navigation.ChannelRoute
 import io.jacob.episodive.feature.channel.navigation.channelEntries
 import io.jacob.episodive.feature.clip.navigation.clipEntries
+import io.jacob.episodive.feature.home.navigation.HomeMoreRoute
 import io.jacob.episodive.feature.home.navigation.homeEntries
 import io.jacob.episodive.feature.library.navigation.libraryEntries
 import io.jacob.episodive.feature.podcast.navigation.PodcastRoute
@@ -25,6 +26,8 @@ fun EpisodiveNavHost(
         homeEntries(
             onPodcastClick = { navigator.navigate(PodcastRoute(it)) },
             onChannelClick = { navigator.navigate(ChannelRoute(it)) },
+            onMoreClick = { navigator.navigate(HomeMoreRoute(it)) },
+            onBackClick = { navigator.goBack() },
             onShowSnackbar = onShowSnackbar,
         )
         searchEntries(

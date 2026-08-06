@@ -4,7 +4,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Episode
@@ -13,6 +15,8 @@ import io.jacob.episodive.core.testing.model.channelTestDataList
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.liveEpisodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
+import io.jacob.episodive.feature.home.navigation.HomeSection
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,6 +44,7 @@ class HomeScreenTest {
         onToggleSavedEpisode: (Episode) -> Unit = {},
         onPodcastClick: (Long) -> Unit = {},
         onChannelClick: (Long) -> Unit = {},
+        onMoreClick: (HomeSection) -> Unit = {},
     ) {
         composeTestRule.setContent {
             EpisodiveTheme {
@@ -59,6 +64,7 @@ class HomeScreenTest {
                     onToggleSavedEpisode = onToggleSavedEpisode,
                     onPodcastClick = onPodcastClick,
                     onChannelClick = onChannelClick,
+                    onMoreClick = onMoreClick,
                 )
             }
         }
@@ -94,6 +100,64 @@ class HomeScreenTest {
         composeTestRule.onAllNodesWithText(episodeTestDataList.first().title, substring = true)
             .onFirst()
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun podcastSection_showsMoreAction() {
+        // contentDescription 이 섹션 제목을 담으므로 스크린리더 사용자도 어느 섹션의 더
+        // 보기인지 구분할 수 있다.
+        setHomeScreen()
+
+        composeTestRule.onNodeWithContentDescription("See all My recent published").assertExists()
+    }
+
+    @Test
+    fun episodeSection_showsMoreAction() {
+        // 에피소드 섹션에도 붙는다. 앞 섹션을 비워 화면 안으로 끌어올린다 — LazyColumn 은
+        // 화면 밖 항목을 컴포즈하지 않는다.
+        setHomeScreen(userRecentPodcasts = emptyList())
+
+        composeTestRule.onNodeWithContentDescription("See all Random episodes").assertExists()
+    }
+
+    @Test
+    fun moreAction_clicked_callbackReceivesMatchingSection() {
+        var clickedSection: HomeSection? = null
+        setHomeScreen(onMoreClick = { clickedSection = it })
+
+        composeTestRule
+            .onNodeWithContentDescription("See all My recent published")
+            .performClick()
+
+        assertEquals(HomeSection.MyRecentPodcasts, clickedSection)
+    }
+
+    @Test
+    fun moreAction_differentSection_callbackReceivesThatSection() {
+        // 섹션마다 다른 값이 실려야 한다. 하나로 뭉뚱그리면 어느 더 보기를 눌러도 같은
+        // 목록이 열린다.
+        var clickedSection: HomeSection? = null
+        setHomeScreen(
+            userRecentPodcasts = emptyList(),
+            onMoreClick = { clickedSection = it },
+        )
+
+        composeTestRule
+            .onNodeWithContentDescription("See all Random episodes")
+            .performClick()
+
+        assertEquals(HomeSection.RandomEpisodes, clickedSection)
+    }
+
+    @Test
+    fun emptySection_moreActionIsNotShown() {
+        // 섹션 자체가 빠지면 그 더 보기도 함께 사라져야 한다. 갈 곳은 있는데 목록이 비어
+        // 있는 화면으로 보내면 막다른 길이 된다.
+        setHomeScreen(userRecentPodcasts = emptyList())
+
+        composeTestRule
+            .onNodeWithContentDescription("See all My recent published")
+            .assertDoesNotExist()
     }
 
     @Test
