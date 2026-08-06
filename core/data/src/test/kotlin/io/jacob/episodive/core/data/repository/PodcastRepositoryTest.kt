@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import androidx.paging.testing.asSnapshot
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.util.query.PodcastQuery
+import io.jacob.episodive.core.data.util.query.QueryScope
 import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
@@ -444,5 +446,78 @@ class PodcastRepositoryTest {
 
             // Then
             assertNotNull(flow)
+        }
+
+    @Test
+    fun `Given trending condition, When getTrendingPodcastsPaging is called, Then uses full scope query`() =
+        runTest {
+            // 미리보기(PREVIEW)와 같은 그룹을 쓰면 먼저 캐시를 채운 쪽의 개수에 갇힌다.
+            // 여기서 쿼리를 통째로 비교하므로 스코프가 빠지면 create() 매칭이 실패한다.
+            // Given
+            val query = PodcastQuery.Trending(
+                max = 50,
+                language = "ko",
+                categories = emptyList(),
+                scope = QueryScope.FULL,
+            )
+
+            val updater = mockk<PodcastRemoteUpdater>(relaxed = true)
+            coEvery {
+                updater.getPagingData(any())
+            } returns flowOf(PagingData.from(podcastDtos))
+            coEvery { remoteUpdater.create(query) } returns updater
+
+            // When
+            val result = repository.getTrendingPodcastsPaging(max = 50, language = "ko").asSnapshot()
+
+            // Then
+            assertEquals(podcastTestDataList, result)
+
+            coVerifySequence {
+                remoteUpdater.create(query)
+                updater.getPagingData(any())
+            }
+        }
+
+    @Test
+    fun `Given recent condition, When getRecentPodcastsPaging is called, Then uses full scope query`() =
+        runTest {
+            // Given
+            val query = PodcastQuery.Recent(
+                max = 50,
+                language = "ko",
+                categories = emptyList(),
+                scope = QueryScope.FULL,
+            )
+
+            val updater = mockk<PodcastRemoteUpdater>(relaxed = true)
+            coEvery {
+                updater.getPagingData(any())
+            } returns flowOf(PagingData.from(podcastDtos))
+            coEvery { remoteUpdater.create(query) } returns updater
+
+            // When
+            val result = repository.getRecentPodcastsPaging(max = 50, language = "ko").asSnapshot()
+
+            // Then
+            assertEquals(podcastTestDataList, result)
+
+            coVerifySequence {
+                remoteUpdater.create(query)
+                updater.getPagingData(any())
+            }
+        }
+
+    @Test
+    fun `Given same condition, When preview and full are requested, Then queries differ`() =
+        runTest {
+            // 비페이징 경로는 기본값인 PREVIEW 를 써야 한다. 이게 FULL 로 새면 홈이 전체
+            // 목록 캐시를 덮어쓴다.
+            // Given & When
+            val preview = PodcastQuery.Trending(max = 10, language = "ko")
+            val full = PodcastQuery.Trending(max = 50, language = "ko", scope = QueryScope.FULL)
+
+            // Then
+            assertNotEquals(preview.key, full.key)
         }
 }

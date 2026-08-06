@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import androidx.paging.testing.asSnapshot
 import app.cash.turbine.test
 import io.jacob.episodive.core.data.util.query.EpisodeQuery
+import io.jacob.episodive.core.data.util.query.QueryScope
 import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.datasource.SoundbiteLocalDataSource
@@ -687,5 +688,59 @@ class EpisodeRepositoryTest {
 
             // Then
             assertNotNull(flow)
+        }
+
+    @Test
+    fun `When getLiveEpisodesPaging is called, Then uses full scope query`() =
+        runTest {
+            // 미리보기(PREVIEW)와 같은 그룹을 쓰면 먼저 캐시를 채운 쪽의 개수에 갇힌다.
+            // Given
+            val query = EpisodeQuery.Live(max = 100, scope = QueryScope.FULL)
+
+            val updater = mockk<EpisodeRemoteUpdater>(relaxed = true)
+            coEvery {
+                updater.getPagingData(any())
+            } returns flowOf(PagingData.from(episodeDtos))
+            coEvery { remoteUpdater.create(query) } returns updater
+
+            // When
+            val result = repository.getLiveEpisodesPaging(max = 100).asSnapshot()
+
+            // Then
+            assertEquals(episodeTestDataList, result)
+
+            coVerifySequence {
+                remoteUpdater.create(query)
+                updater.getPagingData(any())
+            }
+        }
+
+    @Test
+    fun `Given random condition, When getRandomEpisodesPaging is called, Then uses full scope query`() =
+        runTest {
+            // Given
+            val query = EpisodeQuery.Random(
+                max = 100,
+                language = "ko",
+                categories = emptyList(),
+                scope = QueryScope.FULL,
+            )
+
+            val updater = mockk<EpisodeRemoteUpdater>(relaxed = true)
+            coEvery {
+                updater.getPagingData(any())
+            } returns flowOf(PagingData.from(episodeDtos))
+            coEvery { remoteUpdater.create(query) } returns updater
+
+            // When
+            val result = repository.getRandomEpisodesPaging(max = 100, language = "ko").asSnapshot()
+
+            // Then
+            assertEquals(episodeTestDataList, result)
+
+            coVerifySequence {
+                remoteUpdater.create(query)
+                updater.getPagingData(any())
+            }
         }
 }

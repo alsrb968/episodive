@@ -7,6 +7,7 @@ import androidx.paging.map
 import io.jacob.episodive.core.data.util.paging.PagingDefaults
 import io.jacob.episodive.core.data.util.paging.RecommendedPodcastPagingSource
 import io.jacob.episodive.core.data.util.query.PodcastQuery
+import io.jacob.episodive.core.data.util.query.QueryScope
 import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
 import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
@@ -120,6 +121,20 @@ class PodcastRepositoryImpl @Inject constructor(
             .map { it.toPodcasts() }
     }
 
+    override fun getTrendingPodcastsPaging(
+        max: Int,
+        language: String?,
+        includeCategories: List<Category>,
+    ): Flow<PagingData<Podcast>> {
+        val query = PodcastQuery.Trending(max, language, includeCategories, QueryScope.FULL)
+
+        return remoteUpdater.create(query)
+            .getPagingData(config)
+            .map { pagingData ->
+                pagingData.map { it.toPodcast() }
+            }
+    }
+
     override fun getRecentPodcasts(
         max: Int,
         language: String?,
@@ -130,6 +145,20 @@ class PodcastRepositoryImpl @Inject constructor(
         return remoteUpdater.create(query)
             .getFlowList(max)
             .map { it.toPodcasts() }
+    }
+
+    override fun getRecentPodcastsPaging(
+        max: Int,
+        language: String?,
+        includeCategories: List<Category>,
+    ): Flow<PagingData<Podcast>> {
+        val query = PodcastQuery.Recent(max, language, includeCategories, QueryScope.FULL)
+
+        return remoteUpdater.create(query)
+            .getPagingData(config)
+            .map { pagingData ->
+                pagingData.map { it.toPodcast() }
+            }
     }
 
     override fun getRecentNewPodcasts(max: Int): Flow<List<Podcast>> {
