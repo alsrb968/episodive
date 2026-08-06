@@ -302,7 +302,7 @@ Now in Android 방식 커스텀 스크롤바.
 | 컴포넌트 | 파일 | 사양 |
 |:----|:----|:----|
 | `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외 |
-| `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션, 하단 14dp Spacer. 로딩 자리는 `SectionHeaderSkeleton` |
+| `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션(48dp), 하단 14dp Spacer. 액션이 붙으면 헤더 높이가 그만큼 커지므로 로딩 자리는 `SectionHeaderSkeleton(hasAction = true)` 로 같은 자리를 예약 |
 | `SubSectionHeader` | `Layout.kt` | 제목 `titleSmall`/`onSurfaceVariant` |
 | `FadeTopBarLayout` | `Layout.kt` | 스크롤 연동 페이드 탑바 (§3.4) |
 | `EpisodiveTopAppBar` / `EpisodiveCenterTopAppBar` | `TopAppBar.kt` | 좌측/중앙 정렬 상단바, 아이콘 tint `onSurface` |
@@ -352,6 +352,27 @@ Now in Android 방식 커스텀 스크롤바.
 - **`ChannelItem`** (`Channel.kt`): width 250dp, 정사각 이미지 + 하단 80dp 색 밴드(**Bottom 추출색 `alpha 0.5`**) 위 설명 3줄 중앙정렬
 - **`CategoryItem`** (`Category.kt`): `Surface` 칩, 셰이프 `medium`(12dp), `surfaceVariant`, 라벨 `bodyMedium`
 - **`ChapterItem`** (`Chapter.kt`): 플레이어 챕터 행 — 인디케이터(선택 시 `primary`) + 제목 `bodyMedium` + 시작시각 `primary`, 하단 `HorizontalDivider`(선택 시 primary)
+
+`PodcastItem`·`ChannelItem` 은 기본 폭(각 118dp·250dp)을 `modifier` 보다 **앞**에 두어, 그리드처럼
+폭을 바깥에서 정하는 호출부가 `fillMaxWidth` 로 덮어쓸 수 있다.
+
+### 5.4 섹션 컨테이너
+
+`SectionHeader`(§4.10) + 항목 나열을 묶은 래퍼. 홈·검색·보관함이 공유한다.
+
+| 컴포넌트 | 파일 | 항목 배치 |
+|:----|:----|:----|
+| `PodcastsSection` | `Podcast.kt` | 가로 `LazyRow`(스냅, `carouselSpacing`) |
+| `EpisodesSection` | `Episode.kt` | 세로 `Column`(`listItemSpacing`) |
+| `ChannelSection` | `Channel.kt` | 가로 `LazyRow`(스냅, `gridSpacing`) |
+
+**`onMore` 계약**: `(() -> Unit)?` 이며 **null 이면 더보기 아이콘을 그리지 않는다.** 어포던스
+유무를 콜백 유무로만 결정해서, 갈 곳이 없는 화면(검색 결과·보관함)에 눌러도 아무 일이 없는
+버튼이 생기지 않게 한다. 아이콘은 `EpisodiveIcons.CaretRight`, contentDescription 은
+`core_ui_section_more_format`("See all %1$s")로 섹션 제목을 담는다 — 한 화면에 더보기가
+여럿이라 제목이 없으면 스크린리더에서 구분되지 않는다.
+
+각 섹션의 로딩 자리(`*SectionSkeleton`)는 `hasAction` 을 그대로 넘겨 헤더 높이를 맞춘다.
 
 ---
 
@@ -429,18 +450,34 @@ Now in Android 방식 커스텀 스크롤바.
 - 고정 영역: 재생중이던 에피소드가 있으면 `PlayingEpisodesSection`("계속 듣기")
 - 바텀시트 본문(`LazyColumn`, 드래그 핸들 = `EpisodiveDragHandle`) 섹션 순서:
 
-| # | 섹션 | 컴포넌트 |
-|:--|:----|:----|
-| 1 | 내가 최근 들은 | `PodcastsSection` (가로) |
-| 2 | 랜덤 에피소드 | `EpisodesSection` (세로) |
-| 3 | 내 트렌딩 피드 | `PodcastsSection` |
-| 4 | 구독 팟캐스트 | `PodcastsSection` (더보기 有) |
-| 5 | 국내 인기 | `PodcastsSection` |
-| 6 | 해외 인기 | `PodcastsSection` |
-| 7 | 라이브 에피소드 | `EpisodesSection` |
-| 8 | 채널 | `ChannelSection` |
+| # | 섹션 | 컴포넌트 | 더보기 목적지 |
+|:--|:----|:----|:----|
+| 1 | 내가 최근 들은 | `PodcastsSection` (가로) | 팟캐스트 그리드 |
+| 2 | 랜덤 에피소드 | `EpisodesSection` (세로) | 에피소드 리스트 |
+| 3 | 내 트렌딩 피드 | `PodcastsSection` | 팟캐스트 그리드 |
+| 4 | 구독 팟캐스트 | `PodcastsSection` | 팟캐스트 그리드 |
+| 5 | 국내 인기 | `PodcastsSection` | 팟캐스트 그리드 |
+| 6 | 해외 인기 | `PodcastsSection` | 팟캐스트 그리드 |
+| 7 | 라이브 에피소드 | `EpisodesSection` | 에피소드 리스트 |
+| 8 | 채널 | `ChannelSection` | 채널 그리드 (비페이징) |
 
 1~6번 뒤에만 `HorizontalDivider`(16dp 인셋). 끝에 70dp Spacer.
+
+3번과 5번은 조회 조건이 다르다 — 3번은 사용자 언어 + 관심 카테고리, 5번은 언어만(카테고리 없음).
+
+#### 홈 더보기 (`HomeMoreRoute`)
+
+섹션 헤더 우측 `CaretRight` 를 누르면 그 섹션의 전체 목록으로 이동한다. 화면은 하나이고
+`HomeSection` 인자로 세 레이아웃을 분기한다.
+
+- 상단바는 `FadeTopBarLayout` 이 아니라 `EpisodiveScaffold` — 히어로 없이 첫 줄부터 목록이라
+  "무엇의 목록인지"가 처음부터 보여야 한다. 제목은 홈 섹션 제목을 그대로 쓴다.
+- 팟캐스트·채널은 2열 그리드(`gridSpacing`), 에피소드는 세로 리스트(`listItemSpacing`).
+  좌우 `screenPadding`, 하단은 `playerBarSpace` 만큼 비워 미니플레이어가 마지막 항목을 가리지 않는다.
+- 팟캐스트·에피소드는 Paging, 채널은 비페이징(`ChannelRepository` 에 PagingSource 가 없다).
+- 오류 시 재시도 버튼을 둔다 — 첫 페이지가 50~100건이라 실패 비용이 크다.
+- 홈 미리보기와는 별도 캐시 그룹을 쓴다(`QueryScope.FULL`). 한 그룹을 공유하면 먼저 캐시를
+  채운 쪽의 개수에 갇힌다.
 
 ### 7.3 온보딩 (`feature:onboarding`)
 
