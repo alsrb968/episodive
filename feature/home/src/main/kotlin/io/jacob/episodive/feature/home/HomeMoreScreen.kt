@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -190,10 +193,9 @@ private fun HomeMorePodcastGrid(
     LazyVerticalGrid(
         modifier = modifier
             .fillMaxSize()
-            .padding(paddingValues)
             .nestedScroll(nestedScrollConnection),
         columns = GridCells.Fixed(HomeMorePodcastGridColumns),
-        contentPadding = PaddingValues(horizontal = dimension.screenPadding),
+        contentPadding = paddingValues.asContentPadding(horizontal = dimension.screenPadding),
         horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
         verticalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
     ) {
@@ -255,8 +257,8 @@ private fun HomeMoreEpisodeList(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(paddingValues)
             .nestedScroll(nestedScrollConnection),
+        contentPadding = paddingValues.asContentPadding(),
         verticalArrangement = Arrangement.spacedBy(dimension.listItemSpacing),
     ) {
         pagingRefreshState(
@@ -329,10 +331,9 @@ private fun HomeMoreChannelGrid(
         is HomeMoreChannelState.Success -> LazyVerticalGrid(
             modifier = modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .nestedScroll(nestedScrollConnection),
             columns = GridCells.Fixed(HomeMoreChannelGridColumns),
-            contentPadding = PaddingValues(horizontal = dimension.screenPadding),
+            contentPadding = paddingValues.asContentPadding(horizontal = dimension.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
             verticalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
         ) {
@@ -471,6 +472,28 @@ private const val HomeMorePodcastGridColumns = 3
  * 폭이 좁아지면 그 설명부터 뭉개진다 — 커버만 보고도 알아보는 팟캐스트와 다르다.
  */
 private const val HomeMoreChannelGridColumns = 2
+
+/**
+ * 스캐폴드가 준 여백을 목록의 contentPadding 으로 옮긴다.
+ *
+ * 컨테이너 패딩(`Modifier.padding`)이 아니어야 한다. 이 화면의 탑바는 콘텐츠 **위에**
+ * 겹쳐 있어서, 컨테이너를 줄여 버리면 항목이 탑바 자리까지 올라가지 못한다 — 제목이
+ * 사라져도 그 자리에 빈 띠가 남는다. contentPadding 이면 처음에는 탑바 아래에서
+ * 시작하면서도 스크롤하면 항목이 그 자리를 지나 올라간다.
+ */
+@Composable
+private fun PaddingValues.asContentPadding(horizontal: Dp = 0.dp): PaddingValues {
+    // 스캐폴드가 준 좌우 여백을 버리지 않고 더한다. 세로에서는 0 이지만 가로에서는
+    // 디스플레이 컷아웃과 내비게이션 바가 이쪽으로 와서, 버리면 항목이 그 밑에 깔린다.
+    val layoutDirection = LocalLayoutDirection.current
+
+    return PaddingValues(
+        start = horizontal + calculateStartPadding(layoutDirection),
+        top = calculateTopPadding(),
+        end = horizontal + calculateEndPadding(layoutDirection),
+        bottom = calculateBottomPadding(),
+    )
+}
 
 /**
  * 뷰포트를 덮을 만큼의 그리드 스켈레톤 행 수.

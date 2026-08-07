@@ -3,6 +3,7 @@ package io.jacob.episodive.feature.home
 import android.content.Context
 import android.provider.Settings
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -10,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeUp
@@ -22,6 +24,7 @@ import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.feature.home.navigation.HomeSection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -254,6 +257,31 @@ class HomeMoreScreenTest {
         composeTestRule.onNodeWithText(followedPodcastsTitle).assertExists()
     }
 
+    @Test
+    fun itemsUnderTheHiddenTitle_areStillClickable() {
+        // 겹쳐 그린 헤더가 그 아래 목록의 터치를 삼키면, 제목이 물러난 자리까지 올라온
+        // 항목이 눈에는 멀쩡히 보이는데 눌리지 않는 죽은 띠가 된다. M3 TopAppBar 를 그대로
+        // 겹치면 실제로 그렇게 된다 — 그쪽이 조건 없이 pointerInput 을 달기 때문이다.
+        // 화면 중앙을 쓸어 올리는 다른 테스트들은 이 띠를 건드리지 않아 전부 통과한다.
+        var clickedId: Long? = null
+
+        setHomeMoreScreen(
+            section = HomeSection.FollowedPodcasts,
+            content = HomeMoreContent.PodcastPaging(flowOf(PagingData.from(scrollablePodcasts()))),
+            onPodcastClick = { clickedId = it },
+        )
+
+        composeTestRule.onRoot().performTouchInput { swipeUp() }
+        composeTestRule.onNodeWithText(followedPodcastsTitle).assertDoesNotExist()
+
+        val headerBandCenterY = with(composeTestRule.density) { CollapsedBandCenter.dp.toPx() }
+        composeTestRule.onRoot().performTouchInput {
+            click(Offset(center.x, headerBandCenterY))
+        }
+
+        assertNotNull("제목이 물러난 자리의 항목이 눌리지 않았다", clickedId)
+    }
+
     /**
      * 한 화면을 넘겨 스크롤이 가능할 만큼의 목록.
      *
@@ -274,3 +302,11 @@ class HomeMoreScreenTest {
 
 /** 제목을 되돌리는 임계값(8dp)은 넘되, 맨 위까지 되감지는 않을 만큼의 되올림. */
 private const val ShortScrollBackPx = 120f
+
+/**
+ * 겹친 제목 띠의 세로 중앙(dp).
+ *
+ * 띠 높이 64dp 의 절반이다. Robolectric 은 상태바 인셋이 0 이라 띠가 화면 맨 위에서
+ * 시작한다. 뒤로가기 버튼(좌측 44dp)을 피하려고 가로는 화면 중앙을 쓴다.
+ */
+private const val CollapsedBandCenter = 32
