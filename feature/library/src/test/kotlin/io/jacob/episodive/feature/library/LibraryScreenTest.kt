@@ -1,9 +1,8 @@
 package io.jacob.episodive.feature.library
 
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -17,6 +16,8 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,7 +27,7 @@ import org.robolectric.RobolectricTestRunner
 class LibraryScreenTest {
 
     @get:Rule
-    val composeTestRule = createComposeRule()
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private fun setLibraryScreen(
         query: String = "",
@@ -435,18 +436,59 @@ class LibraryScreenTest {
     }
 
     @Test
-    fun allSection_noMoreActionIsShown() {
-        // 더 보기는 홈 전용이다. 보관함은 상단 칩으로 각 섹션의 전체 목록에 이미 도달할 수
-        // 있으므로 헤더에 버튼이 또 생기면 안 된다.
-        setLibraryScreen(
-            playedEpisodes = episodeTestDataList,
-            likedEpisodes = episodeTestDataList,
-            savedEpisodes = episodeTestDataList,
-            followedPodcasts = podcastTestDataList,
-        )
+    fun allSection_moreAction_selectsThatSection() {
+        // 보관함의 더 보기는 새 화면으로 가지 않는다. 상단 필터를 그 탭으로 옮길 뿐이다.
+        var selected: LibrarySection? = null
+        setLibraryScreen(onSectionChange = { selected = it })
 
         composeTestRule
-            .onAllNodesWithContentDescription("See all", substring = true)
-            .assertCountEquals(0)
+            .onNodeWithContentDescription(seeAll(recentlyListenedTitle))
+            .performClick()
+
+        assertEquals(LibrarySection.RecentlyListened, selected)
     }
+
+    @Test
+    fun allSection_sectionTitle_selectsThatSection() {
+        // 화살표뿐 아니라 제목도 눌려야 한다. 홈과 같은 규칙이다 — 가장 크고 먼저 눈에
+        // 들어오는 제목이 죽은 영역이면 사용자는 그걸 몇 번 눌러 본 뒤에야 아이콘을 찾는다.
+        var selected: LibrarySection? = null
+        setLibraryScreen(onSectionChange = { selected = it })
+
+        composeTestRule.onNodeWithText(recentlyListenedTitle).performClick()
+
+        assertEquals(LibrarySection.RecentlyListened, selected)
+    }
+
+    @Test
+    fun nonAllSection_back_returnsToAll() {
+        // 더 보기로 들어간 탭은 화면이 아니라 필터다. 뒤로가기를 그냥 두면 보관함을 통째로
+        // 벗어나, 방금 좁힌 목록이 아니라 탭 전체가 사라진다.
+        var selected: LibrarySection? = null
+        setLibraryScreen(section = LibrarySection.Liked, onSectionChange = { selected = it })
+
+        composeTestRule.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        assertEquals(LibrarySection.All, selected)
+    }
+
+    @Test
+    fun allSection_back_isLeftToTheSystem() {
+        // '모든' 에서는 되돌릴 필터가 없다. 여기서까지 가로채면 보관함을 나갈 수 없다.
+        var selected: LibrarySection? = null
+        setLibraryScreen(section = LibrarySection.All, onSectionChange = { selected = it })
+
+        composeTestRule.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        assertNull(selected)
+    }
+
+    /** 영문 기본 리소스가 만들어내는 문자열. */
+    private val recentlyListenedTitle = "Recently listened episodes"
+
+    private fun seeAll(title: String) = "See all $title"
 }

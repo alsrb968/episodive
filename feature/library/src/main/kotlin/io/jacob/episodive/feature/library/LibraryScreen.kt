@@ -1,5 +1,6 @@
 package io.jacob.episodive.feature.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -275,6 +276,13 @@ internal fun LibraryScreen(
     var showFind by remember { mutableStateOf(false) }
     val scrollState = rememberLazyListState()
 
+    // 더 보기로 들어온 탭은 화면이 아니라 필터라, 놔두면 뒤로가기가 보관함을 통째로
+    // 벗어난다. 사용자가 방금 좁힌 것은 목록이므로 되돌릴 것도 목록이다 — '모든' 으로
+    // 돌아온 뒤에야 뒤로가기가 화면을 떠난다.
+    BackHandler(enabled = section != LibrarySection.All) {
+        onSectionChange(LibrarySection.All)
+    }
+
     EpisodiveScaffold(
         modifier = modifier,
         title = stringResource(R.string.feature_library_title),
@@ -312,7 +320,8 @@ internal fun LibraryScreen(
                 preferredCategories = preferredCategories,
                 onPlayedEpisodeClick = onPlayedEpisodeClick,
                 onEpisodeClick = onEpisodeClick,
-                onPodcastClick = onPodcastClick
+                onPodcastClick = onPodcastClick,
+                onSectionMore = onSectionChange,
             )
 
             LibrarySection.RecentlyListened -> RecentlyListenedContent(
@@ -379,6 +388,8 @@ private fun AllSectionContent(
     onPlayedEpisodeClick: (Episode) -> Unit,
     onEpisodeClick: (Episode) -> Unit,
     onPodcastClick: (Podcast) -> Unit,
+    /** 섹션 헤더의 더 보기. 새 화면으로 가지 않고 상단 필터를 그 탭으로 옮긴다. */
+    onSectionMore: (LibrarySection) -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -400,6 +411,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_recently_listened_episodes),
                         playedEpisodes = playedEpisodes,
                         onPlayedEpisodeClick = onPlayedEpisodeClick,
+                        onMore = { onSectionMore(LibrarySection.RecentlyListened) },
                     )
                 }
 
@@ -408,6 +420,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_liked_episodes),
                         episodes = likedEpisodes,
                         onEpisodeClick = onEpisodeClick,
+                        onMore = { onSectionMore(LibrarySection.Liked) },
                     )
                 }
 
@@ -416,6 +429,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_saved_episodes),
                         episodes = savedEpisodes,
                         onEpisodeClick = onEpisodeClick,
+                        onMore = { onSectionMore(LibrarySection.Saved) },
                     )
                 }
 
@@ -424,6 +438,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_followed_podcasts),
                         podcasts = followedPodcasts,
                         onPodcastClick = onPodcastClick,
+                        onMore = { onSectionMore(LibrarySection.Followed) },
                     )
                 }
 
@@ -432,6 +447,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_preferred_categories),
                         categories = preferredCategories,
                         onCategoryClick = {},
+                        onMore = { onSectionMore(LibrarySection.Preferred) },
                     )
                 }
 
@@ -1055,12 +1071,18 @@ private fun PlayedEpisodeRowSection(
     title: String,
     playedEpisodes: List<Episode>,
     onPlayedEpisodeClick: (Episode) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(uiR.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
@@ -1096,12 +1118,18 @@ private fun EpisodeRowSection(
     title: String,
     episodes: List<Episode>,
     onEpisodeClick: (Episode) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(uiR.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
@@ -1136,12 +1164,18 @@ private fun CategorySection(
     title: String,
     categories: List<Category>,
     onCategoryClick: (Category) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(uiR.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
