@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,11 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +48,7 @@ import androidx.paging.compose.itemKey
 import io.jacob.episodive.core.designsystem.component.EpisodiveChipDefaults
 import io.jacob.episodive.core.designsystem.component.EpisodiveFilterChip
 import io.jacob.episodive.core.designsystem.component.EpisodiveScaffold
+import io.jacob.episodive.core.designsystem.component.EpisodiveSearchBar
 import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
 import io.jacob.episodive.core.designsystem.component.SkeletonBox
@@ -946,44 +942,28 @@ private fun FindBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onFind: (String) -> Unit,
-    onDismiss: () -> Unit,
 ) {
-    val dimension = LocalDimensionTheme.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // 목록을 스크롤하면 키보드를 내린다. EpisodiveSearchBar 안에도 같은 처리가 있지만
+    // 그쪽은 펼침 결과 목록용이라, 이 화면의 콘텐츠 스크롤은 여기서 따로 봐야 한다.
     LaunchedEffect(scrollState.isScrollInProgress) {
         if (scrollState.isScrollInProgress) {
             keyboardController?.hide()
         }
     }
 
-    SearchBar(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = dimension.screenPadding)
-            .padding(bottom = 16.dp),
-        windowInsets = WindowInsets(0, 0, 0, 0),
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = {
-                    onFind(query)
-                    keyboardController?.hide()
-                },
-                expanded = false,
-                onExpandedChange = { if (!it) onDismiss() },
-                placeholder = { Text(stringResource(R.string.feature_library_find_your_library)) },
-                leadingIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(EpisodiveIcons.Search, null)
-                    }
-                }
-            )
-        },
-        expanded = false,
-        onExpandedChange = { if (!it) onDismiss() },
-        content = {}
+    EpisodiveSearchBar(
+        // 좌우·아래 여백은 컴포넌트가 스스로 잡는다. 여기서 또 주면 검색 탭보다
+        // 안쪽으로 밀려 같은 모양이 되지 않는다.
+        modifier = modifier,
+        query = query,
+        onQueryChange = onQueryChange,
+        onSearch = onFind,
+        // 펼침은 검색 탭의 몫이다. 보관함의 이것은 상단 액션으로 여닫는 필터라,
+        // 스스로 전체 화면으로 커지면 아래 목록이 사라진다.
+        isExpandable = false,
+        placeholder = { Text(stringResource(R.string.feature_library_find_your_library)) },
     )
 }
 
@@ -1054,7 +1034,6 @@ private fun FindOrFilter(
                 query = query,
                 onQueryChange = onQueryChange,
                 onFind = onFind,
-                onDismiss = { onShowFindChanged(false) },
             )
         } else {
             SectionFilter(

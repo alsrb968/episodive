@@ -245,6 +245,9 @@ M3 3종 래퍼, 각각 `content` 슬롯 버전 + `text`/`leadingIcon` 편의 버
 - 접힘↔펼침 전환: 좌우 패딩 `animateDpAsState` 16dp → 0dp(펼치면 전체폭)
 - leading: 축소 `Search` / 확장 `ArrowBack`, trailing: query 있을 때 `Close`
 - 스크롤 시작 시 키보드 자동 숨김
+- **검색·보관함이 공유한다.** 보관함은 `isExpandable = false` 로 접힘 상태만 쓴다 — 여닫는
+  것은 상단 액션 아이콘이고, 스스로 전체 화면으로 커지면 아래 목록이 사라진다.
+  좌우·아래 여백은 컴포넌트가 스스로 잡으므로 호출부에서 다시 주지 않는다
 
 ### 4.6 플레이어 컨트롤 컴포넌트
 
@@ -502,7 +505,7 @@ Now in Android 방식 커스텀 스크롤바.
 
 ### 7.5 라이브러리 (`feature:library`)
 
-`EpisodiveScaffold`(타이틀 "보관함" / en "Library"), subTitle에 **필터 칩 줄 ↔ 검색바** `AnimatedContent` 전환(`FindOrFilter`).
+`EpisodiveScaffold`(타이틀 "보관함" / en "Library"), subTitle에 **필터 칩 줄 ↔ 검색바** `AnimatedContent` 전환(`FindOrFilter`). 검색바는 §4.5 `EpisodiveSearchBar` 를 그대로 쓴다 — 검색 탭과 같은 모양이다.
 - **탭 = 필터 칩**(가로): All / RecentlyListened / Liked / Saved / Followed / Preferred
 - **All**: 요약 섹션들을 가로 캐러셀로(최근청취 250dp / 좋아요·저장 `EpisodeDetailItem` / 구독 / 선호 카테고리)
 - **개별 탭**: **Paging + 날짜 구분자**(`SeparatedUiModel` — surface 배경 날짜 헤더 `titleMedium`), 아이템 `animateItem()`
