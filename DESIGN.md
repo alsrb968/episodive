@@ -271,6 +271,7 @@ M3 3종 래퍼, 각각 `content` 슬롯 버전 + `text`/`leadingIcon` 편의 버
 | `EpisodiveSwipeDismissSnackbarHost` | `Snackbar.kt` | 세로 드래그로 dismiss(임계 80px) |
 | `EpisodiveDragHandle` | `DragHandle.kt` | 40×4dp, `onSurfaceVariant`, `small`(8dp) 라운드, 상하 16dp 패딩 — 바텀시트 핸들 |
 | `EpisodiveViewToggleButton` | `ViewToggle.kt` | 텍스트 `titleLarge` + 원형 38dp(`surfaceContainerHigh`) 배경 확장/축소 아이콘 |
+| `EpisodiveViewToggleHeader` | `ViewToggle.kt` | 위와 같은 모습이되 **클릭을 받지 않는** 표시용. 카드나 행 전체가 이미 클릭 대상인 자리에 쓴다 |
 
 ### 4.8 이미지 / 로딩 / 애니메이션
 
@@ -440,7 +441,7 @@ Now in Android 방식 커스텀 스크롤바.
    - **컨트롤 패널**:
      - 1행: Replay15(48dp/아이콘32dp) · SkipPrevious(48/40) · **재생·정지 토글(68dp 원형/아이콘36dp, `onBackground` 배경)** · SkipNext · Forward30
      - 2행: 배속 텍스트버튼(`"1.0x"` titleLarge) · 슬립타이머(32dp, 임박 시 `primary`로 lerp) · 저장/다운로드 토글(진행 시 진행률 링) · 재생목록(32dp)
-2. **에피소드 정보 카드**: `Card`(`extraLarge`, animateContentSize), `EpisodiveViewToggleButton` 펼침/접힘, HTML 설명(접힘 3줄)
+2. **에피소드 정보 카드**: `Card`(`extraLarge`, animateContentSize), HTML 설명(접힘 3줄). 헤더는 `EpisodiveViewToggleHeader` — **클릭은 카드가 전담한다.** 제목·아이콘에 버튼을 겹치면 클릭 지점이 둘로 갈려 리플이 제목 언저리에만 번지고 스크린리더도 같은 동작을 두 번 읽는다
 3. **챕터 카드**(있을 때): 접힘 시 현재 챕터 주변 최대 5개, 초과 시 더보기
 4. **팟캐스트 정보 카드**: HTML 설명 + `PodcastSimpleItem`
 5. 하단 Spacer 50dp

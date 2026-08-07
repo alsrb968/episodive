@@ -86,7 +86,7 @@ import io.jacob.episodive.core.designsystem.component.EpisodiveSwipeDismissSnack
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveSeeker
 import io.jacob.episodive.core.designsystem.component.EpisodiveTextButton
-import io.jacob.episodive.core.designsystem.component.EpisodiveViewToggleButton
+import io.jacob.episodive.core.designsystem.component.EpisodiveViewToggleHeader
 import io.jacob.episodive.core.designsystem.component.FadingEdgeText
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.StateImage
@@ -935,10 +935,12 @@ private fun CardSection(
                     .fillMaxWidth()
                     .padding(vertical = 16.dp, horizontal = 24.dp),
             ) {
-                EpisodiveViewToggleButton(
+                // 버튼이 아니라 표시용 헤더다. 카드 전체가 이미 클릭 대상이라 여기에
+                // 버튼을 겹쳐 두면 클릭 지점이 둘로 갈린다 — 제목이나 아이콘을 누르면
+                // 리플이 그 언저리에만 번지고, 스크린리더도 같은 동작을 두 번 읽는다.
+                EpisodiveViewToggleHeader(
                     modifier = Modifier.padding(bottom = 4.dp),
                     expanded = expanded,
-                    onExpandedChange = { onClick() },
                     contentPadding = PaddingValues(0.dp),
                     text = {
                         Text(
