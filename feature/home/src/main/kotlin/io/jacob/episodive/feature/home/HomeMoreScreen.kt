@@ -124,6 +124,9 @@ internal fun HomeMoreScreen(
         // 탭 루트의 오버사이즈 제목은 여기서 과하다 — 홈 섹션 헤더에서 눌러 들어온 화면이라
         // 그 헤더와 같은 크기로 읽혀야 어디서 왔는지가 이어진다.
         titleStyle = MaterialTheme.typography.titleMedium,
+        // 한 종류의 항목만 길게 이어지는 화면이라, 제목은 어디에 있는지 확인할 때만 있으면
+        // 된다. 내려가는 동안 비켜 주고 되올리면 돌아온다. 뒤로가기는 계속 남는다.
+        hideTitleOnScroll = true,
         navigationIcon = EpisodiveIcons.ArrowBack,
         navigationIconContentDescription = "Back",
         onNavigationClick = onBackClick,

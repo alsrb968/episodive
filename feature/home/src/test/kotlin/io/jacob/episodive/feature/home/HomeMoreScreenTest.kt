@@ -2,12 +2,17 @@ package io.jacob.episodive.feature.home
 
 import android.content.Context
 import android.provider.Settings
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
+import androidx.compose.ui.test.swipeUp
 import androidx.paging.PagingData
 import androidx.test.core.app.ApplicationProvider
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -29,6 +34,9 @@ class HomeMoreScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    /** 영문 기본 리소스(`feature_home_section_followed_podcasts`)가 만들어내는 문자열. */
+    private val followedPodcastsTitle = "Followed podcasts"
 
     @Before
     fun disableSystemAnimations() {
@@ -210,6 +218,52 @@ class HomeMoreScreenTest {
         composeTestRule.onNodeWithText("Live episodes").assertExists()
     }
 
+    @Test
+    fun scrollingDown_hidesTitle_butKeepsBackAction() {
+        setHomeMoreScreen(
+            section = HomeSection.FollowedPodcasts,
+            content = HomeMoreContent.PodcastPaging(flowOf(PagingData.from(scrollablePodcasts()))),
+        )
+
+        composeTestRule.onNodeWithText(followedPodcastsTitle).assertExists()
+
+        composeTestRule.onRoot().performTouchInput { swipeUp() }
+
+        composeTestRule.onNodeWithText(followedPodcastsTitle).assertDoesNotExist()
+        // 나가는 길은 스크롤 위치가 정할 일이 아니다. 제목과 함께 사라지면 사용자는
+        // 목록을 위로 되감아야만 나갈 수 있다.
+        composeTestRule.onNodeWithContentDescription("Back").assertExists()
+    }
+
+    @Test
+    fun scrollingUpSlightly_bringsTitleBack() {
+        setHomeMoreScreen(
+            section = HomeSection.FollowedPodcasts,
+            content = HomeMoreContent.PodcastPaging(flowOf(PagingData.from(scrollablePodcasts()))),
+        )
+
+        composeTestRule.onRoot().performTouchInput { swipeUp() }
+        composeTestRule.onNodeWithText(followedPodcastsTitle).assertDoesNotExist()
+
+        // 맨 위까지 되감지 않는다. 목록 한복판에서 조금 되올린 것만으로 돌아와야 한다 —
+        // 위치가 아니라 방향으로 판단한다는 것이 이 동작의 핵심이다.
+        composeTestRule.onRoot().performTouchInput {
+            swipe(center, center + Offset(0f, ShortScrollBackPx), durationMillis = 200)
+        }
+
+        composeTestRule.onNodeWithText(followedPodcastsTitle).assertExists()
+    }
+
+    /**
+     * 한 화면을 넘겨 스크롤이 가능할 만큼의 목록.
+     *
+     * 팩토리 항목이 열 개뿐이라 3열 그리드에서는 화면을 다 채우지 못한다. id 만 새로 주는
+     * 이유는 LazyGrid 키가 중복되면 그 자리에서 터지기 때문이다.
+     */
+    private fun scrollablePodcasts() = List(60) { index ->
+        podcastTestDataList[index % podcastTestDataList.size].copy(id = index.toLong())
+    }
+
     /** 빈 목록을 "로딩 중"이 아니라 "결과 없음"으로 판정시키려면 끝에 닿았음을 알려야 한다. */
     private fun endOfPaginationLoadStates() = androidx.paging.LoadStates(
         refresh = androidx.paging.LoadState.NotLoading(endOfPaginationReached = true),
@@ -217,3 +271,6 @@ class HomeMoreScreenTest {
         append = androidx.paging.LoadState.NotLoading(endOfPaginationReached = true),
     )
 }
+
+/** 제목을 되돌리는 임계값(8dp)은 넘되, 맨 위까지 되감지는 않을 만큼의 되올림. */
+private const val ShortScrollBackPx = 120f

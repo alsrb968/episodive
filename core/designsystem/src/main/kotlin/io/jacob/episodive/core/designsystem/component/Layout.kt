@@ -3,6 +3,8 @@ package io.jacob.episodive.core.designsystem.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,14 +34,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,6 +66,13 @@ fun EpisodiveScaffold(
      * 커 보이면 안 되는 곳은 더 작은 스타일을 넘긴다.
      */
     titleStyle: TextStyle = MaterialTheme.typography.displaySmall,
+    /**
+     * true 면 아래로 스크롤할 때 제목이 위로 밀려 사라지고, 살짝만 되올려도 다시 내려온다.
+     *
+     * 내비게이션 아이콘은 이 값과 무관하게 그대로 남는다. 돌아갈 길까지 같이 숨기면
+     * 사용자는 나가려고 목록을 위로 되감아야 하고, 그건 스크롤 위치가 정할 일이 아니다.
+     */
+    hideTitleOnScroll: Boolean = false,
     subTitle: @Composable () -> Unit = {},
     navigationIcon: ImageVector? = null,
     navigationIconContentDescription: String? = null,
@@ -68,19 +83,41 @@ fun EpisodiveScaffold(
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
 ) {
+    val density = LocalDensity.current
+    val titleVisible = remember { mutableStateOf(true) }
+    val titleVisibilityConnection = remember(density) {
+        TitleVisibilityConnection(
+            visible = titleVisible,
+            hideThresholdPx = with(density) { TitleHideThreshold.toPx() },
+            showThresholdPx = with(density) { TitleShowThreshold.toPx() },
+        )
+    }
+
     Scaffold(
-        modifier = modifier,
+        // 스크롤 이벤트는 콘텐츠에서 위로 전파되므로, 여기 달아 두면 화면마다 연결을
+        // 따로 배선하지 않아도 된다. 끄면 아예 붙이지 않아 나머지 화면에는 비용이 없다.
+        modifier = if (hideTitleOnScroll) {
+            modifier.nestedScroll(titleVisibilityConnection)
+        } else {
+            modifier
+        },
         topBar = {
             Column {
                 EpisodiveTopAppBar(
                     title = {
-                        Text(
-                            // 탭 루트의 화면 제목은 34/800/-.03em (원본 줄 232, 485).
-                            // headlineMedium(28)은 한 단계 작아서 v2 의 오버사이즈 타이포
-                            // 대비가 죽는다 — 그래서 기본값이 displaySmall 이다.
-                            text = title,
-                            style = titleStyle,
-                        )
+                        AnimatedVisibility(
+                            visible = !hideTitleOnScroll || titleVisible.value,
+                            enter = slideInVertically { -it } + fadeIn(),
+                            exit = slideOutVertically { -it } + fadeOut(),
+                        ) {
+                            Text(
+                                // 탭 루트의 화면 제목은 34/800/-.03em (원본 줄 232, 485).
+                                // headlineMedium(28)은 한 단계 작아서 v2 의 오버사이즈 타이포
+                                // 대비가 죽는다 — 그래서 기본값이 displaySmall 이다.
+                                text = title,
+                                style = titleStyle,
+                            )
+                        }
                     },
                     navigationIcon = navigationIcon,
                     navigationIconContentDescription = navigationIconContentDescription,
@@ -104,6 +141,58 @@ fun EpisodiveScaffold(
         )
     }
 }
+
+/**
+ * 스크롤 **방향**으로 제목 노출을 정하는 연결.
+ *
+ * 절대 위치(예: [FadeTopBarLayout] 의 offset)로 판단하지 않는 이유는, 목록 아래쪽에 한참
+ * 내려가 있는 상태에서도 조금만 되올리면 제목이 돌아와야 하기 때문이다. 위치로 보면
+ * 그때는 계속 숨은 채다.
+ *
+ * 판단은 `available` 이 아니라 `consumed` 로 한다. 목록 맨 위에서 더 당길 때 남는 델타가
+ * `available` 에는 그대로 실려서, 그것까지 방향으로 읽으면 제목이 헛돈다.
+ */
+private class TitleVisibilityConnection(
+    private val visible: MutableState<Boolean>,
+    private val hideThresholdPx: Float,
+    private val showThresholdPx: Float,
+) : NestedScrollConnection {
+    private var accumulated = 0f
+
+    override fun onPostScroll(
+        consumed: Offset,
+        available: Offset,
+        source: NestedScrollSource,
+    ): Offset {
+        val delta = consumed.y
+        if (delta == 0f) return Offset.Zero
+
+        // 방향이 바뀌면 누적을 버린다. 그러지 않으면 한참 내려간 뒤 되올릴 때 그동안 쌓인
+        // 음수에 묻혀, 임계값을 넘기려고 한참을 더 올려야 한다.
+        if ((delta > 0f) != (accumulated > 0f)) accumulated = 0f
+        accumulated += delta
+
+        when {
+            accumulated <= -hideThresholdPx -> {
+                visible.value = false
+                accumulated = 0f
+            }
+
+            accumulated >= showThresholdPx -> {
+                visible.value = true
+                accumulated = 0f
+            }
+        }
+
+        return Offset.Zero
+    }
+}
+
+/** 제목을 숨기는 데 필요한 아래 방향 스크롤. 살짝 건드린 정도로는 사라지지 않게 넉넉히 준다. */
+private val TitleHideThreshold = 48.dp
+
+/** 제목을 되돌리는 데 필요한 위 방향 스크롤. 숨기는 쪽보다 훨씬 짧다 — 되찾기는 쉬워야 한다. */
+private val TitleShowThreshold = 8.dp
 
 @Composable
 fun SectionHeader(
