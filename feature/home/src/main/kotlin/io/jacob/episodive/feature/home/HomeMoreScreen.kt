@@ -22,8 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,6 +54,7 @@ import io.jacob.episodive.feature.home.navigation.HomeSection
 import io.jacob.episodive.core.designsystem.R as designsystemR
 import io.jacob.episodive.core.ui.R as uiR
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.ceil
 
 @Composable
 internal fun HomeMoreRoute(
@@ -193,8 +197,7 @@ private fun HomeMorePodcastGrid(
         pagingRefreshState(
             items = items,
             key = HomeMorePodcastPagingKey,
-            // 한 화면 분량만 그린다. 실제로 올 개수보다 많이 그리면 목록이 채워지는 순간
-            // 그만큼 줄어들며 스크롤이 튄다.
+            // 행 수는 뷰포트에서 도출한다 — 아래를 덮지 못하면 다 불러온 빈 목록으로 읽힌다.
             loading = { HomeMorePodcastGridSkeleton() },
             empty = { HomeMoreMessage(text = stringResource(R.string.feature_home_more_empty)) },
             error = {
@@ -396,7 +399,9 @@ private fun HomeMoreMessage(
 }
 
 @Composable
-private fun HomeMorePodcastGridSkeleton(rows: Int = HomeMoreGridSkeletonRows) {
+private fun HomeMorePodcastGridSkeleton(
+    rows: Int = gridSkeletonRows(HomeMorePodcastGridColumns),
+) {
     val dimension = LocalDimensionTheme.current
 
     SkeletonContainer(modifier = Modifier.fillMaxWidth()) {
@@ -413,7 +418,7 @@ private fun HomeMorePodcastGridSkeleton(rows: Int = HomeMoreGridSkeletonRows) {
 }
 
 @Composable
-private fun HomeMoreEpisodeListSkeleton(count: Int = HomeMoreListSkeletonCount) {
+private fun HomeMoreEpisodeListSkeleton(count: Int = listSkeletonCount()) {
     val dimension = LocalDimensionTheme.current
 
     SkeletonContainer(modifier = Modifier.fillMaxWidth()) {
@@ -429,7 +434,9 @@ private fun HomeMoreEpisodeListSkeleton(count: Int = HomeMoreListSkeletonCount) 
 }
 
 @Composable
-private fun HomeMoreChannelGridSkeleton(rows: Int = HomeMoreGridSkeletonRows) {
+private fun HomeMoreChannelGridSkeleton(
+    rows: Int = gridSkeletonRows(HomeMoreChannelGridColumns),
+) {
     val dimension = LocalDimensionTheme.current
 
     Column(
@@ -462,9 +469,49 @@ private const val HomeMorePodcastGridColumns = 3
  */
 private const val HomeMoreChannelGridColumns = 2
 
-/** 로딩 자리 크기. 한 화면 분량만 그려 전환할 때 스크롤이 덜 튄다. */
-private const val HomeMoreGridSkeletonRows = 3
-private const val HomeMoreListSkeletonCount = 5
+/**
+ * 뷰포트를 덮을 만큼의 그리드 스켈레톤 행 수.
+ *
+ * 상수로 못 박으면 열 수나 화면 크기가 바뀌는 순간 조용히 어긋난다 — 2열 기준으로 잡아 둔
+ * 3행은 3열로 바꾸자 화면 절반만 덮었고, 나머지는 다 불러온 빈 목록처럼 보였다.
+ *
+ * 행 높이를 정사각 아트 폭으로만 어림한다. 그 아래 캡션 높이를 빼고 세므로 결과는 실제로
+ * 필요한 것보다 항상 많다 — 모자라는 쪽으로는 틀리지 않는다. 남는 행은 뷰포트 밖으로
+ * 잘려 보이지 않고, 스켈레톤은 목록 맨 위에서만 뜨므로 잘린 만큼 스크롤이 튀지도 않는다.
+ */
+@Composable
+private fun gridSkeletonRows(columns: Int): Int {
+    val dimension = LocalDimensionTheme.current
+    val cellWidth = (viewportWidth() - dimension.screenPadding * 2 -
+        dimension.gridSpacing * (columns - 1)) / columns
+
+    return skeletonCount(itemHeight = cellWidth + dimension.gridSpacing)
+}
+
+/**
+ * 뷰포트를 덮을 만큼의 리스트 스켈레톤 개수.
+ *
+ * 항목 높이를 썸네일 크기로 어림한다. 옆의 제목 두 줄과 메타 한 줄이 그보다 높으면
+ * 높았지 낮지는 않으므로, 그리드와 같이 넉넉한 쪽으로 틀린다.
+ */
+@Composable
+private fun listSkeletonCount(): Int {
+    val dimension = LocalDimensionTheme.current
+
+    return skeletonCount(itemHeight = dimension.thumbnailSmall + dimension.listItemSpacing)
+}
+
+@Composable
+private fun skeletonCount(itemHeight: Dp): Int =
+    ceil(viewportHeight() / itemHeight).toInt().coerceAtLeast(1)
+
+@Composable
+private fun viewportWidth(): Dp =
+    with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+
+@Composable
+private fun viewportHeight(): Dp =
+    with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() }
 
 /**
  * 페이징 상태 아이템의 네임스페이스.
