@@ -117,6 +117,9 @@ internal fun HomeMoreScreen(
     EpisodiveScaffold(
         modifier = modifier,
         title = section.title(),
+        // 탭 루트의 오버사이즈 제목은 여기서 과하다 — 홈 섹션 헤더에서 눌러 들어온 화면이라
+        // 그 헤더와 같은 크기로 읽혀야 어디서 왔는지가 이어진다.
+        titleStyle = MaterialTheme.typography.titleMedium,
         navigationIcon = EpisodiveIcons.ArrowBack,
         navigationIconContentDescription = "Back",
         onNavigationClick = onBackClick,
@@ -182,7 +185,7 @@ private fun HomeMorePodcastGrid(
             .fillMaxSize()
             .padding(paddingValues)
             .nestedScroll(nestedScrollConnection),
-        columns = GridCells.Fixed(HomeMoreGridColumns),
+        columns = GridCells.Fixed(HomeMorePodcastGridColumns),
         contentPadding = PaddingValues(horizontal = dimension.screenPadding),
         horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
         verticalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
@@ -322,7 +325,7 @@ private fun HomeMoreChannelGrid(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .nestedScroll(nestedScrollConnection),
-            columns = GridCells.Fixed(HomeMoreGridColumns),
+            columns = GridCells.Fixed(HomeMoreChannelGridColumns),
             contentPadding = PaddingValues(horizontal = dimension.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
             verticalArrangement = Arrangement.spacedBy(dimension.gridSpacing),
@@ -400,7 +403,7 @@ private fun HomeMorePodcastGridSkeleton(rows: Int = HomeMoreGridSkeletonRows) {
         Column(verticalArrangement = Arrangement.spacedBy(dimension.gridSpacing)) {
             repeat(rows) {
                 Row(horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing)) {
-                    repeat(HomeMoreGridColumns) {
+                    repeat(HomeMorePodcastGridColumns) {
                         PodcastItemSkeleton(modifier = Modifier.weight(1f))
                     }
                 }
@@ -435,7 +438,7 @@ private fun HomeMoreChannelGridSkeleton(rows: Int = HomeMoreGridSkeletonRows) {
     ) {
         repeat(rows) {
             Row(horizontalArrangement = Arrangement.spacedBy(dimension.gridSpacing)) {
-                repeat(HomeMoreGridColumns) {
+                repeat(HomeMoreChannelGridColumns) {
                     ChannelItemSkeleton(modifier = Modifier.weight(1f))
                 }
             }
@@ -443,7 +446,21 @@ private fun HomeMoreChannelGridSkeleton(rows: Int = HomeMoreGridSkeletonRows) {
     }
 }
 
-private const val HomeMoreGridColumns = 2
+/**
+ * 팟캐스트 그리드 열 수.
+ *
+ * 3열이면 셀이 홈 캐러셀 카드와 비슷한 폭이 되어, 같은 콘텐츠가 화면만 바뀐 것으로 읽힌다.
+ * 한 화면에 담기는 수도 늘어 훑어보기 좋다.
+ */
+private const val HomeMorePodcastGridColumns = 3
+
+/**
+ * 채널 그리드 열 수.
+ *
+ * 팟캐스트보다 적다. 채널 카드는 정사각 아트 아래 설명이 세 줄까지 들어가는 구조라
+ * 폭이 좁아지면 그 설명부터 뭉개진다 — 커버만 보고도 알아보는 팟캐스트와 다르다.
+ */
+private const val HomeMoreChannelGridColumns = 2
 
 /** 로딩 자리 크기. 한 화면 분량만 그려 전환할 때 스크롤이 덜 튄다. */
 private const val HomeMoreGridSkeletonRows = 3

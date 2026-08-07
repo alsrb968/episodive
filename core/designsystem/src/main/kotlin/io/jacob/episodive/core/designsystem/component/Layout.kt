@@ -3,6 +3,7 @@ package io.jacob.episodive.core.designsystem.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,7 +24,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -52,6 +53,11 @@ import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
 fun EpisodiveScaffold(
     modifier: Modifier = Modifier,
     title: String,
+    /**
+     * 기본값은 탭 루트용 오버사이즈 제목이다. 섹션에서 파고든 화면처럼 제목이 콘텐츠보다
+     * 커 보이면 안 되는 곳은 더 작은 스타일을 넘긴다.
+     */
+    titleStyle: TextStyle = MaterialTheme.typography.displaySmall,
     subTitle: @Composable () -> Unit = {},
     navigationIcon: ImageVector? = null,
     navigationIconContentDescription: String? = null,
@@ -69,10 +75,11 @@ fun EpisodiveScaffold(
                 EpisodiveTopAppBar(
                     title = {
                         Text(
+                            // 탭 루트의 화면 제목은 34/800/-.03em (원본 줄 232, 485).
+                            // headlineMedium(28)은 한 단계 작아서 v2 의 오버사이즈 타이포
+                            // 대비가 죽는다 — 그래서 기본값이 displaySmall 이다.
                             text = title,
-                            // 화면 제목은 34/800/-.03em (원본 줄 232, 485). headlineMedium(28)은
-                            // 한 단계 작아서 v2 의 오버사이즈 타이포 대비가 죽는다.
-                            style = MaterialTheme.typography.displaySmall,
+                            style = titleStyle,
                         )
                     },
                     navigationIcon = navigationIcon,
@@ -110,6 +117,7 @@ fun SectionHeader(
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val dimension = LocalDimensionTheme.current
+    val hasAction = actionIcon != null && actionIconContentDescription != null
 
     Column(
         modifier = modifier
@@ -118,6 +126,14 @@ fun SectionHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = SectionHeaderMinHeight)
+                // 제목까지 통째로 누를 수 있게 한다. 화살표만 눌리면 정작 가장 크고 눈에
+                // 먼저 들어오는 제목이 죽은 영역이 되고, 사용자는 그걸 몇 번 눌러 본 뒤에야
+                // 옆의 작은 아이콘을 찾는다. clickable 을 padding 보다 앞에 둬서 좌우 여백과
+                // 리플이 화면 끝까지 닿는다.
+                .then(
+                    if (hasAction) Modifier.clickable(onClick = onActionClick) else Modifier
+                )
                 .padding(horizontal = dimension.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -130,19 +146,14 @@ fun SectionHeader(
             )
 
             if (actionIcon != null && actionIconContentDescription != null) {
-                IconButton(
-                    // 크기를 명시해 스켈레톤이 예약하는 자리와 정확히 같게 만든다. 기본값에
-                    // 맡기면 터치 타겟 보정으로 정해지는 값을 스켈레톤 쪽에서 베껴 적어야
-                    // 하고, 그 순간 둘이 어긋나기 시작한다.
-                    modifier = Modifier.size(SectionHeaderActionSize),
-                    onClick = onActionClick
-                ) {
-                    Icon(
-                        imageVector = actionIcon,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        contentDescription = actionIconContentDescription
-                    )
-                }
+                // IconButton 이 아니라 Icon 이다. 행 전체가 이미 클릭 대상이라 버튼을 겹쳐
+                // 두면 클릭 지점이 둘로 갈리고 스크린리더에도 같은 동작이 두 번 읽힌다.
+                Icon(
+                    modifier = Modifier.size(SectionHeaderActionIconSize),
+                    imageVector = actionIcon,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = actionIconContentDescription
+                )
             }
         }
 
@@ -162,9 +173,9 @@ fun SectionHeader(
  * 좌우 여백과 제목-콘텐츠 간격을 실제 헤더와 같은 상수에서 가져온다. 값을 베껴 두면 헤더를
  * 손볼 때 스켈레톤만 남아 전환할 때마다 몇 px 씩 튄다.
  *
- * @param hasAction 실제 헤더에 더 보기 같은 액션이 붙는 자리면 true. 액션 버튼은 제목 한
- *   줄보다 높아서 헤더 Row 전체를 키우므로, 그 높이를 미리 잡아 두지 않으면 데이터가
- *   채워지는 순간 아래 콘텐츠가 통째로 밀린다.
+ * @param hasAction 실제 헤더에 더 보기 같은 액션이 붙는 자리면 true. 액션이 붙은 헤더는
+ *   최소 높이가 커지므로, 그 높이를 미리 잡아 두지 않으면 데이터가 채워지는 순간 아래
+ *   콘텐츠가 통째로 밀린다.
  */
 @Composable
 fun SectionHeaderSkeleton(
@@ -182,6 +193,9 @@ fun SectionHeaderSkeleton(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(
+                    if (hasAction) Modifier.heightIn(min = SectionHeaderMinHeight) else Modifier
+                )
                 .padding(horizontal = dimension.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -192,9 +206,9 @@ fun SectionHeaderSkeleton(
             )
 
             if (hasAction) {
-                // 자리만 비워 둔다. 더 보기 버튼은 데이터와 무관한 정적 크롬이라, 여기서
-                // 함께 반짝이면 버튼도 로딩 중인 것처럼 읽힌다.
-                Spacer(modifier = Modifier.size(SectionHeaderActionSize))
+                // 자리만 비워 둔다. 더 보기 화살표는 데이터와 무관한 정적 크롬이라, 여기서
+                // 함께 반짝이면 그것도 로딩 중인 것처럼 읽힌다.
+                Spacer(modifier = Modifier.size(SectionHeaderActionIconSize))
             }
         }
 
@@ -205,8 +219,14 @@ fun SectionHeaderSkeleton(
 private val SectionHeaderContentSpacing = 14.dp
 private const val SectionHeaderSkeletonTitleWidth = 0.4f
 
-/** [SectionHeader] 의 우측 액션 버튼 크기. 스켈레톤이 예약하는 자리도 이 값을 쓴다. */
-private val SectionHeaderActionSize = 48.dp
+/**
+ * 액션이 붙은 [SectionHeader] 의 최소 높이. 제목 한 줄만으로는 터치 타깃이 얕아서,
+ * 행 전체가 클릭 대상인 만큼 손가락이 닿을 높이를 확보한다. 스켈레톤도 같은 값을 쓴다.
+ */
+private val SectionHeaderMinHeight = 48.dp
+
+/** [SectionHeader] 우측 화살표 크기. 스켈레톤이 예약하는 자리도 이 값을 쓴다. */
+private val SectionHeaderActionIconSize = 24.dp
 
 @Composable
 fun SubSectionHeader(
