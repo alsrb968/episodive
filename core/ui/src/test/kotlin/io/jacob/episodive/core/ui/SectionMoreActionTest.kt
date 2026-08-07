@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.testing.model.channelTestDataList
@@ -142,6 +143,29 @@ class SectionMoreActionTest {
 
         composeTestRule
             .onNodeWithContentDescription(seeAll(channelSectionTitle))
+            .assertIsDisplayed()
+            .performClick()
+
+        assertTrue(clicked)
+    }
+
+    @Test
+    fun `Given onMore, When section title clicked, Then callback is invoked`() {
+        // 화살표뿐 아니라 제목도 눌려야 한다. 클릭 영역을 아이콘으로 되돌리면 화면에서 가장
+        // 크고 먼저 눈에 들어오는 제목이 죽은 영역이 되고, 위의 아이콘 클릭 테스트는 그때도
+        // 그대로 통과한다 — 그 회귀를 잡는 것이 이 테스트의 유일한 목적이다.
+        var clicked = false
+
+        setThemedContent {
+            PodcastsSection(
+                title = podcastSectionTitle,
+                podcasts = podcastTestDataList.take(2),
+                onMore = { clicked = true },
+            )
+        }
+
+        composeTestRule
+            .onNodeWithText(podcastSectionTitle)
             .assertIsDisplayed()
             .performClick()
 
