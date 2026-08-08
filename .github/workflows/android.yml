@@ -56,9 +56,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build and test
+        # lint 를 함께 돈다. 예전엔 koverXmlReportDebug 만 돌아서 lint 오류(media3 opt-in 누락)가
+        # 아무에게도 걸리지 않은 채 오래 남아 있었다. 로컬에서만 도는 검사는 결국 안 돌게 된다.
         run: >-
           ./gradlew
           koverXmlReportDebug
+          lint
           --no-daemon --build-cache --parallel
           -Dorg.gradle.jvmargs="-Dfile.encoding=UTF-8 -XX:+UseG1GC -XX:SoftRefLRUPolicyMSPerMB=1 -XX:ReservedCodeCacheSize=256m -Xmx2g -Xms512m"
           -Pkotlin.daemon.jvmargs="-Dfile.encoding=UTF-8 -XX:+UseG1GC -XX:ReservedCodeCacheSize=320m -Xmx2g -Xms512m"

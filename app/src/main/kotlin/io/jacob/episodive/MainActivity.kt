@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.annotation.OptIn
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -83,6 +84,10 @@ class MainActivity : ComponentActivity() {
         handleWidgetAutoplay(intent)
     }
 
+    // MediaNotificationService 가 @UnstableApi 라 클래스를 참조하는 것만으로 opt-in 이 필요하다.
+    // onCreate 처럼 @UnstableApi 를 붙이면 요구가 호출자로 번져 onNewIntent 까지 옮겨 붙는다 —
+    // 여기서 소비하고 끝낸다.
+    @OptIn(UnstableApi::class)
     private fun handleWidgetAutoplay(intent: Intent) {
         if (!intent.getBooleanExtra(EXTRA_WIDGET_AUTOPLAY, false)) return
 

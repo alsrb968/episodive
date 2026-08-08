@@ -145,16 +145,14 @@ class SoundbiteDaoTest {
     }
 
     @Test
-    fun `Given soundbites, When paged twice, Then pages partition the set in a fixed order`() =
+    fun `Given soundbites, When paged twice, Then pages partition the set in remote order`() =
         runTest {
-            // LIMIT/OFFSET 페이징은 정렬이 정해져야만 성립한다. 여기서 고정하는 것은
-            // "episodeId 오름차순"이다.
+            // LIMIT/OFFSET 페이징은 정렬이 정해져야만 성립하고, 여기서 고정하는 것은
+            // sortOrder — 즉 원격이 준 순위다.
             //
-            // 다만 이 테스트로 잡히는 것과 아닌 것을 구분해 둔다. 정렬 컬럼을 바꾸면
-            // (cachedAt, title 등) 잡힌다. 반면 ORDER BY 를 통째로 지워도 통과한다 —
-            // episodeId 가 INTEGER PRIMARY KEY, 즉 rowid 별칭이라 전체 스캔이 마침 같은
-            // 순서를 내주기 때문이다(실측). DAO 쪽 정렬 명시는 그 우연에 기대지 않으려는
-            // 것이고, 그 부분은 테스트로 증명할 수 없다.
+            // 이 테스트가 ORDER BY 삭제까지 잡는 것은 테스트 데이터의 episodeId 가 저장 순서와
+            // 반대로 늘어서 있기 때문이다. episodeId 는 INTEGER PRIMARY KEY, 즉 rowid 별칭이라
+            // 정렬을 지운 전체 스캔은 episodeId 오름차순을 내주고, 그건 아래 기대값의 역순이다.
             // Given
             dao.upsertSoundbites(soundbiteEntities)
             val pageSize = 4
@@ -164,6 +162,24 @@ class SoundbiteDaoTest {
             val second = dao.getSoundbitesPagingList(offset = pageSize, limit = pageSize)
             val third = dao.getSoundbitesPagingList(offset = pageSize * 2, limit = pageSize)
             val paged = first + second + third
+
+            // Then
+            assertEquals(
+                soundbiteEntities.map { it.episodeId },
+                paged.map { it.episodeId },
+            )
+        }
+
+    @Test
+    fun `Given rows sharing a sortOrder, When paged, Then episodeId breaks the tie`() =
+        runTest {
+            // 마이그레이션으로 넘어온 옛 행은 sortOrder 가 전부 0 이다. 그 상태에서도 페이지가
+            // 겹치거나 빠지지 않으려면 동점 처리가 필요하다.
+            // Given
+            dao.upsertSoundbites(soundbiteEntities.map { it.copy(sortOrder = 0) })
+
+            // When
+            val paged = dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size)
 
             // Then
             assertEquals(

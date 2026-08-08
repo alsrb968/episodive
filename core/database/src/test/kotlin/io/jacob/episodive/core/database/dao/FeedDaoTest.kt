@@ -33,6 +33,7 @@ class FeedDaoTest {
         id: Long,
         groupKey: String = "trending",
         title: String = "Feed $id",
+        sortOrder: Int = 0,
         cachedAt: Instant = Instant.fromEpochSeconds(1000L),
     ) = FeedEntity(
         id = id,
@@ -45,6 +46,7 @@ class FeedDaoTest {
         language = "en",
         categories = listOf(Category.TECHNOLOGY),
         groupKey = groupKey,
+        sortOrder = sortOrder,
         cachedAt = cachedAt,
     )
 
@@ -160,5 +162,42 @@ class FeedDaoTest {
         runTest {
             val oldest = dao.getFeedsOldestCachedAt("non_existent")
             assertNull(oldest)
+        }
+
+    @Test
+    fun `Given the same feed in two groups, When one group is replaced, Then the other keeps it`() =
+        runTest {
+            // 복합키(id, groupKey)가 존재하는 이유 그 자체다. id 단독 PK 였을 때는 나중에 쓴
+            // 그룹이 앞선 그룹의 행을 덮어써서, 트렌딩 목록을 채우면 추천 목록에 구멍이 났다.
+            // Given
+            dao.upsertFeeds(listOf(createFeed(1L, groupKey = "recommended")))
+
+            // When
+            dao.replaceFeedsByGroupKey(
+                listOf(createFeed(1L, groupKey = "trending"), createFeed(2L, groupKey = "trending")),
+                "trending",
+            )
+
+            // Then
+            assertEquals(listOf(1L), dao.getFeeds("recommended", limit = 10).map { it.id })
+            assertEquals(listOf(1L, 2L), dao.getFeeds("trending", limit = 10).map { it.id })
+        }
+
+    @Test
+    fun `Given feeds out of id order, When paged, Then pages follow sortOrder`() =
+        runTest {
+            // 원격 순위를 그대로 보여주기 위한 정렬이다. sortOrder 를 id 의 역순으로 두어,
+            // ORDER BY 가 빠지거나 기준이 id 로 바뀌면 기대값과 어긋나게 만든다.
+            // Given
+            dao.upsertFeeds((1L..5L).map { createFeed(it, sortOrder = (5 - it).toInt()) })
+            val pageSize = 2
+
+            // When
+            val paged = (0..2).flatMap { page ->
+                dao.getFeedsPagingList("trending", offset = page * pageSize, limit = pageSize)
+            }
+
+            // Then
+            assertEquals(listOf(5L, 4L, 3L, 2L, 1L), paged.map { it.id })
         }
 }

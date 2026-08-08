@@ -2,7 +2,8 @@
 
 Episodive의 기능 구현 상태를 추적합니다.
 
-**마지막 검증**: `359c7e8` (2026-08-08) — 섹션 더보기 병합 후 후속 결함 넷을 정리했습니다.
+**마지막 검증**: `be51a21` (2026-08-08) — 알려진 한계에 남아 있던 셋(더보기 첫 진입 지연,
+사운드바이트 정렬, lint 실패)을 해소했습니다.
 
 | 표기 | 의미 |
 |:--:|:----|
@@ -43,6 +44,10 @@ Episodive의 기능 구현 상태를 추적합니다.
 - ✅ 스크롤 fling 종료 시 움찔거림 제거 (#79)
 - ✅ 섹션별 '더보기' — 8개 섹션 전부. `HomeMoreRoute(section)` 전용 화면에서 팟캐스트 2열
   그리드 / 에피소드 리스트 / 채널 2열 그리드로 분기
+    - ✅ 첫 진입 지연 해소 — 팟캐스트 섹션은 피드 목록만 먼저 받고 보이는 페이지만 상세를
+      채운다(`FeedWindowPodcastPagingSource`). 목록 전체를 미리 채우던 시절의 1+50 요청이
+      요청 왕복 2회로 줄었다. `feeds` PK 를 `(id, groupKey)` 복합키로 바꾼 v12 마이그레이션이
+      전제였다 — 단독 PK 에서는 목록끼리 서로의 행을 덮어썼다
 
 ### 1.3 검색
 
@@ -160,7 +165,8 @@ Episodive의 기능 구현 상태를 추적합니다.
 
 - ✅ `DataError` 도메인 에러 타입 + 네트워크 예외 매핑
 - ✅ 에러 화면 + 재시도 — 채널·홈·라이브러리·온보딩·팟캐스트·검색 6개 화면
-- ✅ 캐시 유지 정책 — 갱신 실패 시 캐시가 있으면 유지, 없을 때만 에러 전파 (`RemoteUpdater`)
+- ✅ 캐시 유지 정책 — 갱신 실패 시 캐시가 있으면 유지, 없을 때만 에러 전파
+  (`RemoteUpdater`, `FeedWindowPodcastPagingSource`)
 - ✅ 네트워크 타임아웃 명시 설정
 
 ### 3.2 로딩 & 상태 표현
@@ -173,6 +179,10 @@ Episodive의 기능 구현 상태를 추적합니다.
 - ✅ 유닛 테스트 — 122개 파일 / `@Test` 1,083개
 - ✅ Kover 커버리지 (#84) — CI 하한 80% (전환 후 overall 86.8%로 재baseline)
 - ✅ GitHub Actions — `android.yml`, `publish.yml`
+- ✅ CI 가 lint 를 함께 실행 — 예전에는 `koverXmlReportDebug` 만 돌아, media3 opt-in 누락 같은
+  lint 오류가 로컬에서만 보이고 아무도 걸리지 않은 채 남았다
+- ✅ DB 마이그레이션 테스트 — `Migration11to12Test`. 내보낸 스키마로 이전 버전 DB 를 만들고
+  Room 이 여는 순간의 검증에 판정을 맡긴다. 8→11 은 아직 테스트가 없다
 - ⬜ 테스트 공백 — `:core:designsystem`, `:core:testing` 테스트 0개
 
 ### 3.4 접근성
@@ -233,10 +243,9 @@ Episodive의 기능 구현 상태를 추적합니다.
 | 캐시 정책 | `RemoteUpdater`의 stale-while-error가 Podcast·Episode에만 적용 (Channel·RecentSearch·User·Player는 대상 밖) |
 | 트랜스크립트 | VTT 전용, 전문 뷰어 없음 |
 | 검색 결과 '더보기' | 착지할 전체 목록 화면이 없어 섹션 헤더에 버튼을 달지 않음 (`SearchScreen.kt:403`) |
-| 홈 '더보기' 첫 진입 | 팟캐스트 섹션은 전체 목록용 캐시를 처음 채울 때 피드마다 상세 요청이 붙어 지연이 있음 (`PodcastRemoteUpdater.kt:55-66`). 근본 해결은 `feeds` PK 를 `(id, groupKey)` 복합키로 바꾸는 마이그레이션이라 별건으로 둔다 |
-| 사운드바이트 정렬 | `soundbites` 는 원격이 준 순위를 보존할 컬럼이 없어 `episodeId` 오름차순으로 페이징한다. 순위를 살리려면 순서 컬럼 추가(스키마 변경)가 필요 |
-| lint | `MainActivity.kt:91` 의 media3 `UnstableApi` opt-in 누락으로 `./gradlew lint` 가 실패한다. CI 는 `koverXmlReportDebug` 만 돌아 잡히지 않음 |
-| 유닛 테스트 병렬 실행 | JDK 21 에서 `./gradlew test` 로 전 모듈을 한꺼번에 돌리면 ByteBuddy self-attach 경합으로 MockK 초기화가 깨진다. 모듈별 실행과 `--max-workers=1` 은 정상 |
+| 빈 결과 캐싱 | `feeds` 의 만료 판정이 `MIN(cachedAt)` 이라, 원격이 0건을 주면 표식이 남지 않아 화면에 들어올 때마다 목록 API 를 다시 친다. 결과 없는 카테고리·언어 조합에서만 발생하고 화면은 정상적으로 빈 상태를 보인다 |
+| `feeds` 회수 | `podcast_group` 과 달리 `feeds` 에는 그룹 수 상한도 TTL 청소도 없다. 삭제는 같은 groupKey 를 다시 채울 때만 일어나므로, 사용자가 언어·카테고리를 바꾸면 죽은 그룹(그룹당 ≤50행)이 남는다 |
+| 유닛 테스트 병렬 실행 | JDK 21 에서 `./gradlew test` 로 전 모듈을 한꺼번에 돌리면 ByteBuddy self-attach 경합으로 MockK 초기화가 깨진다(`NoClassDefFoundError: JvmMockKGateway`). 모듈별 실행은 정상. `--max-workers=1` 도 완전한 회피는 아니다 |
 
 ### 미감사 영역
 

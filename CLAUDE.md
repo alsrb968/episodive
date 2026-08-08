@@ -158,17 +158,27 @@ Room TypeConverter도 `value`로 저장:
 
 **이유**: API는 소문자(`"podcast"`)를 반환하지만 enum name은 대문자(`PODCAST`)입니다. `valueOf()`를 쓰면 예외가 발생합니다.
 
-### 2. 데이터베이스 스키마 (Room v8)
+### 2. 데이터베이스 스키마 (Room v12)
 
-**Entity (12개):** PodcastEntity, EpisodeEntity, FeedEntity, SoundbiteEntity, FollowedPodcastEntity, LikedEpisodeEntity, PlayedEpisodeEntity, PodcastGroupEntity, EpisodeGroupEntity, PodcastFtsEntity, EpisodeFtsEntity, RecentSearchEntity
+**Entity (13개):** PodcastEntity, EpisodeEntity, FeedEntity, SoundbiteEntity, FollowedPodcastEntity, LikedEpisodeEntity, PlayedEpisodeEntity, SavedEpisodeEntity, PodcastGroupEntity, EpisodeGroupEntity, PodcastFtsEntity, EpisodeFtsEntity, RecentSearchEntity
 
 **View (2개):** PodcastWithExtrasView, EpisodeWithExtrasView
 
 **DAO (5개):** PodcastDao, EpisodeDao, FeedDao, SoundbiteDao, RecentSearchDao
 
-**Auto-migration:** 버전 1→8, 필요한 경우 spec 클래스 포함
+**마이그레이션:** 1→8은 auto-migration(필요 시 spec 클래스), 8→12는 `migration/` 의 수동
+`Migration` 객체이며 `DatabaseModule` 에서 `addMigrations` 로 등록합니다.
+
+**캐시 표의 정렬:** `feeds`·`soundbites` 는 원격이 준 순위를 `sortOrder` 에 담고 모든 쿼리가
+그 컬럼으로 정렬합니다. `LIMIT`/`OFFSET` 페이징은 정렬이 정해져야만 성립하므로 새 쿼리를 더할
+때도 `ORDER BY` 를 빠뜨리지 않습니다. `feeds` 의 기본키는 `(id, groupKey)` 복합키로, 같은 피드가
+여러 목록에 동시에 속할 수 있습니다.
 
 모든 Entity에는 캐시 무효화를 위한 `cachedAt: Instant`와 그룹 키가 있습니다.
+
+**스키마를 바꾼 뒤에는** `./gradlew :core:database:kspDebugKotlin` 으로 `schemas/…/<버전>.json` 을
+내보내고, 그 `createSql` 을 그대로 옮겨 마이그레이션을 씁니다. `Migration11to12Test` 가 그 방식의
+본보기입니다 — 내보낸 스키마로 이전 버전 DB를 만들고 Room 이 여는 순간의 검증에 판정을 맡깁니다.
 
 ### 3. API 인증 (Podcast Index)
 

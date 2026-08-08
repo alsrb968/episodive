@@ -12,6 +12,7 @@ import io.jacob.episodive.core.database.mapper.toPodcastWithExtrasViews
 import io.jacob.episodive.core.domain.repository.PodcastRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Channel
+import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
 import io.jacob.episodive.core.network.model.PodcastResponse
@@ -449,10 +450,13 @@ class PodcastRepositoryTest {
         }
 
     @Test
-    fun `Given trending condition, When getTrendingPodcastsPaging is called, Then uses full scope query`() =
+    fun `Given trending condition, When getTrendingPodcastsPaging is called, Then windows feeds under the full scope key`() =
         runTest {
-            // 미리보기(PREVIEW)와 같은 그룹을 쓰면 먼저 캐시를 채운 쪽의 개수에 갇힌다.
-            // 여기서 쿼리를 통째로 비교하므로 스코프가 빠지면 create() 매칭이 실패한다.
+            // 두 가지를 한꺼번에 못 박는다.
+            // 하나, 그룹 키는 FULL 스코프여야 한다 — 미리보기와 같은 그룹을 쓰면 먼저 캐시를
+            // 채운 쪽의 개수에 갇힌다.
+            // 둘, 이 경로는 피드 목록만 받고 상세는 페이지 단위로 채운다. 업데이터로 되돌리면
+            // 첫 화면이 목록 전체(1+50건)를 기다리게 되고, 아래 호출 순서가 어긋난다.
             // Given
             val query = PodcastQuery.Trending(
                 max = 50,
@@ -460,27 +464,37 @@ class PodcastRepositoryTest {
                 categories = emptyList(),
                 scope = QueryScope.FULL,
             )
-
-            val updater = mockk<PodcastRemoteUpdater>(relaxed = true)
+            coEvery { feedLocalDataSource.getFeedsOldestCachedAt(query.key) } returns null
             coEvery {
-                updater.getPagingData(any())
-            } returns flowOf(PagingData.from(podcastDtos))
-            coEvery { remoteUpdater.create(query) } returns updater
+                feedRemoteDataSource.getTrendingFeeds(any(), any(), any(), any(), any())
+            } returns emptyList()
+            coEvery {
+                feedLocalDataSource.getFeedsPagingList(query.key, any(), any())
+            } returns emptyList()
 
             // When
             val result = repository.getTrendingPodcastsPaging(max = 50, language = "ko").asSnapshot()
 
             // Then
-            assertEquals(podcastTestDataList, result)
+            assertEquals(emptyList<Podcast>(), result)
 
             coVerifySequence {
-                remoteUpdater.create(query)
-                updater.getPagingData(any())
+                feedLocalDataSource.getFeedsOldestCachedAt(query.key)
+                feedRemoteDataSource.getTrendingFeeds(
+                    max = 50,
+                    since = null,
+                    language = "ko",
+                    includeCategories = "",
+                    excludeCategories = null,
+                )
+                feedLocalDataSource.replaceFeedsByGroupKey(emptyList(), query.key)
+                localDataSource.replacePodcasts(emptyList(), query.key)
+                feedLocalDataSource.getFeedsPagingList(query.key, 0, 10)
             }
         }
 
     @Test
-    fun `Given recent condition, When getRecentPodcastsPaging is called, Then uses full scope query`() =
+    fun `Given recent condition, When getRecentPodcastsPaging is called, Then windows feeds under the full scope key`() =
         runTest {
             // Given
             val query = PodcastQuery.Recent(
@@ -489,22 +503,32 @@ class PodcastRepositoryTest {
                 categories = emptyList(),
                 scope = QueryScope.FULL,
             )
-
-            val updater = mockk<PodcastRemoteUpdater>(relaxed = true)
+            coEvery { feedLocalDataSource.getFeedsOldestCachedAt(query.key) } returns null
             coEvery {
-                updater.getPagingData(any())
-            } returns flowOf(PagingData.from(podcastDtos))
-            coEvery { remoteUpdater.create(query) } returns updater
+                feedRemoteDataSource.getRecentFeeds(any(), any(), any(), any(), any())
+            } returns emptyList()
+            coEvery {
+                feedLocalDataSource.getFeedsPagingList(query.key, any(), any())
+            } returns emptyList()
 
             // When
             val result = repository.getRecentPodcastsPaging(max = 50, language = "ko").asSnapshot()
 
             // Then
-            assertEquals(podcastTestDataList, result)
+            assertEquals(emptyList<Podcast>(), result)
 
             coVerifySequence {
-                remoteUpdater.create(query)
-                updater.getPagingData(any())
+                feedLocalDataSource.getFeedsOldestCachedAt(query.key)
+                feedRemoteDataSource.getRecentFeeds(
+                    max = 50,
+                    since = null,
+                    language = "ko",
+                    includeCategories = "",
+                    excludeCategories = null,
+                )
+                feedLocalDataSource.replaceFeedsByGroupKey(emptyList(), query.key)
+                localDataSource.replacePodcasts(emptyList(), query.key)
+                feedLocalDataSource.getFeedsPagingList(query.key, 0, 10)
             }
         }
 

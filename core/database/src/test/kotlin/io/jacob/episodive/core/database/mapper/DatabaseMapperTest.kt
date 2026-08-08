@@ -128,7 +128,7 @@ class DatabaseMapperTest {
     @Test
     fun `toSoundbiteEntity converts Soundbite to SoundbiteEntity correctly`() {
         // When
-        val soundbiteEntity = soundbiteTestData.toSoundbiteEntity(cachedAt)
+        val soundbiteEntity = soundbiteTestData.toSoundbiteEntity(cachedAt = cachedAt)
 
         // Then
         assertEquals(soundbiteTestData.enclosureUrl, soundbiteEntity.enclosureUrl)
@@ -149,12 +149,14 @@ class DatabaseMapperTest {
         soundbiteEntities.forEach { entity ->
             assertEquals(cachedAt, entity.cachedAt)
         }
+        // 원격이 준 순서가 sortOrder 로 남아야 한다. 이 표에는 순위를 복원할 다른 단서가 없다.
+        assertEquals(soundbiteTestDataList.indices.toList(), soundbiteEntities.map { it.sortOrder })
     }
 
     @Test
     fun `toSoundbite converts SoundbiteEntity to Soundbite correctly`() {
         // Given
-        val soundbiteEntity = soundbiteTestData.toSoundbiteEntity(cachedAt)
+        val soundbiteEntity = soundbiteTestData.toSoundbiteEntity(cachedAt = cachedAt)
 
         // When
         val soundbite = soundbiteEntity.toSoundbite()
@@ -187,7 +189,7 @@ class DatabaseMapperTest {
         val feed = trendingFeedTestDataList.first().toFeedFromTrending()
 
         // When
-        val entity = feed.toFeedEntity("trending:en", cachedAt)
+        val entity = feed.toFeedEntity("trending:en", cachedAt = cachedAt)
 
         // Then
         assertEquals(feed.id, entity.id)
@@ -211,5 +213,7 @@ class DatabaseMapperTest {
             assertEquals("trending:en", entity.groupKey)
             assertEquals(cachedAt, entity.cachedAt)
         }
+        // 목록 위치가 그대로 sortOrder 가 된다 — 페이징이 이 값으로만 순서를 정한다.
+        assertEquals(listOf(0, 1, 2), entities.map { it.sortOrder })
     }
 }

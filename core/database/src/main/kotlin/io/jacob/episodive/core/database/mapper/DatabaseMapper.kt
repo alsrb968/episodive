@@ -211,6 +211,7 @@ fun List<Episode>.toEpisodeEntities(): List<EpisodeEntity> =
 
 fun Feed.toFeedEntity(
     groupKey: String,
+    sortOrder: Int = 0,
     cachedAt: Instant = Clock.System.now(),
 ): FeedEntity =
     FeedEntity(
@@ -224,21 +225,25 @@ fun Feed.toFeedEntity(
         language = language,
         categories = categories,
         groupKey = groupKey,
+        sortOrder = sortOrder,
         cachedAt = cachedAt,
     )
 
+/** 목록의 위치를 그대로 [FeedEntity.sortOrder] 에 박는다 — 여기가 원격 순위를 붙잡는 유일한 지점이다. */
 fun List<Feed>.toFeedEntities(
     groupKey: String,
     cachedAt: Instant = Clock.System.now(),
 ): List<FeedEntity> =
-    map {
-        it.toFeedEntity(
+    mapIndexed { index, feed ->
+        feed.toFeedEntity(
             groupKey = groupKey,
+            sortOrder = index,
             cachedAt = cachedAt,
         )
     }
 
 fun Soundbite.toSoundbiteEntity(
+    sortOrder: Int = 0,
     cachedAt: Instant = Clock.System.now(),
 ): SoundbiteEntity =
     SoundbiteEntity(
@@ -251,14 +256,17 @@ fun Soundbite.toSoundbiteEntity(
         feedTitle = feedTitle,
         feedUrl = feedUrl,
         feedId = feedId,
+        sortOrder = sortOrder,
         cachedAt = cachedAt,
     )
 
+/** [toFeedEntities] 와 같은 이유로 위치를 [SoundbiteEntity.sortOrder] 에 박는다. */
 fun List<Soundbite>.toSoundbiteEntities(
     cachedAt: Instant = Clock.System.now(),
 ): List<SoundbiteEntity> =
-    map {
-        it.toSoundbiteEntity(
+    mapIndexed { index, soundbite ->
+        soundbite.toSoundbiteEntity(
+            sortOrder = index,
             cachedAt = cachedAt,
         )
     }
