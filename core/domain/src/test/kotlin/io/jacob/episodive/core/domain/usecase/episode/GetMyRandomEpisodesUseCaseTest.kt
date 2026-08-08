@@ -41,7 +41,7 @@ class GetMyRandomEpisodesUseCaseTest {
                 userRepository.getUserData()
             } returns flowOf(UserData(true, "ko", listOf(Category.CAREERS)))
             coEvery {
-                episodeRepository.getRandomEpisodes(any(), any(), any(), any())
+                episodeRepository.getRandomEpisodes(any(), any(), any())
             } returns mockk(relaxed = true)
 
             // When
@@ -52,7 +52,7 @@ class GetMyRandomEpisodesUseCaseTest {
             // Then
             coVerifySequence {
                 userRepository.getUserData()
-                episodeRepository.getRandomEpisodes(any(), any(), any(), any())
+                episodeRepository.getRandomEpisodes(any(), any(), any())
             }
         }
 }

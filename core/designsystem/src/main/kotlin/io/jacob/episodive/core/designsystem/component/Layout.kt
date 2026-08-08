@@ -303,9 +303,15 @@ private fun CollapsingHeaderBand(
     onNavigationClick: () -> Unit,
     onActionClick: () -> Unit,
 ) {
-    // 배경이 물러난 만큼 스크림이 짙어진다. 둘을 따로 켜고 끄면 전환 도중 아이콘이
-    // 아무 바탕 없이 앨범아트 위에 놓이는 구간이 생긴다.
-    val iconScrim = scrimColor.copy(alpha = CollapsingIconScrimAlpha * (1f - progress.value))
+    // 터치를 막을지는 `titleVisible` 이 아니라 **실제로 칠해진 알파**로 정한다. 불리언은
+    // 즉시 뒤집히는데 배경은 CollapsingHeaderDurationMs 동안 페이드하므로, 불리언에 걸면
+    // 두 방향 모두 최대 그 시간만큼 어긋난다 — 사라지는 동안엔 아직 보이는 띠가 터치를
+    // 흘려보내고, 나타나는 동안엔 아직 비어 있는 띠가 터치를 삼킨다.
+    //
+    // 여기서만 progress 를 조합 단계에서 읽는다. derivedStateOf 로 감싸 두면 알파가 아니라
+    // **참/거짓이 뒤집힐 때만** 무효화되므로, 전환 220ms 동안 재구성은 두 번뿐이다.
+    // 그냥 `progress.value > 0f` 라고 쓰면 매 프레임 이 띠 전체가 다시 조합된다.
+    val blocksTouches by remember(progress) { derivedStateOf { progress.value > 0f } }
 
     Box(
         modifier = Modifier
@@ -317,7 +323,7 @@ private fun CollapsingHeaderBand(
             // 조건 없이 pointerInput 을 달아, 배경이 물러난 뒤에도 이 띠가 통째로 터치를
             // 삼킨다 — 그 자리까지 올라온 항목이 눈에는 멀쩡히 보이는데 눌리지도 끌리지도
             // 않는 죽은 띠가 된다.
-            .then(if (titleVisible) Modifier.pointerInput(Unit) {} else Modifier)
+            .then(if (blocksTouches) Modifier.pointerInput(Unit) {} else Modifier)
             .drawBehind { drawRect(backgroundColor.copy(alpha = progress.value)) },
     ) {
         if (navigationIcon != null && navigationIconContentDescription != null) {
@@ -325,7 +331,8 @@ private fun CollapsingHeaderBand(
                 modifier = Modifier.align(Alignment.CenterStart),
                 icon = navigationIcon,
                 contentDescription = navigationIconContentDescription,
-                scrim = iconScrim,
+                scrimColor = scrimColor,
+                progress = progress,
                 onClick = onNavigationClick,
             )
         }
@@ -356,20 +363,28 @@ private fun CollapsingHeaderBand(
                 modifier = Modifier.align(Alignment.CenterEnd),
                 icon = actionIcon,
                 contentDescription = actionIconContentDescription,
-                scrim = iconScrim,
+                scrimColor = scrimColor,
+                progress = progress,
                 onClick = onActionClick,
             )
         }
     }
 }
 
-/** 겹친 헤더의 아이콘. 배경이 물러났을 때 목록 위에서도 읽히도록 원형 스크림을 깐다. */
+/**
+ * 겹친 헤더의 아이콘. 배경이 물러났을 때 목록 위에서도 읽히도록 원형 스크림을 깐다.
+ *
+ * 스크림 짙기는 [progress] 를 **draw 단계에서** 읽어 정한다. 조합 단계에서 계산해 Color 로
+ * 넘기면 알파가 바뀔 때마다 이 아이콘은 물론 아이콘을 품은 띠 전체가 다시 조합된다 —
+ * 전환 220ms 내내 매 프레임이다. 여기서 필요한 것은 다시 그리기뿐이다.
+ */
 @Composable
 private fun CollapsingHeaderIcon(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     contentDescription: String,
-    scrim: Color,
+    scrimColor: Color,
+    progress: State<Float>,
     onClick: () -> Unit,
 ) {
     IconButton(
@@ -377,7 +392,15 @@ private fun CollapsingHeaderIcon(
             .padding(horizontal = CollapsingBarPadding)
             .size(CollapsingIconButtonSize)
             .clip(CircleShape)
-            .background(scrim),
+            // 배경이 물러난 만큼 스크림이 짙어진다. 둘을 따로 켜고 끄면 전환 도중 아이콘이
+            // 아무 바탕 없이 앨범아트 위에 놓이는 구간이 생긴다.
+            .drawBehind {
+                drawCircle(
+                    color = scrimColor.copy(
+                        alpha = CollapsingIconScrimAlpha * (1f - progress.value),
+                    ),
+                )
+            },
         onClick = onClick,
     ) {
         Icon(

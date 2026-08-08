@@ -61,7 +61,6 @@ interface EpisodeRepository {
         max: Int,
         language: String? = null,
         includeCategories: List<Category> = emptyList(),
-        excludeCategories: List<Category> = emptyList(),
     ): Flow<List<Episode>>
 
     /** 랜덤 에피소드의 전체 목록판. 캐시 분리는 [getLiveEpisodesPaging] 과 같다. */
@@ -69,13 +68,9 @@ interface EpisodeRepository {
         max: Int,
         language: String? = null,
         includeCategories: List<Category> = emptyList(),
-        excludeCategories: List<Category> = emptyList(),
     ): Flow<PagingData<Episode>>
 
-    fun getRecentEpisodes(
-        max: Int,
-        excludeString: String? = null,
-    ): Flow<List<Episode>>
+    fun getRecentEpisodes(max: Int): Flow<List<Episode>>
 
     fun getSoundbiteEpisodesPaging(max: Int): Flow<PagingData<Episode>>
 
