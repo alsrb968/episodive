@@ -400,10 +400,11 @@ private fun SearchResultsOnExpand(
         ) {
             if (searchResult.podcasts.isNotEmpty()) {
                 item {
+                    // onMore 를 주지 않는다 — 검색 결과 전체 목록 화면이 아직 없어서 눌러도
+                    // 갈 곳이 없다. 빈 람다를 넘기면 아무 일도 하지 않는 버튼이 뜬다.
                     PodcastsSection(
                         title = stringResource(R.string.feature_search_section_podcasts),
                         podcasts = searchResult.podcasts,
-                        onMore = {},
                         onPodcastClick = onPodcastClick,
                     )
                 }

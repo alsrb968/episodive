@@ -1,5 +1,6 @@
 package io.jacob.episodive.feature.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,11 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +48,7 @@ import androidx.paging.compose.itemKey
 import io.jacob.episodive.core.designsystem.component.EpisodiveChipDefaults
 import io.jacob.episodive.core.designsystem.component.EpisodiveFilterChip
 import io.jacob.episodive.core.designsystem.component.EpisodiveScaffold
+import io.jacob.episodive.core.designsystem.component.EpisodiveSearchBar
 import io.jacob.episodive.core.designsystem.component.SectionHeader
 import io.jacob.episodive.core.designsystem.component.SectionHeaderSkeleton
 import io.jacob.episodive.core.designsystem.component.SkeletonBox
@@ -205,7 +202,8 @@ private fun LibrarySkeleton(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(LibrarySectionSpacing),
             ) {
                 Column {
-                    SectionHeaderSkeleton()
+                    // 실제 섹션에는 더 보기가 붙는다. 여기서 자리를 안 잡으면 전환 때 아래가 밀린다.
+                    SectionHeaderSkeleton(hasAction = true)
 
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -220,7 +218,8 @@ private fun LibrarySkeleton(modifier: Modifier = Modifier) {
                 }
 
                 Column {
-                    SectionHeaderSkeleton()
+                    // 실제 섹션에는 더 보기가 붙는다. 여기서 자리를 안 잡으면 전환 때 아래가 밀린다.
+                    SectionHeaderSkeleton(hasAction = true)
 
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -275,6 +274,16 @@ internal fun LibraryScreen(
     var showFind by remember { mutableStateOf(false) }
     val scrollState = rememberLazyListState()
 
+    // 더 보기로 들어온 탭은 화면이 아니라 필터라, 놔두면 뒤로가기가 보관함을 통째로
+    // 벗어난다. 사용자가 방금 좁힌 것은 목록이므로 되돌릴 것도 목록이다 — '모든' 으로
+    // 돌아온 뒤에야 뒤로가기가 화면을 떠난다.
+    BackHandler(enabled = showFind || section != LibrarySection.All) {
+        // 검색창이 먼저다. 상단 액션이 검색창을 열 때 섹션을 All 로 되돌리므로, 이 조건이
+        // 없으면 검색창이 떠 있는 동안 BackHandler 가 아예 꺼져 뒤로가기가 보관함 탭을
+        // 통째로 벗어난다 — 사용자는 검색창만 닫히길 기대한다.
+        if (showFind) showFind = false else onSectionChange(LibrarySection.All)
+    }
+
     EpisodiveScaffold(
         modifier = modifier,
         title = stringResource(R.string.feature_library_title),
@@ -282,7 +291,6 @@ internal fun LibraryScreen(
             FindOrFilter(
                 scrollState = scrollState,
                 showFind = showFind,
-                onShowFindChanged = { showFind = it },
                 query = query,
                 onQueryChange = onQueryChange,
                 onFind = onFind,
@@ -312,7 +320,8 @@ internal fun LibraryScreen(
                 preferredCategories = preferredCategories,
                 onPlayedEpisodeClick = onPlayedEpisodeClick,
                 onEpisodeClick = onEpisodeClick,
-                onPodcastClick = onPodcastClick
+                onPodcastClick = onPodcastClick,
+                onSectionMore = onSectionChange,
             )
 
             LibrarySection.RecentlyListened -> RecentlyListenedContent(
@@ -379,6 +388,8 @@ private fun AllSectionContent(
     onPlayedEpisodeClick: (Episode) -> Unit,
     onEpisodeClick: (Episode) -> Unit,
     onPodcastClick: (Podcast) -> Unit,
+    /** 섹션 헤더의 더 보기. 새 화면으로 가지 않고 상단 필터를 그 탭으로 옮긴다. */
+    onSectionMore: (LibrarySection) -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -400,6 +411,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_recently_listened_episodes),
                         playedEpisodes = playedEpisodes,
                         onPlayedEpisodeClick = onPlayedEpisodeClick,
+                        onMore = { onSectionMore(LibrarySection.RecentlyListened) },
                     )
                 }
 
@@ -408,6 +420,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_liked_episodes),
                         episodes = likedEpisodes,
                         onEpisodeClick = onEpisodeClick,
+                        onMore = { onSectionMore(LibrarySection.Liked) },
                     )
                 }
 
@@ -416,6 +429,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_saved_episodes),
                         episodes = savedEpisodes,
                         onEpisodeClick = onEpisodeClick,
+                        onMore = { onSectionMore(LibrarySection.Saved) },
                     )
                 }
 
@@ -424,6 +438,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_followed_podcasts),
                         podcasts = followedPodcasts,
                         onPodcastClick = onPodcastClick,
+                        onMore = { onSectionMore(LibrarySection.Followed) },
                     )
                 }
 
@@ -432,6 +447,7 @@ private fun AllSectionContent(
                         title = stringResource(R.string.feature_library_section_preferred_categories),
                         categories = preferredCategories,
                         onCategoryClick = {},
+                        onMore = { onSectionMore(LibrarySection.Preferred) },
                     )
                 }
 
@@ -930,44 +946,28 @@ private fun FindBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onFind: (String) -> Unit,
-    onDismiss: () -> Unit,
 ) {
-    val dimension = LocalDimensionTheme.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // 목록을 스크롤하면 키보드를 내린다. EpisodiveSearchBar 안에도 같은 처리가 있지만
+    // 그쪽은 펼침 결과 목록용이라, 이 화면의 콘텐츠 스크롤은 여기서 따로 봐야 한다.
     LaunchedEffect(scrollState.isScrollInProgress) {
         if (scrollState.isScrollInProgress) {
             keyboardController?.hide()
         }
     }
 
-    SearchBar(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = dimension.screenPadding)
-            .padding(bottom = 16.dp),
-        windowInsets = WindowInsets(0, 0, 0, 0),
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = query,
-                onQueryChange = onQueryChange,
-                onSearch = {
-                    onFind(query)
-                    keyboardController?.hide()
-                },
-                expanded = false,
-                onExpandedChange = { if (!it) onDismiss() },
-                placeholder = { Text(stringResource(R.string.feature_library_find_your_library)) },
-                leadingIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(EpisodiveIcons.Search, null)
-                    }
-                }
-            )
-        },
-        expanded = false,
-        onExpandedChange = { if (!it) onDismiss() },
-        content = {}
+    EpisodiveSearchBar(
+        // 좌우·아래 여백은 컴포넌트가 스스로 잡는다. 여기서 또 주면 검색 탭보다
+        // 안쪽으로 밀려 같은 모양이 되지 않는다.
+        modifier = modifier,
+        query = query,
+        onQueryChange = onQueryChange,
+        onSearch = onFind,
+        // 펼침은 검색 탭의 몫이다. 보관함의 이것은 상단 액션으로 여닫는 필터라,
+        // 스스로 전체 화면으로 커지면 아래 목록이 사라진다.
+        isExpandable = false,
+        placeholder = { Text(stringResource(R.string.feature_library_find_your_library)) },
     )
 }
 
@@ -1017,7 +1017,6 @@ private fun FindOrFilter(
     modifier: Modifier = Modifier,
     scrollState: LazyListState,
     showFind: Boolean,
-    onShowFindChanged: (Boolean) -> Unit,
     query: String,
     onQueryChange: (String) -> Unit,
     onFind: (String) -> Unit,
@@ -1038,7 +1037,6 @@ private fun FindOrFilter(
                 query = query,
                 onQueryChange = onQueryChange,
                 onFind = onFind,
-                onDismiss = { onShowFindChanged(false) },
             )
         } else {
             SectionFilter(
@@ -1055,12 +1053,18 @@ private fun PlayedEpisodeRowSection(
     title: String,
     playedEpisodes: List<Episode>,
     onPlayedEpisodeClick: (Episode) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(uiR.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
@@ -1096,12 +1100,18 @@ private fun EpisodeRowSection(
     title: String,
     episodes: List<Episode>,
     onEpisodeClick: (Episode) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(uiR.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(
@@ -1136,12 +1146,18 @@ private fun CategorySection(
     title: String,
     categories: List<Category>,
     onCategoryClick: (Category) -> Unit,
+    onMore: (() -> Unit)? = null,
 ) {
     val dimension = LocalDimensionTheme.current
 
     SectionHeader(
         modifier = modifier,
         title = title,
+        actionIcon = EpisodiveIcons.CaretRight.takeIf { onMore != null },
+        actionIconContentDescription = onMore?.let {
+            stringResource(uiR.string.core_ui_section_more_format, title)
+        },
+        onActionClick = onMore ?: {},
     ) {
         val lazyListState = rememberLazyListState()
         val flingBehavior = rememberSnapFlingBehavior(

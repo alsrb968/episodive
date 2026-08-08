@@ -1,5 +1,6 @@
 package io.jacob.episodive.feature.search
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -444,5 +445,23 @@ class SearchScreenTest {
         )
 
         composeTestRule.onNodeWithContentDescription("Recent Search Icon").assertExists()
+    }
+
+    @Test
+    fun expandedState_searchResults_noMoreActionIsShown() {
+        // 더 보기는 홈 전용이다. 검색 결과에서 누르면 갈 곳이 없으므로 버튼이 뜨면 안 된다.
+        // 섹션 컴포넌트의 onMore 기본값을 빈 람다로 되돌리면 여기서 걸린다.
+        setSearchScreen(
+            query = "compose",
+            searchResult = SearchResult(
+                podcasts = podcastTestDataList,
+                episodes = episodeTestDataList,
+            ),
+            isExpanded = true,
+        )
+
+        composeTestRule
+            .onAllNodesWithContentDescription("See all", substring = true)
+            .assertCountEquals(0)
     }
 }

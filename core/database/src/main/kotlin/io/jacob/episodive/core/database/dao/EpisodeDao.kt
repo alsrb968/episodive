@@ -104,7 +104,7 @@ interface EpisodeDao {
         """
         SELECT * FROM episode_with_extras
         WHERE $FTS_SEARCH_CONDITION
-        ORDER BY datePublished DESC
+        ORDER BY datePublished DESC, id DESC
         LIMIT :limit
     """
     )
@@ -114,7 +114,7 @@ interface EpisodeDao {
         """
         SELECT * FROM episode_with_extras
         WHERE $FTS_SEARCH_CONDITION
-        ORDER BY datePublished DESC
+        ORDER BY datePublished DESC, id DESC
     """
     )
     fun getEpisodesPaging(query: String? = null): PagingSource<Int, EpisodeWithExtrasView>
@@ -123,7 +123,7 @@ interface EpisodeDao {
         """
         SELECT * FROM episode_with_extras
         WHERE id IN (SELECT id FROM episode_group WHERE groupKey = :groupKey)
-        ORDER BY datePublished DESC
+        ORDER BY datePublished DESC, id DESC
         LIMIT :limit
     """
     )
@@ -133,7 +133,7 @@ interface EpisodeDao {
         """
         SELECT * FROM episode_with_extras
         WHERE id IN (SELECT id FROM episode_group WHERE groupKey = :groupKey)
-        ORDER BY datePublished DESC
+        ORDER BY datePublished DESC, id DESC
     """
     )
     fun getEpisodesByGroupKeyPaging(groupKey: String): PagingSource<Int, EpisodeWithExtrasView>
@@ -249,7 +249,7 @@ interface EpisodeDao {
         SELECT * FROM episode_with_extras
         WHERE likedAt IS NOT NULL
         AND $FTS_SEARCH_CONDITION
-        ORDER BY likedAt DESC
+        ORDER BY likedAt DESC, id DESC
         LIMIT :limit
     """
     )
@@ -260,7 +260,7 @@ interface EpisodeDao {
         SELECT * FROM episode_with_extras
         WHERE likedAt IS NOT NULL
         AND $FTS_SEARCH_CONDITION
-        ORDER BY likedAt DESC
+        ORDER BY likedAt DESC, id DESC
     """
     )
     fun getLikedEpisodesPaging(query: String? = null): PagingSource<Int, EpisodeWithExtrasView>
@@ -286,7 +286,7 @@ interface EpisodeDao {
         WHERE playedAt IS NOT NULL
         AND (:isCompleted IS NULL OR isCompleted = :isCompleted)
         AND $FTS_SEARCH_CONDITION
-        ORDER BY playedAt DESC
+        ORDER BY playedAt DESC, id DESC
         LIMIT :limit
     """
     )
@@ -302,7 +302,7 @@ interface EpisodeDao {
         WHERE playedAt IS NOT NULL
         AND (:isCompleted IS NULL OR isCompleted = :isCompleted)
         AND $FTS_SEARCH_CONDITION
-        ORDER BY playedAt DESC
+        ORDER BY playedAt DESC, id DESC
     """
     )
     fun getPlayedEpisodesPaging(
@@ -349,7 +349,7 @@ interface EpisodeDao {
         SELECT * FROM episode_with_extras
         WHERE savedAt IS NOT NULL
         AND $FTS_SEARCH_CONDITION
-        ORDER BY savedAt DESC
+        ORDER BY savedAt DESC, id DESC
         LIMIT :limit
     """
     )
@@ -360,7 +360,7 @@ interface EpisodeDao {
         SELECT * FROM episode_with_extras
         WHERE savedAt IS NOT NULL
         AND $FTS_SEARCH_CONDITION
-        ORDER BY savedAt DESC
+        ORDER BY savedAt DESC, id DESC
     """
     )
     fun getSavedEpisodesPaging(query: String? = null): PagingSource<Int, EpisodeWithExtrasView>

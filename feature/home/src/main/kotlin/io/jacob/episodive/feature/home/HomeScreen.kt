@@ -88,6 +88,7 @@ import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
 import io.jacob.episodive.core.ui.PodcastsSection
 import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
 import io.jacob.episodive.core.ui.asUiMessage
+import io.jacob.episodive.feature.home.navigation.HomeSection
 
 
 @Composable
@@ -96,6 +97,7 @@ internal fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
     onPodcastClick: (Long) -> Unit,
     onChannelClick: (Long) -> Unit,
+    onMoreClick: (HomeSection) -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -108,6 +110,7 @@ internal fun HomeRoute(
             when (effect) {
                 is HomeEffect.NavigateToPodcast -> onPodcastClick(effect.podcastId)
                 is HomeEffect.NavigateToChannel -> onChannelClick(effect.channelId)
+                is HomeEffect.NavigateToMore -> onMoreClick(effect.section)
                 is HomeEffect.ShowUnsaveSnackbar -> {
                     val undone = onShowSnackbar(unsavedMessage, undoLabel)
                     if (undone) viewModel.sendAction(HomeAction.ToggleSavedEpisode(effect.episode))
@@ -137,6 +140,7 @@ internal fun HomeRoute(
             onToggleSavedEpisode = { viewModel.sendAction(HomeAction.ToggleSavedEpisode(it)) },
             onPodcastClick = { viewModel.sendAction(HomeAction.ClickPodcast(it)) },
             onChannelClick = { viewModel.sendAction(HomeAction.ClickChannel(it)) },
+            onMoreClick = { viewModel.sendAction(HomeAction.ClickMore(it)) },
         )
 
         is HomeState.Error -> ErrorScreen(
@@ -168,6 +172,8 @@ internal fun HomeScreen(
     onToggleSavedEpisode: (Episode) -> Unit = {},
     onPodcastClick: (Long) -> Unit,
     onChannelClick: (Long) -> Unit,
+    // 섹션별로 콜백을 여덟 개 두지 않고 하나로 받는다 — 어느 섹션인지는 인자가 말해준다.
+    onMoreClick: (HomeSection) -> Unit,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenHeight = this.maxHeight
@@ -262,6 +268,7 @@ internal fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_my_recent_feeds),
                                 podcasts = userRecentPodcasts,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
+                                onMore = { onMoreClick(HomeSection.MyRecentPodcasts) },
                                 onPodcastClick = { feed ->
                                     onPodcastClick(feed.id)
                                 }
@@ -275,6 +282,7 @@ internal fun HomeScreen(
                                 onEpisodeClick = onPlayEpisode,
                                 onToggleLikedEpisode = onToggleLikedEpisode,
                                 onToggleSavedEpisode = onToggleSavedEpisode,
+                                onMore = { onMoreClick(HomeSection.RandomEpisodes) },
                             )
                         }
 
@@ -283,6 +291,7 @@ internal fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_my_trending_feeds),
                                 podcasts = userTrendingPodcasts,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
+                                onMore = { onMoreClick(HomeSection.MyTrendingPodcasts) },
                                 onPodcastClick = { feed ->
                                     onPodcastClick(feed.id)
                                 }
@@ -293,9 +302,7 @@ internal fun HomeScreen(
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_followed_podcasts),
                                 podcasts = followedPodcasts,
-                                onMore = {
-
-                                },
+                                onMore = { onMoreClick(HomeSection.FollowedPodcasts) },
                                 onPodcastClick = { podcast ->
                                     onPodcastClick(podcast.id)
                                 }
@@ -307,6 +314,7 @@ internal fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_trending_in_local),
                                 podcasts = localTrendingPodcasts,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
+                                onMore = { onMoreClick(HomeSection.LocalTrendingPodcasts) },
                                 onPodcastClick = { feed ->
                                     onPodcastClick(feed.id)
                                 }
@@ -318,6 +326,7 @@ internal fun HomeScreen(
                                 title = stringResource(R.string.feature_home_section_trending_in_foreign),
                                 podcasts = foreignTrendingPodcasts,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
+                                onMore = { onMoreClick(HomeSection.ForeignTrendingPodcasts) },
                                 onPodcastClick = { feed ->
                                     onPodcastClick(feed.id)
                                 }
@@ -331,6 +340,7 @@ internal fun HomeScreen(
                                 onEpisodeClick = onPlayEpisode,
                                 onToggleLikedEpisode = onToggleLikedEpisode,
                                 onToggleSavedEpisode = onToggleSavedEpisode,
+                                onMore = { onMoreClick(HomeSection.LiveEpisodes) },
                             )
                         }
 
@@ -338,7 +348,8 @@ internal fun HomeScreen(
                             ChannelSection(
                                 title = stringResource(R.string.feature_home_section_channels),
                                 channels = channels,
-                                onChannelClick = onChannelClick
+                                onChannelClick = onChannelClick,
+                                onMore = { onMoreClick(HomeSection.Channels) },
                             )
                         }
 
@@ -615,11 +626,13 @@ private fun HomeSkeleton(modifier: Modifier = Modifier) {
                     // 캐러셀 1개 + 세로 리스트 1개. 어떤 섹션인지 특정하지 않는 중립적 모양으로
                     // 그린다 — 첫 섹션이 "나의 최근 피드"(신규 사용자는 빈 값)일 수도, "랜덤
                     // 에피소드"일 수도 있다.
-                    PodcastsSectionSkeleton(count = 3)
+                    // 실제 섹션에는 전부 더 보기 액션이 붙으므로 그 자리를 미리 잡는다.
+                    // 없으면 데이터가 채워질 때 헤더가 커지며 아래가 통째로 밀린다.
+                    PodcastsSectionSkeleton(count = 3, hasAction = true)
 
                     HorizontalDivider(modifier = Modifier.padding(16.dp))
 
-                    EpisodesSectionSkeleton(count = 3)
+                    EpisodesSectionSkeleton(count = 3, hasAction = true)
                 }
             }
         }
@@ -712,6 +725,7 @@ private fun HomeScreenPreview() {
             onToggleLikedEpisode = {},
             onPodcastClick = {},
             onChannelClick = {},
+            onMoreClick = {},
         )
     }
 }

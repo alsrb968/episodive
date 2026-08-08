@@ -6,6 +6,12 @@
     <string name="core_ui_left">남음</string>
     <string name="core_ui_follow">팔로우하기</string>
     <string name="core_ui_unfollow">팔로잉</string>
+    <string name="core_ui_snackbar_followed">팟캐스트를 구독했습니다</string>
+    <string name="core_ui_snackbar_unfollowed">구독을 해제했습니다</string>
+    <string name="core_ui_snackbar_unsaved">저장을 취소했습니다</string>
+    <string name="core_ui_snackbar_undo">실행 취소</string>
+
+    <string name="core_ui_section_more_format">%1$s 더 보기</string>
 
     <string name="core_ui_error_offline">네트워크에 연결되어 있지 않은 것 같아요.\n연결을 확인하고 다시 시도해 주세요.</string>
     <string name="core_ui_error_timeout">응답이 너무 늦어지고 있어요.\n잠시 후 다시 시도해 주세요.</string>

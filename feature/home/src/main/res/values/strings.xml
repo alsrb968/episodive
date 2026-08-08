@@ -10,4 +10,7 @@
     <string name="feature_home_section_live_episodes">Live episodes</string>
     <string name="feature_home_section_channels">Channels worth listening to</string>
     <string name="feature_home_episodes">episodes</string>
+
+    <string name="feature_home_more_empty">Nothing here yet.</string>
+    <string name="feature_home_more_error">Couldn\'t load the list.\nPlease try again in a moment.</string>
 </resources>

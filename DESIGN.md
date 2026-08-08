@@ -245,6 +245,9 @@ M3 3종 래퍼, 각각 `content` 슬롯 버전 + `text`/`leadingIcon` 편의 버
 - 접힘↔펼침 전환: 좌우 패딩 `animateDpAsState` 16dp → 0dp(펼치면 전체폭)
 - leading: 축소 `Search` / 확장 `ArrowBack`, trailing: query 있을 때 `Close`
 - 스크롤 시작 시 키보드 자동 숨김
+- **검색·보관함이 공유한다.** 보관함은 `isExpandable = false` 로 접힘 상태만 쓴다 — 여닫는
+  것은 상단 액션 아이콘이고, 스스로 전체 화면으로 커지면 아래 목록이 사라진다.
+  좌우·아래 여백은 컴포넌트가 스스로 잡으므로 호출부에서 다시 주지 않는다
 
 ### 4.6 플레이어 컨트롤 컴포넌트
 
@@ -268,6 +271,7 @@ M3 3종 래퍼, 각각 `content` 슬롯 버전 + `text`/`leadingIcon` 편의 버
 | `EpisodiveSwipeDismissSnackbarHost` | `Snackbar.kt` | 세로 드래그로 dismiss(임계 80px) |
 | `EpisodiveDragHandle` | `DragHandle.kt` | 40×4dp, `onSurfaceVariant`, `small`(8dp) 라운드, 상하 16dp 패딩 — 바텀시트 핸들 |
 | `EpisodiveViewToggleButton` | `ViewToggle.kt` | 텍스트 `titleLarge` + 원형 38dp(`surfaceContainerHigh`) 배경 확장/축소 아이콘 |
+| `EpisodiveViewToggleHeader` | `ViewToggle.kt` | 위와 같은 모습이되 **클릭을 받지 않는** 표시용. 카드나 행 전체가 이미 클릭 대상인 자리에 쓴다 |
 
 ### 4.8 이미지 / 로딩 / 애니메이션
 
@@ -302,7 +306,7 @@ Now in Android 방식 커스텀 스크롤바.
 | 컴포넌트 | 파일 | 사양 |
 |:----|:----|:----|
 | `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외 |
-| `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션, 하단 14dp Spacer. 로딩 자리는 `SectionHeaderSkeleton` |
+| `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션(48dp), 하단 14dp Spacer. 액션이 붙으면 헤더 높이가 그만큼 커지므로 로딩 자리는 `SectionHeaderSkeleton(hasAction = true)` 로 같은 자리를 예약 |
 | `SubSectionHeader` | `Layout.kt` | 제목 `titleSmall`/`onSurfaceVariant` |
 | `FadeTopBarLayout` | `Layout.kt` | 스크롤 연동 페이드 탑바 (§3.4) |
 | `EpisodiveTopAppBar` / `EpisodiveCenterTopAppBar` | `TopAppBar.kt` | 좌측/중앙 정렬 상단바, 아이콘 tint `onSurface` |
@@ -352,6 +356,33 @@ Now in Android 방식 커스텀 스크롤바.
 - **`ChannelItem`** (`Channel.kt`): width 250dp, 정사각 이미지 + 하단 80dp 색 밴드(**Bottom 추출색 `alpha 0.5`**) 위 설명 3줄 중앙정렬
 - **`CategoryItem`** (`Category.kt`): `Surface` 칩, 셰이프 `medium`(12dp), `surfaceVariant`, 라벨 `bodyMedium`
 - **`ChapterItem`** (`Chapter.kt`): 플레이어 챕터 행 — 인디케이터(선택 시 `primary`) + 제목 `bodyMedium` + 시작시각 `primary`, 하단 `HorizontalDivider`(선택 시 primary)
+
+`PodcastItem`·`ChannelItem` 은 기본 폭(각 118dp·250dp)을 `modifier` 보다 **앞**에 두어, 그리드처럼
+폭을 바깥에서 정하는 호출부가 `fillMaxWidth` 로 덮어쓸 수 있다.
+
+### 5.4 섹션 컨테이너
+
+`SectionHeader`(§4.10) + 항목 나열을 묶은 래퍼. 홈·검색·보관함이 공유한다.
+
+| 컴포넌트 | 파일 | 항목 배치 |
+|:----|:----|:----|
+| `PodcastsSection` | `Podcast.kt` | 가로 `LazyRow`(스냅, `carouselSpacing`) |
+| `EpisodesSection` | `Episode.kt` | 세로 `Column`(`listItemSpacing`) |
+| `ChannelSection` | `Channel.kt` | 가로 `LazyRow`(스냅, `gridSpacing`) |
+
+**`onMore` 계약**: `(() -> Unit)?` 이며 **null 이면 더보기 아이콘을 그리지 않는다.** 어포던스
+유무를 콜백 유무로만 결정해서, 갈 곳이 없는 화면(검색 결과)에 눌러도 아무 일이 없는
+버튼이 생기지 않게 한다. 아이콘은 `EpisodiveIcons.CaretRight`, contentDescription 은
+`core_ui_section_more_format`("See all %1$s")로 섹션 제목을 담는다 — 한 화면에 더보기가
+여럿이라 제목이 없으면 스크린리더에서 구분되지 않는다.
+
+**클릭 영역은 헤더 행 전체**다(§4.10). 화살표만 눌리면 화면에서 가장 크고 먼저 눈에 들어오는
+제목이 죽은 영역이 되고, 사용자는 그걸 몇 번 눌러 본 뒤에야 옆의 작은 아이콘을 찾는다.
+
+목적지는 화면마다 다르다. 홈은 전용 화면(`HomeMoreRoute`)으로 나가지만, **보관함은 상단
+필터 칩을 그 탭으로 옮길 뿐 화면을 이동하지 않는다** — 각 섹션의 전체 목록이 이미 그 탭이다.
+
+각 섹션의 로딩 자리(`*SectionSkeleton`)는 `hasAction` 을 그대로 넘겨 헤더 높이를 맞춘다.
 
 ---
 
@@ -410,7 +441,7 @@ Now in Android 방식 커스텀 스크롤바.
    - **컨트롤 패널**:
      - 1행: Replay15(48dp/아이콘32dp) · SkipPrevious(48/40) · **재생·정지 토글(68dp 원형/아이콘36dp, `onBackground` 배경)** · SkipNext · Forward30
      - 2행: 배속 텍스트버튼(`"1.0x"` titleLarge) · 슬립타이머(32dp, 임박 시 `primary`로 lerp) · 저장/다운로드 토글(진행 시 진행률 링) · 재생목록(32dp)
-2. **에피소드 정보 카드**: `Card`(`extraLarge`, animateContentSize), `EpisodiveViewToggleButton` 펼침/접힘, HTML 설명(접힘 3줄)
+2. **에피소드 정보 카드**: `Card`(`extraLarge`, animateContentSize), HTML 설명(접힘 3줄). 헤더는 `EpisodiveViewToggleHeader` — **클릭은 카드가 전담한다.** 제목·아이콘에 버튼을 겹치면 클릭 지점이 둘로 갈려 리플이 제목 언저리에만 번지고 스크린리더도 같은 동작을 두 번 읽는다
 3. **챕터 카드**(있을 때): 접힘 시 현재 챕터 주변 최대 5개, 초과 시 더보기
 4. **팟캐스트 정보 카드**: HTML 설명 + `PodcastSimpleItem`
 5. 하단 Spacer 50dp
@@ -429,18 +460,34 @@ Now in Android 방식 커스텀 스크롤바.
 - 고정 영역: 재생중이던 에피소드가 있으면 `PlayingEpisodesSection`("계속 듣기")
 - 바텀시트 본문(`LazyColumn`, 드래그 핸들 = `EpisodiveDragHandle`) 섹션 순서:
 
-| # | 섹션 | 컴포넌트 |
-|:--|:----|:----|
-| 1 | 내가 최근 들은 | `PodcastsSection` (가로) |
-| 2 | 랜덤 에피소드 | `EpisodesSection` (세로) |
-| 3 | 내 트렌딩 피드 | `PodcastsSection` |
-| 4 | 구독 팟캐스트 | `PodcastsSection` (더보기 有) |
-| 5 | 국내 인기 | `PodcastsSection` |
-| 6 | 해외 인기 | `PodcastsSection` |
-| 7 | 라이브 에피소드 | `EpisodesSection` |
-| 8 | 채널 | `ChannelSection` |
+| # | 섹션 | 컴포넌트 | 더보기 목적지 |
+|:--|:----|:----|:----|
+| 1 | 내가 최근 들은 | `PodcastsSection` (가로) | 팟캐스트 그리드 |
+| 2 | 랜덤 에피소드 | `EpisodesSection` (세로) | 에피소드 리스트 |
+| 3 | 내 트렌딩 피드 | `PodcastsSection` | 팟캐스트 그리드 |
+| 4 | 구독 팟캐스트 | `PodcastsSection` | 팟캐스트 그리드 |
+| 5 | 국내 인기 | `PodcastsSection` | 팟캐스트 그리드 |
+| 6 | 해외 인기 | `PodcastsSection` | 팟캐스트 그리드 |
+| 7 | 라이브 에피소드 | `EpisodesSection` | 에피소드 리스트 |
+| 8 | 채널 | `ChannelSection` | 채널 그리드 (비페이징) |
 
 1~6번 뒤에만 `HorizontalDivider`(16dp 인셋). 끝에 70dp Spacer.
+
+3번과 5번은 조회 조건이 다르다 — 3번은 사용자 언어 + 관심 카테고리, 5번은 언어만(카테고리 없음).
+
+#### 홈 더보기 (`HomeMoreRoute`)
+
+섹션 헤더 우측 `CaretRight` 를 누르면 그 섹션의 전체 목록으로 이동한다. 화면은 하나이고
+`HomeSection` 인자로 세 레이아웃을 분기한다.
+
+- 상단바는 `FadeTopBarLayout` 이 아니라 `EpisodiveScaffold` — 히어로 없이 첫 줄부터 목록이라
+  "무엇의 목록인지"가 처음부터 보여야 한다. 제목은 홈 섹션 제목을 그대로 쓴다.
+- 팟캐스트·채널은 2열 그리드(`gridSpacing`), 에피소드는 세로 리스트(`listItemSpacing`).
+  좌우 `screenPadding`, 하단은 `playerBarSpace` 만큼 비워 미니플레이어가 마지막 항목을 가리지 않는다.
+- 팟캐스트·에피소드는 Paging, 채널은 비페이징(`ChannelRepository` 에 PagingSource 가 없다).
+- 오류 시 재시도 버튼을 둔다 — 첫 페이지가 50~100건이라 실패 비용이 크다.
+- 홈 미리보기와는 별도 캐시 그룹을 쓴다(`QueryScope.FULL`). 한 그룹을 공유하면 먼저 캐시를
+  채운 쪽의 개수에 갇힌다.
 
 ### 7.3 온보딩 (`feature:onboarding`)
 
@@ -459,11 +506,15 @@ Now in Android 방식 커스텀 스크롤바.
 
 ### 7.5 라이브러리 (`feature:library`)
 
-`EpisodiveScaffold`(타이틀 "보관함" / en "Library"), subTitle에 **필터 칩 줄 ↔ 검색바** `AnimatedContent` 전환(`FindOrFilter`).
+`EpisodiveScaffold`(타이틀 "보관함" / en "Library"), subTitle에 **필터 칩 줄 ↔ 검색바** `AnimatedContent` 전환(`FindOrFilter`). 검색바는 §4.5 `EpisodiveSearchBar` 를 그대로 쓴다 — 검색 탭과 같은 모양이다.
 - **탭 = 필터 칩**(가로): All / RecentlyListened / Liked / Saved / Followed / Preferred
 - **All**: 요약 섹션들을 가로 캐러셀로(최근청취 250dp / 좋아요·저장 `EpisodeDetailItem` / 구독 / 선호 카테고리)
 - **개별 탭**: **Paging + 날짜 구분자**(`SeparatedUiModel` — surface 배경 날짜 헤더 `titleMedium`), 아이템 `animateItem()`
 - **Preferred**: `FlowRow` 카테고리 칩 전체
+- **섹션 더보기**: All 의 섹션 헤더(제목 포함 전체가 클릭 영역)를 누르면 상단 필터가 그 탭으로
+  옮겨간다. 홈과 달리 **새 화면으로 나가지 않는다** — 전체 목록이 이미 그 탭이다
+- **뒤로가기**: All 이 아닌 탭에서는 `BackHandler` 가 가로채 All 로 되돌린다. 더보기로 들어간
+  탭은 화면이 아니라 필터라, 놔두면 방금 좁힌 목록이 아니라 보관함 자체를 벗어난다
 
 ### 7.6 팟캐스트 상세 (`feature:podcast`)
 

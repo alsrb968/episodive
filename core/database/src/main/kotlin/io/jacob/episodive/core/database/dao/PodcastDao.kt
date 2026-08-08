@@ -89,7 +89,7 @@ interface PodcastDao {
         """
         SELECT * FROM podcast_with_extras
         WHERE $FTS_SEARCH_CONDITION
-        ORDER BY lastUpdateTime DESC
+        ORDER BY lastUpdateTime DESC, id DESC
         LIMIT :limit
     """
     )
@@ -99,7 +99,7 @@ interface PodcastDao {
         """
         SELECT * FROM podcast_with_extras
         WHERE $FTS_SEARCH_CONDITION
-        ORDER BY lastUpdateTime DESC
+        ORDER BY lastUpdateTime DESC, id DESC
     """
     )
     fun getPodcastsPaging(query: String? = null): PagingSource<Int, PodcastWithExtrasView>
@@ -108,7 +108,7 @@ interface PodcastDao {
         """
         SELECT * FROM podcast_with_extras
         WHERE id IN (SELECT id FROM podcast_group WHERE groupKey = :groupKey)
-        ORDER BY lastUpdateTime DESC
+        ORDER BY lastUpdateTime DESC, id DESC
         LIMIT :limit
     """
     )
@@ -118,7 +118,7 @@ interface PodcastDao {
         """
         SELECT * FROM podcast_with_extras
         WHERE id IN (SELECT id FROM podcast_group WHERE groupKey = :groupKey)
-        ORDER BY lastUpdateTime DESC
+        ORDER BY lastUpdateTime DESC, id DESC
     """
     )
     fun getPodcastsByGroupKeyPaging(groupKey: String): PagingSource<Int, PodcastWithExtrasView>
@@ -231,7 +231,7 @@ interface PodcastDao {
         SELECT * FROM podcast_with_extras
         WHERE followedAt IS NOT NULL
         AND $FTS_SEARCH_CONDITION
-        ORDER BY followedAt DESC
+        ORDER BY followedAt DESC, id DESC
         LIMIT :limit
     """
     )
@@ -242,7 +242,7 @@ interface PodcastDao {
         SELECT * FROM podcast_with_extras
         WHERE followedAt IS NOT NULL
         AND $FTS_SEARCH_CONDITION
-        ORDER BY followedAt DESC
+        ORDER BY followedAt DESC, id DESC
     """
     )
     fun getFollowedPodcastsPaging(query: String? = null): PagingSource<Int, PodcastWithExtrasView>

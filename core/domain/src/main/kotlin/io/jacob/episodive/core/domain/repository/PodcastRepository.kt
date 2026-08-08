@@ -36,11 +36,30 @@ interface PodcastRepository {
         includeCategories: List<Category> = emptyList(),
     ): Flow<List<Podcast>>
 
+    /**
+     * 같은 조건의 트렌딩을 전체 목록용으로 받아 페이징한다.
+     *
+     * 미리보기와 별도 캐시 그룹을 쓴다. 한 그룹을 공유하면 먼저 캐시를 채운 쪽의 개수에
+     * 갇히므로, 여기서 받은 [max] 가 그대로 전체 목록의 상한이 된다.
+     */
+    fun getTrendingPodcastsPaging(
+        max: Int,
+        language: String? = null,
+        includeCategories: List<Category> = emptyList(),
+    ): Flow<PagingData<Podcast>>
+
     fun getRecentPodcasts(
         max: Int,
         language: String? = null,
         includeCategories: List<Category> = emptyList(),
     ): Flow<List<Podcast>>
+
+    /** 최근 발행 팟캐스트의 전체 목록판. 캐시 분리는 [getTrendingPodcastsPaging] 과 같다. */
+    fun getRecentPodcastsPaging(
+        max: Int,
+        language: String? = null,
+        includeCategories: List<Category> = emptyList(),
+    ): Flow<PagingData<Podcast>>
 
     fun getRecentNewPodcasts(
         max: Int,

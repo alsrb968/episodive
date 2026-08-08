@@ -7,6 +7,7 @@ import androidx.paging.map
 import io.jacob.episodive.core.data.util.paging.PagingDefaults
 import io.jacob.episodive.core.data.util.paging.SoundbiteEpisodePagingSource
 import io.jacob.episodive.core.data.util.query.EpisodeQuery
+import io.jacob.episodive.core.data.util.query.QueryScope
 import io.jacob.episodive.core.data.util.updater.EpisodeRemoteUpdater
 import io.jacob.episodive.core.database.datasource.EpisodeLocalDataSource
 import io.jacob.episodive.core.database.datasource.SoundbiteLocalDataSource
@@ -140,6 +141,16 @@ class EpisodeRepositoryImpl @Inject constructor(
             .map { it.toEpisodes() }
     }
 
+    override fun getLiveEpisodesPaging(max: Int): Flow<PagingData<Episode>> {
+        val query = EpisodeQuery.Live(max = max, scope = QueryScope.FULL)
+
+        return remoteUpdater.create(query)
+            .getPagingData(config)
+            .map { pagingData ->
+                pagingData.map { it.toEpisode() }
+            }
+    }
+
     override fun getRandomEpisodes(
         max: Int,
         language: String?,
@@ -151,6 +162,21 @@ class EpisodeRepositoryImpl @Inject constructor(
         return remoteUpdater.create(query)
             .getFlowList(max)
             .map { it.toEpisodes() }
+    }
+
+    override fun getRandomEpisodesPaging(
+        max: Int,
+        language: String?,
+        includeCategories: List<Category>,
+        excludeCategories: List<Category>,
+    ): Flow<PagingData<Episode>> {
+        val query = EpisodeQuery.Random(max, language, includeCategories, QueryScope.FULL)
+
+        return remoteUpdater.create(query)
+            .getPagingData(config)
+            .map { pagingData ->
+                pagingData.map { it.toEpisode() }
+            }
     }
 
     override fun getRecentEpisodes(

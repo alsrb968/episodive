@@ -21,6 +21,7 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coVerify
+import io.jacob.episodive.feature.home.navigation.HomeSection
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
@@ -279,6 +280,32 @@ class HomeViewModelTest {
             viewModel.effect.test {
                 viewModel.sendAction(HomeAction.ClickChannel(1L))
                 assertEquals(HomeEffect.NavigateToChannel(1L), awaitItem())
+            }
+        }
+
+    @Test
+    fun `Given ClickMore action, When sent, Then NavigateToMore effect carries the section`() =
+        runTest {
+            setupDefaultMocks()
+            val viewModel = createViewModel()
+
+            viewModel.effect.test {
+                viewModel.sendAction(HomeAction.ClickMore(HomeSection.LiveEpisodes))
+                assertEquals(HomeEffect.NavigateToMore(HomeSection.LiveEpisodes), awaitItem())
+            }
+        }
+
+    @Test
+    fun `Given ClickMore for another section, When sent, Then that section is carried`() =
+        runTest {
+            // 섹션이 그대로 실려 가야 한다. 여기가 어긋나면 더 보기를 눌렀을 때 엉뚱한
+            // 목록이 열린다.
+            setupDefaultMocks()
+            val viewModel = createViewModel()
+
+            viewModel.effect.test {
+                viewModel.sendAction(HomeAction.ClickMore(HomeSection.Channels))
+                assertEquals(HomeEffect.NavigateToMore(HomeSection.Channels), awaitItem())
             }
         }
 }

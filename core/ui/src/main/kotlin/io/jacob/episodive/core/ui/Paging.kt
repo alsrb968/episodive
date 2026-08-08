@@ -2,6 +2,9 @@ package io.jacob.episodive.core.ui
 
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.runtime.Composable
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -105,6 +108,75 @@ fun LazyListScope.pagingAppendState(
         is LoadState.Error -> if (error != null) {
             item(
                 key = pagingStateKey(key, "appendError"),
+                contentType = PagingStateContentType,
+                content = error,
+            )
+        }
+
+        is LoadState.NotLoading -> Unit
+    }
+}
+
+/**
+ * [pagingRefreshState] 의 그리드판.
+ *
+ * 상태 아이템은 한 칸이 아니라 줄 전체를 차지해야 한다. span 을 주지 않으면 로딩·빈 목록·
+ * 오류 안내가 첫 칸에만 들어가 옆이 비고 문구가 잘린다.
+ */
+fun LazyGridScope.pagingRefreshState(
+    items: LazyPagingItems<*>,
+    key: String,
+    loading: @Composable LazyGridItemScope.() -> Unit,
+    empty: @Composable LazyGridItemScope.() -> Unit,
+    error: @Composable LazyGridItemScope.() -> Unit = empty,
+) {
+    val refresh = items.loadState.refresh
+
+    when (refreshPhaseOf(refresh, items.itemCount)) {
+        PagingRefreshPhase.Content -> Unit
+
+        PagingRefreshPhase.Loading -> item(
+            key = pagingStateKey(key, "refresh"),
+            span = { GridItemSpan(maxLineSpan) },
+            contentType = PagingStateContentType,
+            content = loading,
+        )
+
+        PagingRefreshPhase.Empty -> item(
+            key = pagingStateKey(key, "empty"),
+            span = { GridItemSpan(maxLineSpan) },
+            contentType = PagingStateContentType,
+            content = empty,
+        )
+
+        PagingRefreshPhase.Error -> item(
+            key = pagingStateKey(key, "error"),
+            span = { GridItemSpan(maxLineSpan) },
+            contentType = PagingStateContentType,
+            content = error,
+        )
+    }
+}
+
+/** [pagingAppendState] 의 그리드판. span 규칙은 [pagingRefreshState] 와 같다. */
+fun LazyGridScope.pagingAppendState(
+    items: LazyPagingItems<*>,
+    key: String,
+    loading: @Composable LazyGridItemScope.() -> Unit,
+    error: (@Composable LazyGridItemScope.() -> Unit)? = null,
+) {
+    when (items.loadState.append) {
+        is LoadState.Loading -> item(
+            key = pagingStateKey(key, "append"),
+            span = { GridItemSpan(maxLineSpan) },
+            contentType = PagingStateContentType,
+            content = loading,
+        )
+
+        is LoadState.Error -> if (error != null) {
+            item(
+                key = pagingStateKey(key, "appendError"),
+                span = { GridItemSpan(maxLineSpan) },
                 contentType = PagingStateContentType,
                 content = error,
             )
