@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import io.jacob.episodive.core.domain.util.errorLoadStates
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -60,8 +61,26 @@ class HomeMoreViewModel @AssistedInject constructor(
         fun create(@Assisted("section") section: HomeSection): HomeMoreViewModel
     }
 
-    // 채널 섹션에만 쓰인다. 나머지는 Paging 이 자체 재시도를 갖고 있다.
     private val retryTrigger = MutableStateFlow(0)
+
+    /**
+     * 원격 실패로 흐름이 끊기는 대신 Paging 의 오류 상태로 내려보낸다.
+     *
+     * 캐시가 아예 없는 첫 진입에서 원격이 실패하면 `RemoteUpdater` 가 예외를 흐름 밖으로
+     * 던진다. `cachedIn` 은 그 흐름을 viewModelScope 에 공유하므로, 잡지 않으면 화면 오류가
+     * 아니라 앱이 죽는다. FULL 스코프 그룹은 정의상 첫 진입에 비어 있어 이 경로가 확정적으로
+     * 열려 있다 — 비행기 모드에서 더 보기를 처음 누르는 것만으로 닿는다.
+     *
+     * `catch` 는 흐름을 끝내므로 [retryTrigger] **안쪽**에 둔다. 바깥에 두면 한 번 실패한 뒤
+     * 재시도해도 다시 흐르지 않아 오류 화면에 갇힌다.
+     */
+    private fun <T : Any> Flow<PagingData<T>>.retryable(): Flow<PagingData<T>> =
+        retryTrigger.flatMapLatest {
+            catch { e ->
+                Timber.e(e, "더 보기 목록을 불러오지 못했다 (section=$section)")
+                emit(PagingData.empty(sourceLoadStates = errorLoadStates(e)))
+            }
+        }
 
     /**
      * 이 화면이 보여줄 것. 섹션은 화면 수명 동안 바뀌지 않으므로 한 번만 정한다.
@@ -72,39 +91,39 @@ class HomeMoreViewModel @AssistedInject constructor(
     val content: HomeMoreContent = when (section) {
         HomeSection.MyRecentPodcasts ->
             HomeMoreContent.PodcastPaging(
-                getUserRecentPodcastsPagingUseCase(max = PODCAST_MORE_MAX).cachedIn(viewModelScope)
+                getUserRecentPodcastsPagingUseCase(max = PODCAST_MORE_MAX).retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.RandomEpisodes ->
             HomeMoreContent.EpisodePaging(
-                getMyRandomEpisodesPagingUseCase(max = EPISODE_MORE_MAX).cachedIn(viewModelScope)
+                getMyRandomEpisodesPagingUseCase(max = EPISODE_MORE_MAX).retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.MyTrendingPodcasts ->
             HomeMoreContent.PodcastPaging(
-                getUserTrendingPodcastsPagingUseCase(max = PODCAST_MORE_MAX).cachedIn(viewModelScope)
+                getUserTrendingPodcastsPagingUseCase(max = PODCAST_MORE_MAX).retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.FollowedPodcasts ->
             // 구독 목록은 로컬 DB 라 원격 상한이 없다.
             HomeMoreContent.PodcastPaging(
-                getFollowedPodcastsPagingUseCase().cachedIn(viewModelScope)
+                getFollowedPodcastsPagingUseCase().retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.LocalTrendingPodcasts ->
             HomeMoreContent.PodcastPaging(
-                getLocalTrendingPodcastsPagingUseCase(max = PODCAST_MORE_MAX).cachedIn(viewModelScope)
+                getLocalTrendingPodcastsPagingUseCase(max = PODCAST_MORE_MAX).retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.ForeignTrendingPodcasts ->
             HomeMoreContent.PodcastPaging(
                 getForeignTrendingPodcastsPagingUseCase(max = PODCAST_MORE_MAX)
-                    .cachedIn(viewModelScope)
+                    .retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.LiveEpisodes ->
             HomeMoreContent.EpisodePaging(
-                getLiveEpisodesPagingUseCase(max = EPISODE_MORE_MAX).cachedIn(viewModelScope)
+                getLiveEpisodesPagingUseCase(max = EPISODE_MORE_MAX).retryable().cachedIn(viewModelScope)
             )
 
         HomeSection.Channels ->

@@ -140,6 +140,7 @@ internal fun HomeMoreScreen(
                 nestedScrollConnection = nestedScrollConnection,
                 items = content.items.collectAsLazyPagingItems(),
                 onPodcastClick = onPodcastClick,
+                onRetry = onRetry,
             )
 
             is HomeMoreContent.EpisodePaging -> HomeMoreEpisodeList(
@@ -149,6 +150,7 @@ internal fun HomeMoreScreen(
                 onPlayEpisode = onPlayEpisode,
                 onToggleLikedEpisode = onToggleLikedEpisode,
                 onToggleSavedEpisode = onToggleSavedEpisode,
+                onRetry = onRetry,
             )
 
             is HomeMoreContent.ChannelList -> {
@@ -187,6 +189,7 @@ private fun HomeMorePodcastGrid(
     nestedScrollConnection: NestedScrollConnection,
     items: LazyPagingItems<Podcast>,
     onPodcastClick: (Long) -> Unit,
+    onRetry: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -208,7 +211,13 @@ private fun HomeMorePodcastGrid(
             error = {
                 HomeMoreMessage(
                     text = stringResource(R.string.feature_home_more_error),
-                    onRetry = { items.retry() },
+                    onRetry = {
+                        // 둘 다 부른다. items.retry() 는 PagingSource(로컬) 실패를 되돌리고,
+                        // onRetry() 는 원격 실패로 흐름이 오류 상태로 바뀐 경우를 되돌린다.
+                        // 후자는 Paging 자체 재시도가 닿지 않는다 — 흐름이 이미 끝나 있다.
+                        items.retry()
+                        onRetry()
+                    },
                 )
             },
         )
@@ -251,6 +260,7 @@ private fun HomeMoreEpisodeList(
     onPlayEpisode: (Episode) -> Unit,
     onToggleLikedEpisode: (Episode) -> Unit,
     onToggleSavedEpisode: (Episode) -> Unit,
+    onRetry: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -269,7 +279,13 @@ private fun HomeMoreEpisodeList(
             error = {
                 HomeMoreMessage(
                     text = stringResource(R.string.feature_home_more_error),
-                    onRetry = { items.retry() },
+                    onRetry = {
+                        // 둘 다 부른다. items.retry() 는 PagingSource(로컬) 실패를 되돌리고,
+                        // onRetry() 는 원격 실패로 흐름이 오류 상태로 바뀐 경우를 되돌린다.
+                        // 후자는 Paging 자체 재시도가 닿지 않는다 — 흐름이 이미 끝나 있다.
+                        items.retry()
+                        onRetry()
+                    },
                 )
             },
         )

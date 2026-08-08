@@ -413,10 +413,11 @@ private class TitleVisibilityConnection(
     ): Offset {
         val delta = consumed.y
         if (delta == 0f) {
-            // 목록이 못 움직였다. 끝에 닿았거나, 화면보다 짧아져 아예 스크롤이 불가능해진
-            // 것이다. 후자에서 숨은 채로 두면 제목을 되부를 방법이 영영 없다 — 되돌리는
-            // 유일한 입력이 스크롤인데 그 스크롤이 성립하지 않는다.
-            if (available.y != 0f) visible.value = true
+            // 목록이 못 움직였다. 위로 되올리려던 것이면 되돌려 준다 — 화면보다 짧아져
+            // 스크롤이 아예 불가능해진 경우에도 이 경로로 제목을 되찾을 수 있어야 한다.
+            // 방향을 보지 않으면 목록 끝에서 더 내리려고 당길 때도 제목이 도로 나타나,
+            // 감추는 쪽으로 조작했는데 반대 결과가 나온다.
+            if (available.y > 0f) visible.value = true
             return Offset.Zero
         }
 
@@ -498,7 +499,12 @@ fun SectionHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = SectionHeaderMinHeight)
+                // 액션이 붙을 때만 키운다. 무조건 걸면 액션이 없는 헤더(검색 결과 등)까지
+                // 높아지고, 짝이 되는 스켈레톤은 hasAction 일 때만 이 높이를 잡으므로
+                // 로딩→콘텐츠 전환에서 그만큼 아래가 밀린다.
+                .then(
+                    if (hasAction) Modifier.heightIn(min = SectionHeaderMinHeight) else Modifier
+                )
                 // 제목까지 통째로 누를 수 있게 한다. 화살표만 눌리면 정작 가장 크고 눈에
                 // 먼저 들어오는 제목이 죽은 영역이 되고, 사용자는 그걸 몇 번 눌러 본 뒤에야
                 // 옆의 작은 아이콘을 찾는다. clickable 을 padding 보다 앞에 둬서 좌우 여백과

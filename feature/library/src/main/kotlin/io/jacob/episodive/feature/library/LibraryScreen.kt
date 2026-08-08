@@ -202,7 +202,8 @@ private fun LibrarySkeleton(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(LibrarySectionSpacing),
             ) {
                 Column {
-                    SectionHeaderSkeleton()
+                    // 실제 섹션에는 더 보기가 붙는다. 여기서 자리를 안 잡으면 전환 때 아래가 밀린다.
+                    SectionHeaderSkeleton(hasAction = true)
 
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -217,7 +218,8 @@ private fun LibrarySkeleton(modifier: Modifier = Modifier) {
                 }
 
                 Column {
-                    SectionHeaderSkeleton()
+                    // 실제 섹션에는 더 보기가 붙는다. 여기서 자리를 안 잡으면 전환 때 아래가 밀린다.
+                    SectionHeaderSkeleton(hasAction = true)
 
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),

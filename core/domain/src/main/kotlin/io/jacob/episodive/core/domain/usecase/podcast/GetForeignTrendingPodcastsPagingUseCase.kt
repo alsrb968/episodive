@@ -1,6 +1,7 @@
 package io.jacob.episodive.core.domain.usecase.podcast
 
 import androidx.paging.PagingData
+import io.jacob.episodive.core.domain.util.EmptyLoadStates
 import io.jacob.episodive.core.domain.repository.UserRepository
 import io.jacob.episodive.core.model.Podcast
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,9 @@ class GetForeignTrendingPodcastsPagingUseCase @Inject constructor(
     operator fun invoke(max: Int): Flow<PagingData<Podcast>> {
         return userRepository.getUserData().flatMapLatest { userData ->
             if (userData.categories.isEmpty()) {
-                flowOf(PagingData.empty())
+                // 무인자 empty() 는 로드 상태를 갱신하지 않아 refresh 가 Loading 에 머문다.
+                // 그러면 화면이 '항목 없음' 대신 스켈레톤을 영원히 돌린다.
+                flowOf(PagingData.empty(sourceLoadStates = EmptyLoadStates))
             } else {
                 val foreignLanguages =
                     languages.filter { it != userData.language }.joinToString(",")

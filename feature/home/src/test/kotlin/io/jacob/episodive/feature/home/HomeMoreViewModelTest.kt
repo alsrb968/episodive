@@ -14,6 +14,8 @@ import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsPagin
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserTrendingPodcastsPagingUseCase
 import io.jacob.episodive.core.testing.model.channelTestDataList
 import io.jacob.episodive.core.testing.model.episodeTestData
+import io.jacob.episodive.core.model.DataError
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.jacob.episodive.feature.home.navigation.HomeSection
 import io.mockk.confirmVerified
@@ -24,7 +26,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -253,6 +257,24 @@ class HomeMoreViewModelTest {
             }
 
             verify { getLiveEpisodesPagingUseCase(any()) }
+        }
+
+    @Test
+    fun `Given remote fails with no cache, When paging is collected, Then error is not thrown`() =
+        runTest {
+            // 캐시가 아예 없는 첫 진입에서 원격이 실패하면 RemoteUpdater 는 예외를 흐름 밖으로
+            // 던진다. FULL 스코프 그룹은 정의상 첫 진입에 비어 있어 이 경로가 확정적으로 열려
+            // 있다 — 잡지 않으면 cachedIn 이 공유하는 코루틴에서 터져 앱이 죽는다.
+            every { getLocalTrendingPodcastsPagingUseCase(any()) } returns
+                    flow { throw DataErrorException(DataError.Offline) }
+
+            val viewModel = createViewModel(HomeSection.LocalTrendingPodcasts)
+            val content = viewModel.content as HomeMoreContent.PodcastPaging
+
+            // 예외가 새어 나오면 이 수집에서 그대로 터진다.
+            assertNotNull(content.items.first())
+
+            verify { getLocalTrendingPodcastsPagingUseCase(any()) }
         }
 
     /**
