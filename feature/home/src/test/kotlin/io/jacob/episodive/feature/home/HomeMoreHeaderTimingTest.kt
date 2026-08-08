@@ -13,7 +13,8 @@ import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.feature.home.navigation.HomeSection
 import kotlinx.coroutines.flow.flowOf
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,7 +54,7 @@ class HomeMoreHeaderTimingTest {
 
         clickBandCenter()
 
-        assertEquals("아직 칠해져 있는 띠가 터치를 아래 항목으로 흘려보냈다", null, clickedId)
+        assertNull("아직 칠해져 있는 띠가 터치를 아래 항목으로 흘려보냈다", clickedId)
     }
 
     @Test
@@ -66,7 +67,10 @@ class HomeMoreHeaderTimingTest {
 
         clickBandCenter()
 
-        assertEquals("제목이 물러난 자리의 항목이 눌리지 않았다", FirstItemUnderBandId, clickedId)
+        // 어느 항목이 그 자리에 오는지는 그리드 열 수와 스와이프 거리에 달렸다. 특정 id 를
+        // 박아 두면 화면 크기 한정자가 바뀌는 순간 이 테스트가 무너진다 — 여기서 볼 것은
+        // "띠가 걷힌 뒤에는 아래로 터치가 닿는다"뿐이다.
+        assertNotNull("제목이 물러난 자리의 항목이 눌리지 않았다", clickedId)
     }
 
     /** 화면을 띄우고 제목을 물러나게 한 뒤 [waitMs] 만큼 시계를 돌린다. */
@@ -145,5 +149,3 @@ private const val SwipeDurationMs = 50L
 /** 접힌 제목 띠(64dp)의 세로 중앙. Robolectric 은 상태바 인셋이 0 이라 화면 맨 위에서 시작한다. */
 private const val CollapsedBandCenterDp = 32
 
-/** 위 스와이프 뒤 띠 자리에 올라오는 항목의 id. [scrollablePodcasts] 가 id 를 인덱스로 준다. */
-private const val FirstItemUnderBandId = 4L

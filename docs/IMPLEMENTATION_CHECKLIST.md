@@ -235,7 +235,7 @@ Episodive의 기능 구현 상태를 추적합니다.
 | 검색 결과 '더보기' | 착지할 전체 목록 화면이 없어 섹션 헤더에 버튼을 달지 않음 (`SearchScreen.kt:403`) |
 | 홈 '더보기' 첫 진입 | 팟캐스트 섹션은 전체 목록용 캐시를 처음 채울 때 피드마다 상세 요청이 붙어 지연이 있음 (`PodcastRemoteUpdater.kt:55-66`). 근본 해결은 `feeds` PK 를 `(id, groupKey)` 복합키로 바꾸는 마이그레이션이라 별건으로 둔다 |
 | 사운드바이트 정렬 | `soundbites` 는 원격이 준 순위를 보존할 컬럼이 없어 `episodeId` 오름차순으로 페이징한다. 순위를 살리려면 순서 컬럼 추가(스키마 변경)가 필요 |
-| lint | `MainActivity.kt:91` 의 media3 `UnstableApi` opt-in 누락으로 `./gradlew lint` 가 실패한다(`#75` 부터). CI 는 `koverXmlReportDebug` 만 돌아 잡히지 않음 |
+| lint | `MainActivity.kt:91` 의 media3 `UnstableApi` opt-in 누락으로 `./gradlew lint` 가 실패한다. CI 는 `koverXmlReportDebug` 만 돌아 잡히지 않음 |
 | 유닛 테스트 병렬 실행 | JDK 21 에서 `./gradlew test` 로 전 모듈을 한꺼번에 돌리면 ByteBuddy self-attach 경합으로 MockK 초기화가 깨진다. 모듈별 실행과 `--max-workers=1` 은 정상 |
 
 ### 미감사 영역
