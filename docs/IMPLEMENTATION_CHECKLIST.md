@@ -2,7 +2,7 @@
 
 Episodive의 기능 구현 상태를 추적합니다.
 
-**마지막 검증**: `e5c1a4e` (2026-08-08) — 알려진 한계에 남아 있던 셋(더보기 첫 진입 지연,
+**마지막 검증**: `be51a21` (2026-08-08) — 알려진 한계에 남아 있던 셋(더보기 첫 진입 지연,
 사운드바이트 정렬, lint 실패)을 해소했습니다.
 
 | 표기 | 의미 |
@@ -243,6 +243,8 @@ Episodive의 기능 구현 상태를 추적합니다.
 | 캐시 정책 | `RemoteUpdater`의 stale-while-error가 Podcast·Episode에만 적용 (Channel·RecentSearch·User·Player는 대상 밖) |
 | 트랜스크립트 | VTT 전용, 전문 뷰어 없음 |
 | 검색 결과 '더보기' | 착지할 전체 목록 화면이 없어 섹션 헤더에 버튼을 달지 않음 (`SearchScreen.kt:403`) |
+| 빈 결과 캐싱 | `feeds` 의 만료 판정이 `MIN(cachedAt)` 이라, 원격이 0건을 주면 표식이 남지 않아 화면에 들어올 때마다 목록 API 를 다시 친다. 결과 없는 카테고리·언어 조합에서만 발생하고 화면은 정상적으로 빈 상태를 보인다 |
+| `feeds` 회수 | `podcast_group` 과 달리 `feeds` 에는 그룹 수 상한도 TTL 청소도 없다. 삭제는 같은 groupKey 를 다시 채울 때만 일어나므로, 사용자가 언어·카테고리를 바꾸면 죽은 그룹(그룹당 ≤50행)이 남는다 |
 | 유닛 테스트 병렬 실행 | JDK 21 에서 `./gradlew test` 로 전 모듈을 한꺼번에 돌리면 ByteBuddy self-attach 경합으로 MockK 초기화가 깨진다(`NoClassDefFoundError: JvmMockKGateway`). 모듈별 실행은 정상. `--max-workers=1` 도 완전한 회피는 아니다 |
 
 ### 미감사 영역

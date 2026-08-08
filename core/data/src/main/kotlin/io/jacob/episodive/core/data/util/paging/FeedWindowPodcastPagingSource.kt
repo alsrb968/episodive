@@ -7,14 +7,20 @@ import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.mapper.toFeedEntities
 import io.jacob.episodive.core.database.mapper.toPodcastEntity
 import io.jacob.episodive.core.database.model.PodcastWithExtrasView
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.model.Feed
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toPodcast
+import io.jacob.episodive.core.network.util.toDataError
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Clock
 import kotlin.time.Duration
 
@@ -94,28 +100,45 @@ class FeedWindowPodcastPagingSource(
                 // 실패해 데이터가 비어도 목록은 계속 이어져야 한다.
                 nextKey = if (feeds.size == limit) offset + limit else null,
             )
+        } catch (e: CancellationException) {
+            // 취소는 실패가 아니다. 여기서 삼키면 코루틴 취소가 전파되지 않는다.
+            throw e
         } catch (e: Exception) {
             LoadResult.Error(e)
         }
     }
 
-    private suspend fun ensureFeedsAreFresh() {
+    /**
+     * 피드 목록이 만료됐으면 새로 받는다.
+     *
+     * 뮤텍스는 [groupKey] 단위이며 PagingSource 인스턴스 **밖**에 있다. Paging 은 앞뒤 페이지를
+     * 동시에 로드하고, 새로고침 때는 새 인스턴스를 만든다. 인스턴스 안에 두면 그 경우를 막지
+     * 못한다 — 두 로드가 나란히 목록을 받아 오고, 뒤늦게 끝난 쪽의 `replacePodcasts` 가 먼저
+     * 끝난 쪽이 방금 채운 상세를 지워 그 페이지가 빈 채로 남는다.
+     */
+    private suspend fun ensureFeedsAreFresh() = refreshLockFor(groupKey).withLock {
+        // 잠금을 얻은 뒤 다시 본다. 기다리는 동안 앞선 로드가 이미 채웠을 수 있고, 그때
+        // 또 받아 오면 목록 요청이 페이지 수만큼 늘어난다.
         val oldestCachedAt = feedLocal.getFeedsOldestCachedAt(groupKey)
         val isExpired = oldestCachedAt?.let {
             Clock.System.now() - it > timeToLive
         } ?: true
 
-        if (!isExpired) return
+        if (!isExpired) return@withLock
 
         val feedEntities = try {
             fetchFeeds().toFeedEntities(groupKey = groupKey)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // 갱신에 실패해도 캐시가 있으면 낡은 목록을 그대로 보여준다. `RemoteUpdater` 의
             // stale-while-error 와 같은 정책이다 — 목록이 이미 있는데 새로고침 한 번 실패했다고
             // 화면을 통째로 재시도 버튼으로 바꾸지 않는다. 보여줄 것이 없을 때만 전파한다.
-            if (oldestCachedAt == null) throw e
+            // 이때 원인을 여기서 한 번 판별해 실어 보낸다. 화면은 DataErrorException 만 열어
+            // 보므로, 원시 예외를 그대로 올리면 구체 문구도 재시도 가능 여부도 잃는다.
+            if (oldestCachedAt == null) throw DataErrorException(e.toDataError(), e)
             Timber.w(e, "피드 목록 갱신에 실패해 캐시를 유지한다 (key=$groupKey)")
-            return
+            return@withLock
         }
 
         feedLocal.replaceFeedsByGroupKey(feedEntities, groupKey)
@@ -124,6 +147,12 @@ class FeedWindowPodcastPagingSource(
         // 참조하면 살아남는다.
         podcastLocal.replacePodcasts(emptyList(), groupKey)
         Timber.d("피드 목록을 새로 받았다 (key=$groupKey, size=${feedEntities.size})")
+
+        // 이미 페이지를 내주고 있던 중이라면 그 자리에서 무효화한다. 페이징 키가 절대
+        // offset 인데 목록이 통째로 바뀌었으므로, 앞서 내준 창과 앞으로 내줄 창이 서로 다른
+        // 목록을 가리킨다 — 같은 팟캐스트가 두 번 나오거나 어떤 항목은 건너뛴다.
+        // 처음 채우는 경우(캐시 없음)는 어긋날 앞 페이지가 없으므로 그대로 이어 간다.
+        if (oldestCachedAt != null) invalidate()
     }
 
     private suspend fun fetchMissingPodcasts(podcastIds: List<Long>) {
@@ -146,6 +175,8 @@ class FeedWindowPodcastPagingSource(
                         podcastRemote.getPodcastByFeedId(podcastId)?.let {
                             emit(index to it.toPodcast().toPodcastEntity())
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         Timber.w(e, "피드 상세를 건너뛴다 (id=$podcastId)")
                     }
@@ -172,5 +203,16 @@ class FeedWindowPodcastPagingSource(
          * 시절 `PodcastRemoteUpdater` 가 쓰던 값과 같게 잡는다.
          */
         private const val MAX_HYDRATION_CONCURRENCY = 10
+
+        /**
+         * 그룹별 갱신 잠금. PagingSource 인스턴스보다 오래 살아야 하므로 companion 에 둔다.
+         *
+         * 그룹 수는 (언어 × 카테고리 조합)이라 실질적으로 손에 꼽고 항목당 [Mutex] 하나뿐이라,
+         * 회수 없이 두는 편이 회수 시점을 맞추려다 잠금을 놓치는 것보다 안전하다.
+         */
+        private val refreshLocks = ConcurrentHashMap<String, Mutex>()
+
+        private fun refreshLockFor(groupKey: String): Mutex =
+            refreshLocks.getOrPut(groupKey) { Mutex() }
     }
 }

@@ -5,6 +5,8 @@ import io.jacob.episodive.core.database.datasource.FeedLocalDataSource
 import io.jacob.episodive.core.database.datasource.PodcastLocalDataSource
 import io.jacob.episodive.core.database.model.FeedEntity
 import io.jacob.episodive.core.database.model.PodcastWithExtrasView
+import io.jacob.episodive.core.model.DataError
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.model.Feed
 import io.jacob.episodive.core.model.GroupKey
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
@@ -15,16 +17,21 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.net.UnknownHostException
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 class FeedWindowPodcastPagingSourceTest {
     @get:Rule
@@ -189,15 +196,17 @@ class FeedWindowPodcastPagingSourceTest {
         }
 
     @Test
-    fun `Given a failing refresh with no cache, When load, Then the error surfaces`() =
+    fun `Given a failing refresh with no cache, When load, Then a typed error surfaces`() =
         runTest {
             // 반대쪽 절반이다. 보여줄 것이 하나도 없으면 조용히 빈 화면을 내는 대신 오류로
-            // 올려, 화면이 재시도를 제안할 수 있게 한다.
+            // 올린다. 이때 종류를 판별해 실어 보내야 한다 — 화면은 DataErrorException 만 열어
+            // 보고 구체 문구와 재시도 가능 여부를 정하므로, 원시 예외를 올리면 "알 수 없는
+            // 오류"에 무조건 재시도 버튼이 붙는다.
             // Given
             coEvery { feedLocal.getFeedsOldestCachedAt(defaultGroupKey) } returns null
 
             // When
-            val result = createPagingSource(fetchFeeds = { throw RuntimeException("offline") })
+            val result = createPagingSource(fetchFeeds = { throw UnknownHostException("offline") })
                 .load(
                     PagingSource.LoadParams.Refresh(
                         key = null,
@@ -208,7 +217,83 @@ class FeedWindowPodcastPagingSourceTest {
 
             // Then
             assertTrue(result is PagingSource.LoadResult.Error)
-            assertEquals("offline", (result as PagingSource.LoadResult.Error).throwable.message)
+            val thrown = (result as PagingSource.LoadResult.Error).throwable
+            assertTrue(thrown is DataErrorException)
+            assertEquals(DataError.Offline, (thrown as DataErrorException).error)
+            assertEquals("offline", thrown.cause?.message)
+        }
+
+    @Test
+    fun `Given an expired cache mid-session, When refreshed, Then the source invalidates`() =
+        runTest {
+            // 페이징 키가 절대 offset 인데 목록이 통째로 바뀌었다. 무효화하지 않으면 앞서 내준
+            // 창과 앞으로 내줄 창이 서로 다른 목록을 가리켜, 같은 팟캐스트가 두 번 나오거나
+            // 어떤 항목은 건너뛴다.
+            // Given
+            coEvery {
+                feedLocal.getFeedsOldestCachedAt(defaultGroupKey)
+            } returns Clock.System.now() - 1.hours
+            coEvery {
+                feedLocal.getFeedsPagingList(defaultGroupKey, any(), any())
+            } returns emptyList()
+
+            // When
+            val source = createPagingSource(fetchFeeds = { listOf(mockFeed(1L)) })
+            source.loadPage(loadSize = 10)
+
+            // Then
+            assertTrue(source.invalid)
+        }
+
+    @Test
+    fun `Given a cold cache, When first filled, Then the source stays valid`() =
+        runTest {
+            // 처음 채우는 경우에는 어긋날 앞 페이지가 없다. 여기서도 무효화하면 첫 진입이
+            // 로드를 한 번 더 돌게 되고, 그 왕복을 줄이려던 것이 이 PagingSource 다.
+            // Given
+            coEvery { feedLocal.getFeedsOldestCachedAt(defaultGroupKey) } returns null
+            coEvery {
+                feedLocal.getFeedsPagingList(defaultGroupKey, any(), any())
+            } returns emptyList()
+
+            // When
+            val source = createPagingSource(fetchFeeds = { listOf(mockFeed(1L)) })
+            source.loadPage(loadSize = 10)
+
+            // Then
+            assertEquals(false, source.invalid)
+        }
+
+    @Test
+    fun `Given two sources sharing a groupKey, When both load at once, Then feeds are fetched once`() =
+        runTest {
+            // Paging 은 앞뒤 페이지를 동시에 로드하고 새로고침 때는 새 인스턴스를 만든다.
+            // 두 로드가 나란히 목록을 받아 오면, 뒤늦게 끝난 쪽의 replacePodcasts 가 먼저 끝난
+            // 쪽이 방금 채운 상세를 지워 그 페이지가 빈 채로 남는다.
+            // Given
+            val groupKey = "${GroupKey.TRENDING}:full:concurrent:"
+            var oldestCachedAt: Instant? = null
+            coEvery { feedLocal.getFeedsOldestCachedAt(groupKey) } answers { oldestCachedAt }
+            coEvery { feedLocal.replaceFeedsByGroupKey(any(), groupKey) } answers {
+                oldestCachedAt = Clock.System.now()
+            }
+            coEvery { feedLocal.getFeedsPagingList(groupKey, any(), any()) } returns emptyList()
+
+            var fetchCount = 0
+            val fetchFeeds: suspend () -> List<Feed> = {
+                delay(100)
+                fetchCount++
+                listOf(mockFeed(1L))
+            }
+
+            // When
+            listOf(
+                async { createPagingSource(groupKey, fetchFeeds = fetchFeeds).loadPage(loadSize = 10) },
+                async { createPagingSource(groupKey, fetchFeeds = fetchFeeds).loadPage(loadSize = 10) },
+            ).awaitAll()
+
+            // Then
+            assertEquals(1, fetchCount)
         }
 
     @Test
