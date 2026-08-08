@@ -1,11 +1,10 @@
 package io.jacob.episodive.core.data.repository
 
 import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import io.jacob.episodive.core.data.util.paging.FeedWindowPodcastPagingSource
 import io.jacob.episodive.core.data.util.paging.PagingDefaults
-import io.jacob.episodive.core.data.util.paging.RecommendedPodcastPagingSource
 import io.jacob.episodive.core.data.util.query.PodcastQuery
 import io.jacob.episodive.core.data.util.query.QueryScope
 import io.jacob.episodive.core.data.util.updater.PodcastRemoteUpdater
@@ -16,14 +15,24 @@ import io.jacob.episodive.core.database.mapper.toPodcasts
 import io.jacob.episodive.core.domain.repository.PodcastRepository
 import io.jacob.episodive.core.model.Category
 import io.jacob.episodive.core.model.Channel
+import io.jacob.episodive.core.model.Feed
 import io.jacob.episodive.core.model.Podcast
+import io.jacob.episodive.core.model.mapper.toCommaString
+import io.jacob.episodive.core.model.mapper.toFeedsFromRecent
+import io.jacob.episodive.core.model.mapper.toFeedsFromTrending
 import io.jacob.episodive.core.network.datasource.FeedRemoteDataSource
 import io.jacob.episodive.core.network.datasource.PodcastRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toPodcasts
+import io.jacob.episodive.core.network.mapper.toRecentFeeds
+import io.jacob.episodive.core.network.mapper.toTrendingFeeds
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 class PodcastRepositoryImpl @Inject constructor(
@@ -128,11 +137,13 @@ class PodcastRepositoryImpl @Inject constructor(
     ): Flow<PagingData<Podcast>> {
         val query = PodcastQuery.Trending(max, language, includeCategories, QueryScope.FULL)
 
-        return remoteUpdater.create(query)
-            .getPagingData(config)
-            .map { pagingData ->
-                pagingData.map { it.toPodcast() }
-            }
+        return feedWindowPagingData(query) {
+            feedRemoteDataSource.getTrendingFeeds(
+                max = max,
+                language = language,
+                includeCategories = includeCategories.toCommaString(),
+            ).toTrendingFeeds().toFeedsFromTrending()
+        }
     }
 
     override fun getRecentPodcasts(
@@ -154,11 +165,13 @@ class PodcastRepositoryImpl @Inject constructor(
     ): Flow<PagingData<Podcast>> {
         val query = PodcastQuery.Recent(max, language, includeCategories, QueryScope.FULL)
 
-        return remoteUpdater.create(query)
-            .getPagingData(config)
-            .map { pagingData ->
-                pagingData.map { it.toPodcast() }
-            }
+        return feedWindowPagingData(query) {
+            feedRemoteDataSource.getRecentFeeds(
+                max = max,
+                language = language,
+                includeCategories = includeCategories.toCommaString(),
+            ).toRecentFeeds().toFeedsFromRecent()
+        }
     }
 
     override fun getRecentNewPodcasts(max: Int): Flow<List<Podcast>> {
@@ -186,22 +199,55 @@ class PodcastRepositoryImpl @Inject constructor(
         language: String?,
         includeCategories: List<Category>
     ): Flow<PagingData<Podcast>> {
+        val query = PodcastQuery.Recommended(max, language, includeCategories)
+
+        // 추천만 피드 목록 수명이 10분이다(다른 목록은 1시간). 온보딩에서 한 번 훑고 마는
+        // 화면이라 짧게 잡아 둔 값을 그대로 유지한다.
+        return feedWindowPagingData(query, timeToLive = 10.minutes) {
+            coroutineScope {
+                val trending = async {
+                    feedRemoteDataSource.getTrendingFeeds(
+                        max = max,
+                        language = language,
+                        includeCategories = includeCategories.toCommaString(),
+                    ).toTrendingFeeds().toFeedsFromTrending()
+                }
+                val recent = async {
+                    feedRemoteDataSource.getRecentFeeds(
+                        max = max,
+                        language = language,
+                        includeCategories = includeCategories.toCommaString(),
+                    ).toRecentFeeds().toFeedsFromRecent()
+                }
+
+                (trending.await() + recent.await())
+                    .distinctBy { it.id }
+                    .sortedByDescending { it.newestItemPublishTime }
+            }
+        }
+    }
+
+    /**
+     * 피드 목록을 먼저 받고 페이지 단위로만 상세를 채우는 팟캐스트 페이징.
+     *
+     * [query] 는 캐시 키와 기본 수명을 함께 준다 — 키 생성 규칙을 [PodcastQuery] 한 곳에만
+     * 두기 위해서다. [fetchFeeds] 가 돌려주는 순서가 그대로 화면 순서가 된다.
+     */
+    private fun feedWindowPagingData(
+        query: PodcastQuery,
+        timeToLive: Duration = query.timeToLive,
+        fetchFeeds: suspend () -> List<Feed>,
+    ): Flow<PagingData<Podcast>> {
         return Pager(
-            config = PagingConfig(
-                pageSize = 10,
-                prefetchDistance = 5,
-                initialLoadSize = 10,
-                enablePlaceholders = false,
-            ),
+            config = PagingDefaults.FEED_WINDOW_CONFIG,
             pagingSourceFactory = {
-                RecommendedPodcastPagingSource(
+                FeedWindowPodcastPagingSource(
                     podcastLocal = podcastLocalDataSource,
                     podcastRemote = podcastRemoteDataSource,
                     feedLocal = feedLocalDataSource,
-                    feedRemote = feedRemoteDataSource,
-                    maxFeeds = max,
-                    language = language,
-                    categories = includeCategories,
+                    groupKey = query.key,
+                    timeToLive = timeToLive,
+                    fetchFeeds = fetchFeeds,
                 )
             }
         ).flow.map { pagingData ->
