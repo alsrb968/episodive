@@ -305,13 +305,31 @@ Now in Android 방식 커스텀 스크롤바.
 
 | 컴포넌트 | 파일 | 사양 |
 |:----|:----|:----|
-| `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외 |
+| `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외. `hideTitleOnScroll = true` 면 아래 §4.10.1 |
 | `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션(48dp), 하단 14dp Spacer. 액션이 붙으면 헤더 높이가 그만큼 커지므로 로딩 자리는 `SectionHeaderSkeleton(hasAction = true)` 로 같은 자리를 예약 |
 | `SubSectionHeader` | `Layout.kt` | 제목 `titleSmall`/`onSurfaceVariant` |
 | `FadeTopBarLayout` | `Layout.kt` | 스크롤 연동 페이드 탑바 (§3.4) |
 | `EpisodiveTopAppBar` / `EpisodiveCenterTopAppBar` | `TopAppBar.kt` | 좌측/중앙 정렬 상단바, 아이콘 tint `onSurface` |
 | `EpisodiveBackground` | `Background.kt` | `LocalBackgroundTheme` 기반 앱 배경 Surface |
 | `HtmlTextContainer` | `HtmlTextContainer.kt` | 팟캐스트 설명 HTML 파싱 + 이메일/URL/전화 자동 링크(`primary` 밑줄) |
+
+#### 4.10.1 접히는 제목 띠 (`hideTitleOnScroll`)
+
+`EpisodiveScaffold(hideTitleOnScroll = true)` 는 상단바를 Scaffold 슬롯이 아니라 **콘텐츠 위에
+겹쳐** 그린다. 내려가면 제목 띠가 위로 미끄러져 사라지고 살짝 올리면 되돌아온다. 뒤로가기
+아이콘은 항상 남는다.
+
+- 임계값: 숨김 48dp, 되돌림 8dp. 방향이 바뀌면 누적을 0 으로 되돌려, 흔들리는 스크롤에
+  제목이 껌뻑이지 않게 한다.
+- 제목·배경·아이콘 스크림은 **같은 220ms `tween`** 을 쓴다. 따로 두면 제목이 배경보다 먼저
+  돌아와 글자가 아무 바탕 없이 앨범아트 위에 놓이는 구간이 생긴다.
+- 상태바 자리는 늘 배경을 깐다. 물러나는 것은 앱이 그린 제목 띠지 시스템 크롬이 아니다.
+- 콘텐츠 여백은 `Modifier.padding` 이 아니라 **`contentPadding`** 으로 준다. 안 그러면 띠 아래가
+  잘려 스크롤해도 첫 항목이 올라오지 않는다.
+- **터치 차단은 실제로 칠해진 배경 알파를 따라간다** — 제목 표시 여부(즉시 뒤집히는 불리언)가
+  아니다. 불리언에 걸면 양방향으로 최대 220ms 어긋나, 사라지는 동안엔 눈에 보이는 띠가 터치를
+  아래 항목으로 흘려보내고 나타나는 동안엔 빈 띠가 터치를 삼킨다. 이 때문에 M3 `TopAppBar` 를
+  그대로 겹치지 않고 띠를 직접 그린다 — M3 쪽은 조건 없이 `pointerInput` 을 달아 항상 삼킨다.
 
 ### 4.11 하단 네비게이션 바 (`Navigation.kt`)
 
@@ -480,8 +498,9 @@ Now in Android 방식 커스텀 스크롤바.
 섹션 헤더 우측 `CaretRight` 를 누르면 그 섹션의 전체 목록으로 이동한다. 화면은 하나이고
 `HomeSection` 인자로 세 레이아웃을 분기한다.
 
-- 상단바는 `FadeTopBarLayout` 이 아니라 `EpisodiveScaffold` — 히어로 없이 첫 줄부터 목록이라
-  "무엇의 목록인지"가 처음부터 보여야 한다. 제목은 홈 섹션 제목을 그대로 쓴다.
+- 상단바는 `FadeTopBarLayout` 이 아니라 `EpisodiveScaffold(hideTitleOnScroll = true)`(§4.10.1) —
+  히어로 없이 첫 줄부터 목록이라 "무엇의 목록인지"가 처음부터 보여야 하되, 내려가면 제목 띠는
+  물러나 목록에 자리를 내준다. 제목은 홈 섹션 제목을 그대로 쓰고 `titleMedium` 으로 낮춘다.
 - 팟캐스트·채널은 2열 그리드(`gridSpacing`), 에피소드는 세로 리스트(`listItemSpacing`).
   좌우 `screenPadding`, 하단은 `playerBarSpace` 만큼 비워 미니플레이어가 마지막 항목을 가리지 않는다.
 - 팟캐스트·에피소드는 Paging, 채널은 비페이징(`ChannelRepository` 에 PagingSource 가 없다).

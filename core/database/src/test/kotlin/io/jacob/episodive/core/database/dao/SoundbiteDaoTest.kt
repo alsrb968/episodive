@@ -143,4 +143,32 @@ class SoundbiteDaoTest {
         // Then
         assertEquals(5, result.size)
     }
+
+    @Test
+    fun `Given soundbites, When paged twice, Then pages partition the set in a fixed order`() =
+        runTest {
+            // LIMIT/OFFSET 페이징은 정렬이 정해져야만 성립한다. 여기서 고정하는 것은
+            // "episodeId 오름차순"이다.
+            //
+            // 다만 이 테스트로 잡히는 것과 아닌 것을 구분해 둔다. 정렬 컬럼을 바꾸면
+            // (cachedAt, title 등) 잡힌다. 반면 ORDER BY 를 통째로 지워도 통과한다 —
+            // episodeId 가 INTEGER PRIMARY KEY, 즉 rowid 별칭이라 전체 스캔이 마침 같은
+            // 순서를 내주기 때문이다(실측). DAO 쪽 정렬 명시는 그 우연에 기대지 않으려는
+            // 것이고, 그 부분은 테스트로 증명할 수 없다.
+            // Given
+            dao.upsertSoundbites(soundbiteEntities)
+            val pageSize = 4
+
+            // When
+            val first = dao.getSoundbitesPagingList(offset = 0, limit = pageSize)
+            val second = dao.getSoundbitesPagingList(offset = pageSize, limit = pageSize)
+            val third = dao.getSoundbitesPagingList(offset = pageSize * 2, limit = pageSize)
+            val paged = first + second + third
+
+            // Then
+            assertEquals(
+                soundbiteEntities.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId },
+            )
+        }
 }

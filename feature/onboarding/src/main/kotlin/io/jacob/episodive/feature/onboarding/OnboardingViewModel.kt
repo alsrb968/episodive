@@ -61,6 +61,11 @@ class OnboardingViewModel @Inject constructor(
             if (page == OnboardingPage.PodcastSelection) {
                 getUserRecommendedPodcastsPagingUseCase(max = 50)
             } else {
+                // 여기의 무인자 empty() 는 의도한 것이다. 다른 페이지에 있는 동안의 자리
+                // 지킴이일 뿐이라 로드 상태를 Loading 에 남겨 둬야 한다. EmptyLoadStates 로
+                // 바꾸면, 페이저가 팟캐스트 선택 페이지를 조합하는 시점(스와이프 도중)과
+                // _page 갱신 사이의 몇 프레임 동안 cachedIn 이 이 값을 되돌려 주고 화면이
+                // 스켈레톤 대신 "비어 있음"을 한 번 깜빡인다.
                 flowOf(PagingData.empty())
             }
         }.cachedIn(viewModelScope)

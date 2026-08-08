@@ -155,7 +155,6 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int,
         language: String?,
         includeCategories: List<Category>,
-        excludeCategories: List<Category>,
     ): Flow<List<Episode>> {
         val query = EpisodeQuery.Random(max, language, includeCategories)
 
@@ -168,7 +167,6 @@ class EpisodeRepositoryImpl @Inject constructor(
         max: Int,
         language: String?,
         includeCategories: List<Category>,
-        excludeCategories: List<Category>,
     ): Flow<PagingData<Episode>> {
         val query = EpisodeQuery.Random(max, language, includeCategories, QueryScope.FULL)
 
@@ -179,10 +177,7 @@ class EpisodeRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getRecentEpisodes(
-        max: Int,
-        excludeString: String?,
-    ): Flow<List<Episode>> {
+    override fun getRecentEpisodes(max: Int): Flow<List<Episode>> {
         val query = EpisodeQuery.Recent(max)
 
         return remoteUpdater.create(query)

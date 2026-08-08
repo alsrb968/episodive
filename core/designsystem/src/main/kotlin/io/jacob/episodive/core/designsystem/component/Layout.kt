@@ -307,6 +307,13 @@ private fun CollapsingHeaderBand(
     // 아무 바탕 없이 앨범아트 위에 놓이는 구간이 생긴다.
     val iconScrim = scrimColor.copy(alpha = CollapsingIconScrimAlpha * (1f - progress.value))
 
+    // 터치를 막을지는 `titleVisible` 이 아니라 **실제로 칠해진 알파**로 정한다. 불리언은
+    // 즉시 뒤집히는데 배경은 CollapsingHeaderDurationMs 동안 페이드하므로, 불리언에 걸면
+    // 두 방향 모두 최대 그 시간만큼 어긋난다 — 사라지는 동안엔 아직 보이는 띠가 터치를
+    // 흘려보내고, 나타나는 동안엔 아직 비어 있는 띠가 터치를 삼킨다.
+    // derivedStateOf 라 매 프레임이 아니라 참/거짓이 뒤집힐 때만 재구성한다.
+    val blocksTouches by remember(progress) { derivedStateOf { progress.value > 0f } }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -317,7 +324,7 @@ private fun CollapsingHeaderBand(
             // 조건 없이 pointerInput 을 달아, 배경이 물러난 뒤에도 이 띠가 통째로 터치를
             // 삼킨다 — 그 자리까지 올라온 항목이 눈에는 멀쩡히 보이는데 눌리지도 끌리지도
             // 않는 죽은 띠가 된다.
-            .then(if (titleVisible) Modifier.pointerInput(Unit) {} else Modifier)
+            .then(if (blocksTouches) Modifier.pointerInput(Unit) {} else Modifier)
             .drawBehind { drawRect(backgroundColor.copy(alpha = progress.value)) },
     ) {
         if (navigationIcon != null && navigationIconContentDescription != null) {
