@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import io.jacob.episodive.core.designsystem.component.EpisodiveButton
@@ -41,6 +42,7 @@ import io.jacob.episodive.core.designsystem.component.SkeletonContainer
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
+import io.jacob.episodive.core.model.DataErrorException
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.isRetryable
@@ -167,6 +169,38 @@ internal fun HomeMoreScreen(
     }
 }
 
+/**
+ * 페이징 실패 자리.
+ *
+ * 오류 종류를 실제로 읽는다. 고정 문구에 재시도 버튼을 무조건 달면, 다시 눌러도 같은 답이
+ * 오는 실패(인증 만료·없는 대상)에까지 버튼이 붙어 사용자가 헛되이 누른다 — 채널 분기가
+ * 이미 [io.jacob.episodive.core.model.isRetryable] 을 지키고 있어 같은 화면에서 규칙이
+ * 둘로 갈리기도 했다.
+ */
+@Composable
+private fun <T : Any> HomeMorePagingError(
+    items: LazyPagingItems<T>,
+    onRetry: () -> Unit,
+) {
+    val error = (items.loadState.refresh as? LoadState.Error)?.error
+    val dataError = (error as? DataErrorException)?.error
+
+    HomeMoreMessage(
+        text = dataError?.asUiMessage() ?: stringResource(R.string.feature_home_more_error),
+        onRetry = if (dataError == null || dataError.isRetryable) {
+            {
+                // 둘 다 부른다. items.retry() 는 PagingSource(로컬) 실패를 되돌리고,
+                // onRetry() 는 원격 실패로 흐름이 오류 상태로 바뀐 경우를 되돌린다.
+                // 후자는 Paging 자체 재시도가 닿지 않는다 — 흐름이 이미 끝나 있다.
+                items.retry()
+                onRetry()
+            }
+        } else {
+            null
+        },
+    )
+}
+
 /** 섹션 제목은 홈 헤더에 쓰는 것을 그대로 재사용한다 — 같은 목록에 다른 이름을 붙이지 않는다. */
 @Composable
 private fun HomeSection.title(): String = stringResource(
@@ -208,18 +242,7 @@ private fun HomeMorePodcastGrid(
             // 행 수는 뷰포트에서 도출한다 — 아래를 덮지 못하면 다 불러온 빈 목록으로 읽힌다.
             loading = { HomeMorePodcastGridSkeleton() },
             empty = { HomeMoreMessage(text = stringResource(R.string.feature_home_more_empty)) },
-            error = {
-                HomeMoreMessage(
-                    text = stringResource(R.string.feature_home_more_error),
-                    onRetry = {
-                        // 둘 다 부른다. items.retry() 는 PagingSource(로컬) 실패를 되돌리고,
-                        // onRetry() 는 원격 실패로 흐름이 오류 상태로 바뀐 경우를 되돌린다.
-                        // 후자는 Paging 자체 재시도가 닿지 않는다 — 흐름이 이미 끝나 있다.
-                        items.retry()
-                        onRetry()
-                    },
-                )
-            },
+            error = { HomeMorePagingError(items = items, onRetry = onRetry) },
         )
 
         items(
@@ -276,18 +299,7 @@ private fun HomeMoreEpisodeList(
             key = HomeMoreEpisodePagingKey,
             loading = { HomeMoreEpisodeListSkeleton() },
             empty = { HomeMoreMessage(text = stringResource(R.string.feature_home_more_empty)) },
-            error = {
-                HomeMoreMessage(
-                    text = stringResource(R.string.feature_home_more_error),
-                    onRetry = {
-                        // 둘 다 부른다. items.retry() 는 PagingSource(로컬) 실패를 되돌리고,
-                        // onRetry() 는 원격 실패로 흐름이 오류 상태로 바뀐 경우를 되돌린다.
-                        // 후자는 Paging 자체 재시도가 닿지 않는다 — 흐름이 이미 끝나 있다.
-                        items.retry()
-                        onRetry()
-                    },
-                )
-            },
+            error = { HomeMorePagingError(items = items, onRetry = onRetry) },
         )
 
         items(

@@ -25,13 +25,13 @@ enum class HomeSection {
 
 /** 전체 목록 화면이 항목을 늘어놓는 방식. */
 enum class HomeMoreLayout {
-    /** 커버가 주인공인 2열 그리드. */
+    /** 커버가 주인공인 그리드. 열 수는 화면이 정한다. */
     PodcastGrid,
 
     /** 제목·메타가 주인공인 세로 리스트. */
     EpisodeList,
 
-    /** 채널 카드 2열 그리드. */
+    /** 채널 카드 그리드. 설명이 세 줄까지 들어가 팟캐스트보다 열이 적다. */
     ChannelGrid,
 }
 

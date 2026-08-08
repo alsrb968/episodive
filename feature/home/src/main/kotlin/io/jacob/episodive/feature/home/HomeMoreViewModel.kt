@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -80,7 +82,16 @@ class HomeMoreViewModel @AssistedInject constructor(
                 Timber.e(e, "더 보기 목록을 불러오지 못했다 (section=$section)")
                 emit(PagingData.empty(sourceLoadStates = errorLoadStates(e)))
             }
-        }
+        }.onEach { retryInFlight = false }
+
+    /**
+     * 재시도가 아직 결과를 내지 않았다.
+     *
+     * [retryable] 의 `flatMapLatest` 는 트리거가 오를 때마다 진행 중이던 원격 페치를 취소하고
+     * 처음부터 다시 시작한다. 그래서 버튼을 연타하면 매번 취소만 되풀이돼 로드가 영영 끝나지
+     * 않는다. 원격 페치는 첫 방출보다 앞서므로(`onStart`), 방출이 곧 "이번 시도가 끝났다"다.
+     */
+    private var retryInFlight = false
 
     /**
      * 이 화면이 보여줄 것. 섹션은 화면 수명 동안 바뀌지 않으므로 한 번만 정한다.
@@ -134,7 +145,19 @@ class HomeMoreViewModel @AssistedInject constructor(
                             Timber.e(e, "채널 목록을 불러오지 못했다")
                             emit(HomeMoreChannelState.Error(e.asDataError()))
                         }
-                }.stateIn(
+                }
+                    // 이미 보여준 목록은 실패로 덮지 않는다. 채널은 로컬 캐시가 없어 재구독
+                    // (탭 전환·상세 다녀오기 5초)마다 원격을 다시 치는데, 그때 한 번 끊기면
+                    // 멀쩡히 보이던 목록이 통째로 오류 화면으로 바뀐다. RemoteUpdater 의
+                    // "캐시가 있으면 오래된 데이터라도 유지" 정책과 방향을 맞춘다.
+                    .runningFold(
+                        initial = HomeMoreChannelState.Loading as HomeMoreChannelState
+                    ) { previous, next ->
+                        if (next is HomeMoreChannelState.Error &&
+                            previous is HomeMoreChannelState.Success
+                        ) previous else next
+                    }
+                    .stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5_000),
                     initialValue = HomeMoreChannelState.Loading,
@@ -197,6 +220,10 @@ class HomeMoreViewModel @AssistedInject constructor(
     }
 
     private fun retry() {
+        // 앞선 시도가 아직 안 끝났으면 무시한다. 트리거를 또 올리면 진행 중이던 페치가
+        // 취소되고 처음부터 다시 시작해, 연타하는 동안에는 영영 끝나지 않는다.
+        if (retryInFlight) return
+        retryInFlight = true
         retryTrigger.update { it + 1 }
     }
 

@@ -17,6 +17,7 @@ import io.jacob.episodive.core.testing.model.podcastTestDataList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
@@ -475,6 +476,23 @@ class LibraryScreenTest {
     }
 
     @Test
+    fun searchOpen_back_closesSearchInsteadOfLeaving() {
+        // 검색창을 여는 상단 액션이 섹션을 All 로 되돌리므로, BackHandler 가 섹션만 보면
+        // 검색창이 떠 있는 동안 아예 꺼진다 — 뒤로가기가 보관함 탭을 통째로 벗어난다.
+        setLibraryScreen(section = LibrarySection.All)
+
+        composeTestRule.onNodeWithContentDescription("search").performClick()
+        composeTestRule.onNodeWithText(findPlaceholder).assertExists()
+
+        composeTestRule.runOnUiThread {
+            composeTestRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        composeTestRule.onNodeWithText(findPlaceholder).assertDoesNotExist()
+        assertFalse("뒤로가기가 화면을 벗어났다", composeTestRule.activity.isFinishing)
+    }
+
+    @Test
     fun allSection_back_isLeftToTheSystem() {
         // '모든' 에서는 되돌릴 필터가 없다. 여기서까지 가로채면 보관함을 나갈 수 없다.
         var selected: LibrarySection? = null
@@ -489,6 +507,9 @@ class LibraryScreenTest {
 
     /** 영문 기본 리소스가 만들어내는 문자열. */
     private val recentlyListenedTitle = "Recently listened episodes"
+
+    /** 검색창이 떠 있는지 가리는 표식. */
+    private val findPlaceholder = "Find your library"
 
     private fun seeAll(title: String) = "See all $title"
 }

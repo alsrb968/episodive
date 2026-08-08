@@ -277,8 +277,11 @@ internal fun LibraryScreen(
     // 더 보기로 들어온 탭은 화면이 아니라 필터라, 놔두면 뒤로가기가 보관함을 통째로
     // 벗어난다. 사용자가 방금 좁힌 것은 목록이므로 되돌릴 것도 목록이다 — '모든' 으로
     // 돌아온 뒤에야 뒤로가기가 화면을 떠난다.
-    BackHandler(enabled = section != LibrarySection.All) {
-        onSectionChange(LibrarySection.All)
+    BackHandler(enabled = showFind || section != LibrarySection.All) {
+        // 검색창이 먼저다. 상단 액션이 검색창을 열 때 섹션을 All 로 되돌리므로, 이 조건이
+        // 없으면 검색창이 떠 있는 동안 BackHandler 가 아예 꺼져 뒤로가기가 보관함 탭을
+        // 통째로 벗어난다 — 사용자는 검색창만 닫히길 기대한다.
+        if (showFind) showFind = false else onSectionChange(LibrarySection.All)
     }
 
     EpisodiveScaffold(
@@ -288,7 +291,6 @@ internal fun LibraryScreen(
             FindOrFilter(
                 scrollState = scrollState,
                 showFind = showFind,
-                onShowFindChanged = { showFind = it },
                 query = query,
                 onQueryChange = onQueryChange,
                 onFind = onFind,
@@ -1015,7 +1017,6 @@ private fun FindOrFilter(
     modifier: Modifier = Modifier,
     scrollState: LazyListState,
     showFind: Boolean,
-    onShowFindChanged: (Boolean) -> Unit,
     query: String,
     onQueryChange: (String) -> Unit,
     onFind: (String) -> Unit,

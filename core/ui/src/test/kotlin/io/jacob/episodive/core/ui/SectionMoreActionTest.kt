@@ -1,5 +1,6 @@
 package io.jacob.episodive.core.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -176,12 +177,23 @@ class SectionMoreActionTest {
     fun `Given a section with more, When rendered, Then description names that section`() {
         // contentDescription 이 섹션 제목을 담아야 스크린리더 사용자가 어느 섹션의 더 보기인지
         // 구분할 수 있다. 제목을 빼면 화면에 똑같은 버튼이 여덟 개 생긴다.
+        // 두 섹션을 함께 그린다. 하나만 그리면 다른 제목의 설명이 없다는 단언은 구현이
+        // 어떻든 참이라, 제목을 빼먹은 회귀를 못 잡는다.
         setThemedContent {
-            PodcastsSection(
-                title = podcastSectionTitle,
-                podcasts = podcastTestDataList.take(1),
-                onMore = {},
-            )
+            Column {
+                PodcastsSection(
+                    title = podcastSectionTitle,
+                    podcasts = podcastTestDataList.take(1),
+                    onMore = {},
+                )
+                EpisodesSection(
+                    title = episodeSectionTitle,
+                    episodes = episodeTestDataList.take(1),
+                    onEpisodeClick = {},
+                    onToggleLikedEpisode = {},
+                    onMore = {},
+                )
+            }
         }
 
         composeTestRule
@@ -189,7 +201,7 @@ class SectionMoreActionTest {
             .assertExists()
         composeTestRule
             .onNodeWithContentDescription(seeAll(episodeSectionTitle))
-            .assertDoesNotExist()
+            .assertExists()
     }
 
     /** 영문 기본 리소스(`core_ui_section_more_format`)가 만들어내는 문자열. */

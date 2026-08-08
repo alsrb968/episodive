@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.withIndex
 import kotlin.time.Instant
+import timber.log.Timber
 
 class PodcastRemoteUpdater @AssistedInject constructor(
     private val podcastLocal: PodcastLocalDataSource,
@@ -59,7 +60,11 @@ class PodcastRemoteUpdater @AssistedInject constructor(
                     includeCategories = query.categories.toCommaString(),
                 ).asFlow()
                     .flatMapMerge(concurrency = 10) { trend ->
+                        // 항목마다 잡는다. 상세 요청 하나가 5xx·타임아웃을 내면 나머지가 다
+                        // 성공했어도 목록 전체가 실패로 끝나고 한 건도 저장되지 않는다.
+                        // 전체 목록(max=50)은 요청이 미리보기의 다섯 배라 그만큼 자주 걸린다.
                         flow { emit(podcastRemote.getPodcastByFeedId(trend.id)) }
+                            .catch { e -> Timber.w(e, "피드 상세를 건너뛴다 (id=${trend.id})") }
                     }
                     .filterNotNull()
                     .toList()
@@ -73,6 +78,7 @@ class PodcastRemoteUpdater @AssistedInject constructor(
                 ).asFlow()
                     .flatMapMerge(concurrency = 10) { recent ->
                         flow { emit(podcastRemote.getPodcastByFeedId(recent.id)) }
+                            .catch { e -> Timber.w(e, "피드 상세를 건너뛴다 (id=${recent.id})") }
                     }
                     .filterNotNull()
                     .toList()
@@ -83,6 +89,7 @@ class PodcastRemoteUpdater @AssistedInject constructor(
                     .asFlow()
                     .flatMapMerge(concurrency = 10) { recentNew ->
                         flow { emit(podcastRemote.getPodcastByFeedId(recentNew.id)) }
+                            .catch { e -> Timber.w(e, "피드 상세를 건너뛴다 (id=${recentNew.id})") }
                     }
                     .filterNotNull()
                     .toList()
