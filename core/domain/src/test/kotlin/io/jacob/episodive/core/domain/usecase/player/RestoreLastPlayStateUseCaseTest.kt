@@ -21,6 +21,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class RestoreLastPlayStateUseCaseTest {
     @get:Rule
@@ -117,8 +118,12 @@ class RestoreLastPlayStateUseCaseTest {
             }
         }
 
+    // 저장된 에피소드(123L)가 플레이리스트에 없어 인덱스로 폴백하는 경우다.
+    // 이때 저장된 위치는 사라진 에피소드의 것이므로 함께 버려야 한다.
+    // 그대로 물려주면 폴백 대상 에피소드가 그 위치에서 시작하고, 그 값이 곧바로
+    // 저장되어 해당 에피소드의 이어듣기 지점이 오염된다.
     @Test
-    fun `Given index exceeds playlist size, When invoke, Then coerces index to last element`() =
+    fun `Given saved episode is missing from playlist, When invoke, Then coerces index and discards position`() =
         runTest {
             // Given
             val playlist = episodeTestDataList.take(3)
@@ -145,7 +150,122 @@ class RestoreLastPlayStateUseCaseTest {
             coVerifySequence {
                 userRepository.getLastPlayState()
                 episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
-                playerRepository.prepare(playlist, 2, 1000L)
+                playerRepository.prepare(playlist, 2, 0L)
+                playerRepository.setShuffle(false)
+                playerRepository.setRepeat(Repeat.OFF)
+            }
+        }
+
+    // DataStore 스냅샷은 5초 간격으로만 저장되어 0.5초마다 갱신되는 DB 보다 최대 그만큼
+    // 뒤처질 수 있다. DB 위치가 스냅샷보다 앞서면 DB 위치를 써야 앱을 켤 때마다 되감기는
+    // 문제가 생기지 않는다.
+    @Test
+    fun `Given db position ahead of snapshot, When invoke, Then prepares with db position`() =
+        runTest {
+            // Given
+            val playlist = episodeTestDataList.take(3).toMutableList()
+            playlist[1] = playlist[1].copy(position = 13.seconds)
+            val lastState = LastPlayState(
+                episodeId = playlist[1].id,
+                index = 1,
+                positionMs = 10_000L,
+                shuffle = false,
+                repeat = Repeat.OFF,
+            )
+            coEvery { userRepository.getLastPlayState() } returns lastState
+            coEvery {
+                episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
+            } returns playlist
+            every { playerRepository.prepare(any(), any(), any()) } just Runs
+            every { playerRepository.setShuffle(any()) } just Runs
+            every { playerRepository.setRepeat(any()) } just Runs
+
+            // When
+            val result = useCase()
+
+            // Then
+            assertTrue(result)
+            coVerifySequence {
+                userRepository.getLastPlayState()
+                episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
+                playerRepository.prepare(playlist, 1, 13_000L)
+                playerRepository.setShuffle(false)
+                playerRepository.setRepeat(Repeat.OFF)
+            }
+        }
+
+    // 반대로 스냅샷이 DB 보다 앞설 수도 있다(예: 종료 직전 위치가 DB 에 아직 반영되지
+    // 않은 경우). 이때는 스냅샷 값을 써야 한다 — maxOf 를 minOf 로 잘못 구현하면 이 테스트가
+    // 실패한다.
+    @Test
+    fun `Given snapshot ahead of db position, When invoke, Then prepares with snapshot position`() =
+        runTest {
+            // Given
+            val playlist = episodeTestDataList.take(3).toMutableList()
+            playlist[1] = playlist[1].copy(position = 13.seconds)
+            val lastState = LastPlayState(
+                episodeId = playlist[1].id,
+                index = 1,
+                positionMs = 20_000L,
+                shuffle = false,
+                repeat = Repeat.OFF,
+            )
+            coEvery { userRepository.getLastPlayState() } returns lastState
+            coEvery {
+                episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
+            } returns playlist
+            every { playerRepository.prepare(any(), any(), any()) } just Runs
+            every { playerRepository.setShuffle(any()) } just Runs
+            every { playerRepository.setRepeat(any()) } just Runs
+
+            // When
+            val result = useCase()
+
+            // Then
+            assertTrue(result)
+            coVerifySequence {
+                userRepository.getLastPlayState()
+                episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
+                playerRepository.prepare(playlist, 1, 20_000L)
+                playerRepository.setShuffle(false)
+                playerRepository.setRepeat(Repeat.OFF)
+            }
+        }
+
+    // 저장된 에피소드가 목록에 없어 인덱스로 폴백하는 경우, 스냅샷 위치는 사라진
+    // 에피소드의 것이므로 버리고 폴백 대상 자신의 DB 위치를 써야 한다. 폴백 대상의
+    // position 이 0 이 아닌 값으로 세팅되어 있을 때, 스냅샷 값도 0 도 아닌 그 값이
+    // 그대로 쓰이는지 검증한다.
+    @Test
+    fun `Given saved episode missing and fallback target has db position, When invoke, Then prepares with fallback target's own db position`() =
+        runTest {
+            // Given
+            val playlist = episodeTestDataList.take(3).toMutableList()
+            playlist[2] = playlist[2].copy(position = 42.seconds)
+            val lastState = LastPlayState(
+                episodeId = 123L,
+                index = 99,
+                positionMs = 1000L,
+                shuffle = false,
+                repeat = Repeat.OFF,
+            )
+            coEvery { userRepository.getLastPlayState() } returns lastState
+            coEvery {
+                episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
+            } returns playlist
+            every { playerRepository.prepare(any(), any(), any()) } just Runs
+            every { playerRepository.setShuffle(any()) } just Runs
+            every { playerRepository.setRepeat(any()) } just Runs
+
+            // When
+            val result = useCase()
+
+            // Then
+            assertTrue(result)
+            coVerifySequence {
+                userRepository.getLastPlayState()
+                episodeRepository.getEpisodesByGroupKey(GroupKey.PLAYLIST.toString())
+                playerRepository.prepare(playlist, 2, 42_000L)
                 playerRepository.setShuffle(false)
                 playerRepository.setRepeat(Repeat.OFF)
             }

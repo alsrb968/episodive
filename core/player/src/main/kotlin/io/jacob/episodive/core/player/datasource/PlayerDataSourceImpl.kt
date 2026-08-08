@@ -38,6 +38,10 @@ class PlayerDataSourceImpl @Inject constructor(
 ) : PlayerDataSource {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    // prepare() 가 setMediaItems 를 호출하는 동안 transition 콜백의 progress 발행을 막는 플래그.
+    // 콜백과 prepare() 는 같은 플레이어 스레드에서만 실행되므로 별도 동기화가 필요 없다.
+    private var isPreparing = false
+
     private val listener = object : Player.Listener {
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             Timber.d(
@@ -87,11 +91,29 @@ class PlayerDataSourceImpl @Inject constructor(
             val episode = mediaItem?.localConfiguration?.tag as? Episode
             _nowPlaying.value = episode
             _indexOfList.value = player.currentMediaItemIndex
-            _progress.value = Progress(
-                position = Duration.ZERO,
-                buffered = Duration.ZERO,
-                duration = episode?.duration ?: Duration.ZERO,
-            )
+            // 재생목록을 통째로 갈아끼우는 중에는 발행하지 않는다. media3 가 setMediaItems 호출
+            // 스택 안에서 이 콜백을 인라인 실행하는데, 그때는 아직 목표 항목·위치에 도달하기 전이라
+            // 잘못된 쌍이 만들어진다. 그 값이 한 번이라도 발행되면 구독자가 그대로 저장해
+            // (세션 스냅샷은 throttle 탓에 정정값을 버린다) 이어듣기 지점이 날아간다.
+            // 갈아끼우기가 끝난 뒤 확정값을 한 번만 발행한다.
+            if (!isPreparing) {
+                // 자동 전환과 반복은 새 항목을 항상 처음부터 재생하므로 0 이 확정이다.
+                // 그 경우 player.currentPosition 을 읽으면 아직 이전 항목의 끝 위치일 수 있고,
+                // 그 값이 새 에피소드의 위치로 저장되면 듣지도 않은 에피소드가 완료 처리된다.
+                // 나머지(탐색·재생목록 교체)는 플레이어가 이미 목표 위치에 가 있다.
+                val position = when (reason) {
+                    Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+                    Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT -> Duration.ZERO
+
+                    else -> player.currentPosition.toDurationMillis()
+                }
+                publishProgress(
+                    position = position,
+                    buffered = Duration.ZERO,
+                    duration = episode?.duration ?: Duration.ZERO,
+                    episodeId = episode?.id,
+                )
+            }
         }
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
@@ -222,8 +244,25 @@ class PlayerDataSourceImpl @Inject constructor(
     // so the user can choose when to start playback after app restart.
     override fun prepare(episodes: List<Episode>, indexToPlay: Int, positionMs: Long) {
         val mediaItems = episodes.map { it.toMediaItem(isClip = false) }
-        player.setMediaItems(mediaItems, indexToPlay, positionMs)
-        player.prepare()
+        // media3 는 setMediaItems 안에서 onMediaItemTransition 을 인라인 실행한다. 그 사이의
+        // 발행을 막아, 복원 위치가 잘못된 중간값으로 한 번도 노출되지 않게 한다.
+        isPreparing = true
+        try {
+            player.setMediaItems(mediaItems, indexToPlay, positionMs)
+            player.prepare()
+        } finally {
+            isPreparing = false
+        }
+
+        // 확정값을 여기서 한 번만 발행한다.
+        // 이 시점 player.duration 은 아직 TIME_UNSET 이므로 에피소드 메타의 길이를 쓴다.
+        val target = episodes.getOrNull(indexToPlay)
+        publishProgress(
+            position = positionMs.toDurationMillis(),
+            buffered = Duration.ZERO,
+            duration = target?.duration ?: Duration.ZERO,
+            episodeId = target?.id,
+        )
     }
 
     override fun play(episode: Episode) {
@@ -241,10 +280,20 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         val mediaItems = episodes.map { it.toMediaItem(isClip = false) }
 
-        player.setMediaItems(mediaItems)
-        indexToPlay?.let { player.seekToDefaultPosition(it) }
-        player.prepare()
+        // setMediaItems 는 목록의 첫 항목으로 transition 을 인라인 발생시킨다. 목표가 첫 항목이
+        // 아니면 그 사이에 "재생하지도 않을 에피소드 + 위치 0" 이 발행되어 그 에피소드의
+        // 이어듣기 지점이 지워진다. seekToDefaultPosition 으로 목표에 도달할 때까지 막는다.
+        isPreparing = true
+        try {
+            player.setMediaItems(mediaItems)
+            indexToPlay?.let { player.seekToDefaultPosition(it) }
+            player.prepare()
+        } finally {
+            isPreparing = false
+        }
         player.playWhenReady = true
+
+        publishStartOfPlayback(episodes.getOrNull(indexToPlay ?: 0))
     }
 
     override fun playClip(episode: Episode) {
@@ -262,10 +311,18 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         val mediaItems = episodes.map { it.toMediaItem(isClip = true) }
 
-        player.setMediaItems(mediaItems)
-        indexToPlay?.let { player.seekToDefaultPosition(it) }
-        player.prepare()
+        // play(episodes, indexToPlay) 와 같은 이유로 목표 항목에 도달할 때까지 발행을 막는다.
+        isPreparing = true
+        try {
+            player.setMediaItems(mediaItems)
+            indexToPlay?.let { player.seekToDefaultPosition(it) }
+            player.prepare()
+        } finally {
+            isPreparing = false
+        }
         player.playWhenReady = true
+
+        publishStartOfPlayback(episodes.getOrNull(indexToPlay ?: 0))
     }
 
     override fun playIndex(index: Int) {
@@ -316,10 +373,18 @@ class PlayerDataSourceImpl @Inject constructor(
 
     override fun seekTo(position: Long) {
         player.seekTo(position)
-        _progress.value = Progress(
+        // 준비 전에는 player.duration 이 TIME_UNSET(음수)이라 그대로 실으면
+        // 시커와 수면 타이머가 쓰레기 값을 본다. 그럴 땐 에피소드 메타의 길이로 대신한다.
+        // 직전 progress 의 duration 을 쓰면 안 된다 — 전환 직후엔 그것이 이전 에피소드의
+        // 길이여서, 짧은 길이 + 큰 위치 조합이 완료 판정을 잘못 뒤집는다.
+        val duration = player.duration.toDurationMillis().takeIf { it.isPositive() }
+            ?: currentEpisode()?.duration
+            ?: Duration.ZERO
+        publishProgress(
             position = position.toDurationMillis(),
             buffered = player.bufferedPosition.toDurationMillis(),
-            duration = player.duration.toDurationMillis(),
+            duration = duration,
+            episodeId = currentEpisodeId(),
         )
     }
 
@@ -419,10 +484,69 @@ class PlayerDataSourceImpl @Inject constructor(
     }
 
     override fun rehydrate(episode: Episode) {
+        // 플레이어가 이미 다른 에피소드를 들고 있으면 그쪽이 진실이다.
+        // 이 가드가 없으면 서비스의 비동기 DB 읽기가 늦게 도착해 _nowPlaying 을 되돌리고,
+        // UI 는 A 를 보여주면서 B 를 재생하는 상태가 된다.
+        val playingEpisode = currentEpisode()
+        if (playingEpisode != null && playingEpisode.id != episode.id) return
         // 같은 episode 면 무시 (불필요한 widget 갱신/depounce 방지).
         if (_nowPlaying.value?.id == episode.id) return
         _nowPlaying.value = episode
         _isPlaying.value = player.isPlaying
+        // 여기서 _progress 를 세팅하지 말 것. 이 시점의 실제 재생 위치는 알 수 없고,
+        // episodeId 가 붙은 progress 를 발행하는 순간 그 값이 DB 에 저장되어
+        // 아직 듣지도 않은 위치로 이어듣기 지점이 덮어써진다.
+        // progress 는 progressUpdater 나 transition 콜백이 실제 값으로 채운다.
+    }
+
+    /**
+     * 지금 플레이어에 올라 있는 에피소드. 재생 위치의 주인을 판별하는 유일한 근거다.
+     *
+     * `_nowPlaying` 을 쓰지 않는 이유: rehydrate 가 플레이어 상태와 무관하게 그 값을 바꿀 수 있어,
+     * 실제로는 B 를 재생하면서 A 의 id 가 붙은 위치를 발행하는 오염이 생긴다.
+     * 플레이어 스레드에서만 호출할 것.
+     */
+    private fun currentEpisode(): Episode? =
+        player.currentMediaItem?.localConfiguration?.tag as? Episode
+
+    private fun currentEpisodeId(): Long? = currentEpisode()?.id
+
+    /**
+     * 재생목록을 갈아끼운 직후, 실제로 재생할 항목의 시작 상태를 발행한다.
+     * 갈아끼우는 동안 억제한 transition 콜백을 대신하는 확정 발행이다.
+     */
+    private fun publishStartOfPlayback(target: Episode?) {
+        publishProgress(
+            position = Duration.ZERO,
+            buffered = Duration.ZERO,
+            duration = target?.duration ?: Duration.ZERO,
+            episodeId = target?.id,
+        )
+    }
+
+    /**
+     * progress 를 발행하는 통로. 위치·길이와 그것이 속한 episodeId 를 한 번의 대입으로 묶는다.
+     *
+     * 구독자(재생 위치 저장 경로)는 이 쌍을 원자적으로 받아야 한다. 에피소드 id 를 별도 Flow 에서
+     * 가져오면 전환 순간 두 스트림의 지연 차 때문에 어긋난 쌍을 보게 되고, 이전 에피소드의
+     * 저장 위치가 오염된다. 새 발행 지점을 추가할 때도 반드시 이 함수를 거칠 것.
+     *
+     * 단일 항목 재생(`play(episode)`, `playClip`)과 `addTrack` 계열은 여기를 직접 거치지 않는다.
+     * 그 경로들은 transition 콜백이 대신 발행하며, 콜백도 이 함수를 거치므로 계약은 지켜진다.
+     * 목록을 통째로 갈아끼우는 경로만 콜백을 억제하고 확정값을 직접 발행한다.
+     */
+    private fun publishProgress(
+        position: Duration,
+        buffered: Duration,
+        duration: Duration,
+        episodeId: Long?,
+    ) {
+        _progress.value = Progress(
+            position = position,
+            buffered = buffered,
+            duration = duration,
+            episodeId = episodeId,
+        )
     }
 
     private val _nowPlaying = MutableStateFlow<Episode?>(null)
@@ -469,6 +593,13 @@ class PlayerDataSourceImpl @Inject constructor(
     }.flatMapLatest { (isPlaying, playback) ->
         flow {
             while (isPlaying) {
+                // 위치와 episodeId 를 반드시 같은 Main 블록 안에서 **읽는다**. transition 콜백도
+                // 같은 스레드에서 실행되므로, 이렇게 해야 둘이 서로 맞는 쌍이 된다.
+                // 블록 밖에서 읽으면 전환 도중의 어긋난 쌍이 만들어질 수 있다.
+                //
+                // 발행은 블록 밖(IO)에서 일어나므로 "읽기~발행" 사이에 전환이 끼어들 수 있다.
+                // 그래도 발행되는 쌍 자체는 일관되므로(이전 에피소드 + 그 에피소드의 실제 위치)
+                // 저장이 오염되지는 않는다. 잠깐 오래된 쌍이 보일 뿐이고 다음 tick 이 정정한다.
                 val progressValue = withContext(Dispatchers.Main) {
                     val duration = player.duration.toDurationMillis()
                     if (duration.isPositive()) {
@@ -476,12 +607,15 @@ class PlayerDataSourceImpl @Inject constructor(
                             position = player.currentPosition.toDurationMillis(),
                             buffered = player.bufferedPosition.toDurationMillis(),
                             duration = duration,
+                            episodeId = currentEpisodeId(),
                         )
                     } else {
                         null
                     }
                 }
-                progressValue?.let { _progress.value = it }
+                progressValue?.let {
+                    publishProgress(it.position, it.buffered, it.duration, it.episodeId)
+                }
                 delay(500L)
             }
 
@@ -493,12 +627,15 @@ class PlayerDataSourceImpl @Inject constructor(
                             position = duration,
                             buffered = duration,
                             duration = duration,
+                            episodeId = currentEpisodeId(),
                         )
                     } else {
                         null
                     }
                 }
-                progressValue?.let { _progress.value = it }
+                progressValue?.let {
+                    publishProgress(it.position, it.buffered, it.duration, it.episodeId)
+                }
             }
         }
     }

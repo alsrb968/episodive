@@ -135,6 +135,26 @@ Hilt `@Player` qualifier로 ExoPlayer 인스턴스 두 개 관리:
 - `@Player(EpisodivePlayers.Main)` — 전체 에피소드 재생
 - `@Player(EpisodivePlayers.Clip)` — 사운드바이트/클립 재생
 
+### 재생 위치 저장 규약 (필수)
+
+재생 위치는 **`Progress.episodeId` 를 키로만** 저장한다. 저장 경로(`PlayerViewModel` 의 progress
+콜렉터, `LastPlaySnapshot`, 수면 타이머)는 `playerRepository.progress` 하나만 구독한다.
+
+**에피소드 id 를 `nowPlaying` 같은 다른 Flow 에서 가져와 `combine` 하지 마라.** `nowPlaying` 은
+Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. 전환 순간 `(이전 에피소드, 새 위치)`
+쌍이 만들어지고 그대로 저장되어 **이전 에피소드의 이어듣기 지점이 사라진다.** 실제로 겪은 버그다.
+
+`PlayerDataSourceImpl` 쪽 규약:
+- progress 발행은 `publishProgress()` 를 거치고 **반드시 `episodeId` 를 함께 싣는다.** 빠뜨리면
+  그 경로의 저장이 조용히 멈춘다(오염이 아니라 무저장이라 눈치채기 어렵다).
+- `episodeId` 는 `_nowPlaying` 이 아니라 `currentEpisode()`(= 플레이어에 실제로 올라 있는 항목)에서
+  얻는다. `rehydrate` 가 `_nowPlaying` 을 플레이어와 무관하게 바꿀 수 있다.
+- media3 는 `setMediaItems` 호출 스택 안에서 transition 콜백을 **인라인 실행**한다. 목록을 통째로
+  갈아끼우는 경로(`prepare`/`play(list, index)`/`playClips`)는 `isPreparing` 으로 그동안의 발행을 막고,
+  끝난 뒤 확정값을 한 번만 발행한다.
+- `position == 0 이면 저장하지 않는다` 류 가드를 넣지 마라. "맨 앞으로 되감기" 와 "완료 후 처음부터
+  다시 듣기" 가 0 을 저장해야 정상이다. `PlayerViewModelTest` 에 이를 지키는 계약 테스트가 있다.
+
 ## 중요 구현 세부사항
 
 ### 1. Enum 처리 (필수)

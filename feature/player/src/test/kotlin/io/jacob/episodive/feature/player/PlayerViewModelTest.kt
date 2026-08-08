@@ -439,7 +439,247 @@ class PlayerViewModelTest {
             coVerify(exactly = 0) { restoreLastPlayStateUseCase() }
         }
 
+    // --- Played Progress Persistence Tests ---
+
+    @Test
+    fun `Given episode A mid-playback, When progress flips to episode B with stale zero position, Then episode A is not saved with zero position`() =
+        runTest {
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            val episodeB = episodeTestDataList[1]
+            nowPlayingFlow.value = episodeA
+            // getNowPlayingUseCase 는 DB 왕복 지연을 재현하기 위해 계속 A 를 방출한다.
+            every { getNowPlayingUseCase() } returns flowOf(episodeA)
+            progressFlow.value = Progress(500.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            // 에피소드 전환 순간: progress 는 이미 B 를 가리키지만 nowPlaying(DB 파생)은 아직 A 를 방출 중
+            progressFlow.value = Progress(0.seconds, 0.seconds, 0.seconds, episodeId = episodeB.id)
+
+            coVerify(exactly = 0) {
+                updatePlayedEpisodeUseCase(episodeA.id, match { it.position == 0.seconds })
+            }
+            coVerify {
+                updatePlayedEpisodeUseCase(episodeB.id, match { it.position == 0.seconds })
+            }
+        }
+
+    @Test
+    fun `Given episode A mid-playback, When switching to episode B resume position, Then episode A is not saved with episode B position`() =
+        runTest {
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            val episodeB = episodeTestDataList[1]
+            nowPlayingFlow.value = episodeA
+            every { getNowPlayingUseCase() } returns flowOf(episodeA)
+            progressFlow.value = Progress(500.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            // 이어듣기 전환: ZERO 방출이 StateFlow conflation 으로 생략된 상태를 재현
+            progressFlow.value = Progress(300.seconds, 0.seconds, 0.seconds, episodeId = episodeB.id)
+
+            coVerify(exactly = 0) {
+                updatePlayedEpisodeUseCase(episodeA.id, match { it.position == 300.seconds })
+            }
+            coVerify {
+                updatePlayedEpisodeUseCase(episodeB.id, match { it.position == 300.seconds })
+            }
+        }
+
+    @Test
+    fun `Given cold start with nowPlaying restored but progress not yet rehydrated, When ViewModel is created, Then no save is invoked`() =
+        runTest {
+            setupDefaultMocks()
+            val episodeA = episodeTestData
+            nowPlayingFlow.value = episodeA
+            every { getNowPlayingUseCase() } returns flowOf(episodeA)
+            // progressFlow 는 초기값 그대로: episodeId = null (rehydrate 는 progress 를 건드리지 않는다)
+
+            createViewModel()
+
+            coVerify(exactly = 0) { updatePlayedEpisodeUseCase(any(), any()) }
+        }
+
+    @Test
+    fun `Given episode A rewound to zero, When user restarts from the beginning, Then position zero is saved`() =
+        runTest {
+            // 사용자가 맨 앞으로 되감거나 완료한 에피소드를 다시 듣기 시작하면 0 이 저장되어야 한다.
+            // position==0 저장을 막는 가드를 넣으면 이 테스트가 실패한다.
+            setupDefaultMocks()
+            val episodeA = episodeTestData
+            nowPlayingFlow.value = episodeA
+            every { getNowPlayingUseCase() } returns flowOf(episodeA)
+            progressFlow.value = Progress(500.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            progressFlow.value = Progress(0.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            coVerify {
+                updatePlayedEpisodeUseCase(episodeA.id, match { it.position == 0.seconds })
+            }
+        }
+
+    @Test
+    fun `Given progress without episodeId, When ViewModel is created, Then LastPlaySnapshot is not saved`() =
+        runTest {
+            setupDefaultMocks()
+            every { timeProvider.currentTimeMillis() } returns 10_000L
+            // nowPlaying 은 채워져 있지만 progress.episodeId 만 null 인 상태를 재현한다.
+            // 옛 5-arity combine(index, progress, shuffle, repeat, nowPlaying) 으로 되돌리면
+            // nowPlaying 이 non-null 이라 이 테스트가 실패해야 한다. nowPlaying 을 세팅하지 않으면
+            // 옛 구현도 nowPlaying==null 때문에 저장을 건너뛰어 이 테스트가 실효 없이 통과해버린다.
+            nowPlayingFlow.value = episodeTestData
+            progressFlow.value = Progress(100.seconds, 0.seconds, 0.seconds, episodeId = null)
+
+            createViewModel()
+
+            coVerify(exactly = 0) {
+                saveLastPlayStateUseCase(any(), any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun `Given progress with episodeId, When ViewModel is created, Then LastPlaySnapshot is saved with progress episodeId`() =
+        runTest {
+            setupDefaultMocks()
+            every { timeProvider.currentTimeMillis() } returns 10_000L
+            val episodeA = episodeTestData
+            progressFlow.value = Progress(100.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            coVerify {
+                saveLastPlayStateUseCase(episodeA.id, any(), 100_000L, any(), any())
+            }
+        }
+
+    @Test
+    fun `Given episode changes within the 5-second throttle window, When progress flips to episode B, Then both episodes are saved without waiting`() =
+        runTest {
+            setupDefaultMocks()
+            // 시각을 고정해 throttle 창(5초)이 절대 열리지 않게 한다.
+            // 그럼에도 에피소드가 바뀌면 lastSavedEpisodeId 가드가 즉시 저장을 강제해야 한다.
+            every { timeProvider.currentTimeMillis() } returns 10_000L
+            val episodeA = episodeTestDataList[0]
+            val episodeB = episodeTestDataList[1]
+            progressFlow.value = Progress(100.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            // B 의 위치를 A 보다 **크게** 잡는 것이 중요하다. 작게 잡으면 rewound 가드가 참이 되어
+            // episodeChanged 를 지워도 저장이 일어나고, 이 테스트는 아무것도 잡지 못한다.
+            progressFlow.value = Progress(200.seconds, 0.seconds, 0.seconds, episodeId = episodeB.id)
+
+            coVerify {
+                saveLastPlayStateUseCase(episodeA.id, any(), 100_000L, any(), any())
+            }
+            coVerify {
+                saveLastPlayStateUseCase(episodeB.id, any(), 200_000L, any(), any())
+            }
+        }
+
+    @Test
+    fun `Given same episode progress ticks within the 5-second throttle window, When position changes, Then only one snapshot is saved`() =
+        runTest {
+            setupDefaultMocks()
+            // 계약 테스트: throttle 을 통째로 없애면(예: episodeChanged 가드만 남기고 시간 체크를 지우면)
+            // 같은 에피소드 안에서도 매 tick 저장이 발생해 이 테스트가 실패해야 한다.
+            every { timeProvider.currentTimeMillis() } returns 10_000L
+            val episodeA = episodeTestDataList[0]
+            progressFlow.value = Progress(100.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            progressFlow.value = Progress(200.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            coVerify(exactly = 1) {
+                saveLastPlayStateUseCase(episodeA.id, any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun `Given user rewinds within the 5-second throttle window, When position jumps backward, Then the rewound position is saved immediately`() =
+        runTest {
+            // 되감기는 throttle 을 기다리면 안 된다. 창이 닫힌 동안 사용자가 일시정지하면
+            // progress 방출이 멈춰 되감기 이전 값이 스냅샷에 남고, 다음 실행에서 그 값으로 복원된다.
+            // 되감은 지점이 사라지는 것은 사용자에겐 "내가 한 조작이 무시됐다" 로 보인다.
+            // rewound 가드를 지우면 이 테스트가 실패한다.
+            setupDefaultMocks()
+            every { timeProvider.currentTimeMillis() } returns 10_000L
+            val episodeA = episodeTestDataList[0]
+            progressFlow.value = Progress(1800.seconds, 0.seconds, 3600.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            // 사용자가 맨 앞으로 되감았다. 시각은 그대로라 throttle 창은 닫혀 있다.
+            progressFlow.value = Progress(0.seconds, 0.seconds, 3600.seconds, episodeId = episodeA.id)
+
+            coVerify(exactly = 1) {
+                saveLastPlayStateUseCase(episodeA.id, any(), 0L, any(), any())
+            }
+        }
+
+    @Test
+    fun `Given episode A progress ticks consecutively, When collected, Then the last position is persisted`() =
+        runTest {
+            // 같은 에피소드 안에서 연속 방출된 tick 중 마지막 값이 저장되는지 확인한다.
+            //
+            // 주의: 이 테스트는 collect 와 collectLatest 를 구별하지 못한다. MainDispatcherRule 의
+            // UnconfinedTestDispatcher 에서는 두 구현이 똑같이 동작하기 때문이다(실측 확인).
+            // 저장 콜렉터를 collectLatest 로 되돌려도 이 테스트는 통과한다 —
+            // "느린 DB 에서 전환 직전 쓰기가 취소되지 않는다" 는 보장은 여기서 검증되지 않는다.
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            progressFlow.value = Progress(100.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            createViewModel()
+
+            progressFlow.value = Progress(200.seconds, 0.seconds, 0.seconds, episodeId = episodeA.id)
+
+            coVerify {
+                updatePlayedEpisodeUseCase(episodeA.id, match { it.position == 200.seconds })
+            }
+        }
+
     // --- Sleep Timer Tests ---
+
+    @Test
+    fun `Given end of episode timer running, When progress moves to another episode, Then timer stops without pausing`() =
+        runTest {
+            // 타이머의 에피소드 판별도 progress.episodeId 로 한다. nowPlaying 은 DB 왕복 탓에
+            // 전환 후에도 한동안 이전 에피소드로 남아 있어서, 그것으로 판별하면 타이머가
+            // 이미 넘어간 에피소드를 기준으로 계속 돌며 엉뚱한 시점에 재생을 멈춘다.
+            // 판별을 nowPlaying 으로 되돌리면 이 테스트가 실패한다.
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            val episodeB = episodeTestDataList[1]
+            // nowPlaying 은 A 로 고정한다 — 전환이 progress 에만 먼저 반영된 상태를 재현한다.
+            nowPlayingFlow.value = episodeA
+            every { getNowPlayingUseCase() } returns flowOf(episodeA)
+            progressFlow.value = Progress(10.seconds, 10.seconds, 600.seconds, episodeId = episodeA.id)
+
+            val viewModel = createViewModel()
+            viewModel.sendAction(PlayerAction.SleepTimerEndOfEpisode)
+
+            // 아직 A 를 재생 중이므로 타이머가 살아 있다.
+            progressFlow.value = Progress(20.seconds, 20.seconds, 600.seconds, episodeId = episodeA.id)
+            verify(exactly = 0) { playerRepository.pause() }
+
+            // B 로 넘어가면 타이머는 중단돼야 한다.
+            // 남은 시간을 **0 으로** 주는 것이 중요하다. 만료 조건(remaining <= 500)을 넘기지 않으면
+            // 판별을 무엇으로 하든 pause() 가 불리지 않아 이 테스트가 아무것도 잡지 못한다.
+            //
+            // 다만 이 테스트는 "판별을 nowPlaying 으로 되돌리면 실패한다"를 보이지는 못한다.
+            // nowPlaying 은 stateIn(WhileSubscribed) 이라 이 테스트에서 값이 흐르지 않고,
+            // 옛 구현도 null 비교로 조기 중단되기 때문이다(실측 확인).
+            // 잡아내는 것은 "에피소드 판별을 아예 없애는" 회귀다.
+            progressFlow.value = Progress(600.seconds, 600.seconds, 600.seconds, episodeId = episodeB.id)
+
+            verify(exactly = 0) { playerRepository.pause() }
+        }
 
     @Test
     fun `Given SetSleepTimer action, When timer expires, Then pause is called and SleepTimerExpired effect is emitted`() =
@@ -507,7 +747,9 @@ class PlayerViewModelTest {
         runTest {
             setupDefaultMocks()
             nowPlayingFlow.value = episodeTestData
-            progressFlow.value = Progress(0.seconds, 0.seconds, 0.seconds)
+            // episodeId 를 채워서 조기 return(episodeId == null) 이 아니라
+            // duration == 0(라이브 스트림) 때문에 타이머가 뜨지 않는 경로를 실제로 검증한다.
+            progressFlow.value = Progress(0.seconds, 0.seconds, 0.seconds, episodeId = episodeTestData.id)
 
             val viewModel = createViewModel()
 
