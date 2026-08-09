@@ -14,6 +14,8 @@ interface EpisodeLocalDataSource {
     suspend fun upsertEpisode(episode: EpisodeEntity)
     suspend fun upsertEpisodesWithGroup(episodes: List<EpisodeEntity>, groupKey: String)
     suspend fun updateEpisodeDuration(id: Long, duration: Duration)
+    suspend fun updateEpisodeDescription(id: Long, description: String)
+    suspend fun getEpisodeDescription(id: Long): String?
     fun getEpisodeById(id: Long): Flow<EpisodeWithExtrasView?>
     fun getEpisodesByIds(ids: List<Long>): Flow<List<EpisodeWithExtrasView>>
     suspend fun getEpisodesByIdsOnce(ids: List<Long>): List<EpisodeWithExtrasView>

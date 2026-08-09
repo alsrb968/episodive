@@ -59,9 +59,9 @@ class EpisodeRemoteDataSourceImpl @Inject constructor(
         ).dataList
     }
 
-    override suspend fun getEpisodeById(id: Long): EpisodeResponse? {
+    override suspend fun getEpisodeById(id: Long, fulltext: Boolean?): EpisodeResponse? {
         Timber.i("getEpisodeById: $id")
-        return episodeApi.getEpisodeById(id = id).data
+        return episodeApi.getEpisodeById(id = id, fulltext = fulltext).data
     }
 
     override suspend fun getLiveEpisodes(max: Int?): List<EpisodeResponse> {

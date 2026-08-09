@@ -26,7 +26,7 @@ interface EpisodeRemoteDataSource {
         since: Long? = null,
     ): List<EpisodeResponse>
 
-    suspend fun getEpisodeById(id: Long): EpisodeResponse?
+    suspend fun getEpisodeById(id: Long, fulltext: Boolean? = null): EpisodeResponse?
 
     suspend fun getLiveEpisodes(max: Int? = null): List<EpisodeResponse>
 

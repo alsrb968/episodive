@@ -9,6 +9,7 @@ import io.jacob.episodive.core.common.TimeProvider
 import io.jacob.episodive.core.common.combine as combineTyped
 import io.jacob.episodive.core.domain.repository.PlayerRepository
 import io.jacob.episodive.core.domain.usecase.episode.GetChaptersUseCase
+import io.jacob.episodive.core.domain.usecase.episode.RefreshEpisodeDescriptionUseCase
 import io.jacob.episodive.core.domain.usecase.episode.SaveEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
@@ -44,8 +45,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,6 +56,7 @@ class PlayerViewModel @Inject constructor(
     private val toggleLikedEpisodeUseCase: ToggleLikedEpisodeUseCase,
     private val saveEpisodeUseCase: SaveEpisodeUseCase,
     private val updatePlayedEpisodeUseCase: UpdatePlayedEpisodeUseCase,
+    private val refreshEpisodeDescriptionUseCase: RefreshEpisodeDescriptionUseCase,
     getPodcastUseCase: GetPodcastUseCase,
     @param:Player(EpisodivePlayers.Main) private val playerRepository: PlayerRepository,
     getNowPlayingUseCase: GetNowPlayingUseCase,
@@ -210,6 +214,25 @@ class PlayerViewModel @Inject constructor(
                         lastSavedPositionMs = snapshot.positionMs
                     }
                 }
+        }
+        // 재생 중인 에피소드가 바뀔 때마다 description 을 fulltext 로 보강한다. 목록/재생 시작
+        // 시점엔 잘린 설명만 있어 상세에 전체 설명을 보여주려면 이 시점에 다시 받아야 한다.
+        // State 파이프라인(위 combine)에 끼워 넣지 않고 별도 launch 로 둔다 — 부작용이라 느려도
+        // 재생 흐름(State 방출)을 막으면 안 된다.
+        //
+        // refreshEpisodeDescriptionUseCase 는 EpisodeRepositoryImpl 이 예외를 삼키는 데 기대고
+        // 있지만, 여기서는 구현체가 아니라 EpisodeRepository 인터페이스에 의존하므로 그 규율이
+        // 구현체 한 곳에만 걸려 있다. onEach 안에서 뭔가 던지면 collect 가 죽어 VM 수명 내내
+        // 보강이 영구 중단되므로 이 스트림에도 에러 경계를 둔다. catch 는 collect{} 람다 안의
+        // 예외는 못 잡고 업스트림(과 onEach) 예외만 잡으므로, 실제 작업은 onEach 에서 하고
+        // collect 는 빈 람다로 스트림을 구동만 시킨다. 취소는 catch 가 재전파하므로 별도
+        // 처리가 필요 없다.
+        viewModelScope.launch {
+            nowPlaying.mapNotNull { it?.id }
+                .distinctUntilChanged()
+                .onEach { refreshEpisodeDescriptionUseCase(it) }
+                .catch { Timber.w(it, "설명 보강 스트림이 끊겼다") }
+                .collect { }
         }
     }
 

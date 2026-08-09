@@ -24,13 +24,19 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
@@ -742,5 +748,291 @@ class EpisodeRepositoryTest {
                 remoteUpdater.create(query)
                 updater.getPagingData(any())
             }
+        }
+
+    @Test
+    fun `Given episodeId, When refreshEpisodeDescription, Then calls remote with fulltext true`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns null
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            }
+        }
+
+    @Test
+    fun `Given remote description longer than local, When refreshEpisodeDescription, Then updates local description`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            val localDescription = "짧은 설명"
+            val longerRemoteDescription = "짧은 설명보다 훨씬 더 긴 원격 전체 설명입니다."
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns longerRemoteDescription
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+            coEvery { localDataSource.getEpisodeDescription(id) } returns localDescription
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+                localDataSource.getEpisodeDescription(id)
+                localDataSource.updateEpisodeDescription(id, longerRemoteDescription)
+            }
+        }
+
+    @Test
+    fun `Given remote description shorter than local, When refreshEpisodeDescription, Then does not update local description`() =
+        runTest {
+            // Given: 원격이 기존보다 짧게 주는 경우 퇴화를 막는다
+            val id = episodeTestData.id
+            val longerLocalDescription = "이미 저장돼 있는 훨씬 더 긴 로컬 설명입니다."
+            val shorterRemoteDescription = "짧은 원격"
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns shorterRemoteDescription
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+            coEvery { localDataSource.getEpisodeDescription(id) } returns longerLocalDescription
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+                localDataSource.getEpisodeDescription(id)
+            }
+            coVerify(exactly = 0) { localDataSource.updateEpisodeDescription(any(), any()) }
+        }
+
+    @Test
+    fun `Given remote description same length as local, When refreshEpisodeDescription, Then does not update local description`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            val description = "길이가 똑같은 설명입니다!!"
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns description
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+            coEvery { localDataSource.getEpisodeDescription(id) } returns description
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+                localDataSource.getEpisodeDescription(id)
+            }
+            coVerify(exactly = 0) { localDataSource.updateEpisodeDescription(any(), any()) }
+        }
+
+    @Test
+    fun `Given local description is null, When refreshEpisodeDescription, Then writes remote description`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            val remoteDescription = "새로 채워질 원격 설명입니다."
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns remoteDescription
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+            coEvery { localDataSource.getEpisodeDescription(id) } returns null
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+                localDataSource.getEpisodeDescription(id)
+                localDataSource.updateEpisodeDescription(id, remoteDescription)
+            }
+        }
+
+    @Test
+    fun `Given remote description is null, When refreshEpisodeDescription, Then does not update local description`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns null
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            }
+            coVerify(exactly = 0) { localDataSource.getEpisodeDescription(any()) }
+            coVerify(exactly = 0) { localDataSource.updateEpisodeDescription(any(), any()) }
+        }
+
+    @Test
+    fun `Given remote description is empty, When refreshEpisodeDescription, Then does not update local description`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns ""
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+
+            // When
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            }
+            coVerify(exactly = 0) { localDataSource.getEpisodeDescription(any()) }
+            coVerify(exactly = 0) { localDataSource.updateEpisodeDescription(any(), any()) }
+        }
+
+    @Test
+    fun `Given same id called twice sequentially, When refreshEpisodeDescription, Then calls remote each time`() =
+        runTest {
+            // Given: refreshingEpisodeIds 는 "진행 중" 표시일 뿐 "완료" 의 영구 기록이 아니다.
+            // 첫 호출이 끝나며 finally 에서 표시가 지워지므로, 순차 호출은 매번 원격을 다시 친다.
+            val id = episodeTestData.id
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns "매번 다시 불려야 하는 원격 설명입니다."
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+            coEvery { localDataSource.getEpisodeDescription(id) } returns "짧음"
+
+            // When
+            repository.refreshEpisodeDescription(id)
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerify(exactly = 2) { remoteDataSource.getEpisodeById(id, fulltext = true) }
+            coVerify(exactly = 2) { localDataSource.getEpisodeDescription(id) }
+            coVerify(exactly = 2) { localDataSource.updateEpisodeDescription(id, any()) }
+        }
+
+    @Test
+    fun `Given episode already refreshed once, When list cache reverts description and refreshEpisodeDescription is called again, Then it fetches remote again`() =
+        runTest {
+            // Given: EpisodeDao.replaceEpisodes(→ upsertEpisodesWithGroup → upsertEpisodes) 는
+            // @Upsert 라 행 전체를 교체한다. EpisodeRemoteUpdater 가 목록 캐시를 갱신하면(TTL
+            // 10분~1일) 보강해 둔 description 이 원격의 잘린 값으로 되돌아갈 수 있다. 이전에는
+            // refreshingEpisodeIds 가 "완료" 를 영구 기록해서 그 뒤로는 앱을 재시작하기 전까지
+            // 잘린 설명이 고정됐다 — 실제로 겪은 결함이다. 지금은 요청이 끝나면(성공 포함) 표시가
+            // 지워지므로 같은 에피소드를 다시 열면 재보강이 가능해야 한다.
+            val id = episodeTestData.id
+            val longRemoteDescription = "성공적으로 두 번 다 채워져야 하는 훨씬 더 긴 원격 설명입니다."
+            // 목록 캐시 갱신이 매번 같은 짧은 값으로 되돌린다고 가정한다.
+            val truncatedLocalDescription = "짧게 잘린 로컬 설명"
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns longRemoteDescription
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } returns remoteResponse
+            coEvery { localDataSource.getEpisodeDescription(id) } returns truncatedLocalDescription
+
+            // When: 첫 보강 성공 후, 목록 캐시 갱신으로 로컬 description 이 다시 짧아졌다고 가정하고
+            // 같은 에피소드를 다시 연다.
+            repository.refreshEpisodeDescription(id)
+            repository.refreshEpisodeDescription(id)
+
+            // Then: 두 번 다 원격을 다시 쳐서 다시 채운다 — 영구히 잘린 채 고정되지 않는다.
+            coVerify(exactly = 2) { remoteDataSource.getEpisodeById(id, fulltext = true) }
+            coVerify(exactly = 2) { localDataSource.getEpisodeDescription(id) }
+            coVerify(exactly = 2) { localDataSource.updateEpisodeDescription(id, longRemoteDescription) }
+        }
+
+    @Test
+    fun `Given remote throws on first call, When refreshEpisodeDescription is called again, Then retries remote`() =
+        runTest {
+            // Given: 실패를 성공으로 기록하면 앱 실행 내내 재시도가 막히는 회귀를 잡는다
+            val id = episodeTestData.id
+            var attempt = 0
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns "재시도 후 성공한 원격 설명입니다."
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } coAnswers {
+                attempt++
+                if (attempt == 1) throw RuntimeException("network error") else remoteResponse
+            }
+            coEvery { localDataSource.getEpisodeDescription(id) } returns "짧음"
+
+            // When
+            repository.refreshEpisodeDescription(id)
+            repository.refreshEpisodeDescription(id)
+
+            // Then
+            coVerify(exactly = 2) { remoteDataSource.getEpisodeById(id, fulltext = true) }
+            coVerify(exactly = 1) { localDataSource.getEpisodeDescription(id) }
+            coVerify(exactly = 1) { localDataSource.updateEpisodeDescription(id, any()) }
+        }
+
+    @Test
+    fun `Given remote throws, When refreshEpisodeDescription, Then returns without throwing`() =
+        runTest {
+            // Given: 보강은 부가 기능이라 실패해도 화면에는 영향이 없어야 한다
+            val id = episodeTestData.id
+            coEvery {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            } throws RuntimeException("network error")
+
+            // When / Then: 예외 없이 정상 반환해야 한다
+            repository.refreshEpisodeDescription(id)
+
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            }
+        }
+
+    @Test
+    fun `Given remote throws CancellationException, When refreshEpisodeDescription, Then rethrows it`() =
+        runTest {
+            // Given
+            val id = episodeTestData.id
+            coEvery {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            } throws CancellationException("cancelled")
+
+            // When / Then
+            try {
+                repository.refreshEpisodeDescription(id)
+                fail("CancellationException 이 다시 던져져야 한다")
+            } catch (e: CancellationException) {
+                // 기대한 경로: 취소는 전파돼야 한다
+            }
+
+            coVerifySequence {
+                remoteDataSource.getEpisodeById(id, fulltext = true)
+            }
+        }
+
+    @Test
+    fun `Given concurrent calls with same id, When refreshEpisodeDescription, Then remote is called only once`() =
+        runTest {
+            // Given: refreshingEpisodeIds.add() 가 원자적이라 먼저 진입한 호출만 원격을 치고,
+            // 뒤따르는 호출은 잠금 대기 없이 즉시 반환한다.
+            val id = episodeTestData.id
+            val remoteReady = CompletableDeferred<EpisodeResponse?>()
+            val remoteResponse = mockk<EpisodeResponse>(relaxed = true)
+            every { remoteResponse.description } returns "동시 호출에서도 한 번만 불려야 하는 설명입니다."
+            coEvery { remoteDataSource.getEpisodeById(id, fulltext = true) } coAnswers { remoteReady.await() }
+            coEvery { localDataSource.getEpisodeDescription(id) } returns "짧음"
+
+            // When
+            val job1 = launch { repository.refreshEpisodeDescription(id) }
+            val job2 = launch { repository.refreshEpisodeDescription(id) }
+            advanceUntilIdle()
+            remoteReady.complete(remoteResponse)
+            advanceUntilIdle()
+            job1.join()
+            job2.join()
+
+            // Then
+            coVerify(exactly = 1) { remoteDataSource.getEpisodeById(id, fulltext = true) }
+            coVerify(exactly = 1) { localDataSource.getEpisodeDescription(id) }
+            coVerify(exactly = 1) { localDataSource.updateEpisodeDescription(id, any()) }
         }
 }

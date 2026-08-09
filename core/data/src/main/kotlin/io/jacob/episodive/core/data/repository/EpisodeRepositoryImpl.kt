@@ -24,10 +24,13 @@ import io.jacob.episodive.core.network.datasource.ChapterRemoteDataSource
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.datasource.SoundbiteRemoteDataSource
 import io.jacob.episodive.core.network.mapper.toEpisodes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -42,6 +45,10 @@ class EpisodeRepositoryImpl @Inject constructor(
     private val remoteUpdater: EpisodeRemoteUpdater.Factory,
 ) : EpisodeRepository {
     private val config = PagingDefaults.DEFAULT_CONFIG
+
+    // refreshEpisodeDescription 이 지금 진행 중인 에피소드 id 집합. "보강을 끝냈다"는 영구
+    // 표시가 아니라 "지금 요청 중"이라는 표시다 — 이유는 refreshEpisodeDescription 의 KDoc 참고.
+    private val refreshingEpisodeIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
 
     override suspend fun upsertEpisode(episode: Episode) {
         episodeLocalDataSource.upsertEpisode(episode.toEpisodeEntity())
@@ -211,6 +218,46 @@ class EpisodeRepositoryImpl @Inject constructor(
     override fun getEpisodeById(id: Long): Flow<Episode?> {
         return episodeLocalDataSource.getEpisodeById(id)
             .map { it?.toEpisode() }
+    }
+
+    /**
+     * 목록/단건 조회 모두 fulltext 를 켜지 않으므로 description 이 짧게 잘려 있다. 재생 중인
+     * 에피소드가 바뀔 때(PlayerViewModel)마다 이 메서드를 호출해 fulltext=true 단건 재조회로
+     * description 만 보강한다. 호출 지점은 이 클래스 밖에서 정한다.
+     *
+     * 보강은 부가 기능이라 실패해도 화면에는 영향이 없어야 한다 — 이미 캐시된 짧은 설명이라도
+     * 계속 보여야 하므로 여기서 예외를 올리지 않는다(RemoteUpdater 의 "캐시 없으면 throw" 분기는
+     * 여기엔 없다). 취소만은 다시 던져 코루틴 취소가 전파되게 한다.
+     *
+     * [refreshingEpisodeIds] 는 "이 에피소드는 보강을 끝냈다"는 영구 표시가 아니라 "지금 요청
+     * 중"이라는 표시다. `EpisodeDao.replaceEpisodes()`(→ upsertEpisodesWithGroup → upsertEpisodes)
+     * 는 `@Upsert` 라 행 전체를 교체한다 — `EpisodeRemoteUpdater` 가 목록 캐시를 갱신할 때(TTL
+     * 10분~1일) 그 목록에 포함된 에피소드의 description 이 원격의 잘린 값으로 되돌아갈 수 있다.
+     * 영구 표시로 남겨두면 그 뒤로는 앱을 재시작하기 전까지 잘린 설명이 고정된다. 그래서 요청이
+     * 끝나면(성공하든 실패하든) 표시를 지우고, 다음에 같은 에피소드를 다시 열면 원격을 다시 한 번
+     * 친다 — 대신 PlayerViewModel 쪽 `distinctUntilChanged` 가 연속 중복 방출을 막아 주므로
+     * 실제 추가 호출은 에피소드 전환당 1회(응답 약 4KB)뿐이다.
+     * `add()` 가 원자적이라 동시 진입 중 먼저 성공한 호출만 실제로 원격을 친다.
+     */
+    override suspend fun refreshEpisodeDescription(id: Long) {
+        if (!refreshingEpisodeIds.add(id)) return
+
+        try {
+            val fullDescription = episodeRemoteDataSource.getEpisodeById(id, fulltext = true)?.description
+            if (fullDescription.isNullOrEmpty()) return
+
+            val currentDescription = episodeLocalDataSource.getEpisodeDescription(id)
+            // 원격이 기존보다 짧거나 같으면 쓰지 않는다.
+            if (currentDescription == null || fullDescription.length > currentDescription.length) {
+                episodeLocalDataSource.updateEpisodeDescription(id, fullDescription)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "에피소드 설명 보강에 실패했다 (id=$id)")
+        } finally {
+            refreshingEpisodeIds.remove(id)
+        }
     }
 
     override fun getEpisodesByIds(ids: List<Long>): Flow<List<Episode>> {

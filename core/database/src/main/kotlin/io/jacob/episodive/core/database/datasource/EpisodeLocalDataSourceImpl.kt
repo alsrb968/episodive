@@ -31,6 +31,17 @@ class EpisodeLocalDataSourceImpl @Inject constructor(
         )
     }
 
+    override suspend fun updateEpisodeDescription(id: Long, description: String) {
+        episodeDao.updateEpisodeDescription(
+            id = id,
+            description = description,
+        )
+    }
+
+    override suspend fun getEpisodeDescription(id: Long): String? {
+        return episodeDao.getEpisodeDescription(id)
+    }
+
     override fun getEpisodeById(id: Long): Flow<EpisodeWithExtrasView?> {
         return episodeDao.getEpisodeById(id)
     }

@@ -91,6 +91,17 @@ interface EpisodeDao {
     @Query("UPDATE episodes SET duration = :duration WHERE id = :id")
     suspend fun updateEpisodeDuration(id: Long, duration: Duration)
 
+    // fulltext 보강용 부분 UPDATE. @Upsert 로 행 전체를 교체하면 다른 컬럼이 되돌아가고,
+    // episode_group 에 없는 행이 새로 생겨 deleteEpisodesIfOrphaned 대상이 될 수 있다.
+    // 행이 없으면 아무 일도 하지 않아 안전하다.
+    @Query("UPDATE episodes SET description = :description WHERE id = :id")
+    suspend fun updateEpisodeDescription(id: Long, description: String)
+
+    // fulltext 보강 전, 기존 description 과 길이를 비교하기 위한 단건 조회. Flow 로 collect 할
+    // 필요가 없는 일회성 비교라 suspend 로 둔다.
+    @Query("SELECT description FROM episodes WHERE id = :id")
+    suspend fun getEpisodeDescription(id: Long): String?
+
     @Query("SELECT * FROM episode_with_extras WHERE id = :id")
     fun getEpisodeById(id: Long): Flow<EpisodeWithExtrasView?>
 
