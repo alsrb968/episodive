@@ -37,6 +37,9 @@ interface EpisodeApi {
     @GET("episodes/byid")
     suspend fun getEpisodeById(
         @Query("id") id: Long,
+        // 없으면 description 이 100단어 안팎으로 잘려서 온다. true 로 보내면 전체 설명을 받는다.
+        // false 를 넘기지 마라 — 이 API 는 값이 아니라 파라미터 존재 여부로 판정해서 오히려 켜진다.
+        @Query("fulltext") fulltext: Boolean? = null,
     ): ResponseWrapper<EpisodeResponse>
 
     @GET("episodes/live")

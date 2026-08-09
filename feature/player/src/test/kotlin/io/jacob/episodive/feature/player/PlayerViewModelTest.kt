@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import io.jacob.episodive.core.common.TimeProvider
 import io.jacob.episodive.core.domain.repository.PlayerRepository
 import io.jacob.episodive.core.domain.usecase.episode.GetChaptersUseCase
+import io.jacob.episodive.core.domain.usecase.episode.RefreshEpisodeDescriptionUseCase
 import io.jacob.episodive.core.domain.usecase.episode.SaveEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
@@ -24,6 +25,7 @@ import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestData
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -47,6 +49,7 @@ class PlayerViewModelTest {
 
     private val toggleLikedEpisodeUseCase = mockk<ToggleLikedEpisodeUseCase>(relaxed = true)
     private val updatePlayedEpisodeUseCase = mockk<UpdatePlayedEpisodeUseCase>(relaxed = true)
+    private val refreshEpisodeDescriptionUseCase = mockk<RefreshEpisodeDescriptionUseCase>(relaxed = true)
     private val getPodcastUseCase = mockk<GetPodcastUseCase>(relaxed = true)
     private val playerRepository = mockk<PlayerRepository>(relaxed = true)
     private val getNowPlayingUseCase = mockk<GetNowPlayingUseCase>(relaxed = true)
@@ -94,6 +97,7 @@ class PlayerViewModelTest {
         return PlayerViewModel(
             toggleLikedEpisodeUseCase = toggleLikedEpisodeUseCase,
             updatePlayedEpisodeUseCase = updatePlayedEpisodeUseCase,
+            refreshEpisodeDescriptionUseCase = refreshEpisodeDescriptionUseCase,
             getPodcastUseCase = getPodcastUseCase,
             playerRepository = playerRepository,
             getNowPlayingUseCase = getNowPlayingUseCase,
@@ -757,5 +761,73 @@ class PlayerViewModelTest {
 
             // No pause should be called for live stream (duration = 0)
             verify(exactly = 0) { playerRepository.pause() }
+        }
+
+    // --- Episode Description Refresh Tests ---
+
+    @Test
+    fun `Given nowPlaying emits the same episode id repeatedly, When collecting, Then refreshEpisodeDescriptionUseCase is called only once`() =
+        runTest {
+            // distinctUntilChanged 회귀 테스트: 재생 중 progress tick 마다 played_episodes 에
+            // 쓰기가 일어나 episode_with_extras 뷰가 무효화되면 nowPlaying 이 같은 id 의 에피소드를
+            // (매번 새 인스턴스로) 반복 방출할 수 있다. distinctUntilChanged 를 지우면 매 tick
+            // 마다 원격 보강을 다시 쳐서 초당 여러 번 네트워크를 호출하게 된다 — 이 테스트가 그
+            // 회귀를 잡는다.
+            //
+            // getNowPlayingUseCase() 를 콜드 flowOf(a, b) 로 주면 nowPlaying 이 감싸는
+            // stateIn(WhileSubscribed) 이 구독자가 붙기 전에 두 값을 한 번에 흘려보내 앞선 값이
+            // 유실된다(StateFlow 는 값을 conflate 한다) — 그래서 MutableStateFlow 를 직접 조작해,
+            // 첫 값은 구독 전에 실어 두고 다음 값은 ViewModel 이 만들어진 뒤(구독이 이미 붙은
+            // 뒤)에 흘려보낸다. 이 파일의 다른 테스트(progressFlow 등)와 같은 패턴이다.
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            val nowPlayingUseCaseFlow = MutableStateFlow<Episode?>(episodeA)
+            every { getNowPlayingUseCase() } returns nowPlayingUseCaseFlow
+
+            createViewModel()
+
+            // 같은 id 지만 다른 필드가 바뀐 새 인스턴스 — DB 뷰가 재구성됐지만 재생 중인 에피소드는
+            // 그대로인 상황을 흉내낸다. id 만 보는 distinctUntilChanged 라면 이 재방출은 걸러져야
+            // 한다.
+            nowPlayingUseCaseFlow.value = episodeA.copy(title = "같은 id, 다른 인스턴스로 재방출됨")
+
+            coVerify(exactly = 1) { refreshEpisodeDescriptionUseCase(episodeA.id) }
+        }
+
+    @Test
+    fun `Given nowPlaying switches from one episode to another, When collecting, Then refreshEpisodeDescriptionUseCase is called once for each episode`() =
+        runTest {
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            val episodeB = episodeTestDataList[1]
+            val nowPlayingUseCaseFlow = MutableStateFlow<Episode?>(episodeA)
+            every { getNowPlayingUseCase() } returns nowPlayingUseCaseFlow
+
+            createViewModel()
+
+            // ViewModel 이 만들어져 구독이 이미 붙은 뒤에 전환해야 두 값이 각각 관찰된다(위 테스트와
+            // 같은 이유).
+            nowPlayingUseCaseFlow.value = episodeB
+
+            coVerify(exactly = 1) { refreshEpisodeDescriptionUseCase(episodeA.id) }
+            coVerify(exactly = 1) { refreshEpisodeDescriptionUseCase(episodeB.id) }
+        }
+
+    @Test
+    fun `Given refreshEpisodeDescriptionUseCase throws, When nowPlaying emits, Then the exception does not propagate`() =
+        runTest {
+            // onEach 안에서 던지면 collect 가 죽어 VM 수명 내내 보강이 영구 중단되므로 catch
+            // 에러 경계를 뒀다. 그 경계가 실제로 예외를 흡수해 크래시를 막는지 확인한다. catch
+            // 이후로는 스트림 자체가 끝나므로 "그 다음 에피소드도 계속 보강된다" 는 이 구조로는
+            // 보장되지 않는다 — 그래서 여기서는 단정하지 않는다.
+            setupDefaultMocks()
+            val episodeA = episodeTestDataList[0]
+            every { getNowPlayingUseCase() } returns flowOf(episodeA)
+            coEvery { refreshEpisodeDescriptionUseCase(episodeA.id) } throws RuntimeException("boom")
+
+            // createViewModel 자체가 예외 없이 끝나야 한다 — catch 경계가 없다면 여기서 크래시한다.
+            createViewModel()
+
+            coVerify(exactly = 1) { refreshEpisodeDescriptionUseCase(episodeA.id) }
         }
 }

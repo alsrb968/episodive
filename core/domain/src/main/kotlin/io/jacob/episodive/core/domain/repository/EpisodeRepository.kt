@@ -76,6 +76,13 @@ interface EpisodeRepository {
 
     fun getEpisodeById(id: Long): Flow<Episode?>
 
+    /**
+     * 목록/단건 조회 모두 fulltext 없이 받아 description 이 짧게 잘려 있다. 재생 중인
+     * 에피소드가 바뀌는 시점에 호출해 fulltext=true 로 단건을 다시 받아 description 만 보강한다.
+     * 실패해도 예외를 던지지 않는다 — 보강은 부가 기능이라 실패해도 기존 캐시로 계속 보여준다.
+     */
+    suspend fun refreshEpisodeDescription(id: Long)
+
     fun getEpisodesByIds(ids: List<Long>): Flow<List<Episode>>
 
     fun getLikedEpisodes(query: String? = null, max: Int): Flow<List<Episode>>
