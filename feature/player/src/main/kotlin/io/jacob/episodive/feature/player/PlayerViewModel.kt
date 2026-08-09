@@ -72,13 +72,6 @@ class PlayerViewModel @Inject constructor(
             initialValue = null
         )
 
-    private val playingEpisode = combine(
-        nowPlaying,
-        playerRepository.progress,
-    ) { episode, progress ->
-        episode?.id to progress
-    }
-
     private val podcast = nowPlaying
         .mapNotNull { it?.feedId }
         .distinctUntilChanged()
@@ -140,12 +133,20 @@ class PlayerViewModel @Inject constructor(
 
     init {
         handleActions()
+        // 저장 키를 progress 자신이 들고 있는 episodeId 에서만 가져온다.
+        // DB 파생 nowPlaying 과 combine 하면 에피소드 전환 순간 두 스트림의 지연 차 때문에
+        // "이전 에피소드 + 새 위치" 쌍이 저장되어 이전 에피소드의 이어듣기 지점이 오염된다.
+        // collectLatest 가 아니라 collect 인 이유: 전환 직전 tick 의 쓰기가 취소되면
+        // 그 에피소드의 마지막 몇 초가 유실되어 이어듣기 지점이 뒤로 밀린다.
+        // upsert 한 건짜리 저렴한 쓰기이므로 취소하지 않고 끝까지 보낸다.
         viewModelScope.launch {
-            playingEpisode.collectLatest { (episodeId, progress) ->
-                if (episodeId != null) {
-                    updatePlayedEpisodeUseCase(episodeId, progress)
+            playerRepository.progress
+                .distinctUntilChanged()
+                .collect { progress ->
+                    progress.episodeId?.let { episodeId ->
+                        updatePlayedEpisodeUseCase(episodeId, progress)
+                    }
                 }
-            }
         }
         viewModelScope.launch {
             getUserDataUseCase()
@@ -164,27 +165,39 @@ class PlayerViewModel @Inject constructor(
         }
         viewModelScope.launch {
             var lastSavedTime = 0L
-            combineTyped(
-                playerRepository.nowPlaying,
+            var lastSavedEpisodeId: Long? = null
+            var lastSavedPositionMs = 0L
+            // 저장 위치와 마찬가지로 세션 스냅샷의 에피소드도 progress 에서 가져온다.
+            // 별도 nowPlaying 과 묶으면 콜드스타트 직후 "직전 에피소드 + 위치 0" 이 저장되어
+            // DataStore 의 마지막 재생 지점까지 0 으로 덮인다.
+            combine(
                 playerRepository.indexOfList,
                 playerRepository.progress,
                 playerRepository.isShuffle,
                 playerRepository.repeat,
-            ) { nowPlaying: Episode?, index: Int, progress: Progress, shuffle: Boolean, repeat: Repeat ->
-                if (nowPlaying != null) {
+            ) { index: Int, progress: Progress, shuffle: Boolean, repeat: Repeat ->
+                progress.episodeId?.let { episodeId ->
                     LastPlaySnapshot(
-                        episodeId = nowPlaying.id,
+                        episodeId = episodeId,
                         index = index,
                         positionMs = progress.position.inWholeMilliseconds,
                         shuffle = shuffle,
                         repeat = repeat,
                     )
-                } else null
+                }
             }
                 .filterNotNull()
                 .collectLatest { snapshot ->
                     val now = timeProvider.currentTimeMillis()
-                    if (now - lastSavedTime >= 5_000) {
+                    // 에피소드가 바뀌면 5초 창을 기다리지 않는다. 기다리면 전환 직후 한 번 저장된 값이
+                    // 창이 닫힌 동안 갱신되지 않아, 그 사이 앱이 죽으면 엉뚱한 지점부터 복원된다.
+                    val episodeChanged = snapshot.episodeId != lastSavedEpisodeId
+                    // 위치가 뒤로 갔다면 사용자가 되감은 것이다. 재생 중에는 위치가 늘기만 하므로
+                    // 재생 중에는 위치가 늘기만 하므로 이 조건은 탐색이나 반복 재생에서만 성립한다.
+                    // 창을 기다리다 그 사이 일시정지하면 progress
+                    // 방출이 멈춰 되감기 이전 값이 스냅샷에 남고, 다음 실행에서 되살아난다.
+                    val rewound = snapshot.positionMs < lastSavedPositionMs
+                    if (episodeChanged || rewound || now - lastSavedTime >= 5_000) {
                         saveLastPlayStateUseCase(
                             episodeId = snapshot.episodeId,
                             index = snapshot.index,
@@ -193,6 +206,8 @@ class PlayerViewModel @Inject constructor(
                             repeat = snapshot.repeat,
                         )
                         lastSavedTime = now
+                        lastSavedEpisodeId = snapshot.episodeId
+                        lastSavedPositionMs = snapshot.positionMs
                     }
                 }
         }
@@ -358,17 +373,16 @@ class PlayerViewModel @Inject constructor(
         sleepTimerJob = viewModelScope.launch {
             try {
                 playerRepository.setVolume(1f)
-                val startEpisodeId = nowPlaying.value?.id ?: return@launch
-                val duration = playerRepository.progress.first().duration.inWholeMilliseconds
-                if (duration <= 0) return@launch
+                // 여기서도 에피소드 판별을 progress 안의 episodeId 로 한다.
+                // DB 파생 nowPlaying 과 섞으면 전환 시점에 타이머가 엉뚱한 에피소드를 기준으로 돈다.
+                val current = playerRepository.progress.first()
+                val startEpisodeId = current.episodeId ?: return@launch
+                if (current.duration.inWholeMilliseconds <= 0) return@launch
 
                 var timerExpired = false
-                combine(playerRepository.progress, nowPlaying) { progress, episode ->
-                    progress to episode
-                }.takeWhile { (progress, episode) ->
+                playerRepository.progress.takeWhile { progress ->
                     val remaining = progress.duration.inWholeMilliseconds - progress.position.inWholeMilliseconds
-                    val sameEpisode = episode?.id == startEpisodeId
-                    if (!sameEpisode) return@takeWhile false
+                    if (progress.episodeId != startEpisodeId) return@takeWhile false
                     _sleepTimerRemainingMs.value = remaining.coerceAtLeast(0)
                     if (remaining <= FADE_OUT_DURATION_MS) {
                         val volume = remaining.toFloat() / FADE_OUT_DURATION_MS

@@ -13,7 +13,9 @@ import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.ExoPlayer
 import app.cash.turbine.test
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
+import io.jacob.episodive.core.model.mapper.toDurationMillis
 import io.jacob.episodive.core.testing.model.episodeTestData
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -22,11 +24,13 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import kotlin.time.Duration
 
 class PlayerDataSourceImplTest {
     private val player = mockk<ExoPlayer>(relaxed = true)
@@ -746,6 +750,90 @@ class PlayerDataSourceImplTest {
         dataSource.progress.test {
             val progress = awaitItem()
             assertEquals(episode.duration, progress.duration)
+            // T7 (C1/C2 회귀): transition 이 실은 progress 는 반드시 전환된 에피소드의 id 를
+            // 함께 싣고, 위치는 0 으로 리셋되어야 한다 (이전 에피소드의 위치가 새 에피소드로 새는 것 방지).
+            assertEquals(episode.id, progress.episodeId)
+            assertEquals(Duration.ZERO, progress.position)
+        }
+    }
+
+    @Test
+    fun `Given seek driven transition, When onMediaItemTransition invoked, Then progress position comes from player currentPosition`() = runTest {
+        // 탐색으로 항목이 바뀐 경우엔 플레이어가 이미 목표 위치에 가 있으므로 그 값을 싣는다.
+        // 여기서 0 을 하드코딩하면 방금 이동한 지점이 곧바로 0 으로 저장된다.
+        val mediaItem = MediaItem.Builder()
+            .setMediaId(episode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episode)
+            .build()
+        every { player.currentMediaItemIndex } returns 0
+        every { player.currentPosition } returns 45_000L
+
+        // When
+        listenerSlot.captured.onMediaItemTransition(
+            mediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_SEEK,
+        )
+
+        // Then
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(45_000L.toDurationMillis(), progress.position)
+            assertEquals(episode.id, progress.episodeId)
+        }
+    }
+
+    @Test
+    fun `Given repeat transition, When onMediaItemTransition invoked, Then progress position is zero`() = runTest {
+        // 한 곡 반복도 같은 항목을 처음부터 다시 재생하므로 0 이 확정이다.
+        // AUTO 와 같은 분기를 공유하지만, 누군가 REPEAT 만 else 로 옮기면 잡아낸다.
+        val mediaItem = MediaItem.Builder()
+            .setMediaId(episode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episode)
+            .build()
+        every { player.currentMediaItemIndex } returns 0
+        every { player.currentPosition } returns 3_500_000L
+
+        // When
+        listenerSlot.captured.onMediaItemTransition(
+            mediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
+        )
+
+        // Then
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(Duration.ZERO, progress.position)
+            assertEquals(episode.id, progress.episodeId)
+        }
+    }
+
+    @Test
+    fun `Given auto transition to next item, When onMediaItemTransition invoked, Then progress position is zero not the previous item position`() = runTest {
+        // 자동 전환은 새 항목을 처음부터 재생한다. 이 시점의 player.currentPosition 이 아직
+        // 이전 항목의 끝 위치일 수 있는데, 그 값을 새 에피소드에 실으면 듣지도 않은
+        // 에피소드가 사실상 완료 처리되어 이어듣기 지점이 사라진다.
+        val mediaItem = MediaItem.Builder()
+            .setMediaId(episode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episode)
+            .build()
+        every { player.currentMediaItemIndex } returns 1
+        // 이전 항목의 끝 무렵 위치가 그대로 보이는 상황을 재현한다.
+        every { player.currentPosition } returns 3_500_000L
+
+        // When
+        listenerSlot.captured.onMediaItemTransition(
+            mediaItem,
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,
+        )
+
+        // Then
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(Duration.ZERO, progress.position)
+            assertEquals(episode.id, progress.episodeId)
         }
     }
 
@@ -852,5 +940,276 @@ class PlayerDataSourceImplTest {
 
         // Then
         dataSource.isPlaying.test { assertEquals(false, awaitItem()) }
+    }
+
+    // ---------------------------------------------------------------------
+    // C1~C4 회귀 테스트: 재생 위치 오염 방지
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `Given media3 fires transition inline inside setMediaItems, When prepare called, Then final progress keeps restored position and episodeId`() = runTest {
+        // Given: media3 1.8.0 은 setMediaItems 호출 스택 안에서 onMediaItemTransition 을
+        // 인라인 실행한다(C4). 그 콜백이 position 을 0 으로 덮은 뒤에도, prepare() 가 그 뒤에서
+        // 실제 복원 위치로 다시 확정해야 한다.
+        val mediaItem = MediaItem.Builder()
+            .setMediaId(episode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episode)
+            .build()
+        every {
+            player.setMediaItems(any(), any<Int>(), any<Long>())
+        } answers {
+            listenerSlot.captured.onMediaItemTransition(
+                mediaItem,
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+        }
+
+        // When
+        dataSource.prepare(listOf(episode), indexToPlay = 0, positionMs = 60_000L)
+
+        // Then
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(60_000L.toDurationMillis(), progress.position)
+            assertEquals(episode.id, progress.episodeId)
+        }
+    }
+
+    @Test
+    fun `Given media3 fires transition inline during prepare, When isPreparing guard is active, Then no progress is published mid setMediaItems callback`() = runTest {
+        // Given: (B) isPreparing 가드가 실제로 콜백 도중 발행을 막는지 직접 확인한다.
+        // progress 는 StateFlow 라 구독 시점에 따라(특히 단일 스레드 테스트 스케줄러에서는)
+        // 중간 방출이 컨플레이션으로 사라질 수 있다 — Turbine 으로 뒤늦게 구독하면 최종값만
+        // 보이는 게 그 예다. 대신 콜백이 실행되는 바로 그 순간의 값을 직접 스냅샷한다.
+        val mediaItem = MediaItem.Builder()
+            .setMediaId(episode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episode)
+            .build()
+        var progressDuringCallback: io.jacob.episodive.core.model.Progress? = null
+        every {
+            player.setMediaItems(any(), any<Int>(), any<Long>())
+        } answers {
+            listenerSlot.captured.onMediaItemTransition(
+                mediaItem,
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+            // isPreparing 가드가 없으면 이 시점에 이미 (episodeId=episode.id, position=0) 이
+            // 발행되어 있다 — Unconfined 로 즉시(비동기 스케줄링 없이) 현재 값을 읽는다.
+            progressDuringCallback = kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.Unconfined) {
+                dataSource.progress.first()
+            }
+        }
+
+        // When
+        dataSource.prepare(listOf(episode), indexToPlay = 0, positionMs = 60_000L)
+
+        // Then: 콜백이 실행되는 순간에는 아직 아무것도 발행되지 않아야 한다(episodeId=null 유지).
+        assertEquals(null, progressDuringCallback?.episodeId)
+
+        // 그리고 prepare() 가 끝난 뒤에는 복원 위치가 최종적으로 확정되어 있어야 한다.
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(60_000L.toDurationMillis(), progress.position)
+            assertEquals(episode.id, progress.episodeId)
+        }
+    }
+
+    @Test
+    fun `Given player duration is TIME_UNSET, When seekTo called, Then progress duration is not negative`() = runTest {
+        // Given
+        every { player.duration } returns C.TIME_UNSET
+        every { player.bufferedPosition } returns 0L
+
+        // When
+        dataSource.seekTo(1000L)
+
+        // Then
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(false, progress.duration.isNegative())
+        }
+    }
+
+    @Test
+    fun `Given player already holds a different episode, When rehydrate called, Then nowPlaying keeps the playing episode`() = runTest {
+        // Given: C3 회귀 방지. rehydrate 의 가드(player.currentMediaItem 기준)가 없으면
+        // 비동기 DB 복원값(A)이 실제로 재생 중인 B 를 밀어내고 nowPlaying 을 오염시킨다.
+        every { player.isPlaying } returns false
+        val otherEpisode = episode.copy(id = 999L)
+
+        // player.currentMediaItem 이 아직 비어 있는 상태에서 B 를 먼저 rehydrate 해
+        // nowPlaying 을 B 로 세팅한다.
+        dataSource.rehydrate(otherEpisode)
+
+        // 이제 플레이어가 실제로 B 를 들고 있는 상태를 재현한다.
+        val otherMediaItem = MediaItem.Builder()
+            .setMediaId(otherEpisode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(otherEpisode)
+            .build()
+        every { player.currentMediaItem } returns otherMediaItem
+
+        // When: 뒤늦게 도착한 A 로 rehydrate 를 시도한다.
+        dataSource.rehydrate(episode)
+
+        // Then: 가드가 없으면 nowPlaying 이 A 로 바뀐다 — 이 assert 가 그걸 잡아낸다.
+        dataSource.nowPlaying.test {
+            assertEquals(otherEpisode, awaitItem())
+        }
+    }
+
+    @Test
+    fun `Given nowPlaying rehydrated to A while player already holds B, When seekTo called, Then progress episodeId follows the player not nowPlaying`() = runTest {
+        // Given: C3 회귀 방지(교차 오염). rehydrate(A) 는 player.currentMediaItem 이 아직 비어
+        // 있을 때 허용되므로(가드를 통과) _nowPlaying 이 A 로 세팅될 수 있다. 그 직후 player 가
+        // 실제로는 B 를 들고 있는 상태(예: 비동기 전환 콜백이 아직 _nowPlaying 을 못 따라잡은 틈)를
+        // 재현한다. seekTo 가 _nowPlaying(=A) 대신 currentEpisodeId()(=B, player 기준) 를 써야만
+        // 위치가 B 의 것으로 정확히 저장된다.
+        every { player.isPlaying } returns false
+        every { player.bufferedPosition } returns 0L
+        every { player.duration } returns 600_000L
+        val otherEpisode = episode.copy(id = 999L)
+
+        // player.currentMediaItem 이 아직 비어 있는 상태에서 A 를 rehydrate 해 nowPlaying=A.
+        dataSource.rehydrate(episode)
+
+        // 실제로는 player 가 B 를 들고 있는 상태로 어긋난다(_nowPlaying 갱신 전).
+        val otherMediaItem = MediaItem.Builder()
+            .setMediaId(otherEpisode.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(otherEpisode)
+            .build()
+        every { player.currentMediaItem } returns otherMediaItem
+
+        // When
+        dataSource.seekTo(300_000L)
+
+        // Then: episodeId 가 nowPlaying(A) 이 아니라 실제로 player 가 들고 있는 B 여야 한다.
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(otherEpisode.id, progress.episodeId)
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // 3차 수정 회귀 테스트: play/playClips isPreparing 가드 대칭 적용, seekTo duration 폴백
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `Given play list with non-first index, When setMediaItems fires inline transition, Then no emission carries first item id`() = runTest {
+        // Given: media3 는 1-인자 setMediaItems(list) 호출 스택 안에서도 목록 첫 항목에 대해
+        // onMediaItemTransition 을 인라인 실행한다. seekToDefaultPosition(indexToPlay) 로 목표에
+        // 도달하기 전이므로, 가드가 없으면 "재생하지도 않을 첫 항목(A) + 위치 0" 이 발행되어
+        // A 의 이어듣기 지점이 지워진다.
+        val episodeA = episodeTestDataList[0]
+        val episodeB = episodeTestDataList[1]
+        val itemA = MediaItem.Builder()
+            .setMediaId(episodeA.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episodeA)
+            .build()
+        every {
+            player.setMediaItems(any())
+        } answers {
+            listenerSlot.captured.onMediaItemTransition(
+                itemA,
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+        }
+
+        // When / Then: play() 호출 전에 구독해 모든 방출을 수집한다.
+        dataSource.progress.test {
+            awaitItem() // 초기값
+
+            dataSource.play(episodes = listOf(episodeA, episodeB), indexToPlay = 1)
+
+            val emissions = cancelAndConsumeRemainingEvents()
+                .filterIsInstance<app.cash.turbine.Event.Item<io.jacob.episodive.core.model.Progress>>()
+                .map { it.value }
+
+            // 사용자가 요청한 것은 B 인데, 방출 중 A 의 id 가 실린 것이 하나라도 있으면
+            // A 의 이어듣기 지점이 지워진다.
+            assertEquals(false, emissions.any { it.episodeId == episodeA.id })
+
+            val last = emissions.last()
+            assertEquals(episodeB.id, last.episodeId)
+            assertEquals(Duration.ZERO, last.position)
+        }
+    }
+
+    @Test
+    fun `Given playClips with non-first index, When setMediaItems fires inline transition, Then no emission carries first item id`() = runTest {
+        // playClips 도 play(episodes, indexToPlay) 와 같은 가드를 적용받아야 한다.
+        val episodeA = episodeTestDataList[0]
+        val episodeB = episodeTestDataList[1]
+        val itemA = MediaItem.Builder()
+            .setMediaId(episodeA.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episodeA)
+            .build()
+        every {
+            player.setMediaItems(any())
+        } answers {
+            listenerSlot.captured.onMediaItemTransition(
+                itemA,
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+        }
+
+        dataSource.progress.test {
+            awaitItem() // 초기값
+
+            dataSource.playClips(episodes = listOf(episodeA, episodeB), indexToPlay = 1)
+
+            val emissions = cancelAndConsumeRemainingEvents()
+                .filterIsInstance<app.cash.turbine.Event.Item<io.jacob.episodive.core.model.Progress>>()
+                .map { it.value }
+
+            assertEquals(false, emissions.any { it.episodeId == episodeA.id })
+
+            val last = emissions.last()
+            assertEquals(episodeB.id, last.episodeId)
+            assertEquals(Duration.ZERO, last.position)
+        }
+    }
+
+    @Test
+    fun `Given progress still carries the previous episode's duration, When seekTo called on the new episode with unset player duration, Then progress duration falls back to the new episode's duration`() = runTest {
+        // Given: A 에서 B 로 전환된 직후. player.duration 은 아직 TIME_UNSET 이고, _progress 에는
+        // 직전 A 의 duration 이 남아 있다. 이때 _progress.value.duration 으로 폴백하면 A 의 짧은/긴
+        // duration 이 그대로 B 에 실려, 짧은 길이 + 큰 위치 조합이 완료 판정을 잘못 뒤집는다.
+        val episodeA = episodeTestDataList[0]
+        val episodeB = episodeTestDataList[1]
+        check(episodeA.duration != episodeB.duration) { "테스트 데이터의 duration 이 같으면 폴백 오류를 구분할 수 없다" }
+
+        // A 로 전환되어 _progress.duration 이 A 의 길이로 채워진 상태를 만든다.
+        val itemA = MediaItem.Builder()
+            .setMediaId(episodeA.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episodeA)
+            .build()
+        every { player.currentMediaItemIndex } returns 0
+        listenerSlot.captured.onMediaItemTransition(itemA, Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
+
+        // 이제 플레이어는 실제로 B 를 들고 있고, 아직 prepare 전이라 duration 이 TIME_UNSET 이다.
+        val itemB = MediaItem.Builder()
+            .setMediaId(episodeB.id.toString())
+            .setUri(mockk<Uri>(relaxed = true))
+            .setTag(episodeB)
+            .build()
+        every { player.currentMediaItem } returns itemB
+        every { player.duration } returns C.TIME_UNSET
+        every { player.bufferedPosition } returns 0L
+
+        // When
+        dataSource.seekTo(1000L)
+
+        // Then
+        dataSource.progress.test {
+            val progress = awaitItem()
+            assertEquals(episodeB.duration, progress.duration)
+        }
     }
 }
