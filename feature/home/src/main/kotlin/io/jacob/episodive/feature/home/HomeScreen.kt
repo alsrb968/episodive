@@ -101,6 +101,7 @@ internal fun HomeRoute(
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val playingEpisodeId by viewModel.playingEpisodeId.collectAsStateWithLifecycle()
 
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
@@ -134,6 +135,7 @@ internal fun HomeRoute(
             foreignTrendingPodcasts = s.foreignTrendingPodcasts,
             liveEpisodes = s.liveEpisodes,
             channels = s.channels,
+            playingEpisodeId = playingEpisodeId,
             onPlayEpisode = { viewModel.sendAction(HomeAction.PlayEpisode(it)) },
             onResumeEpisode = { viewModel.sendAction(HomeAction.ResumeEpisode(it)) },
             onToggleLikedEpisode = { viewModel.sendAction(HomeAction.ToggleLikedEpisode(it)) },
@@ -166,6 +168,8 @@ internal fun HomeScreen(
     foreignTrendingPodcasts: List<Podcast>,
     liveEpisodes: List<Episode>,
     channels: List<Channel>,
+    // 지금 소리가 나고 있는 에피소드. 일시정지 중이면 null 이라 배지가 사라진다.
+    playingEpisodeId: Long? = null,
     onPlayEpisode: (Episode) -> Unit,
     onResumeEpisode: (Episode) -> Unit,
     onToggleLikedEpisode: (Episode) -> Unit,
@@ -222,6 +226,7 @@ internal fun HomeScreen(
                     if (playingEpisodes.isNotEmpty()) {
                         HomeContinueListeningRow(
                             episodes = playingEpisodes,
+                            playingEpisodeId = playingEpisodeId,
                             onEpisodeClick = onResumeEpisode,
                         )
 
@@ -436,6 +441,7 @@ private fun HomeHeader(
 private fun HomeContinueListeningRow(
     modifier: Modifier = Modifier,
     episodes: List<Episode>,
+    playingEpisodeId: Long? = null,
     onEpisodeClick: (Episode) -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
@@ -461,6 +467,7 @@ private fun HomeContinueListeningRow(
             HomeContinueListeningHero(
                 modifier = Modifier.fillParentMaxWidth(HomeHeroWidthFraction),
                 episode = episode,
+                isPlaying = episode.id == playingEpisodeId,
                 onClick = { onEpisodeClick(episode) },
             )
         }
@@ -471,6 +478,7 @@ private fun HomeContinueListeningRow(
 private fun HomeContinueListeningHero(
     modifier: Modifier = Modifier,
     episode: Episode,
+    isPlaying: Boolean = false,
     onClick: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
@@ -515,10 +523,20 @@ private fun HomeContinueListeningHero(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = stringResource(uiR.string.core_ui_continue),
+                        // 이 카드가 지금 소리를 내고 있으면 라벨을 "재생 중"으로 바꾼다.
+                        // 이어듣기 목록에는 방금 튼 것도 함께 있어, 그중 어느 것이 울리고
+                        // 있는지가 라벨 없이는 드러나지 않는다.
+                        text = stringResource(
+                            if (isPlaying) uiR.string.core_ui_now_playing
+                            else uiR.string.core_ui_continue
+                        ),
                         // 원본은 11/700/.05em (원본 줄 182). labelMedium(13)은 두 단계 크다.
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.05.em),
-                        color = MaterialTheme.colorScheme.tertiary,
+                        color = if (isPlaying) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.tertiary
+                        },
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))

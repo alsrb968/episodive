@@ -9,6 +9,7 @@
     <string name="core_ui_error_not_found">We couldn\'t find what you were looking for.</string>
     <string name="core_ui_error_unexpected">Something went wrong.\nPlease try again in a moment.</string>
     <string name="core_ui_continue">Continue</string>
+    <string name="core_ui_now_playing">Now playing</string>
     <string name="core_ui_completed">Completed</string>
     <string name="core_ui_left">Left</string>
     <string name="core_ui_follow">Follow</string>

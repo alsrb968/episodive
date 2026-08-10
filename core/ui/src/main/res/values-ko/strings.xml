@@ -2,6 +2,7 @@
 <resources>
     <string name="core_ui_episodes">에피소드</string>
     <string name="core_ui_continue">이어듣기</string>
+    <string name="core_ui_now_playing">재생 중</string>
     <string name="core_ui_completed">완료됨</string>
     <string name="core_ui_left">남음</string>
     <string name="core_ui_follow">팔로우하기</string>
