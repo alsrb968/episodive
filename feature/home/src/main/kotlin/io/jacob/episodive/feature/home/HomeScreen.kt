@@ -85,6 +85,8 @@ import io.jacob.episodive.core.ui.ChannelSection
 import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.EpisodesSection
 import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
+import io.jacob.episodive.core.ui.LocalIsPlaying
+import io.jacob.episodive.core.ui.LocalNowPlayingEpisodeId
 import io.jacob.episodive.core.ui.PodcastsSection
 import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
 import io.jacob.episodive.core.ui.asUiMessage
@@ -101,7 +103,6 @@ internal fun HomeRoute(
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val playingEpisodeId by viewModel.playingEpisodeId.collectAsStateWithLifecycle()
 
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
@@ -135,7 +136,6 @@ internal fun HomeRoute(
             foreignTrendingPodcasts = s.foreignTrendingPodcasts,
             liveEpisodes = s.liveEpisodes,
             channels = s.channels,
-            playingEpisodeId = playingEpisodeId,
             onPlayEpisode = { viewModel.sendAction(HomeAction.PlayEpisode(it)) },
             onResumeEpisode = { viewModel.sendAction(HomeAction.ResumeEpisode(it)) },
             onToggleLikedEpisode = { viewModel.sendAction(HomeAction.ToggleLikedEpisode(it)) },
@@ -168,8 +168,6 @@ internal fun HomeScreen(
     foreignTrendingPodcasts: List<Podcast>,
     liveEpisodes: List<Episode>,
     channels: List<Channel>,
-    // 지금 소리가 나고 있는 에피소드. 일시정지 중이면 null 이라 배지가 사라진다.
-    playingEpisodeId: Long? = null,
     onPlayEpisode: (Episode) -> Unit,
     onResumeEpisode: (Episode) -> Unit,
     onToggleLikedEpisode: (Episode) -> Unit,
@@ -226,7 +224,6 @@ internal fun HomeScreen(
                     if (playingEpisodes.isNotEmpty()) {
                         HomeContinueListeningRow(
                             episodes = playingEpisodes,
-                            playingEpisodeId = playingEpisodeId,
                             onEpisodeClick = onResumeEpisode,
                         )
 
@@ -441,7 +438,6 @@ private fun HomeHeader(
 private fun HomeContinueListeningRow(
     modifier: Modifier = Modifier,
     episodes: List<Episode>,
-    playingEpisodeId: Long? = null,
     onEpisodeClick: (Episode) -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
@@ -467,7 +463,6 @@ private fun HomeContinueListeningRow(
             HomeContinueListeningHero(
                 modifier = Modifier.fillParentMaxWidth(HomeHeroWidthFraction),
                 episode = episode,
-                isPlaying = episode.id == playingEpisodeId,
                 onClick = { onEpisodeClick(episode) },
             )
         }
@@ -478,12 +473,16 @@ private fun HomeContinueListeningRow(
 private fun HomeContinueListeningHero(
     modifier: Modifier = Modifier,
     episode: Episode,
-    isPlaying: Boolean = false,
     onClick: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
     val remain = episode.remain
     val leftLabel = stringResource(uiR.string.core_ui_left)
+
+    // 목록 항목(EpisodeItem)과 같은 통로로 판단한다. 다만 id 만으로는 일시정지가 구분되지 않아
+    // 재생 여부를 함께 본다 — 이어듣기 목록에는 방금 튼 것도 있어, 어느 것이 실제로 울리고
+    // 있는지가 라벨 없이는 드러나지 않는다.
+    val isNowPlaying = episode.id == LocalNowPlayingEpisodeId.current && LocalIsPlaying.current
 
     // 카드 배경은 이 에피소드 커버에서 뽑은 색으로 흐른다. 팔레트가 준비되기 전에는
     // 기존 브랜드 그라디언트를 그대로 쓴다.
@@ -523,20 +522,15 @@ private fun HomeContinueListeningHero(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        // 이 카드가 지금 소리를 내고 있으면 라벨을 "재생 중"으로 바꾼다.
-                        // 이어듣기 목록에는 방금 튼 것도 함께 있어, 그중 어느 것이 울리고
-                        // 있는지가 라벨 없이는 드러나지 않는다.
                         text = stringResource(
-                            if (isPlaying) uiR.string.core_ui_now_playing
+                            if (isNowPlaying) uiR.string.core_ui_now_playing
                             else uiR.string.core_ui_continue
                         ),
                         // 원본은 11/700/.05em (원본 줄 182). labelMedium(13)은 두 단계 크다.
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.05.em),
-                        color = if (isPlaying) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.tertiary
-                        },
+                        // 두 라벨 모두 tertiary 다 — Color.kt 가 이 토큰을 "이어 듣기 · 재생 중 표시"에
+                        // 배정하고 있어, 강조하겠다고 primary 로 바꾸면 디자인 시스템과 어긋난다.
+                        color = MaterialTheme.colorScheme.tertiary,
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -637,10 +631,8 @@ private fun HomeSkeleton(modifier: Modifier = Modifier) {
                     }
 
                     // 드래그 핸들은 데이터와 무관한 정적 크롬이라 실제 컴포저블을 그대로 쓴다.
-                    // 실제 화면에서는 BottomSheetScaffold 의 sheetDragHandle 슬롯이 가운데로
-                    // 놓아주지만(L233), 여기서는 Column 의 기본 정렬(Start)을 그대로 받아
-                    // 폭 40dp 짜리 핸들이 왼쪽에 붙는다. 명시적으로 가운데에 둔다.
-                    EpisodiveDragHandle(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    // 슬롯 밖이라 부모 정렬을 받지만, 컴포넌트가 스스로 가운데에 선다.
+                    EpisodiveDragHandle()
 
                     Spacer(modifier = Modifier.height(16.dp))
 

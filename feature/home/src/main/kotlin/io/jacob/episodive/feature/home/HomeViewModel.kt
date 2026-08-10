@@ -10,7 +10,6 @@ import io.jacob.episodive.core.domain.usecase.episode.GetMyRandomEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.episode.GetPlayingEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.episode.SaveEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
-import io.jacob.episodive.core.domain.usecase.player.GetPlayingEpisodeIdUseCase
 import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.ResumeEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
@@ -49,7 +48,6 @@ class HomeViewModel @Inject constructor(
     getForeignTrendingPodcastsUseCase: GetForeignTrendingPodcastsUseCase,
     getLiveEpisodesUseCase: GetLiveEpisodesUseCase,
     getChannelsUseCase: GetChannelsUseCase,
-    getPlayingEpisodeIdUseCase: GetPlayingEpisodeIdUseCase,
     private val playEpisodeUseCase: PlayEpisodeUseCase,
     private val resumeEpisodeUseCase: ResumeEpisodeUseCase,
     private val toggleLikedEpisodeUseCase: ToggleLikedEpisodeUseCase,
@@ -103,17 +101,6 @@ class HomeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeState.Loading
     )
-
-    /**
-     * 이어듣기 카드에 "재생 중" 을 띄우기 위한 값. 위 [state] 의 combine 에 넣지 않는다 —
-     * 재생/일시정지를 누를 때마다 홈 데이터 아홉 갈래가 통째로 재계산될 이유가 없다.
-     */
-    val playingEpisodeId: StateFlow<Long?> = getPlayingEpisodeIdUseCase()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = null,
-        )
 
     private val _action = MutableSharedFlow<HomeAction>(extraBufferCapacity = 1)
 

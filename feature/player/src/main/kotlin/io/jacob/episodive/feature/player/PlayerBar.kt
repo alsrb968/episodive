@@ -77,6 +77,7 @@ fun PlayerBar(
     expandSignal: Int = 0,
     collapseSignal: Int = 0,
     onNowPlayingChange: (Long?) -> Unit = {},
+    onIsPlayingChange: (Boolean) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -86,6 +87,12 @@ fun PlayerBar(
     val nowPlayingId = (state as? PlayerState.Success)?.nowPlaying?.id
     LaunchedEffect(nowPlayingId) {
         onNowPlayingChange(nowPlayingId)
+    }
+
+    // 위 id 만으로는 일시정지를 구분하지 못한다. 재생/일시정지를 갈라야 하는 화면을 위해 함께 올린다.
+    val isPlaying = (state as? PlayerState.Success)?.isPlaying == true
+    LaunchedEffect(isPlaying) {
+        onIsPlayingChange(isPlaying)
     }
 
     // 외부(위젯 now-playing 딥링크)에서 시그널이 증가하면 플레이어 시트를 펼친다.

@@ -45,6 +45,7 @@ import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBar
 import io.jacob.episodive.core.designsystem.component.EpisodiveNavigationBarItem
 import io.jacob.episodive.feature.onboarding.OnboardingRoute
+import io.jacob.episodive.core.ui.LocalIsPlaying
 import io.jacob.episodive.core.ui.LocalNowPlayingEpisodeId
 import io.jacob.episodive.feature.player.PlayerBar
 import io.jacob.episodive.navigation.EpisodiveNavHost
@@ -210,8 +211,13 @@ fun EpisodiveApp(
         // 미니플레이어가 들고 있는 현재 재생 에피소드를 화면 트리 전체에 내려, 어느 목록에서든
         // 재생 중인 항목 하나만 강조되게 한다 (에피소드 행의 레드 재생 버튼 + 진행률 링).
         var nowPlayingEpisodeId by remember { mutableStateOf<Long?>(null) }
+        // 위 id 는 일시정지 중에도 남는다. 재생 여부까지 갈라야 하는 화면을 위해 따로 내린다.
+        var isPlaying by remember { mutableStateOf(false) }
 
-        CompositionLocalProvider(LocalNowPlayingEpisodeId provides nowPlayingEpisodeId) {
+        CompositionLocalProvider(
+            LocalNowPlayingEpisodeId provides nowPlayingEpisodeId,
+            LocalIsPlaying provides isPlaying,
+        ) {
             Box(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -234,6 +240,7 @@ fun EpisodiveApp(
                     expandSignal = expandPlayerSignal,
                     collapseSignal = collapsePlayerSignal,
                     onNowPlayingChange = { nowPlayingEpisodeId = it },
+                    onIsPlayingChange = { isPlaying = it },
                 )
             }
         }

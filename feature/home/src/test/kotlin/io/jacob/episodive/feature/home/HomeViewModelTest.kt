@@ -7,7 +7,6 @@ import io.jacob.episodive.core.domain.usecase.episode.GetMyRandomEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.episode.GetPlayingEpisodesUseCase
 import io.jacob.episodive.core.domain.usecase.episode.SaveEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
-import io.jacob.episodive.core.domain.usecase.player.GetPlayingEpisodeIdUseCase
 import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.ResumeEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetFollowedPodcastsUseCase
@@ -53,7 +52,6 @@ class HomeViewModelTest {
         mockk<GetForeignTrendingPodcastsUseCase>(relaxed = true)
     private val getLiveEpisodesUseCase = mockk<GetLiveEpisodesUseCase>(relaxed = true)
     private val getChannelsUseCase = mockk<GetChannelsUseCase>(relaxed = true)
-    private val getPlayingEpisodeIdUseCase = mockk<GetPlayingEpisodeIdUseCase>(relaxed = true)
     private val playEpisodeUseCase = mockk<PlayEpisodeUseCase>(relaxed = true)
     private val resumeEpisodeUseCase = mockk<ResumeEpisodeUseCase>(relaxed = true)
     private val toggleLikedEpisodeUseCase = mockk<ToggleLikedEpisodeUseCase>(relaxed = true)
@@ -69,7 +67,6 @@ class HomeViewModelTest {
         every { getForeignTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
         every { getLiveEpisodesUseCase(max = any()) } returns flowOf(emptyList())
         every { getChannelsUseCase() } returns flowOf(emptyList())
-        every { getPlayingEpisodeIdUseCase() } returns flowOf(null)
     }
 
     private fun createViewModel(): HomeViewModel {
@@ -83,7 +80,6 @@ class HomeViewModelTest {
             getForeignTrendingPodcastsUseCase = getForeignTrendingPodcastsUseCase,
             getLiveEpisodesUseCase = getLiveEpisodesUseCase,
             getChannelsUseCase = getChannelsUseCase,
-            getPlayingEpisodeIdUseCase = getPlayingEpisodeIdUseCase,
             playEpisodeUseCase = playEpisodeUseCase,
             resumeEpisodeUseCase = resumeEpisodeUseCase,
             toggleLikedEpisodeUseCase = toggleLikedEpisodeUseCase,
