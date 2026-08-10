@@ -619,7 +619,10 @@ private fun HomeSkeleton(modifier: Modifier = Modifier) {
                     }
 
                     // 드래그 핸들은 데이터와 무관한 정적 크롬이라 실제 컴포저블을 그대로 쓴다.
-                    EpisodiveDragHandle()
+                    // 실제 화면에서는 BottomSheetScaffold 의 sheetDragHandle 슬롯이 가운데로
+                    // 놓아주지만(L233), 여기서는 Column 의 기본 정렬(Start)을 그대로 받아
+                    // 폭 40dp 짜리 핸들이 왼쪽에 붙는다. 명시적으로 가운데에 둔다.
+                    EpisodiveDragHandle(modifier = Modifier.align(Alignment.CenterHorizontally))
 
                     Spacer(modifier = Modifier.height(16.dp))
 
