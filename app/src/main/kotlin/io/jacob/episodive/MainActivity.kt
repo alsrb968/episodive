@@ -65,7 +65,12 @@ class MainActivity : ComponentActivity() {
             // MediaController connected
         }, MoreExecutors.directExecutor())
 
-        handleWidgetAutoplay(getIntent())
+        // 액티비티가 다시 만들어질 때는 건너뛴다. playOrPause() 는 토글이라 두 번 불리면
+        // 사용자가 켜 달라고 한 재생을 그대로 꺼 버린다. intent.removeExtra 는 방어가 되지 못한다 —
+        // 재생성 시 시스템이 원본 Intent 를 다시 실어 주므로 extra 가 되살아난다.
+        if (savedInstanceState == null) {
+            handleWidgetAutoplay(getIntent())
+        }
 
         setContent {
             val appState = rememberEpisodiveAppState(

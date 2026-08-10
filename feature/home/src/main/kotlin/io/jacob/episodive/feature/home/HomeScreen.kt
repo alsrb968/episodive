@@ -85,6 +85,8 @@ import io.jacob.episodive.core.ui.ChannelSection
 import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.EpisodesSection
 import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
+import io.jacob.episodive.core.ui.LocalIsPlaying
+import io.jacob.episodive.core.ui.LocalNowPlayingEpisodeId
 import io.jacob.episodive.core.ui.PodcastsSection
 import io.jacob.episodive.core.ui.PodcastsSectionSkeleton
 import io.jacob.episodive.core.ui.asUiMessage
@@ -477,6 +479,11 @@ private fun HomeContinueListeningHero(
     val remain = episode.remain
     val leftLabel = stringResource(uiR.string.core_ui_left)
 
+    // 목록 항목(EpisodeItem)과 같은 통로로 판단한다. 다만 id 만으로는 일시정지가 구분되지 않아
+    // 재생 여부를 함께 본다 — 이어듣기 목록에는 방금 튼 것도 있어, 어느 것이 실제로 울리고
+    // 있는지가 라벨 없이는 드러나지 않는다.
+    val isNowPlaying = episode.id == LocalNowPlayingEpisodeId.current && LocalIsPlaying.current
+
     // 카드 배경은 이 에피소드 커버에서 뽑은 색으로 흐른다. 팔레트가 준비되기 전에는
     // 기존 브랜드 그라디언트를 그대로 쓴다.
     var dominantColor by remember(episode.id) { mutableStateOf<Color?>(null) }
@@ -515,9 +522,14 @@ private fun HomeContinueListeningHero(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = stringResource(uiR.string.core_ui_continue),
+                        text = stringResource(
+                            if (isNowPlaying) uiR.string.core_ui_now_playing
+                            else uiR.string.core_ui_continue
+                        ),
                         // 원본은 11/700/.05em (원본 줄 182). labelMedium(13)은 두 단계 크다.
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.05.em),
+                        // 두 라벨 모두 tertiary 다 — Color.kt 가 이 토큰을 "이어 듣기 · 재생 중 표시"에
+                        // 배정하고 있어, 강조하겠다고 primary 로 바꾸면 디자인 시스템과 어긋난다.
                         color = MaterialTheme.colorScheme.tertiary,
                     )
 
@@ -619,6 +631,7 @@ private fun HomeSkeleton(modifier: Modifier = Modifier) {
                     }
 
                     // 드래그 핸들은 데이터와 무관한 정적 크롬이라 실제 컴포저블을 그대로 쓴다.
+                    // 슬롯 밖이라 부모 정렬을 받지만, 컴포넌트가 스스로 가운데에 선다.
                     EpisodiveDragHandle()
 
                     Spacer(modifier = Modifier.height(16.dp))
