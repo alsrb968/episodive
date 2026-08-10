@@ -20,6 +20,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Episodive.Splash">
+        <!--
+            세로 고정. 가로용 레이아웃이 없어 돌리면 이어듣기 캐러셀과 바텀시트 높이 계산이
+            어그러진다. lint 경고 둘을 끄는데, LockedOrientationActivity 는 Chrome OS 를,
+            DiscouragedApi 는 Android 16 대화면을 이유로 든다 — 둘 다 감수하는 선택이다.
+            tools:ignore 는 속성 단위로 지정할 수 없어 activity 전체에 붙는다.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
