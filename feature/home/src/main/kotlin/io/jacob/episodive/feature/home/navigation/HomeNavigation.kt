@@ -20,6 +20,7 @@ fun EntryProviderScope<NavKey>.homeEntries(
     onChannelClick: (Long) -> Unit,
     onMoreClick: (HomeSection) -> Unit,
     onBackClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     entry<HomeRoute> {
@@ -27,6 +28,7 @@ fun EntryProviderScope<NavKey>.homeEntries(
             onPodcastClick = onPodcastClick,
             onChannelClick = onChannelClick,
             onMoreClick = onMoreClick,
+            onSearchClick = onSearchClick,
             onShowSnackbar = onShowSnackbar,
         )
     }

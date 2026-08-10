@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -55,17 +56,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.jacob.episodive.core.designsystem.component.EpisodiveDragHandle
+import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.SkeletonBox
 import io.jacob.episodive.core.designsystem.component.SkeletonContainer
 import io.jacob.episodive.core.designsystem.component.SkeletonCover
 import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
+import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.screen.ErrorScreen
 import io.jacob.episodive.core.designsystem.theme.EpisodiveHeroGradientEnd
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
@@ -102,6 +106,7 @@ internal fun HomeRoute(
     onPodcastClick: (Long) -> Unit,
     onChannelClick: (Long) -> Unit,
     onMoreClick: (HomeSection) -> Unit,
+    onSearchClick: () -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -124,7 +129,7 @@ internal fun HomeRoute(
     }
 
     when (val s = state) {
-        is HomeState.Loading -> HomeSkeleton()
+        is HomeState.Loading -> HomeSkeleton(onSearchClick = onSearchClick)
 
         is HomeState.Success -> HomeScreen(
             modifier = modifier
@@ -145,6 +150,8 @@ internal fun HomeRoute(
             onPodcastClick = { viewModel.sendAction(HomeAction.ClickPodcast(it)) },
             onChannelClick = { viewModel.sendAction(HomeAction.ClickChannel(it)) },
             onMoreClick = { viewModel.sendAction(HomeAction.ClickMore(it)) },
+            // 검색은 홈 데이터를 건드리지 않는 탭 전환이라 ViewModel 을 거치지 않는다.
+            onSearchClick = onSearchClick,
         )
 
         is HomeState.Error -> ErrorScreen(
@@ -178,6 +185,7 @@ internal fun HomeScreen(
     onChannelClick: (Long) -> Unit,
     // 섹션별로 콜백을 여덟 개 두지 않고 하나로 받는다 — 어느 섹션인지는 인자가 말해준다.
     onMoreClick: (HomeSection) -> Unit,
+    onSearchClick: () -> Unit = {},
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenHeight = this.maxHeight
@@ -210,6 +218,7 @@ internal fun HomeScreen(
                 ) {
                     HomeHeader(
                         title = stringResource(R.string.feature_home_title),
+                        onSearchClick = onSearchClick,
                     )
                 }
             },
@@ -411,14 +420,22 @@ private val HomeHeroCoverSize = HomeHeroCoverSizeDp.dp
  */
 private val HomeHeroRemainLabelMaxWidth = 120.dp
 
+/**
+ * 아이콘 버튼은 48dp 터치 영역 안에 24dp 아이콘을 가운데 두므로 좌우로 12dp 씩 빈 자리를
+ * 이미 갖고 있다. 헤더의 우측 여백에서 그만큼 덜어야 아이콘이 눈에 보이는 위치가 제목의
+ * 좌측 여백과 맞는다 — 덜지 않으면 아이콘만 홀로 안쪽으로 들어가 보인다.
+ */
+private val HomeHeaderActionInset = 12.dp
+
 @Composable
 private fun HomeHeader(
     modifier: Modifier = Modifier,
     title: String,
+    onSearchClick: () -> Unit = {},
 ) {
     val dimension = LocalDimensionTheme.current
 
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             // 홈은 BottomSheetScaffold의 topBar 슬롯을 쓰지 않아 인셋이 자동으로 오지 않는다.
@@ -426,16 +443,28 @@ private fun HomeHeader(
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(
                 start = dimension.headerPadding,
-                end = dimension.headerPadding,
+                // 여백이 아이콘 자체 여백보다 좁은 테마가 생기면 음수가 되어 크래시한다.
+                end = (dimension.headerPadding - HomeHeaderActionInset).coerceAtLeast(0.dp),
                 top = 16.dp,
                 bottom = 8.dp,
             ),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
+            // 제목이 길어져도 검색 버튼을 밀어내지 않도록 남는 폭만 차지하게 둔다.
+            modifier = Modifier.weight(1f),
             text = title,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
+
+        EpisodiveIconButton(onClick = onSearchClick) {
+            Icon(
+                imageVector = EpisodiveIcons.Search,
+                contentDescription = stringResource(R.string.feature_home_search),
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
@@ -624,7 +653,10 @@ private val HomeHeroSkeletonInitialHeight = 130.dp
  * 화면은 보통 3~5개 섹션만 뜨는데 8개를 그리면 스크롤 길이가 절반으로 줄며 스크롤바가 튄다.
  */
 @Composable
-private fun HomeSkeleton(modifier: Modifier = Modifier) {
+private fun HomeSkeleton(
+    modifier: Modifier = Modifier,
+    onSearchClick: () -> Unit = {},
+) {
     val dimension = LocalDimensionTheme.current
     val density = LocalDensity.current
 
@@ -634,7 +666,11 @@ private fun HomeSkeleton(modifier: Modifier = Modifier) {
     var heroAreaHeight by remember { mutableStateOf(HomeHeroSkeletonInitialHeight) }
 
     Column(modifier = modifier.fillMaxSize()) {
-        HomeHeader(title = stringResource(R.string.feature_home_title))
+        // 검색은 홈 데이터가 아직 없어도 갈 수 있는 곳이라, 로딩 중에도 눌리게 둔다.
+        HomeHeader(
+            title = stringResource(R.string.feature_home_title),
+            onSearchClick = onSearchClick,
+        )
 
         Box(modifier = Modifier.fillMaxSize()) {
             // 시트 배경은 SkeletonContainer 바깥의 별도 노드에서 먼저 칠한다. 안에서 칠하면

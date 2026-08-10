@@ -21,6 +21,11 @@ fun EpisodiveNavHost(
     navigator: EpisodiveNavigator,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
     modifier: Modifier = Modifier,
+    onSearchShortcutClick: () -> Unit = {},
+    // 값이 아니라 읽는 함수를 받는다. navigation3 가 NavEntry 를 재사용하는 탓에 아래
+    // entryProvider 블록은 처음 캡처한 값에 갇힌다 — 자세한 이유는 searchEntries 문서 참고.
+    searchAutoFocus: () -> Boolean = { false },
+    onSearchAutoFocusHandled: () -> Unit = {},
 ) {
     val entryProvider = entryProvider<NavKey> {
         homeEntries(
@@ -28,11 +33,15 @@ fun EpisodiveNavHost(
             onChannelClick = { navigator.navigate(ChannelRoute(it)) },
             onMoreClick = { navigator.navigate(HomeMoreRoute(it)) },
             onBackClick = { navigator.goBack() },
+            // 탭 전환에 포커스 신호까지 얹어야 해서 navigator 를 직접 부르지 않는다.
+            onSearchClick = onSearchShortcutClick,
             onShowSnackbar = onShowSnackbar,
         )
         searchEntries(
             onPodcastClick = { navigator.navigate(PodcastRoute(it)) },
             onShowSnackbar = onShowSnackbar,
+            autoFocus = searchAutoFocus,
+            onAutoFocusHandled = onSearchAutoFocusHandled,
         )
         libraryEntries(
             onPodcastClick = { navigator.navigate(PodcastRoute(it)) },

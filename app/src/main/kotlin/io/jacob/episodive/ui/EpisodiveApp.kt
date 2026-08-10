@@ -114,6 +114,10 @@ fun EpisodiveApp(
         return
     }
 
+    LaunchedEffect(appState.navigationState.topLevelRoute) {
+        appState.discardSearchAutoFocusIfTabLeft()
+    }
+
     // 위젯 딥링크 → 플레이어 시트 펼침/접힘 신호. 콜드(fresh onCreate) 타이밍에 일회성 effect 가
     // PlayerBar 구독 전 emit 되어 유실되지 않도록, 상태(시그널) 로 PlayerBar 에 전달한다.
     var expandPlayerSignal by remember { mutableIntStateOf(0) }
@@ -229,6 +233,14 @@ fun EpisodiveApp(
                     navigationState = appState.navigationState,
                     navigator = appState.navigator,
                     onShowSnackbar = onShowSnackbar,
+                    onSearchShortcutClick = {
+                        // 열려 있던 플레이어 시트가 검색창을 가리지 않도록 접는다 —
+                        // 팟캐스트로 넘어갈 때(L127)와 같은 이유다.
+                        collapsePlayerSignal++
+                        appState.navigateToSearchWithFocus()
+                    },
+                    searchAutoFocus = { appState.searchAutoFocus },
+                    onSearchAutoFocusHandled = appState::consumeSearchAutoFocus,
                 )
 
                 PlayerBar(

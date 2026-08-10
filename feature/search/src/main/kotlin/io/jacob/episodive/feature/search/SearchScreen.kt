@@ -76,6 +76,15 @@ fun SearchRoute(
     viewModel: SearchViewModel = hiltViewModel(),
     onPodcastClick: (Long) -> Unit,
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
+    /**
+     * 홈의 검색 바로가기로 들어왔다는 표시. 켜져 있으면 입력창을 펼치고 키보드까지 올린다.
+     *
+     * 로딩 중에는 검색바 자체가 없어 신호가 그대로 남아 있다가, [SearchState.Success] 로
+     * 바뀌어 입력창이 그려지는 순간 소비된다. 하단 바로 들어온 진입은 이 값이 false 라
+     * 예전처럼 조용히 열린다.
+     */
+    autoFocus: Boolean = false,
+    onAutoFocusHandled: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -107,6 +116,8 @@ fun SearchRoute(
                 onRecentSearchClick = { viewModel.sendAction(SearchAction.ClickRecentSearch(it)) },
                 onRemoveRecentSearch = { viewModel.sendAction(SearchAction.RemoveRecentSearch(it)) },
                 onClearRecentSearches = { viewModel.sendAction(SearchAction.ClearRecentSearches) },
+                autoFocus = autoFocus,
+                onAutoFocusHandled = onAutoFocusHandled,
             )
         }
 
@@ -181,6 +192,8 @@ internal fun SearchScreen(
     onRemoveRecentSearch: (RecentSearch) -> Unit = {},
     onClearRecentSearches: () -> Unit = {},
     isExpanded: Boolean = false,
+    autoFocus: Boolean = false,
+    onAutoFocusHandled: () -> Unit = {},
 ) {
     EpisodiveScaffold(
         modifier = modifier,
@@ -223,7 +236,9 @@ internal fun SearchScreen(
                     onRemoveRecentSearch = onRemoveRecentSearch,
                     onClearRecentSearches = onClearRecentSearches
                 )
-            }
+            },
+            autoFocus = autoFocus,
+            onAutoFocusHandled = onAutoFocusHandled,
         )
     }
 }
