@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
@@ -402,6 +404,13 @@ private val HomeHeroPadding = 14.dp
 private const val HomeHeroCoverSizeDp = 60
 private val HomeHeroCoverSize = HomeHeroCoverSizeDp.dp
 
+/**
+ * 이어듣기 카드에서 남은 시간 라벨이 차지할 수 있는 최대 폭. 진행바가 `weight` 로 나머지를 먹으므로
+ * 상한이 없으면 큰 글꼴 설정에서 라벨이 줄을 다 차지하고 진행바가 0 폭으로 사라진다. 좁은 화면
+ * (320dp)에서도 진행바에 절반 가까이 남도록 잡은 값이다.
+ */
+private val HomeHeroRemainLabelMaxWidth = 120.dp
+
 @Composable
 private fun HomeHeader(
     modifier: Modifier = Modifier,
@@ -476,6 +485,7 @@ private fun HomeContinueListeningHero(
     onClick: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
+    val density = LocalDensity.current
     val remain = episode.remain
     val leftLabel = stringResource(uiR.string.core_ui_left)
 
@@ -483,6 +493,15 @@ private fun HomeContinueListeningHero(
     // 재생 여부를 함께 본다 — 이어듣기 목록에는 방금 튼 것도 있어, 어느 것이 실제로 울리고
     // 있는지가 라벨 없이는 드러나지 않는다.
     val isNowPlaying = episode.id == LocalNowPlayingEpisodeId.current && LocalIsPlaying.current
+
+    // 남은 시간 표기는 "5분 1초" → "5분" 처럼 항목이 통째로 빠지며 폭이 줄어든다. 그 자리를
+    // 매번 다시 재면 나머지를 weight 로 먹는 진행바가 같이 늘었다 줄었다 하며 재생 내내
+    // 출렁인다. 한 번 잡은 폭을 최대치로 붙들어 진행바 폭을 고정한다.
+    //
+    // 되감기처럼 표기가 되레 길어지는 경로에서는 폭이 한 번 넓어지고 그대로 유지된다 — 그 뒤로
+    // 진행바가 조금 좁아진 채 있지만, 매초 출렁이는 것보다는 낫다는 판단이다. 폭 자체는
+    // [HomeHeroRemainLabelMaxWidth] 로 막혀 있어 진행바가 사라지는 데까지 가지는 않는다.
+    var remainLabelWidth by remember(episode.id) { mutableStateOf(0.dp) }
 
     // 카드 배경은 이 에피소드 커버에서 뽑은 색으로 흐른다. 팔레트가 준비되기 전에는
     // 기존 브랜드 그라디언트를 그대로 쓴다.
@@ -568,12 +587,27 @@ private fun HomeContinueListeningHero(
                 )
 
                 Text(
+                    modifier = Modifier
+                        .widthIn(
+                            min = remainLabelWidth,
+                            max = HomeHeroRemainLabelMaxWidth,
+                        )
+                        .onSizeChanged { size ->
+                            val width = with(density) { size.width.toDp() }
+                            if (width > remainLabelWidth) remainLabelWidth = width
+                        },
                     // 목록 행과 같은 표기를 쓴다. 분 단위로 직접 만들면 로케일이 안 붙고
                     // 1분 미만이 "0분 남음"이 된다.
                     text = remain?.let { "${it.toHumanReadable()} $leftLabel" }.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.7f),
                     maxLines = 1,
+                    // 상한에 걸린 표기는 잘린다. 기본값 Clip 은 글자를 반 토막 내므로 잘렸다는
+                    // 사실이 드러나는 말줄임을 쓴다.
+                    overflow = TextOverflow.Ellipsis,
+                    // 자리를 붙들어 두면 짧아진 표기가 그 안에서 왼쪽으로 쏠린다. 카드 오른쪽
+                    // 가장자리에 맞춰 두려면 끝 정렬이어야 한다.
+                    textAlign = TextAlign.End,
                 )
             }
         }

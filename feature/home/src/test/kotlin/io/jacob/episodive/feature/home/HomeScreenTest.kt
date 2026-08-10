@@ -1,12 +1,18 @@
 package io.jacob.episodive.feature.home
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.Dp
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.Episode
@@ -21,6 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(RobolectricTestRunner::class)
 class HomeScreenTest {
@@ -45,11 +52,14 @@ class HomeScreenTest {
         onPodcastClick: (Long) -> Unit = {},
         onChannelClick: (Long) -> Unit = {},
         onMoreClick: (HomeSection) -> Unit = {},
+        // 이어듣기 목록을 화면이 뜬 뒤에 바꿔야 하는 테스트를 위한 통로. 주면 [playingEpisodes]
+        // 대신 이 상태를 읽어, 값을 바꾸는 것만으로 카드가 다시 그려진다.
+        playingEpisodesState: State<List<Episode>>? = null,
     ) {
         composeTestRule.setContent {
             EpisodiveTheme {
                 HomeScreen(
-                    playingEpisodes = playingEpisodes,
+                    playingEpisodes = playingEpisodesState?.value ?: playingEpisodes,
                     userRecentPodcasts = userRecentPodcasts,
                     randomEpisodes = randomEpisodes,
                     userTrendingPodcasts = userTrendingPodcasts,
@@ -574,5 +584,49 @@ class HomeScreenTest {
         composeTestRule.onNodeWithText("My recent published").assertDoesNotExist()
         composeTestRule.onNodeWithText("Random episodes").assertDoesNotExist()
         composeTestRule.onNodeWithText("Channels worth listening to").assertDoesNotExist()
+    }
+
+    // --- 이어듣기 카드 진행바 ---
+
+    @Test
+    fun continueListeningHero_progressBarKeepsWidthWhenRemainLabelShrinks() {
+        // 남은 시간 표기는 "5min 1sec Left" → "5min Left" 처럼 항목이 통째로 빠지며 좁아진다.
+        // 그 자리를 매번 다시 재면 나머지를 weight 로 먹는 진행바가 함께 늘었다 줄었다 하며
+        // 재생 내내 출렁인다.
+        val base = episodeTestDataList.first()
+        val duration = requireNotNull(base.duration)
+        val playingEpisodes = mutableStateOf(listOf(base.copy(position = duration - 301.seconds)))
+
+        // 다른 섹션을 모두 비워 화면 안의 진행바가 이 카드의 것 하나뿐이게 만든다 —
+        // [continueListeningProgressBarWidth] 가 그 유일성에 기댄다.
+        setHomeScreen(
+            userRecentPodcasts = emptyList(),
+            randomEpisodes = emptyList(),
+            userTrendingPodcasts = emptyList(),
+            followedPodcasts = emptyList(),
+            localTrendingPodcasts = emptyList(),
+            foreignTrendingPodcasts = emptyList(),
+            liveEpisodes = emptyList(),
+            channels = emptyList(),
+            playingEpisodesState = playingEpisodes,
+        )
+
+        composeTestRule.onNodeWithText("5min 1sec Left").assertExists()
+        val widthBefore = continueListeningProgressBarWidth()
+
+        composeTestRule.runOnIdle {
+            playingEpisodes.value = listOf(base.copy(position = duration - 300.seconds))
+        }
+
+        composeTestRule.onNodeWithText("5min Left").assertExists()
+        assertEquals(widthBefore, continueListeningProgressBarWidth())
+    }
+
+    private fun continueListeningProgressBarWidth(): Dp {
+        val bounds = composeTestRule
+            .onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            .getUnclippedBoundsInRoot()
+
+        return bounds.right - bounds.left
     }
 }
