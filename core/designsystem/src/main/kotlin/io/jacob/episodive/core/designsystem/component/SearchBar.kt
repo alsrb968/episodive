@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -75,6 +76,15 @@ fun EpisodiveSearchBar(
     contentOnExpand: @Composable (LazyListState) -> Unit = {},
     // 검색어가 비어 있을 때의 우측 슬롯. 동작이 붙어 있지 않은 아이콘을 놓지 않는다.
     trailingIconOnCollapse: @Composable () -> Unit = {},
+    /**
+     * 다른 화면에서 "검색하러 왔다"는 신호로 켜서 넘긴다. true 로 들어오면 펼치고 입력창에
+     * 포커스를 준 뒤 [onAutoFocusHandled] 로 신호를 돌려준다.
+     *
+     * 돌려주는 것이 핵심이다. 신호를 켠 채로 두면 검색 탭을 떠났다 하단 바로 다시 들어올 때
+     * 이 화면이 새로 컴포즈되면서 키보드가 또 올라온다 — 사용자가 부르지 않은 키보드다.
+     */
+    autoFocus: Boolean = false,
+    onAutoFocusHandled: () -> Unit = {},
 ) {
     var expanded by rememberSaveable { mutableStateOf(isExpanded) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -112,6 +122,28 @@ fun EpisodiveSearchBar(
         }
     }
 
+    LaunchedEffect(autoFocus) {
+        if (!autoFocus) return@LaunchedEffect
+
+        try {
+            // 펼침을 먼저 켜 둔다. 포커스만 주면 M3 가 onFocusChanged 로 뒤늦게 펼치면서
+            // 결과 영역이 한 프레임 늦게 열린다. 접을 수 없는 검색바는 펼쳐 두면 되돌릴
+            // 길이 없으므로 포커스만 준다 — 나머지 접기 경로도 같은 가드를 쓴다.
+            if (isExpandable) expanded = true
+            // 펼침이 실제 노드에 반영된 뒤에 요청한다. 같은 프레임에 부르면 M3 가 입력
+            // 필드를 펼침 레이아웃으로 옮겨 그리는 중일 수 있다.
+            withFrameNanos { }
+            focusRequester.requestFocus()
+            // 포커스가 잡히면 IME 는 보통 알아서 올라오지만, 화면 전환 직후에는 그 자동
+            // 호출이 무시되는 기기가 있다. 명시적으로 한 번 더 부른다.
+            keyboardController?.show()
+        } finally {
+            // 중간에 실패하더라도 신호는 반드시 돌려준다. 켜진 채로 남으면 이 화면에
+            // 들어올 때마다 같은 시도가 되풀이된다.
+            onAutoFocusHandled()
+        }
+    }
+
     Column(
         modifier = modifier,
     ) {
@@ -125,8 +157,7 @@ fun EpisodiveSearchBar(
                     end = horizontalPadding,
                     top = topPadding,
                     bottom = bottomPadding,
-                )
-                .focusRequester(focusRequester),
+                ),
             windowInsets = WindowInsets(0, 0, 0, 0),
             shape = EpisodiveShapes.searchBar,
             // 바깥 컨테이너는 화면 배경과 같은 색으로 둬 눈에 띄지 않게 하고, 보이는
@@ -140,8 +171,12 @@ fun EpisodiveSearchBar(
             ),
             inputField = {
                 SearchBarDefaults.InputField(
+                    // 포커스 요청은 바깥 컨테이너가 아니라 입력 필드가 받아야 한다. 컨테이너에
+                    // 걸면 펼침 상태의 결과 목록까지 포함한 그룹으로 요청이 들어가, 어느 자식이
+                    // 포커스를 가져갈지가 트리 모양에 따라 달라진다.
                     modifier = Modifier
                         .fillMaxWidth()
+                        .focusRequester(focusRequester)
                         .height(LocalDimensionTheme.current.fieldHeight)
                         .clip(EpisodiveShapes.searchBar)
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh)

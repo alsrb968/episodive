@@ -2,6 +2,7 @@ package io.jacob.episodive.feature.search
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -16,6 +17,8 @@ import io.jacob.episodive.core.model.RecentSearch
 import io.jacob.episodive.core.model.SearchResult
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,6 +45,8 @@ class SearchScreenTest {
         onRemoveRecentSearch: (RecentSearch) -> Unit = {},
         onClearRecentSearches: () -> Unit = {},
         isExpanded: Boolean = false,
+        autoFocus: Boolean = false,
+        onAutoFocusHandled: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             EpisodiveTheme {
@@ -60,6 +65,8 @@ class SearchScreenTest {
                     onRemoveRecentSearch = onRemoveRecentSearch,
                     onClearRecentSearches = onClearRecentSearches,
                     isExpanded = isExpanded,
+                    autoFocus = autoFocus,
+                    onAutoFocusHandled = onAutoFocusHandled,
                 )
             }
         }
@@ -463,5 +470,47 @@ class SearchScreenTest {
         composeTestRule
             .onAllNodesWithContentDescription("See all", substring = true)
             .assertCountEquals(0)
+    }
+
+    // --- Auto focus (홈의 검색 바로가기로 들어온 경우) ---
+
+    @Test
+    fun autoFocus_expandsSearchBar() {
+        // 펼침 여부는 접힘 전용 콘텐츠로 판정한다 — 펼쳐지면 트렌딩 섹션 자리에 검색
+        // 결과 영역이 들어서므로 그 제목이 사라진다.
+        setSearchScreen(autoFocus = true)
+
+        composeTestRule.onNodeWithText("Global trending feeds").assertDoesNotExist()
+    }
+
+    @Test
+    fun autoFocus_focusesInputField() {
+        setSearchScreen(autoFocus = true)
+
+        composeTestRule
+            .onNodeWithText("What do you want to listen to?")
+            .assertIsFocused()
+    }
+
+    @Test
+    fun autoFocus_signalIsConsumed() {
+        // 소비하지 않으면 검색 탭을 떠났다 하단 바로 다시 들어올 때 키보드가 또 올라온다.
+        var handled = false
+        setSearchScreen(autoFocus = true, onAutoFocusHandled = { handled = true })
+
+        // 포커스 요청은 한 프레임 뒤로 미뤄져 있다. 프레임을 진행시키지 않으면 아직 아무
+        // 일도 일어나지 않은 시점을 검사하게 된다.
+        composeTestRule.waitForIdle()
+
+        assertTrue(handled)
+    }
+
+    @Test
+    fun withoutAutoFocus_searchBarStaysCollapsed() {
+        var handled = false
+        setSearchScreen(autoFocus = false, onAutoFocusHandled = { handled = true })
+
+        composeTestRule.onNodeWithText("Global trending feeds").assertIsDisplayed()
+        assertFalse(handled)
     }
 }

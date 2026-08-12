@@ -23,6 +23,7 @@ import io.jacob.episodive.core.testing.model.liveEpisodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.feature.home.navigation.HomeSection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,6 +53,7 @@ class HomeScreenTest {
         onPodcastClick: (Long) -> Unit = {},
         onChannelClick: (Long) -> Unit = {},
         onMoreClick: (HomeSection) -> Unit = {},
+        onSearchClick: () -> Unit = {},
         // 이어듣기 목록을 화면이 뜬 뒤에 바꿔야 하는 테스트를 위한 통로. 주면 [playingEpisodes]
         // 대신 이 상태를 읽어, 값을 바꾸는 것만으로 카드가 다시 그려진다.
         playingEpisodesState: State<List<Episode>>? = null,
@@ -75,6 +77,7 @@ class HomeScreenTest {
                     onPodcastClick = onPodcastClick,
                     onChannelClick = onChannelClick,
                     onMoreClick = onMoreClick,
+                    onSearchClick = onSearchClick,
                 )
             }
         }
@@ -463,6 +466,44 @@ class HomeScreenTest {
         setHomeScreen()
 
         composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+    }
+
+    // --- Search shortcut ---
+
+    @Test
+    fun header_showsSearchAction() {
+        setHomeScreen()
+
+        composeTestRule.onNodeWithContentDescription("Search").assertIsDisplayed()
+    }
+
+    @Test
+    fun searchAction_clicked_invokesCallback() {
+        var searchClicked = false
+        setHomeScreen(onSearchClick = { searchClicked = true })
+
+        composeTestRule.onNodeWithContentDescription("Search").performClick()
+
+        assertTrue(searchClicked)
+    }
+
+    @Test
+    fun searchAction_isShownEvenWhenEveryFeedIsEmpty() {
+        // 검색은 홈 데이터와 무관한 출구다. 피드가 통째로 비어 볼 것이 없을 때야말로
+        // 가장 필요한 버튼이라, 섹션이 하나도 안 그려지는 상황에서도 남아 있어야 한다.
+        setHomeScreen(
+            playingEpisodes = emptyList(),
+            userRecentPodcasts = emptyList(),
+            randomEpisodes = emptyList(),
+            userTrendingPodcasts = emptyList(),
+            followedPodcasts = emptyList(),
+            localTrendingPodcasts = emptyList(),
+            foreignTrendingPodcasts = emptyList(),
+            liveEpisodes = emptyList(),
+            channels = emptyList(),
+        )
+
+        composeTestRule.onNodeWithContentDescription("Search").assertIsDisplayed()
     }
 
     // --- New: Empty local/foreign trending sections still show other content ---
