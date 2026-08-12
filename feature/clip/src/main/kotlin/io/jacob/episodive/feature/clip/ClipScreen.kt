@@ -292,15 +292,23 @@ fun EpisodeClipPager(
             )
         ) { page ->
             episodesPaging[page]?.let { episode ->
+                // 이 카드가 지금 플레이어에 올라 있는 그 클립인지. 파도 애니메이션과 남은
+                // 시간은 한 배지의 두 짝이므로 반드시 같은 기준으로 갈라야 한다. 애니메이션만
+                // currentPage 로 가르면, 그 값은 스와이프 50% 지점에서 뒤집히는 반면
+                // progress 는 페이지가 멎은 뒤에야 따라와서 — 넘기는 내내 들어오는 카드가
+                // "재생 중 파도 + 멈춘 시간"을, 나가는 카드가 "멈춘 파도 + 흐르는 시간"을
+                // 보여준다.
+                val isCurrentClip = progress.episodeId == episode.id
+
                 EpisodeClipItem(
                     modifier = Modifier.fillMaxSize(),
                     episode = episode,
-                    isPlaying = isPlaying && page == pagerState.currentPage,
+                    isPlaying = isPlaying && isCurrentClip,
                     // 흐르는 남은 시간은 지금 플레이어에 올라 있는 클립의 것뿐이다. 아직
                     // 자기 차례가 아닌 카드(첫 진입, 스와이프 직후, 위아래로 걸쳐 보이는
                     // 이웃)까지 같은 값을 쓰면 남의 진행 시간을 빌려 보여주게 되고, 재생이
                     // 시작되는 순간 숫자가 튄다. 그런 카드는 자기 클립의 전체 길이를 보여준다.
-                    remaining = if (progress.episodeId == episode.id) {
+                    remaining = if (isCurrentClip) {
                         progress.remaining
                     } else {
                         episode.clipPlaybackDuration

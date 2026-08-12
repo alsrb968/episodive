@@ -1278,23 +1278,25 @@ class PlayerDataSourceImplTest {
         }
 
     @Test
-    fun `Given clip episodes, When playClips called, Then the confirmed emission carries the clip duration`() =
+    fun `Given clip episodes, When playClips called, Then the confirmed emission carries the target's clip duration`() =
         runTest {
             // playClips 는 인라인 transition 을 isPreparing 으로 막고 확정값을 직접 발행한다.
-            // 그 확정 발행도 클립 길이를 실어야 한다.
-            val other = episodeTestDataList[1].copy(
+            // 그 확정 발행도 클립 길이를 실어야 하고, 목록의 첫 항목이 아니라 재생할 항목의
+            // 것이어야 한다 — indexToPlay 를 1 로 두어 둘을 구분한다.
+            val target = episodeTestDataList[1].copy(
+                duration = 90.minutes,
                 clipStartTime = Instant.fromEpochSeconds(0),
                 clipDuration = 15.seconds,
             )
 
             // When
-            dataSource.playClips(episodes = listOf(clipEpisode, other), indexToPlay = 0)
+            dataSource.playClips(episodes = listOf(clipEpisode, target), indexToPlay = 1)
 
             // Then
             dataSource.progress.test {
                 val progress = awaitItem()
-                assertEquals(clipEpisode.clipDuration, progress.duration)
-                assertEquals(clipEpisode.id, progress.episodeId)
+                assertEquals(target.clipDuration, progress.duration)
+                assertEquals(target.id, progress.episodeId)
             }
         }
 
@@ -1342,6 +1344,38 @@ class PlayerDataSourceImplTest {
             dataSource.progress.test {
                 val progress = awaitItem()
                 assertEquals(clipEpisode.clipDuration, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given a clip episode, When prepare called, Then progress duration is the clip duration`() =
+        runTest {
+            // prepare 도 메타에서 길이를 가져오는 네 지점 중 하나다. 지금은 늘 isClip = false 로
+            // 올리므로 실제로는 전체 길이가 나오지만, 그건 toMediaItem 이 클리핑을 걸지 않기
+            // 때문이지 prepare 가 예외라서가 아니다. 이 테스트는 판정 근거가 "경로" 가 아니라
+            // "실제로 클리핑이 걸렸는가" 임을 고정한다.
+            dataSource.prepare(listOf(clipEpisode), indexToPlay = 0, positionMs = 0L)
+
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.duration, progress.duration)
+                assertEquals(clipEpisode.id, progress.episodeId)
+            }
+        }
+
+    @Test
+    fun `Given prepare with a restore position, When called, Then the position rides along with the duration`() =
+        runTest {
+            // prepare 를 publishStartOfPlayback 으로 합치면서 위치가 0 으로 뭉개지지 않는지 —
+            // 이 경로의 존재 이유가 "앱을 다시 켰을 때 듣던 자리로 되돌리는 것" 이라 위치가
+            // 사라지면 이어듣기가 통째로 망가진다.
+            dataSource.prepare(listOf(episode), indexToPlay = 0, positionMs = 90_000L)
+
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(90_000L.toDurationMillis(), progress.position)
+                assertEquals(episode.duration, progress.duration)
+                assertEquals(episode.id, progress.episodeId)
             }
         }
 }

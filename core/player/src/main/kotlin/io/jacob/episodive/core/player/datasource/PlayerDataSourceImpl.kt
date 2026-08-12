@@ -247,16 +247,29 @@ class PlayerDataSourceImpl @Inject constructor(
      * 에피소드 전체가 아니라 클립 길이다. 준비가 끝나기 전에는 `player.duration` 이
      * TIME_UNSET 이라 메타에서 길이를 가져와야 하는데, 그때 어느 쪽을 가져올지는 이 함수가
      * 정한다 — 판정 기준은 [toMediaItem] 이 실제로 클리핑을 걸었는지 그 자체다.
+     *
+     * **메타에서 길이를 가져오는 지점은 예외 없이 이 함수를 거칠 것.** 한 곳이라도 빠뜨리면
+     * 그 경로에서만 준비 전후로 값이 달라져 화면의 시간이 튄다.
+     *
+     * [Episode.clipPlaybackDuration] 과 이 함수는 같은 것을 서로 다른 자리에서 답한다 —
+     * 전자는 "아직 플레이어에 올리기 전"의 화면용, 후자는 "이미 올린 뒤"의 발행용이다.
+     * 둘이 어긋나면 그 순간 숫자가 튀므로, [toMediaItem] 의 클리핑 조건을 바꿀 때는
+     * `clipPlaybackDuration` 의 [Episode.hasClip] 기준도 함께 맞춰야 한다.
      */
     private fun MediaItem.playbackDuration(): Duration {
         val episode = localConfiguration?.tag as? Episode ?: return Duration.ZERO
         return if (isClipped()) episode.clipPlaybackDuration else episode.duration ?: Duration.ZERO
     }
 
-    /** 잘라 올린 아이템인지. 클리핑을 걸지 않은 아이템은 UNSET(시작 0, 끝 END_OF_SOURCE)이다. */
+    /**
+     * 잘라 올린 아이템인지 — 즉 [toMediaItem] 이 `setClippingConfiguration` 을 불렀는지.
+     *
+     * 시작·끝 위치를 각각 들여다보지 않고 [MediaItem.ClippingConfiguration.UNSET] 과
+     * 통째로 견준다. 그 편이 묻고 싶은 것을 그대로 옮긴 형태이고, 사라질 예정인 밀리초
+     * 접근자와 `TIME_END_OF_SOURCE` 센티널 셈에 기대지 않는다.
+     */
     private fun MediaItem.isClipped(): Boolean =
-        clippingConfiguration.startPositionMs > 0L ||
-                clippingConfiguration.endPositionMs != C.TIME_END_OF_SOURCE
+        clippingConfiguration != MediaItem.ClippingConfiguration.UNSET
 
     override fun getPlayer(): Player {
         return player
@@ -277,13 +290,12 @@ class PlayerDataSourceImpl @Inject constructor(
         }
 
         // 확정값을 여기서 한 번만 발행한다.
-        // 이 시점 player.duration 은 아직 TIME_UNSET 이므로 에피소드 메타의 길이를 쓴다.
-        val target = episodes.getOrNull(indexToPlay)
-        publishProgress(
+        // 이 시점 player.duration 은 아직 TIME_UNSET 이므로 미디어 아이템의 메타 길이를 쓴다.
+        // 지금은 이 경로가 늘 isClip = false 로 올리지만, 그래도 playbackDuration() 을 거친다 —
+        // 여기만 예외로 두면 나중에 이 경로로 클립을 복원할 때 조용히 전체 길이를 싣게 된다.
+        publishStartOfPlayback(
+            mediaItem = mediaItems.getOrNull(indexToPlay),
             position = positionMs.toDurationMillis(),
-            buffered = Duration.ZERO,
-            duration = target?.duration ?: Duration.ZERO,
-            episodeId = target?.id,
         )
     }
 
@@ -315,7 +327,7 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         player.playWhenReady = true
 
-        publishStartOfPlayback(episodes.getOrNull(indexToPlay ?: 0), isClip = false)
+        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0))
     }
 
     override fun playClip(episode: Episode) {
@@ -344,7 +356,7 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         player.playWhenReady = true
 
-        publishStartOfPlayback(episodes.getOrNull(indexToPlay ?: 0), isClip = true)
+        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0))
     }
 
     override fun playIndex(index: Int) {
@@ -537,19 +549,17 @@ class PlayerDataSourceImpl @Inject constructor(
     /**
      * 재생목록을 갈아끼운 직후, 실제로 재생할 항목의 시작 상태를 발행한다.
      * 갈아끼우는 동안 억제한 transition 콜백을 대신하는 확정 발행이다.
+     *
+     * 에피소드가 아니라 [MediaItem] 을 받는다. 클립인지 아닌지를 호출자가 넘기게 하면 판정이
+     * 두 곳으로 갈라져 [playbackDuration] 의 기준과 어긋날 수 있다 — 실제로 잘라 올린 그
+     * 아이템에게 직접 묻는 편이 어긋날 여지가 없다.
      */
-    private fun publishStartOfPlayback(target: Episode?, isClip: Boolean) {
+    private fun publishStartOfPlayback(mediaItem: MediaItem?, position: Duration = Duration.ZERO) {
         publishProgress(
-            position = Duration.ZERO,
+            position = position,
             buffered = Duration.ZERO,
-            // 클립 재생목록이면 잘라 올린 길이를 싣는다 — 화면이 에피소드 전체 길이를
-            // 잠깐 보였다가 클립 길이로 바뀌는 것을 막는 쪽과 같은 기준이다.
-            duration = when {
-                target == null -> Duration.ZERO
-                isClip -> target.clipPlaybackDuration
-                else -> target.duration ?: Duration.ZERO
-            },
-            episodeId = target?.id,
+            duration = mediaItem?.playbackDuration() ?: Duration.ZERO,
+            episodeId = (mediaItem?.localConfiguration?.tag as? Episode)?.id,
         )
     }
 

@@ -164,14 +164,23 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
 전체 길이를 실으면 준비가 끝나 `progressUpdater` 가 `player.duration` 을 읽는 순간 화면의 시간이
 **에피소드 전체 길이에서 클립 길이로 튄다.** 실제로 겪은 버그다.
 
-- 메타에서 길이를 가져오는 모든 지점이 같은 기준을 써야 한다 — transition 콜백,
-  `publishStartOfPlayback`, `seekTo` 의 폴백. 하나라도 빠지면 그 경로에서만 시간이 튄다.
+- 메타에서 길이를 가져오는 지점은 **예외 없이 `MediaItem.playbackDuration()` 을 거친다** —
+  `prepare`, transition 콜백, `publishStartOfPlayback`, `seekTo` 의 폴백 네 곳이다. "이 경로는
+  늘 일반 재생이니 괜찮다" 는 예외를 두지 마라. 그 전제가 깨지는 날 그 경로만 조용히 전체
+  길이를 싣는다.
 - 판정 근거는 "클립 화면인가" 가 아니라 **`toMediaItem` 이 실제로 클리핑을 걸었는지** 그 자체다
-  (`MediaItem.isClipped()`). 클립 플레이어 인스턴스에도 잘라 올리지 않는 경로(`addTrack` 계열)가
-  있고, `hasClip` 이 거짓이면 클립으로 요청해도 클리핑이 걸리지 않는다.
+  (`MediaItem.isClipped()`). 클립 여부를 인자로 넘겨받지 마라 — 판정이 두 곳으로 갈라진다.
+  클립 플레이어 인스턴스에도 잘라 올리지 않는 경로(`addTrack` 계열)가 있고, `hasClip` 이
+  거짓이면 클립으로 요청해도 클리핑이 걸리지 않는다.
+- 화면용 `Episode.clipPlaybackDuration` 과 발행용 `playbackDuration()` 은 **같은 것을 다른 자리에서
+  답한다**(올리기 전 / 올린 뒤). 둘이 어긋나면 그 순간 숫자가 튀므로, `toMediaItem` 의 클리핑
+  조건을 바꿀 때는 `clipPlaybackDuration` 의 `hasClip` 기준도 함께 맞춘다.
 - 화면 쪽에서는 **`progress.episodeId` 로 자기 차례인지 가른 뒤** 남은 시간을 그린다. 지금 재생
   중인 클립의 `progress` 를 모든 카드가 공유하면, 아직 자기 차례가 아닌 카드가 남의 진행 시간을
-  빌려 그리고 재생이 시작되는 순간 숫자가 튄다. `ClipScreenTest` 에 계약 테스트가 있다.
+  빌려 그리고 재생이 시작되는 순간 숫자가 튄다. **한 배지 안의 파도 애니메이션과 시간은 반드시
+  같은 기준으로 가른다** — 애니메이션만 `currentPage` 로 가르면 그 값은 스와이프 50% 에서
+  뒤집히는데 `progress` 는 페이지가 멎은 뒤 따라와, 넘기는 내내 둘이 서로 다른 말을 한다.
+  `ClipScreenTest` 에 계약 테스트가 있다.
 
 ## 중요 구현 세부사항
 
