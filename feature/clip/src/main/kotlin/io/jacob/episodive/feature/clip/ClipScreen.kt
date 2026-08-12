@@ -61,9 +61,8 @@ import io.jacob.episodive.core.ui.refreshPhase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.take
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -234,26 +233,21 @@ fun EpisodeClipPager(
         currentPageColor?.let(onCurrentDominantColor)
     }
 
-    // 첫 번째 에피소드 자동 재생 (최초 한 번만)
-    LaunchedEffect(Unit) {
-        snapshotFlow { episodesPaging.itemCount }
-            .filter { it > 0 }
-            .take(1)
-            .collectLatest {
-                episodesPaging[0]?.let { firstEpisode ->
-                    onEpisodeChanged(firstEpisode)
-                }
-            }
-    }
-
-    // 페이지가 변경되면 해당 에피소드 재생
+    // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
+    //
+    // 예전에는 "첫 클립 자동 재생" 이펙트를 따로 두었는데, settledPage 가 처음부터 0 을
+    // 내보내는 데다 이 지점은 이미 Content(= itemCount > 0)라서 둘이 반드시 겹쳤다. 같은
+    // 클립에 setMediaItem 이 두 번 걸리면 두 번째가 방금 시작한 재생을 처음으로 되돌린다.
+    //
+    // 페이지 번호가 아니라 그 자리의 에피소드를 본다. 아직 로드되지 않았으면 도착한 뒤
+    // 다시 흘러 재생을 놓치지 않고, 좋아요 토글처럼 같은 에피소드가 새 인스턴스로 갱신될
+    // 때는 id 가 같으므로 재생을 다시 걸지 않는다.
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }
-            .distinctUntilChanged()
-            .collectLatest { page ->
-                episodesPaging[page]?.let { episode ->
-                    onEpisodeChanged(episode)
-                }
+        snapshotFlow { episodesPaging[pagerState.settledPage] }
+            .filterNotNull()
+            .distinctUntilChanged { old, new -> old.id == new.id }
+            .collectLatest { episode ->
+                onEpisodeChanged(episode)
             }
     }
 

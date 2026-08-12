@@ -2,6 +2,10 @@ package io.jacob.episodive.feature.clip
 
 import android.content.Context
 import android.provider.Settings
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -24,6 +28,7 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -389,6 +394,64 @@ class ClipScreenTest {
 
         composeTestRule.onNodeWithText(1000.seconds.toHumanReadable())
             .assertExists()
+    }
+
+    // --- New: 첫 클립은 한 번만 올린다 ---
+    //
+    // "첫 클립 자동 재생" 이펙트와 settledPage 콜렉터가 둘 다 page 0 에 발화하면 같은 클립에
+    // setMediaItem 이 두 번 걸리고, 두 번째가 방금 시작한 재생을 처음으로 되돌린다.
+
+    @Test
+    fun onFirstEntry_theFirstClipIsRequestedExactlyOnce() {
+        val requested = mutableListOf<Episode>()
+        setClipScreen(
+            episodes = clipEpisodes.take(3),
+            playback = Playback.IDLE,
+            progress = Progress(0.seconds, 0.seconds, 0.seconds),
+            isPlaying = false,
+            onEpisodeChanged = { requested.add(it) },
+        )
+
+        composeTestRule.waitForIdle()
+
+        assertEquals(listOf(clipEpisodes.first().id), requested.map { it.id })
+    }
+
+    @Test
+    fun whenTheSameEpisodeIsReemittedWithUpdatedFlags_theClipIsNotRestarted() {
+        // 좋아요를 누르면 Paging 이 같은 에피소드를 새 인스턴스로 다시 흘린다. 그때 재생을
+        // 다시 걸면 듣던 자리가 사라진다 — id 가 같으면 같은 클립으로 봐야 한다.
+        val episode = clipEpisodes.first()
+        val requested = mutableListOf<Episode>()
+
+        composeTestRule.setContent {
+            var liked by remember { mutableStateOf(false) }
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flowOf(
+                        PagingData.from(
+                            listOf(episode.copy(likedAt = if (liked) episode.datePublished else null))
+                        )
+                    ),
+                    playback = Playback.READY,
+                    progress = Progress(
+                        position = 100.seconds,
+                        buffered = 100.seconds,
+                        duration = 1278.seconds,
+                        episodeId = episode.id,
+                    ),
+                    isPlaying = true,
+                    onEpisodeChanged = { requested.add(it) },
+                    onToggleLikedEpisode = { liked = !liked },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onAllNodesWithContentDescription("Like").onFirst().performClick()
+        composeTestRule.waitForIdle()
+
+        assertEquals(1, requested.size)
     }
 
     @Test
