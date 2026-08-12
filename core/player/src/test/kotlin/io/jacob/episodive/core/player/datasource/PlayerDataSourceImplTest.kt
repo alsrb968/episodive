@@ -31,6 +31,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 class PlayerDataSourceImplTest {
     private val player = mockk<ExoPlayer>(relaxed = true)
@@ -1212,4 +1215,133 @@ class PlayerDataSourceImplTest {
             assertEquals(episodeB.duration, progress.duration)
         }
     }
+
+    // ---------------------------------------------------------------------
+    // 4차 수정 회귀 테스트: 클립은 처음부터 클립 길이를 발행한다
+    //
+    // 클립은 ClippingConfiguration 으로 잘라 올리므로 실제로 흐르는 길이는 에피소드 전체가
+    // 아니라 클립 길이다. 준비 전에 메타에서 길이를 가져올 때 전체 길이를 실으면, 클립 화면의
+    // 남은 시간이 에피소드 전체 길이로 보였다가 progressUpdater 가 player.duration 을 읽는
+    // 순간 클립 길이로 튄다.
+    // ---------------------------------------------------------------------
+
+    /** 전체 1시간짜리 에피소드에서 30초만 잘라낸 클립. 두 길이가 뚜렷이 달라야 폴백 오류가 드러난다. */
+    private val clipEpisode = episodeTestData.copy(
+        duration = 60.minutes,
+        clipStartTime = Instant.fromEpochSeconds(100),
+        clipDuration = 30.seconds,
+    )
+
+    /** media3 가 setMediaItem 호출 스택 안에서 transition 콜백을 인라인 실행하는 것을 흉내낸다. */
+    private fun answerSetMediaItemWithInlineTransition() {
+        every { player.setMediaItem(any()) } answers {
+            listenerSlot.captured.onMediaItemTransition(
+                firstArg<MediaItem>(),
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+        }
+    }
+
+    @Test
+    fun `Given clip episode, When playClip fires inline transition, Then progress duration is the clip duration`() =
+        runTest {
+            // Given
+            answerSetMediaItemWithInlineTransition()
+
+            // When
+            dataSource.playClip(clipEpisode)
+
+            // Then: 첫 발행부터 클립 길이여야 한다. 여기서 전체 길이가 나오면 화면의 남은 시간이
+            // 재생이 시작되는 순간 1시간에서 30초로 튄다.
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.clipDuration, progress.duration)
+                assertEquals(clipEpisode.id, progress.episodeId)
+            }
+        }
+
+    @Test
+    fun `Given non-clip episode, When play fires inline transition, Then progress duration is the whole episode duration`() =
+        runTest {
+            // 클립 판정이 일반 재생까지 잡아채면 플레이어 화면의 길이가 무너진다.
+            // 잘라 올리지 않은 아이템은 전체 길이 그대로여야 한다.
+            answerSetMediaItemWithInlineTransition()
+
+            // When
+            dataSource.play(clipEpisode)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.duration, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given clip episodes, When playClips called, Then the confirmed emission carries the clip duration`() =
+        runTest {
+            // playClips 는 인라인 transition 을 isPreparing 으로 막고 확정값을 직접 발행한다.
+            // 그 확정 발행도 클립 길이를 실어야 한다.
+            val other = episodeTestDataList[1].copy(
+                clipStartTime = Instant.fromEpochSeconds(0),
+                clipDuration = 15.seconds,
+            )
+
+            // When
+            dataSource.playClips(episodes = listOf(clipEpisode, other), indexToPlay = 0)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.clipDuration, progress.duration)
+                assertEquals(clipEpisode.id, progress.episodeId)
+            }
+        }
+
+    @Test
+    fun `Given clip episodes without clip metadata, When playClips called, Then progress duration falls back to the episode duration`() =
+        runTest {
+            // 클립 정보가 없으면 플레이어도 잘라 올리지 않는다. 그 경우 길이는 에피소드 전체다.
+            val withoutClip = episodeTestData
+            check(!withoutClip.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+
+            // When
+            dataSource.playClips(episodes = listOf(withoutClip), indexToPlay = 0)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(withoutClip.duration, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given a clipped media item with unset player duration, When seekTo called, Then progress duration falls back to the clip duration`() =
+        runTest {
+            // Given: 준비 전이라 player.duration 이 TIME_UNSET 이다. 이때 메타에서 길이를
+            // 가져오는데, 잘라 올린 아이템이면 전체 길이가 아니라 클립 길이를 써야 한다.
+            val clippedItem = MediaItem.Builder()
+                .setMediaId(clipEpisode.id.toString())
+                .setUri(mockk<Uri>(relaxed = true))
+                .setTag(clipEpisode)
+                .setClippingConfiguration(
+                    MediaItem.ClippingConfiguration.Builder()
+                        .setStartPositionMs(clipEpisode.clipStartPositionMs)
+                        .setEndPositionMs(clipEpisode.clipEndPositionMs)
+                        .build()
+                )
+                .build()
+            every { player.currentMediaItem } returns clippedItem
+            every { player.duration } returns C.TIME_UNSET
+            every { player.bufferedPosition } returns 0L
+
+            // When
+            dataSource.seekTo(1000L)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.clipDuration, progress.duration)
+            }
+        }
 }

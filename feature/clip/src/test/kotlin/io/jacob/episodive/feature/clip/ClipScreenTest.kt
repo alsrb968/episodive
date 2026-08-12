@@ -19,6 +19,7 @@ import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Playback
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -326,5 +327,85 @@ class ClipScreenTest {
             .performClick()
 
         assert(changedEpisode != null)
+    }
+
+    // --- New: 카드에 뜨는 시간은 처음부터 그 카드의 클립 시간이어야 한다 ---
+    //
+    // 카드 하나가 보여주는 시간 텍스트는 remaining 뿐이다. 그 값을 화면 전체가 공유하면
+    // 아직 재생 대상이 아닌 카드가 남의 진행 시간(또는 최초 진입의 0초)을 그리고, 자기
+    // 차례가 오는 순간 숫자가 튄다.
+
+    @Test
+    fun whenNothingIsPlayingYet_cardShowsItsOwnClipDuration() {
+        // 첫 진입: 아직 어떤 클립도 플레이어에 올라가지 않아 progress 에 episodeId 가 없다.
+        // 이때 progress.remaining 을 그대로 쓰면 0초가 뜬다.
+        val episode = clipEpisodes.first()
+        setClipScreen(
+            episodes = listOf(episode),
+            playback = Playback.IDLE,
+            progress = Progress(0.seconds, 0.seconds, 0.seconds),
+            isPlaying = false,
+        )
+
+        composeTestRule.onNodeWithText(episode.clipPlaybackDuration.toHumanReadable())
+            .assertExists()
+    }
+
+    @Test
+    fun whenProgressBelongsToAnotherEpisode_cardShowsItsOwnClipDuration() {
+        // 스와이프 직후처럼 progress 가 아직 이전 클립의 것일 때. 그 값을 빌려 쓰면
+        // 이 카드에 엉뚱한 에피소드의 남은 시간이 뜬다.
+        val episode = clipEpisodes.first()
+        setClipScreen(
+            episodes = listOf(episode),
+            progress = Progress(
+                position = 300.seconds,
+                buffered = 300.seconds,
+                duration = 7200.seconds,
+                episodeId = episode.id + 1,
+            ),
+        )
+
+        composeTestRule.onNodeWithText(episode.clipPlaybackDuration.toHumanReadable())
+            .assertExists()
+        // 남의 남은 시간(6900초)이 새어 나오지 않아야 한다.
+        composeTestRule.onNodeWithText(6900.seconds.toHumanReadable())
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun whenProgressBelongsToThisEpisode_cardShowsTheRemainingTime() {
+        // 자기 차례인 카드만 실시간으로 흐른다.
+        val episode = clipEpisodes.first()
+        setClipScreen(
+            episodes = listOf(episode),
+            progress = Progress(
+                position = 278.seconds,
+                buffered = 278.seconds,
+                duration = 1278.seconds,
+                episodeId = episode.id,
+            ),
+        )
+
+        composeTestRule.onNodeWithText(1000.seconds.toHumanReadable())
+            .assertExists()
+    }
+
+    @Test
+    fun whenEpisodeHasNoClipMetadata_cardFallsBackToTheEpisodeDuration() {
+        // 클립 정보가 없으면 플레이어도 잘라 올리지 않으므로 전체 길이가 실제 재생 길이다.
+        val whole = episodeTestDataList.first()
+        check(!whole.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+        val duration = requireNotNull(whole.duration) { "테스트 데이터에 duration 이 필요하다" }
+
+        setClipScreen(
+            episodes = listOf(whole),
+            playback = Playback.IDLE,
+            progress = Progress(0.seconds, 0.seconds, 0.seconds),
+            isPlaying = false,
+        )
+
+        composeTestRule.onNodeWithText(duration.toHumanReadable())
+            .assertExists()
     }
 }

@@ -155,6 +155,24 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
 - `position == 0 이면 저장하지 않는다` 류 가드를 넣지 마라. "맨 앞으로 되감기" 와 "완료 후 처음부터
   다시 듣기" 가 0 을 저장해야 정상이다. `PlayerViewModelTest` 에 이를 지키는 계약 테스트가 있다.
 
+### 클립 길이 규약 (필수)
+
+준비가 끝나기 전에는 `player.duration` 이 `TIME_UNSET` 이라 **에피소드 메타에서 길이를 가져와야
+한다.** 그때 **클립은 `Episode.duration`(전체 길이)이 아니라 `Episode.clipPlaybackDuration` 을 쓴다.**
+클립은 `ClippingConfiguration` 으로 잘라 올리므로 실제로 흐르는 길이가 다르다.
+
+전체 길이를 실으면 준비가 끝나 `progressUpdater` 가 `player.duration` 을 읽는 순간 화면의 시간이
+**에피소드 전체 길이에서 클립 길이로 튄다.** 실제로 겪은 버그다.
+
+- 메타에서 길이를 가져오는 모든 지점이 같은 기준을 써야 한다 — transition 콜백,
+  `publishStartOfPlayback`, `seekTo` 의 폴백. 하나라도 빠지면 그 경로에서만 시간이 튄다.
+- 판정 근거는 "클립 화면인가" 가 아니라 **`toMediaItem` 이 실제로 클리핑을 걸었는지** 그 자체다
+  (`MediaItem.isClipped()`). 클립 플레이어 인스턴스에도 잘라 올리지 않는 경로(`addTrack` 계열)가
+  있고, `hasClip` 이 거짓이면 클립으로 요청해도 클리핑이 걸리지 않는다.
+- 화면 쪽에서는 **`progress.episodeId` 로 자기 차례인지 가른 뒤** 남은 시간을 그린다. 지금 재생
+  중인 클립의 `progress` 를 모든 카드가 공유하면, 아직 자기 차례가 아닌 카드가 남의 진행 시간을
+  빌려 그리고 재생이 시작되는 순간 숫자가 튄다. `ClipScreenTest` 에 계약 테스트가 있다.
+
 ## 중요 구현 세부사항
 
 ### 1. Enum 처리 (필수)

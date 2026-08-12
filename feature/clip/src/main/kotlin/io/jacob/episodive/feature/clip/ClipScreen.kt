@@ -296,7 +296,15 @@ fun EpisodeClipPager(
                     modifier = Modifier.fillMaxSize(),
                     episode = episode,
                     isPlaying = isPlaying && page == pagerState.currentPage,
-                    remaining = progress.remaining,
+                    // 흐르는 남은 시간은 지금 플레이어에 올라 있는 클립의 것뿐이다. 아직
+                    // 자기 차례가 아닌 카드(첫 진입, 스와이프 직후, 위아래로 걸쳐 보이는
+                    // 이웃)까지 같은 값을 쓰면 남의 진행 시간을 빌려 보여주게 되고, 재생이
+                    // 시작되는 순간 숫자가 튄다. 그런 카드는 자기 클립의 전체 길이를 보여준다.
+                    remaining = if (progress.episodeId == episode.id) {
+                        progress.remaining
+                    } else {
+                        episode.clipPlaybackDuration
+                    },
                     onClick = {
                         onEpisodeClick(episode)
                     },

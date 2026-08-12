@@ -77,4 +77,14 @@ data class Episode(
     val clipStartPositionMs: Long = clipStartTime?.toEpochMilliseconds() ?: 0L
     val clipEndPositionMs: Long = clipStartPositionMs + (clipDuration?.inWholeMilliseconds ?: 0L)
     val hasClip: Boolean = clipStartTime != null && clipDuration != null
+
+    /**
+     * 클립으로 재생할 때 실제로 흐르는 길이.
+     *
+     * 플레이어는 [hasClip] 일 때만 미디어 아이템을 잘라 올리므로 그 판정과 같은 기준을 쓴다.
+     * 클립 화면의 남은 시간과 플레이어가 발행하는 길이가 이 값 하나로 맞춰져야, 재생이
+     * 준비되는 순간 화면의 숫자가 에피소드 전체 길이에서 클립 길이로 튀지 않는다.
+     */
+    val clipPlaybackDuration: Duration =
+        (if (hasClip) clipDuration else duration) ?: Duration.ZERO
 }
