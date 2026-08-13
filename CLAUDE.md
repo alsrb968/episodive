@@ -164,10 +164,11 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
 전체 길이를 실으면 준비가 끝나 `progressUpdater` 가 `player.duration` 을 읽는 순간 화면의 시간이
 **에피소드 전체 길이에서 클립 길이로 튄다.** 실제로 겪은 버그다.
 
-- 메타에서 길이를 가져오는 지점은 **예외 없이 `MediaItem.playbackDuration()` 을 거친다** —
-  `prepare`, transition 콜백, `publishStartOfPlayback`, `seekTo` 의 폴백 네 곳이다. "이 경로는
-  늘 일반 재생이니 괜찮다" 는 예외를 두지 마라. 그 전제가 깨지는 날 그 경로만 조용히 전체
-  길이를 싣는다.
+- 메타에서 길이를 가져오는 지점은 **예외 없이 `MediaItem.playbackDuration()` 을 거친다.**
+  직접 부르는 곳은 transition 콜백·`publishStartOfPlayback`·`seekTo` 의 폴백 세 곳이고,
+  목록을 갈아끼우는 `prepare`·`play(list, index)`·`playClips` 는 `publishStartOfPlayback` 을
+  통해 거친다. "이 경로는 늘 일반 재생이니 괜찮다" 는 예외를 두지 마라 — 그 전제가 깨지는
+  날 그 경로만 조용히 전체 길이를 싣는다.
 - 판정 근거는 "클립 화면인가" 가 아니라 **`toMediaItem` 이 실제로 클리핑을 걸었는지** 그 자체다
   (`MediaItem.isClipped()`). 클립 여부를 인자로 넘겨받지 마라 — 판정이 두 곳으로 갈라진다.
   클립 플레이어 인스턴스에도 잘라 올리지 않는 경로(`addTrack` 계열)가 있고, `hasClip` 이
@@ -286,6 +287,10 @@ class MyDaoTest {
 - `ChannelTestData` — 채널/카테고리 데이터
 
 **규칙:** 항상 테스트 데이터 팩토리 사용. Flow 테스트는 Turbine 사용. 인라인 테스트 객체 생성 금지.
+
+**예외는 `:core:model` 의 테스트 하나뿐이다.** `:core:testing` 이 `:core:model` 에 의존하므로
+반대로 끌어오면 Gradle 프로젝트 순환이 된다. 그래서 `:core:model` 의 테스트는 자기 파일 안에
+최소한의 로컬 팩토리를 두고, 그 사유를 파일 머리에 적는다. 다른 모듈에는 이 예외가 없다.
 
 ## CLI 도구 사용 가이드
 

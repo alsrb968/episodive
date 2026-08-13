@@ -1348,7 +1348,7 @@ class PlayerDataSourceImplTest {
         }
 
     @Test
-    fun `Given a clip episode, When prepare called, Then progress duration is the clip duration`() =
+    fun `Given a clip episode, When prepare called, Then progress duration is the whole episode duration because prepare does not clip`() =
         runTest {
             // prepare 도 메타에서 길이를 가져오는 네 지점 중 하나다. 지금은 늘 isClip = false 로
             // 올리므로 실제로는 전체 길이가 나오지만, 그건 toMediaItem 이 클리핑을 걸지 않기

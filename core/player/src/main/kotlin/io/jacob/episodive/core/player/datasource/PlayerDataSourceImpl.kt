@@ -257,9 +257,17 @@ class PlayerDataSourceImpl @Inject constructor(
      * `clipPlaybackDuration` 의 [Episode.hasClip] 기준도 함께 맞춰야 한다.
      */
     private fun MediaItem.playbackDuration(): Duration {
-        val episode = localConfiguration?.tag as? Episode ?: return Duration.ZERO
+        val episode = episodeTag() ?: return Duration.ZERO
         return if (isClipped()) episode.clipPlaybackDuration else episode.duration ?: Duration.ZERO
     }
+
+    /**
+     * 이 아이템에 실린 에피소드. [toMediaItem] 이 `setTag` 로 붙여 둔 것이다.
+     *
+     * 길이와 id 를 각각 꺼내며 캐스트를 되풀이하지 않도록 한 곳으로 모은다 — 따로 꺼내면
+     * 태그가 에피소드가 아닐 때 한쪽은 0, 다른 쪽은 null 로 갈라진 답을 내놓는다.
+     */
+    private fun MediaItem.episodeTag(): Episode? = localConfiguration?.tag as? Episode
 
     /**
      * 잘라 올린 아이템인지 — 즉 [toMediaItem] 이 `setClippingConfiguration` 을 불렀는지.
@@ -559,7 +567,7 @@ class PlayerDataSourceImpl @Inject constructor(
             position = position,
             buffered = Duration.ZERO,
             duration = mediaItem?.playbackDuration() ?: Duration.ZERO,
-            episodeId = (mediaItem?.localConfiguration?.tag as? Episode)?.id,
+            episodeId = mediaItem?.episodeTag()?.id,
         )
     }
 

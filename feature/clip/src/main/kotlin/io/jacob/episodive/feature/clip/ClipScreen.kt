@@ -242,8 +242,18 @@ fun EpisodeClipPager(
     // 페이지 번호가 아니라 그 자리의 에피소드를 본다. 아직 로드되지 않았으면 도착한 뒤
     // 다시 흘러 재생을 놓치지 않고, 좋아요 토글처럼 같은 에피소드가 새 인스턴스로 갱신될
     // 때는 id 가 같으므로 재생을 다시 걸지 않는다.
-    LaunchedEffect(pagerState) {
-        snapshotFlow { episodesPaging[pagerState.settledPage] }
+    //
+    // 읽기는 `episodesPaging[i]` 가 아니라 itemSnapshotList 로 한다. 전자는 두 가지가
+    // 곤란하다 — 범위를 벗어나면 예외를 던지고(목록이 갱신되어 짧아지는 순간 settledPage
+    // 가 남는다), 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
+    // 부작용이라 스냅샷이 바뀔 때마다 다시 쏘아 페이저가 실제로 그리는 페이지의 힌트와
+    // 다툰다. 후자는 같은 값을 부작용 없이, 범위 밖이면 null 로 준다.
+    //
+    // 키에 episodesPaging 을 함께 건다. pagerState 는 initialPage 로만 remember 되어
+    // episodes 흐름이 바뀌어도 살아남으므로, 키가 pagerState 뿐이면 이펙트가 죽은
+    // LazyPagingItems 를 계속 들여다보며 아무 클립도 재생하지 않는다.
+    LaunchedEffect(pagerState, episodesPaging) {
+        snapshotFlow { episodesPaging.itemSnapshotList.getOrNull(pagerState.settledPage) }
             .filterNotNull()
             .distinctUntilChanged { old, new -> old.id == new.id }
             .collectLatest { episode ->
@@ -425,22 +435,23 @@ private fun ClipTitle(
 @DevicePreviews
 @Composable
 private fun ClipScreenPreview() {
+    val clips = episodeTestDataList.map {
+        it.copy(
+            clipStartTime = Instant.fromEpochMilliseconds(60_000L),
+            clipDuration = 1278.seconds,
+        )
+    }
     EpisodiveTheme {
         ClipScreen(
-            episodes = flowOf(
-                PagingData.from(
-                    episodeTestDataList.map {
-                        it.copy(
-                            clipStartTime = Instant.fromEpochMilliseconds(60_000L),
-                            clipDuration = 1278.seconds,
-                        )
-                    }
-                )),
+            episodes = flowOf(PagingData.from(clips)),
             playback = Playback.READY,
             progress = Progress(
                 position = 1000L.seconds,
                 buffered = 1278.seconds,
                 duration = 2000L.seconds,
+                // 미리보기에서 재생 중인 카드를 보려면 progress 가 그 카드의 것이어야 한다.
+                // 빠뜨리면 isPlaying = true 를 줘도 멈춘 카드가 그려진다.
+                episodeId = clips.first().id,
             ),
             isPlaying = true,
         )

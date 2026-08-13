@@ -14,6 +14,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
@@ -27,6 +30,7 @@ import io.jacob.episodive.core.model.mapper.toHumanReadable
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -63,7 +67,14 @@ class ClipScreenTest {
     private fun setClipScreen(
         episodes: List<Episode> = clipEpisodes,
         playback: Playback = Playback.READY,
-        progress: Progress = Progress(1000.seconds, 1278.seconds, 2000.seconds),
+        // episodeId 를 빠뜨리면 어떤 카드도 "자기 차례" 가 되지 못해, isPlaying = true 를
+        // 줘도 전부 멈춘 카드로 그려진다 — 재생 상태를 보는 테스트가 통째로 무의미해진다.
+        progress: Progress = Progress(
+            position = 1000.seconds,
+            buffered = 1278.seconds,
+            duration = 2000.seconds,
+            episodeId = clipEpisodes.first().id,
+        ),
         isPlaying: Boolean = true,
         onEpisodeChanged: (Episode) -> Unit = {},
         onEpisodeClick: (Episode) -> Unit = {},
@@ -421,18 +432,24 @@ class ClipScreenTest {
     fun whenTheSameEpisodeIsReemittedWithUpdatedFlags_theClipIsNotRestarted() {
         // 좋아요를 누르면 Paging 이 같은 에피소드를 새 인스턴스로 다시 흘린다. 그때 재생을
         // 다시 걸면 듣던 자리가 사라진다 — id 가 같으면 같은 클립으로 봐야 한다.
+        //
+        // 재방출을 UI 클릭으로 일으키지 않고 흐름에 직접 흘려 넣는다. 클릭에 기대면 실제로
+        // 토글이 걸렸는지가 이 테스트의 전제가 되어, 클릭이 빗나가는 순간 아무것도 검증하지
+        // 않으면서 초록으로 남는다. 그리고 흐름은 remember 로 붙든다 — 컴포지션마다 새로
+        // 만들면 collectAsLazyPagingItems 가 매번 새 LazyPagingItems 를 세워 페이저 자체가
+        // 헐렸다 다시 서므로, 재방출이 아니라 재생성을 시험하게 된다.
         val episode = clipEpisodes.first()
         val requested = mutableListOf<Episode>()
+        lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
 
         composeTestRule.setContent {
-            var liked by remember { mutableStateOf(false) }
+            val flow = remember {
+                MutableStateFlow(PagingData.from(listOf(episode)))
+            }
+            pagingFlow = flow
             EpisodiveTheme {
                 ClipScreen(
-                    episodes = flowOf(
-                        PagingData.from(
-                            listOf(episode.copy(likedAt = if (liked) episode.datePublished else null))
-                        )
-                    ),
+                    episodes = flow,
                     playback = Playback.READY,
                     progress = Progress(
                         position = 100.seconds,
@@ -442,16 +459,59 @@ class ClipScreenTest {
                     ),
                     isPlaying = true,
                     onEpisodeChanged = { requested.add(it) },
-                    onToggleLikedEpisode = { liked = !liked },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertEquals(1, requested.size)
+
+        // 같은 에피소드가 좋아요만 달라진 새 인스턴스로 다시 흘러온다.
+        pagingFlow.value = PagingData.from(listOf(episode.copy(likedAt = episode.datePublished)))
+        composeTestRule.waitForIdle()
+
+        assertEquals(1, requested.size)
+    }
+
+    @Test
+    fun whenTheSettledPageFallsOutsideAShrunkList_theClipTabDoesNotCrash() {
+        // 목록이 갱신되어 짧아지면 그 순간 settledPage 가 범위 밖에 남는다. 그 자리를
+        // LazyPagingItems.get 으로 읽으면 IndexOutOfBoundsException 이 그대로 터진다.
+        val requested = mutableListOf<Episode>()
+        lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
+
+        composeTestRule.setContent {
+            val flow = remember {
+                MutableStateFlow(PagingData.from(clipEpisodes.take(5)))
+            }
+            pagingFlow = flow
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flow,
+                    playback = Playback.READY,
+                    progress = Progress(0.seconds, 0.seconds, 0.seconds),
+                    isPlaying = false,
+                    onEpisodeChanged = { requested.add(it) },
                 )
             }
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onAllNodesWithContentDescription("Like").onFirst().performClick()
+        // 뒤쪽 페이지로 실제로 넘겨 settledPage 를 0 이 아닌 값으로 만든다. 여기를 건너뛰면
+        // 목록을 줄여도 settledPage 가 0 이라 범위 안이고, 잡으려는 조건이 만들어지지 않는다.
+        repeat(2) {
+            composeTestRule.onRoot().performTouchInput { swipeUp() }
+            composeTestRule.waitForIdle()
+        }
+        val settledBeyondShrunkList = requested.size > 1
+        check(settledBeyondShrunkList) {
+            "스와이프가 페이지를 넘기지 못했다 — 이 테스트는 settledPage > 0 을 전제한다"
+        }
+
+        // 5개 → 1개. 앞서 자리잡은 페이지 번호가 새 목록에는 없다.
+        pagingFlow.value = PagingData.from(listOf(clipEpisodes.first()))
         composeTestRule.waitForIdle()
 
-        assertEquals(1, requested.size)
+        // 여기까지 예외 없이 왔으면 통과.
     }
 
     @Test
