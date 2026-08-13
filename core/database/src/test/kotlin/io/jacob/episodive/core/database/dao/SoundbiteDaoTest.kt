@@ -14,6 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 class SoundbiteDaoTest {
@@ -186,5 +187,49 @@ class SoundbiteDaoTest {
                 soundbiteEntities.map { it.episodeId }.sorted(),
                 paged.map { it.episodeId },
             )
+        }
+
+    // --- 길이가 0 인 사운드바이트는 목록에 내보내지 않는다 ---
+    //
+    // 피드가 그런 행을 주는 일이 있는데, 그대로 클립 목록에 오르면 시작=끝인 창이 올라가
+    // 재생하자마자 끝나고, 그 완료가 다음 클립으로 넘기는 것을 연쇄시켜 목록을 소리 없이
+    // 훑고 지나간다. 재생할 수 없는 항목이므로 조회에서 뺀다.
+
+    @Test
+    fun `Given a zero length soundbite, When paged, Then it is left out`() =
+        runTest {
+            // Given
+            val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + zeroLength)
+
+            // When
+            val paged = dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size)
+
+            // Then
+            assertEquals(
+                playable.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId }.sorted(),
+            )
+        }
+
+    @Test
+    fun `Given a zero length soundbite, When getSoundbites, Then it is left out`() =
+        runTest {
+            // 목록 조회 경로가 둘이라 어느 한쪽만 막으면 다른 쪽으로 그대로 새어 나온다.
+            // Given
+            val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + zeroLength)
+
+            // When / Then
+            dao.getSoundbites(limit = soundbiteEntities.size).test {
+                val items = awaitItem()
+                assertEquals(
+                    playable.map { it.episodeId }.sorted(),
+                    items.map { it.episodeId }.sorted(),
+                )
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 }

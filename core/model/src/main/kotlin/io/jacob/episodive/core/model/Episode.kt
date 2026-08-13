@@ -88,27 +88,21 @@ data class Episode(
         clipStartTime != null && clipDuration != null && clipDuration.isPositive()
 
     /**
-     * 재생할 때 실제로 흐르는 길이. [clipped] 는 "잘라 올렸는가" 다.
-     *
-     * **어느 길이를 고르는지는 여기 한 곳에서만 정한다.** 화면(아직 올리기 전)과 플레이어
-     * (이미 올린 뒤)가 각자 셈하면 둘이 어긋나는 순간 숫자가 튀는데, 그게 이 규약이 막으려는
-     * 것이다. 부르는 쪽은 [clipped] 를 판정해 넘기기만 한다 — 플레이어는 실제 미디어 아이템에
-     * 클리핑이 걸렸는지로, 화면은 [clipPlaybackDuration] 을 통해 [hasClip] 으로.
-     */
-    fun playbackDuration(clipped: Boolean): Duration {
-        // 클립이 에피소드 끝을 넘기는 경우는 손대지 않는다. media3 는 실제 미디어 길이로
-        // 자르는데 여기서 쓸 수 있는 것은 피드가 말한 duration 뿐이고, 그 둘은 자주 어긋난다.
-        // 피드가 실제보다 짧게 말하면(흔하다) 상한이 실제보다 더 깎아, 준비가 끝나는 순간
-        // 표시가 도로 늘어난다 — 줄어드는 튐을 늘어나는 튐으로 바꿀 뿐이다.
-        return (if (clipped) clipDuration else duration) ?: duration ?: Duration.ZERO
-    }
-
-    /**
-     * 클립으로 재생할 때 흐르는 길이 — 아직 플레이어에 올리기 전인 화면이 쓴다.
+     * 클립으로 재생할 때 흐르는 길이 — **아직 플레이어에 올리기 전인 화면**이 쓴다.
      *
      * 플레이어는 [hasClip] 일 때만 잘라 올리므로 그 판정을 그대로 따른다. 이 기준이
      * `toMediaItem` 의 클리핑 조건과 어긋나면 카드의 시간과 플레이어가 발행하는 길이가
      * 갈라져, 재생이 준비되는 순간 숫자가 튄다.
+     *
+     * 올린 **뒤**의 길이는 이 값을 쓰지 않는다. 그쪽은 실제로 걸린 클리핑 창을 직접 재므로
+     * (`PlayerDataSourceImpl.playbackDuration`) 추정이 필요 없다. 두 자리가 답하는 질문이
+     * 다르다 — 여기는 "올리면 얼마가 될까", 저기는 "올라간 것이 얼마인가".
+     *
+     * 클립이 에피소드 끝을 넘기는 경우는 손대지 않는다. media3 는 실제 미디어 길이로 자르는데
+     * 여기서 쓸 수 있는 것은 피드가 말한 [duration] 뿐이고, 그 둘은 자주 어긋난다. 피드가
+     * 실제보다 짧게 말하면(흔하다) 상한이 실제보다 더 깎아, 준비가 끝나는 순간 표시가 도로
+     * 늘어난다 — 줄어드는 튐을 늘어나는 튐으로 바꿀 뿐이다.
      */
-    val clipPlaybackDuration: Duration get() = playbackDuration(clipped = hasClip)
+    val clipPlaybackDuration: Duration
+        get() = (if (hasClip) clipDuration else duration) ?: Duration.ZERO
 }

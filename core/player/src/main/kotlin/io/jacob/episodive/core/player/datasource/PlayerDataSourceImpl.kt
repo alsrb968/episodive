@@ -261,8 +261,12 @@ class PlayerDataSourceImpl @Inject constructor(
     private fun MediaItem.playbackDuration(): Duration {
         // 태그부터 본다. 우리가 올린 아이템이 아니면 길이를 알 방법이 없으므로 더 볼 것이 없다.
         val episode = episodeTag() ?: return Duration.ZERO
-        val clip = clippingConfiguration
-        if (isClipped() && clip.endPositionMs != C.TIME_END_OF_SOURCE) {
+        if (isClipped()) {
+            val clip = clippingConfiguration
+            // 밀리초 쪽을 읽는다. 마이크로초 변형이 더 정밀해 보이지만 @UnstableApi 라
+            // lint 가 막는다. 끝을 지정하지 않은 클리핑이면 endPositionMs 가
+            // TIME_END_OF_SOURCE(거대한 음수)라 폭이 음수로 나오고, 아래 isPositive 에
+            // 걸려 에피소드 길이로 물러선다 — 센티널을 따로 견주지 않아도 된다.
             val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
             if (window.isPositive()) return window
         }
@@ -281,8 +285,8 @@ class PlayerDataSourceImpl @Inject constructor(
      * 잘라 올린 아이템인지 — 즉 [toMediaItem] 이 `setClippingConfiguration` 을 불렀는지.
      *
      * 시작·끝 위치를 각각 들여다보지 않고 [MediaItem.ClippingConfiguration.UNSET] 과
-     * 통째로 견준다. 그 편이 묻고 싶은 것을 그대로 옮긴 형태이고, 사라질 예정인 밀리초
-     * 접근자와 `TIME_END_OF_SOURCE` 센티널 셈에 기대지 않는다.
+     * 통째로 견준다. 묻고 싶은 것("클리핑을 걸었는가")을 그대로 옮긴 형태라, 어느 필드를
+     * 어떤 센티널과 견줘야 하는지 알 필요가 없다.
      */
     private fun MediaItem.isClipped(): Boolean =
         clippingConfiguration != MediaItem.ClippingConfiguration.UNSET

@@ -61,7 +61,6 @@ import io.jacob.episodive.core.ui.PagingRefreshPhase
 import io.jacob.episodive.core.ui.refreshPhase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -235,9 +234,11 @@ fun EpisodeClipPager(
         currentPageColor?.let(onCurrentDominantColor)
     }
 
-    // 이펙트가 붙들지 않고 늘 최신 목록을 보게 한다. 키에 걸면, 호출자가 episodes 흐름을
-    // remember 로 붙들지 않았을 때 재구성마다 새 LazyPagingItems 가 생겨 이펙트가 다시
-    // 돌고 클립이 처음부터 다시 재생된다 — 공개 함수라 그 전제를 강요할 수 없다.
+    // 이펙트가 붙들지 않고 늘 최신 것을 보게 한다. 키에 걸면 그 값이 바뀔 때마다 이펙트가
+    // 다시 돌고, 그때 클립이 처음부터 재생된다. (호출자가 episodes 흐름을 remember 로 붙들지
+    // 않은 경우까지 이것으로 막지는 못한다 — 새 LazyPagingItems 는 첫 프레임에 itemCount 가
+    // 0 이라 아래 refreshPhase 가 Loading 으로 갈라져 이 블록 자체가 헐린다. 그 경로는
+    // 호출자가 흐름을 붙드는 것으로만 막힌다.)
     val currentEpisodes by rememberUpdatedState(episodesPaging)
     val currentOnEpisodeChanged by rememberUpdatedState(onEpisodeChanged)
 
@@ -264,9 +265,11 @@ fun EpisodeClipPager(
     // 읽기는 `episodesPaging[i]` 가 아니라 itemSnapshotList 로 한다. 전자는 범위를 벗어나면
     // 예외를 던지고, 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
     // 부작용이라 페이저가 실제로 그리는 페이지의 힌트와 다툰다.
+    // snapshotFlow 는 이미 연속된 같은 값을 삼키므로 distinctUntilChanged 를 덧붙이지 않는다.
+    // 실제 중복 방지는 아래 lastPlayedId 가 맡는다 — 방어선이 둘로 보이면 어느 쪽이 계약을
+    // 지고 있는지 흐려진다.
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
-            .distinctUntilChanged()
             .collectLatest { page ->
                 val episode = snapshotFlow { currentEpisodes.itemSnapshotList.getOrNull(page) }
                     .filterNotNull()
