@@ -87,13 +87,17 @@ data class Episode(
      * - 시작이 음수면 `ClippingConfiguration.Builder.setStartPositionMs` 가 그 자리에서
      *   IllegalArgumentException 을 던진다(media3 가 `>= 0` 을 단언한다). 즉 크래시다.
      * - 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 되고, 이번엔
-     *   `setEndPositionMs` 가 같은 이유로 던진다. 끝이 시작보다 앞이면 넘친 것이다.
+     *   `setEndPositionMs` 가 같은 이유로 던진다. 끝이 시작보다 **뒤** 여야 한다.
+     *
+     * 마지막 조건이 `>` 인 것은 넘침만 잡으려는 것이 아니다. 밀리초로 내리면 0 이 되는 길이
+     * (예: 500µs)가 `isPositive()` 를 통과해 시작=끝인 창을 만들 수 있는데, 그것이 바로 위의
+     * 첫 항목이 막으려는 상태다.
      */
     val hasClip: Boolean = clipStartTime != null &&
             clipDuration != null &&
             clipDuration.isPositive() &&
             clipStartPositionMs >= 0L &&
-            clipEndPositionMs >= clipStartPositionMs
+            clipEndPositionMs > clipStartPositionMs
 
     /**
      * 클립으로 재생할 때 흐르는 길이 — **아직 플레이어에 올리기 전인 화면**이 쓴다.

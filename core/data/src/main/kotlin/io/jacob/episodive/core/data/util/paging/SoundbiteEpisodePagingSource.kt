@@ -116,6 +116,10 @@ class SoundbiteEpisodePagingSource(
             // TTL 이 늘 만료로 판정되어 페이지를 넘길 때마다 원격을 다시 때린다.
             // 걸러내는 일은 조회 쪽(SoundbiteDao)이 맡는다. 캐시 신선도는 받은 것을 그대로
             // 세고, 무엇을 보여줄지만 조회가 정한다.
+            //
+            // 이 선택에도 대칭인 그늘이 있다: 응답이 통째로 재생 불가한 행뿐이면 캐시는
+            // "신선함" 으로 판정되는데 조회는 빈 목록을 준다 — TTL 이 끝날 때까지 빈 화면이
+            // 된다. 페이지를 넘길 때마다 원격을 때리는 쪽보다는 낫다고 보고 이쪽을 택했다.
             val soundbiteEntities = soundbiteResponses
                 .toSoundbites()
                 .toSoundbiteEntities()

@@ -545,6 +545,9 @@ class ClipScreenTest {
     }
 
     @Test
+    // 스와이프가 페이지를 넘기려면 페이저가 실기만 한 높이여야 한다. 기본 화면에서는
+    // fling 거리가 스냅 문턱을 못 넘어 전제가 서지 않을 수 있다.
+    @Config(qualifiers = "w411dp-h914dp")
     fun whenTheSettledPageFallsOutsideAShrunkList_theRemainingClipIsRequested() {
         // 목록이 갱신되어 짧아지면 그 순간 settledPage 가 범위 밖에 남는다. 그 자리를
         // LazyPagingItems.get 으로 읽으면 IndexOutOfBoundsException 이 그대로 터진다.
@@ -598,6 +601,46 @@ class ClipScreenTest {
 
         // 예외가 없는 것으로는 부족하다 — 남은 클립으로 실제로 옮겨가야 한다.
         assertEquals(clipEpisodes.first().id, requested.last().id)
+    }
+
+    // 한 배지 안의 파도 애니메이션과 시간은 같은 기준으로 갈라야 한다. 시간만 검사하면
+    // 애니메이션 쪽 기준을 currentPage 로 되돌려도 아무 테스트가 빨개지지 않는다.
+
+    @Test
+    @Config(qualifiers = "w411dp-h914dp")
+    fun whenProgressBelongsToAnotherEpisode_theCardIsNotDrawnAsPlaying() {
+        val episode = clipEpisodes.first()
+        setClipScreen(
+            episodes = listOf(episode),
+            isPlaying = true,
+            progress = Progress(
+                position = 300.seconds,
+                buffered = 300.seconds,
+                duration = 7200.seconds,
+                episodeId = episode.id + 1,
+            ),
+        )
+
+        // 재생 중이면 Pause 아이콘이, 아니면 Play 아이콘이 그려진다.
+        composeTestRule.onNodeWithContentDescription("Play").assertIsDisplayed()
+    }
+
+    @Test
+    @Config(qualifiers = "w411dp-h914dp")
+    fun whenProgressBelongsToThisEpisode_theCardIsDrawnAsPlaying() {
+        val episode = clipEpisodes.first()
+        setClipScreen(
+            episodes = listOf(episode),
+            isPlaying = true,
+            progress = Progress(
+                position = 278.seconds,
+                buffered = 278.seconds,
+                duration = 1278.seconds,
+                episodeId = episode.id,
+            ),
+        )
+
+        composeTestRule.onNodeWithContentDescription("Pause").assertIsDisplayed()
     }
 
     @Test

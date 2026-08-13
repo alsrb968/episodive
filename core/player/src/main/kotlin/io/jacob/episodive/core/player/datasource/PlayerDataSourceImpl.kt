@@ -271,8 +271,10 @@ class PlayerDataSourceImpl @Inject constructor(
         if (isClipped()) {
             val clip = clippingConfiguration
             if (clip.endPositionMs != C.TIME_END_OF_SOURCE) {
+                // 끝이 정해져 있으면 그 폭이 전부다. 폭이 0 이하로 나와도 에피소드 길이로
+                // 물러서지 않는다 — 흐를 것이 없다는 뜻이지 "끝까지" 라는 뜻이 아니다.
                 val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
-                if (window.isPositive()) return window
+                return window.coerceAtLeast(Duration.ZERO)
             }
             // 끝을 지정하지 않은 클리핑("여기서부터 끝까지")이면 시작 뒤로 남은 만큼만 흐른다.
             // 에피소드 전체 길이를 그대로 돌려주면 시작 오프셋만큼 부풀린 값이 된다.
@@ -372,11 +374,14 @@ class PlayerDataSourceImpl @Inject constructor(
      * "처음부터 다시 듣기" 라는 정상 요청이고, 지울 지점도 없다.
      */
     override fun playClip(episode: Episode) {
-        val alreadyPlaying = currentEpisode()?.id == episode.id &&
+        val alreadyLoaded = currentEpisode()?.id == episode.id &&
                 player.playbackState != Player.STATE_IDLE &&
                 player.playbackState != Player.STATE_ENDED
-        if (alreadyPlaying) {
-            Timber.i("playClip skipped, already loaded: ${episode.id}")
+        if (alreadyLoaded) {
+            // 다시 올리지는 않되, 멈춰 있으면 이어서 튼다. 아무것도 하지 않고 돌아가면
+            // 멈춰 둔 클립의 재생 버튼이 죽는다 — 눌러도 소리가 나지 않는다.
+            if (!player.isPlaying) player.play()
+            Timber.i("playClip resumed in place: ${episode.id}")
             return
         }
 
