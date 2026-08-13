@@ -176,6 +176,16 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
 - 화면용 `Episode.clipPlaybackDuration` 과 발행용 `playbackDuration()` 은 **같은 것을 다른 자리에서
   답한다**(올리기 전 / 올린 뒤). 둘이 어긋나면 그 순간 숫자가 튀므로, `toMediaItem` 의 클리핑
   조건을 바꿀 때는 `clipPlaybackDuration` 의 `hasClip` 기준도 함께 맞춘다.
+- **`Episode.hasClip` 은 크래시만 막는다.** 지금 막는 셋(길이 0 이하, 시작이 음수, `시작 + 길이`
+  넘침)은 모두 `ClippingConfiguration.Builder` 가 **그 자리에서 던지는** 예외다. 여기에 "피드가
+  말한 `duration` 보다 시작이 뒤면 뺀다" 를 더하지 마라 — 한 번 넣었다가 되돌렸다. 피드 길이는
+  실제보다 짧은 일이 흔해서, 멀쩡한 사운드바이트가 떨어져 나가면 클립 탭이 **에피소드 전체를**
+  틀고 준비가 끝나는 순간 숫자가 튄다. 못 믿을 값으로 점치는 대신, `onPlayerError` 로 보고되고
+  끝나는 재생 실패는 그냥 실패하게 둔다.
+- 클리핑 창을 짓는 곳은 **`Episode.clippingConfiguration(isClip)` 하나뿐이다.** `toMediaItem` 과
+  `playClip` 의 "이미 올라 있는가" 판정이 둘 다 이 함수를 거친다. 판정 쪽에서 조건을 손으로
+  베껴 쓰면 `hasClip` 이 거짓인 경우가 곧바로 갈라진다 — 실제로 갈라져서, 그 에피소드만 누를
+  때마다 처음으로 되감겼다.
 - 화면 쪽에서는 **`progress.episodeId` 로 자기 차례인지 가른 뒤** 남은 시간을 그린다. 지금 재생
   중인 클립의 `progress` 를 모든 카드가 공유하면, 아직 자기 차례가 아닌 카드가 남의 진행 시간을
   빌려 그리고 재생이 시작되는 순간 숫자가 튄다. **한 배지 안의 파도 애니메이션과 시간은 반드시

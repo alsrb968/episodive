@@ -93,18 +93,26 @@ data class Episode(
      * (예: 500µs)가 `isPositive()` 를 통과해 시작=끝인 창을 만들 수 있는데, 그것이 바로 위의
      * 첫 항목이 막으려는 상태다.
      *
-     * 시작이 에피소드 끝을 넘는 경우도 막는다. media3 는 창의 끝을 실제 미디어 길이로 자르는데
-     * 시작이 그보다 뒤면 시작 > 끝이 되어 `IllegalClippingException(REASON_START_EXCEEDS_END)`
-     * 로 재생이 실패한다. 이때는 [duration] 을 근거로 삼는다 — 피드가 준 길이라 정확하지 않을
-     * 수 있지만, 시작이 그 길이를 통째로 넘는 것은 "조금 어긋남" 이 아니라 명백히 잘못된
-     * 데이터다. (그래서 [clipPlaybackDuration] 이 상한을 두지 않는 것과 판단이 다르다.)
+     * **시작이 에피소드 끝을 넘는 경우는 여기서 막지 않는다.** 한 번 막아 봤다가 되돌린
+     * 판단이라 이유를 남긴다. media3 는 창의 끝을 실제 미디어 길이로 자르므로 시작이 그보다
+     * 뒤면 `IllegalClippingException(REASON_START_EXCEEDS_END)` 이 나는 것은 맞다. 그런데
+     * 그것을 미리 걸러내려면 여기서 쓸 수 있는 유일한 근거가 [duration], 즉 **피드가 말한
+     * 길이** 다. 피드가 실제보다 짧게 말하는 일은 흔하고([clipPlaybackDuration] 참고), 그러면
+     * 멀쩡한 사운드바이트가 "클립 아님" 으로 떨어져 클립 탭이 **에피소드 전체를 처음부터**
+     * 튼다 — 카드는 피드 길이를 보이다가 준비가 끝나면 실제 길이로 튀고, 이 PR 이 없애려던
+     * 그 튐이 그대로 돌아온다.
+     *
+     * 위의 세 조건과는 성격이 다르다는 점이 판단을 갈랐다. 그쪽은 `setStartPositionMs` ·
+     * `setEndPositionMs` 가 **그 자리에서 던지는** IllegalArgumentException, 즉 크래시다.
+     * 이쪽은 `onPlayerError` 로 보고되고 끝나는 재생 실패이고 되풀이되지도 않는다(ENDED 가
+     * 아니라 IDLE 이라 다음 클립으로 넘어가는 연쇄도 없다). 확실한 크래시는 막고, 못 믿을
+     * 값으로 점치는 일은 하지 않는다.
      */
     val hasClip: Boolean = clipStartTime != null &&
             clipDuration != null &&
             clipDuration.isPositive() &&
             clipStartPositionMs >= 0L &&
-            clipEndPositionMs > clipStartPositionMs &&
-            (duration == null || clipStartPositionMs < duration.inWholeMilliseconds)
+            clipEndPositionMs > clipStartPositionMs
 
     /**
      * 클립으로 재생할 때 흐르는 길이 — **아직 플레이어에 올리기 전인 화면**이 쓴다.

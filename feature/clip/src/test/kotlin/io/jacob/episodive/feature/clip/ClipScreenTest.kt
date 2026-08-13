@@ -2,10 +2,7 @@ package io.jacob.episodive.feature.clip
 
 import android.content.Context
 import android.provider.Settings
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -576,8 +573,8 @@ class ClipScreenTest {
         }
         composeTestRule.waitForIdle()
 
-        // ENDED 를 두 번 흘려 두 칸 앞으로 보낸다. 사이에 READY 로 되돌려야 다음 ENDED 가
-        // 새 값으로 인식되어 이펙트가 다시 돈다.
+        // 두 번 밀어 올려 앞쪽 페이지에서 벗어난다. 아래에서 목록을 1개로 줄일 때 "지금 자리가
+        // 새 목록에는 없다" 가 성립해야 하므로, 실제로 넘어갔는지는 바로 다음 check 로 못박는다.
         repeat(2) {
             composeTestRule.onRoot().performTouchInput { swipeUp() }
             composeTestRule.waitForIdle()

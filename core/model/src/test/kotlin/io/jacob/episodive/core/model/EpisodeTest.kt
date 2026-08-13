@@ -119,6 +119,21 @@ class EpisodeTest {
     }
 
     @Test
+    fun `a clip starting past the feed reported duration is still a clip`() {
+        // 피드가 실제보다 짧게 말하는 일은 흔하다. 실제 60분짜리를 30분이라 말하고 사운드바이트
+        // 는 40분 지점에서 시작하는 경우 — 여기서 hasClip 을 내리면 클립 탭이 에피소드 전체를
+        // 처음부터 튼다. 잘라 올릴 수 없는 데이터인지 아닌지는 피드가 말한 길이로 점칠 수 없다.
+        val startsPastFeedDuration = episode(
+            duration = 30.minutes,
+            clipStartTime = Instant.fromEpochSeconds(40 * 60),
+            clipDuration = 30.seconds,
+        )
+
+        assertEquals(true, startsPastFeedDuration.hasClip)
+        assertEquals(30.seconds, startsPastFeedDuration.clipPlaybackDuration)
+    }
+
+    @Test
     fun `clipPlaybackDuration is zero when neither duration is known`() {
         // 길이를 알 수 없을 때 null 을 흘려보내면 화면이 빈 시간을 그리게 되므로 0 으로 굳힌다.
         val unknown = episode()

@@ -273,10 +273,14 @@ fun EpisodeClipPager(
             }
     }
 
-    // 재생 완료 시 다음 페이지로 이동
+    // 재생 완료 시 다음 페이지로 이동.
+    //
+    // 기준은 재생을 거는 쪽과 같은 settledPage 다. currentPage 는 스와이프가 절반을 넘는
+    // 순간 뒤집히므로, 넘기는 도중에 클립이 끝나면 아직 재생해 보지도 않은 다음 클립을
+    // 건너뛰고 그 다음으로 보내 버린다.
     LaunchedEffect(playback) {
         if (playback == Playback.ENDED) {
-            val nextPage = pagerState.currentPage + 1
+            val nextPage = pagerState.settledPage + 1
             if (nextPage < episodesPaging.itemCount) {
                 pagerState.animateScrollToPage(nextPage)
             }

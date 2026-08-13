@@ -35,8 +35,12 @@ interface SoundbiteDao {
     //  - 길이가 0 이하: 시작=끝인 창이 올라가 재생하자마자 끝나고, 그 완료가 다음 클립으로
     //    넘기는 것을 연쇄시켜 목록을 소리 없이 훑고 지나간다.
     //  - 시작이 음수: media3 의 setStartPositionMs 가 그 자리에서 예외를 던진다. 크래시다.
-    // 받아들이는 쪽에서 거르지 않고 여기서 막는다 — 그쪽에서 걸러 표가 비면 캐시 신선도를
-    // 재는 MIN(cachedAt) 이 null 이 되어 페이지마다 원격을 다시 때리게 된다.
+    // 받아들이는 쪽(SoundbiteEpisodePagingSource)에도 같은 조건이 있다. 그쪽이 새 응답을
+    // 막는 앞문이고 여기는 이미 캐시에 들어와 있는 옛 행을 막는 뒷문이라, 둘 다 필요하다.
+    // 한때 "앞문에서 걸러 표가 비면 MIN(cachedAt) 이 null 이라 페이지마다 원격을 다시
+    // 때린다" 며 앞문을 뺀 적이 있는데 틀린 걱정이었다 — 목록이 비면 넘길 페이지가 없어
+    // load 가 다시 불리지 않는다. 오히려 뒷문만 남기면 표는 차 있어 "신선함" 으로 판정되는데
+    // 조회는 빈 목록을 주어, 다시 받아올 길 없이 빈 화면에 갇힌다.
     @Query("SELECT * FROM soundbites WHERE duration > 0 AND startTime >= 0 ORDER BY sortOrder, episodeId LIMIT :limit")
     fun getSoundbites(limit: Int): Flow<List<SoundbiteEntity>>
 

@@ -191,6 +191,27 @@ class PlayerDataSourceImpl @Inject constructor(
         }
     }
 
+    /**
+     * 이 에피소드를 올릴 때 걸릴 잘라내기 창. 자르지 않는 경우는
+     * [MediaItem.ClippingConfiguration.UNSET] — `MediaItem.Builder` 의 기본값과 같은 값이라
+     * 그대로 세워도 "자르지 않음" 이다.
+     *
+     * [toMediaItem] 과 [playClip] 의 "이미 올라 있는가" 판정이 **둘 다 이 함수를 거친다.**
+     * 한쪽이 조건을 손으로 베껴 쓰면 그날로 갈라진다 — 실제로 갈라졌던 적이 있다. [hasClip] 이
+     * 거짓인 클립 요청은 창 없이 올라가는데, 판정 쪽만 [Episode.clipEndPositionMs] 와 견주다
+     * 보니 UNSET 의 끝값(`C.TIME_END_OF_SOURCE`, 즉 `Long.MIN_VALUE`)과는 영영 같아지지 않아
+     * 매번 다시 올렸다. 그 에피소드만 재생 버튼을 누를 때마다 처음으로 되감겼다.
+     */
+    private fun Episode.clippingConfiguration(isClip: Boolean): MediaItem.ClippingConfiguration =
+        if (isClip && hasClip) {
+            MediaItem.ClippingConfiguration.Builder()
+                .setStartPositionMs(clipStartPositionMs)
+                .setEndPositionMs(clipEndPositionMs)
+                .build()
+        } else {
+            MediaItem.ClippingConfiguration.UNSET
+        }
+
     private fun Episode.toMediaItem(isClip: Boolean): MediaItem {
         val mediaMetadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -219,14 +240,7 @@ class PlayerDataSourceImpl @Inject constructor(
             .setTag(this)
             .setMediaMetadata(mediaMetadata)
 
-        if (isClip && hasClip) {
-            builder.setClippingConfiguration(
-                MediaItem.ClippingConfiguration.Builder()
-                    .setStartPositionMs(clipStartPositionMs)
-                    .setEndPositionMs(clipEndPositionMs)
-                    .build()
-            )
-        }
+        builder.setClippingConfiguration(clippingConfiguration(isClip))
 
         transcriptUrl?.let { url ->
             Timber.i("transcriptUrl:$url")
@@ -377,12 +391,14 @@ class PlayerDataSourceImpl @Inject constructor(
         // 같은 에피소드라도 잘라낸 창이 다르면 다시 올려야 한다. soundbites 는 episodeId 가
         // 기본키라, 캐시가 갱신되면 같은 에피소드의 창만 바뀐 행이 온다. 그때 그냥 넘기면
         // 플레이어는 옛 창을 흘리는데 카드는 새 길이를 보여준다.
+        //
+        // 견줄 창은 반드시 clippingConfiguration() 에서 받는다 — toMediaItem 이 실제로 세우는
+        // 바로 그 값이라, 자르지 않고 올라가는 경우(hasClip 이 거짓)까지 함께 맞는다.
         // 태그부터 견준다. 우리가 올린 아이템일 때만 클리핑 창을 들여다본다.
         val loaded = player.currentMediaItem
         val alreadyLoaded = loaded != null &&
                 loaded.episodeTag()?.id == episode.id &&
-                loaded.clippingConfiguration.startPositionMs == episode.clipStartPositionMs &&
-                loaded.clippingConfiguration.endPositionMs == episode.clipEndPositionMs &&
+                loaded.clippingConfiguration == episode.clippingConfiguration(isClip = true) &&
                 player.playbackState != Player.STATE_IDLE &&
                 player.playbackState != Player.STATE_ENDED
         if (alreadyLoaded) {
@@ -449,18 +465,12 @@ class PlayerDataSourceImpl @Inject constructor(
     }
 
     override fun stop() {
+        // 진행 상태를 여기서 따로 비우지 않는다. clearMediaItems() 가 목록을 비우면 media3 가
+        // onMediaItemTransition(null, PLAYLIST_CHANGED) 를 부르고, 그 경로가 이미 비어 있는
+        // 진행 상태(episodeId = null)를 발행한다. 같은 값을 여기서 한 번 더 실어 보내면
+        // "이 자리가 그 일을 한다" 는 인상만 남고 실제로 지키는 것은 없다.
         player.stop()
         player.clearMediaItems()
-        // 진행 상태도 비운다. 남겨 두면 마지막 값이 그대로 붙어 있어, 화면이 그 에피소드를
-        // "지금 재생 중" 으로 보고 멈춘 숫자를 남은 시간인 양 계속 보여준다.
-        // episodeId 를 null 로 싣는 것은 "재생 대상 미확정" 이라는 뜻이고, 저장 경로는
-        // 그 값을 저장하지 않는다.
-        publishProgress(
-            position = Duration.ZERO,
-            buffered = Duration.ZERO,
-            duration = Duration.ZERO,
-            episodeId = null,
-        )
     }
 
     override fun next() {

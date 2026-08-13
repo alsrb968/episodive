@@ -161,11 +161,8 @@ class PlayerDataSourceImplTest {
 
     @Test
     fun `Given clip episode, When playClip called, Then setMediaItem with clipping configuration applied`() {
-        // Given
-        val clipEpisode = episode.copy(
-            clipStartTime = kotlin.time.Instant.fromEpochSeconds(100),
-            clipDuration = kotlin.time.Duration.parse("PT10S"),
-        )
+        // Given: 클립 픽스처는 아래의 clipEpisode 프로퍼티 하나만 쓴다. 여기서 같은 이름의
+        // 지역 변수를 따로 만들면 프로퍼티를 가려, 그쪽을 손봐도 이 테스트는 꿈쩍하지 않는다.
 
         // When
         dataSource.playClip(clipEpisode)
@@ -1391,6 +1388,26 @@ class PlayerDataSourceImplTest {
 
         // Then
         verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given a clip request for an episode without clip metadata, When repeated, Then it is not loaded again`() {
+        // 잘라 올리지 않는 아이템도 "이미 올라 있다" 로 판정돼야 한다. 한때 판정 쪽만
+        // clipEndPositionMs 와 견주는 바람에, 창 없이 올라간 아이템의 끝값(UNSET =
+        // C.TIME_END_OF_SOURCE)과 영영 같아지지 않아 누를 때마다 처음으로 되감겼다.
+        // Given
+        val withoutClip = episodeTestData
+        check(!withoutClip.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+        givenClipIsLoadedAndPlaying(withoutClip)
+        every { player.isPlaying } returns true
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(withoutClip)
+
+        // Then
+        verify(exactly = 0) { player.setMediaItem(any()) }
+        verify(exactly = 0) { player.seekTo(any()) }
     }
 
     @Test

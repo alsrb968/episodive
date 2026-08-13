@@ -236,9 +236,27 @@ class SoundbiteDaoTest {
         }
 
     @Test
+    fun `Given a zero length soundbite, When getSoundbitesPaging, Then it is left out`() =
+        runTest {
+            // Given
+            val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + zeroLength)
+
+            // When
+            val paged = dao.getSoundbitesPaging().loadAsSnapshot()
+
+            // Then
+            assertEquals(
+                playable.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId }.sorted(),
+            )
+        }
+
+    @Test
     fun `Given a zero length soundbite, When getSoundbites, Then it is left out`() =
         runTest {
-            // 목록 조회 경로가 둘이라 어느 한쪽만 막으면 다른 쪽으로 그대로 새어 나온다.
+            // 목록 조회 경로가 셋이라 하나만 막으면 나머지로 그대로 새어 나온다.
             // Given
             val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
             val playable = soundbiteEntities.drop(1)

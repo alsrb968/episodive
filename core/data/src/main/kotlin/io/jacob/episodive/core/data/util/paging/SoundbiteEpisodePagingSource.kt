@@ -118,10 +118,16 @@ class SoundbiteEpisodePagingSource(
             // 걱정이었는데 틀린 걱정이었다 — 목록이 비면 넘길 페이지도 없어 load 가 다시
             // 불리지 않는다. 오히려 넣어 두는 쪽이 나빴다: 표는 차 있어 "신선함" 으로
             // 판정되는데 조회는 빈 목록을 주어, 다시 받아올 길 없이 빈 화면에 갇힌다.
+            //
+            // 길이는 `inWholeSeconds` 로 견준다 — DurationConverter 가 표에 앉히는 것과 같은
+            // 값이다. 오늘은 `> Duration.ZERO` 와 결과가 같다(SoundbiteResponse.duration 이
+            // Int 초라 1초 미만이 들어올 길이 없다). 그래도 이렇게 두는 것은, 잘린 값을 보는
+            // 조회와 안 잘린 값을 보는 저장이 갈라지는 날 그 차이가 곧바로 위에서 말한
+            // "표는 차 있는데 화면은 비어 있고 다시 받아올 길도 없는" 상태가 되기 때문이다.
             val soundbiteEntities = soundbiteResponses
                 .toSoundbites()
                 .toSoundbiteEntities()
-                .filterNot { it.duration <= Duration.ZERO || it.startTime.epochSeconds < 0 }
+                .filterNot { it.duration.inWholeSeconds <= 0L || it.startTime.epochSeconds < 0 }
 
             soundbiteLocal.replaceSoundbites(soundbiteEntities)
             // 기존 soundbite 그룹의 episodes와 groups 정리
