@@ -86,11 +86,14 @@ data class Episode(
      *   페이지로 넘기는 것을 연쇄시켜 목록을 소리 없이 훑고 지나간다.
      * - 시작이 음수면 `ClippingConfiguration.Builder.setStartPositionMs` 가 그 자리에서
      *   IllegalArgumentException 을 던진다(media3 가 `>= 0` 을 단언한다). 즉 크래시다.
+     * - 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 되고, 이번엔
+     *   `setEndPositionMs` 가 같은 이유로 던진다. 끝이 시작보다 앞이면 넘친 것이다.
      */
     val hasClip: Boolean = clipStartTime != null &&
             clipDuration != null &&
             clipDuration.isPositive() &&
-            clipStartPositionMs >= 0L
+            clipStartPositionMs >= 0L &&
+            clipEndPositionMs >= clipStartPositionMs
 
     /**
      * 클립으로 재생할 때 흐르는 길이 — **아직 플레이어에 올리기 전인 화면**이 쓴다.

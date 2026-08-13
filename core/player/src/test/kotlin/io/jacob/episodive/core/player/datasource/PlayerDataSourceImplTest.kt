@@ -13,10 +13,12 @@ import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.ExoPlayer
 import app.cash.turbine.test
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
+import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.mapper.toDurationMillis
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.mockk.Runs
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -1261,6 +1263,83 @@ class PlayerDataSourceImplTest {
                 assertEquals(clipEpisode.id, progress.episodeId)
             }
         }
+
+    // --- 같은 클립을 두 번 올리지 않는다 ---
+    //
+    // setMediaItem 은 듣던 지점을 지운다. "같은 것을 다시 틀어 달라" 는 요청은 대개 화면이
+    // 무엇이 올라가 있는지 잘못 알고 보낸 것이라, 그대로 따르면 사용자가 듣던 자리가 사라진다.
+    // 화면이 기억으로 막으려 하면 그 기억이 컴포지션과 함께 사라지거나 실제와 어긋나므로,
+    // 실제로 무엇이 올라가 있는지 아는 이 자리에서 막는다.
+
+    /** 이미 그 클립이 올라가 재생 중인 상태를 만든다. */
+    private fun givenClipIsLoadedAndPlaying(loaded: Episode) {
+        val built = slot<MediaItem>()
+        every { player.setMediaItem(capture(built)) } just Runs
+        dataSource.playClip(loaded)
+        every { player.currentMediaItem } returns built.captured
+        every { player.playbackState } returns Player.STATE_READY
+    }
+
+    @Test
+    fun `Given the same clip is already playing, When playClip called again, Then the player is not touched`() {
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then
+        verify(exactly = 0) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given the clip ended, When playClip called with the same clip, Then it is loaded again`() {
+        // 끝난 뒤 같은 클립을 다시 트는 것은 "처음부터 다시 듣기" 라는 정상 요청이다.
+        // 지울 지점도 없으므로 막으면 안 된다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.playbackState } returns Player.STATE_ENDED
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given a different clip is playing, When playClip called, Then the new one is loaded`() {
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+        val other = episodeTestDataList[1].copy(
+            clipStartTime = Instant.fromEpochSeconds(0),
+            clipDuration = 15.seconds,
+        )
+
+        // When
+        dataSource.playClip(other)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given the player is idle, When playClip called with the loaded clip, Then it is loaded again`() {
+        // 프로세스가 죽었다 살아난 자리. 태그는 남아 보여도 플레이어가 비어 있으면 올려야 한다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.playbackState } returns Player.STATE_IDLE
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
 
     @Test
     fun `Given non-clip episode, When play fires inline transition, Then progress duration is the whole episode duration`() =

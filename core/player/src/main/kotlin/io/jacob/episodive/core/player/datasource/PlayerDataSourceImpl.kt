@@ -274,6 +274,11 @@ class PlayerDataSourceImpl @Inject constructor(
                 val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
                 if (window.isPositive()) return window
             }
+            // 끝을 지정하지 않은 클리핑("여기서부터 끝까지")이면 시작 뒤로 남은 만큼만 흐른다.
+            // 에피소드 전체 길이를 그대로 돌려주면 시작 오프셋만큼 부풀린 값이 된다.
+            val remainder = (episodeTag()?.duration ?: Duration.ZERO) -
+                    clip.startPositionMs.toDurationMillis()
+            return remainder.coerceAtLeast(Duration.ZERO)
         }
         return episodeTag()?.duration ?: Duration.ZERO
     }
@@ -355,7 +360,26 @@ class PlayerDataSourceImpl @Inject constructor(
         publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0), position = Duration.ZERO)
     }
 
+    /**
+     * 클립 하나를 올려 재생한다. **이미 올라가 흐르고 있는 클립이면 아무것도 하지 않는다.**
+     *
+     * `setMediaItem` 은 듣던 지점을 지운다. "같은 것을 다시 틀어 달라" 는 요청은 대개 화면이
+     * 무엇이 올라가 있는지 잘못 알고 보낸 것이라, 그대로 따르면 사용자가 듣던 자리가 사라진다.
+     * 화면이 기억으로 막으려 하면 그 기억이 컴포지션과 함께 사라지거나 실제와 어긋나므로,
+     * 실제로 무엇이 올라가 있는지 아는 이 자리에서 막는다.
+     *
+     * 끝난 뒤(ENDED)와 비어 있을 때(IDLE)는 통과시킨다 — 그때 같은 클립을 다시 트는 것은
+     * "처음부터 다시 듣기" 라는 정상 요청이고, 지울 지점도 없다.
+     */
     override fun playClip(episode: Episode) {
+        val alreadyPlaying = currentEpisode()?.id == episode.id &&
+                player.playbackState != Player.STATE_IDLE &&
+                player.playbackState != Player.STATE_ENDED
+        if (alreadyPlaying) {
+            Timber.i("playClip skipped, already loaded: ${episode.id}")
+            return
+        }
+
         Timber.i("url: ${episode.enclosureUrl}, clipStartTime: ${episode.clipStartTime}, clipDuration: ${episode.clipDuration}")
         val mediaItem = episode.toMediaItem(isClip = true)
 

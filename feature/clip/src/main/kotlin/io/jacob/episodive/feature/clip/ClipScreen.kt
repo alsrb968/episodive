@@ -235,24 +235,15 @@ fun EpisodeClipPager(
     }
 
     // 이펙트는 한 번 뜨면 다시 돌지 않으므로, 그 안에서 읽는 것은 붙들지 말고 최신을 본다.
+    // episodesPaging 도 마찬가지다 — episodes 흐름이 바뀌면 새 LazyPagingItems 가 서는데,
+    // 그때 pagerState 는 살아남아 이펙트가 다시 뜨지 않으므로 죽은 인스턴스를 들여다보게 된다.
+    val currentEpisodes by rememberUpdatedState(episodesPaging)
     val currentOnEpisodeChanged by rememberUpdatedState(onEpisodeChanged)
-    val currentProgress by rememberUpdatedState(progress)
-
-    // 요청해 둔 클립. 페이지 번호가 바뀌어도 같은 클립이면 다시 걸지 않는다 — 페이저의 key 가
-    // 에피소드 id 라, 목록이 갱신되면 Compose 가 같은 카드를 붙들려고 인덱스를 옮긴다(3 → 0).
-    // 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다.
-    //
-    // 저장하지 않는 상태다. 이것만으로는 탭을 오갈 때 잊혀지지만, 그 경우는 아래에서
-    // progress.episodeId 가 대신 답한다 — 그쪽이 "실제로 플레이어에 올라 있는 것" 이라 더
-    // 믿을 만하다. 반대로 저장해 두면 프로세스가 죽었다 살아났을 때 거짓말이 된다: 기억은
-    // 복원되는데 플레이어는 빈 채라, 재생을 건너뛰고 화면이 소리 없이 멎는다.
-    val lastRequestedId = remember { mutableStateOf<Long?>(null) }
 
     // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
     //
     // 예전에는 "첫 클립 자동 재생" 이펙트를 따로 두었는데, settledPage 가 처음부터 0 을
-    // 내보내는 데다 이 지점은 이미 Content(= itemCount > 0)라서 둘이 반드시 겹쳤다. 같은
-    // 클립에 setMediaItem 이 두 번 걸리면 두 번째가 방금 시작한 재생을 처음으로 되돌린다.
+    // 내보내는 데다 이 지점은 이미 Content(= itemCount > 0)라서 둘이 반드시 겹쳤다.
     //
     // **무엇을 재생할지는 페이지 번호로 정한다.** 그 자리의 에피소드를 직접 흘려보내면,
     // Paging 이 목록을 다시 불러올 때 같은 자리에 다른 에피소드가 앉아 듣고 있던 클립이
@@ -263,6 +254,11 @@ fun EpisodeClipPager(
     // 도착할 때까지 기다렸다가 재생한다. 기다리는 동안 페이지가 또 바뀌면 collectLatest 가
     // 그 대기를 걷어낸다 — 여기서는 안쪽이 실제로 suspend 라 끊을 것이 있다.
     //
+    // **같은 클립을 두 번 올리지 않게 막는 일은 여기서 하지 않는다.** 화면이 "무엇을 올려
+    // 뒀는지" 를 기억하려 하면 그 기억이 컴포지션과 함께 사라지거나(탭 전환) 실제와 어긋난다
+    // (요청과 progress 사이의 지연). 실제로 무엇이 올라가 있는지는 플레이어가 알고 있으므로,
+    // 판단을 PlayerDataSource.playClip 에 맡기고 여기서는 요청만 보낸다.
+    //
     // 읽기는 `episodesPaging[i]` 가 아니라 itemSnapshotList 로 한다. 전자는 범위를 벗어나면
     // 예외를 던지고, 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
     // 부작용이라 페이저가 실제로 그리는 페이지의 힌트와 다툰다.
@@ -270,21 +266,10 @@ fun EpisodeClipPager(
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
             .collectLatest { page ->
-                val episode = snapshotFlow { episodesPaging.itemSnapshotList.getOrNull(page) }
+                val episode = snapshotFlow { currentEpisodes.itemSnapshotList.getOrNull(page) }
                     .filterNotNull()
                     .first()
-                // 자리가 바뀌었을 뿐 같은 클립이면 그대로 둔다. playClip 은 미디어 아이템을
-                // 새로 올리는 호출이라, 다시 부르면 듣던 지점이 사라진다.
-                //
-                // 두 가지를 함께 본다. progress.episodeId 는 "실제로 올라 있는 것" 이라 탭을
-                // 오가도 남아 있지만, 요청부터 그 값이 따라올 때까지 몇 번의 디스패치가 걸린다.
-                // lastRequestedId 가 그 빈틈을 메운다. 프로세스가 죽었다 살아나면 둘 다 비어
-                // 있어 재생을 다시 거는데, 그게 맞다 — 플레이어도 비어 있으니까.
-                val alreadyOnPlayer = episode.id == currentProgress.episodeId
-                if (episode.id != lastRequestedId.value && !alreadyOnPlayer) {
-                    lastRequestedId.value = episode.id
-                    currentOnEpisodeChanged(episode)
-                }
+                currentOnEpisodeChanged(episode)
             }
     }
 
@@ -348,10 +333,6 @@ fun EpisodeClipPager(
                         onEpisodeClick(episode)
                     },
                     onPlayEpisode = {
-                        // 여기서도 요청 기록을 함께 옮긴다. 버튼으로 올린 것을 남기지 않으면
-                        // "무엇을 올려 뒀는지" 가 실제와 어긋나, 그 카드로 스와이프해 멎는
-                        // 순간 같은 클립을 한 번 더 올려 듣던 지점을 지운다.
-                        lastRequestedId.value = episode.id
                         onEpisodeChanged(episode)
                     },
                     onToggleLikedEpisode = {

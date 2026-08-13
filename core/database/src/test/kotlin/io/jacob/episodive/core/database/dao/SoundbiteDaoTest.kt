@@ -15,6 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 class SoundbiteDaoTest {
@@ -202,6 +203,27 @@ class SoundbiteDaoTest {
             val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
             val playable = soundbiteEntities.drop(1)
             dao.upsertSoundbites(playable + zeroLength)
+
+            // When
+            val paged = dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size)
+
+            // Then
+            assertEquals(
+                playable.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId }.sorted(),
+            )
+        }
+
+    @Test
+    fun `Given a soundbite starting before zero, When paged, Then it is left out`() =
+        runTest {
+            // 시작이 음수면 media3 의 setStartPositionMs 가 예외를 던진다. 길이 0 은 보기
+            // 흉한 데 그치지만 이쪽은 크래시라, 조회에서 빠지는지 따로 못박는다.
+            // Given
+            val negativeStart = soundbiteEntities.first()
+                .copy(startTime = Instant.fromEpochSeconds(-5))
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + negativeStart)
 
             // When
             val paged = dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size)

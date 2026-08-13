@@ -492,29 +492,6 @@ class ClipScreenTest {
     }
 
     @Test
-    fun whenTheClipIsAlreadyOnThePlayer_itIsNotRequestedAgain() {
-        // 탭을 오갔다 돌아온 자리. 컴포지션이 새로 서서 "무엇을 요청해 뒀는지" 는 잊혔지만
-        // 플레이어에는 그 클립이 그대로 올라 있다(progress.episodeId 가 그것을 말한다).
-        // 그 상태에서 다시 올리면 듣던 지점이 사라진다.
-        val playing = clipEpisodes.first()
-        val requested = mutableListOf<Episode>()
-
-        setClipScreen(
-            episodes = listOf(playing),
-            progress = Progress(
-                position = 100.seconds,
-                buffered = 100.seconds,
-                duration = 1278.seconds,
-                episodeId = playing.id,
-            ),
-            onEpisodeChanged = { requested.add(it) },
-        )
-        composeTestRule.waitForIdle()
-
-        assertEquals(emptyList<Long>(), requested.map { it.id })
-    }
-
-    @Test
     fun whenNothingIsOnThePlayer_theSettledClipIsRequested() {
         // 프로세스가 죽었다 살아난 자리. 플레이어가 비어 있으면(progress.episodeId == null)
         // 페이지가 복원돼 있더라도 재생을 걸어야 한다 — 건너뛰면 화면이 소리 없이 멎는다.
@@ -528,40 +505,6 @@ class ClipScreenTest {
             isPlaying = false,
             onEpisodeChanged = { requested.add(it) },
         )
-        composeTestRule.waitForIdle()
-
-        assertEquals(listOf(playing.id), requested.map { it.id })
-    }
-
-    @Test
-    fun whenTheSameClipMovesToAnotherPageIndex_itIsNotRestarted() {
-        // 페이저의 key 가 에피소드 id 라, 목록이 갱신되면 Compose 는 같은 카드를 붙들려고
-        // 인덱스를 옮긴다. 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다 —
-        // 자리가 바뀌었을 뿐 같은 클립이면 그대로 둬야 한다.
-        val playing = clipEpisodes.first()
-        val requested = mutableListOf<Episode>()
-        lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
-
-        composeTestRule.setContent {
-            val flow = remember {
-                MutableStateFlow(PagingData.from(listOf(playing)))
-            }
-            pagingFlow = flow
-            EpisodiveTheme {
-                ClipScreen(
-                    episodes = flow,
-                    playback = Playback.READY,
-                    progress = Progress(0.seconds, 0.seconds, 0.seconds),
-                    isPlaying = true,
-                    onEpisodeChanged = { requested.add(it) },
-                )
-            }
-        }
-        composeTestRule.waitForIdle()
-        assertEquals(listOf(playing.id), requested.map { it.id })
-
-        // 같은 클립이 앞에 항목이 끼면서 1번 자리로 밀린다.
-        pagingFlow.value = PagingData.from(listOf(clipEpisodes[1], playing))
         composeTestRule.waitForIdle()
 
         assertEquals(listOf(playing.id), requested.map { it.id })
