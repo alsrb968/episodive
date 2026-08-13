@@ -288,9 +288,12 @@ class MyDaoTest {
 
 **규칙:** 항상 테스트 데이터 팩토리 사용. Flow 테스트는 Turbine 사용. 인라인 테스트 객체 생성 금지.
 
-**예외는 `:core:model` 의 테스트 하나뿐이다.** `:core:testing` 이 `:core:model` 에 의존하므로
-반대로 끌어오면 Gradle 프로젝트 순환이 된다. 그래서 `:core:model` 의 테스트는 자기 파일 안에
-최소한의 로컬 팩토리를 두고, 그 사유를 파일 머리에 적는다. 다른 모듈에는 이 예외가 없다.
+**예외는 `:core:model` 의 테스트 하나뿐이다.** `:core:testing` 은 `episodive.android.library`
+플러그인을 써서 산출물이 AAR 인데, `:core:model` 은 `episodive.jvm.library` 라 그 AAR 을 소비할
+수 없다. (Gradle 의존 순환은 아니다 — `testImplementation` 방향은 태스크 그래프상 순환이 아니다.
+막는 것은 산출물 형식이다.) 그래서 `:core:model` 의 테스트는 자기 파일 안에 최소한의 로컬
+팩토리를 두고 그 사유를 파일 머리에 적는다. 팩토리를 함께 쓰고 싶다면 순수 JVM 모듈로 떼어내는
+것이 길이지, 이 예외를 다른 모듈로 넓히는 것이 아니다.
 
 ## CLI 도구 사용 가이드
 

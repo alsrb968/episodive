@@ -70,58 +70,33 @@ class EpisodeTest {
         assertEquals(60.minutes, halfClip.clipPlaybackDuration)
     }
 
-    // --- 클립이 에피소드 끝을 넘길 때 ---
-    //
-    // 사운드바이트의 시작+길이는 피드가 준 값이라 실제 오디오를 넘길 수 있다. media3 는 실제
-    // 미디어 끝에서 자르므로, 표시가 그것을 모르면 준비가 끝나는 순간 숫자가 한 번 줄어든다.
+    // --- 피드가 준 클립 길이를 어디까지 믿는가 ---
 
     @Test
-    fun `clipPlaybackDuration is capped by what is left of the episode`() {
-        // 60분짜리에서 59분 30초부터 60초를 잘라 달라고 하면 실제로는 30초만 남아 있다.
+    fun `clipPlaybackDuration falls back to the episode duration when the clip length is zero`() {
+        // 길이 0 짜리 사운드바이트를 그대로 쓰면 클립이 올라가자마자 끝나고, 그 ENDED 가
+        // 다음 페이지로 넘기는 것을 연쇄시켜 목록을 소리 없이 훑고 지나간다.
+        val zeroLength = episode(
+            duration = 60.minutes,
+            clipStartTime = Instant.fromEpochSeconds(100),
+            clipDuration = Duration.ZERO,
+        )
+
+        assertEquals(60.minutes, zeroLength.clipPlaybackDuration)
+    }
+
+    @Test
+    fun `clipPlaybackDuration keeps a clip that overruns the episode end`() {
+        // 클립이 에피소드 끝을 넘겨도 손대지 않는다. media3 는 실제 미디어 길이로 자르는데
+        // 여기서 쓸 수 있는 것은 피드가 말한 duration 뿐이고, 그 둘이 어긋나면(피드가 실제보다
+        // 짧게 말하는 일이 흔하다) 상한이 실제보다 더 깎아 표시가 도로 늘어난다.
         val overrunning = episode(
             duration = 60.minutes,
             clipStartTime = Instant.fromEpochSeconds(59 * 60 + 30),
             clipDuration = 60.seconds,
         )
 
-        assertEquals(30.seconds, overrunning.clipPlaybackDuration)
-    }
-
-    @Test
-    fun `clipPlaybackDuration is untouched when the clip fits inside the episode`() {
-        // 상한이 정상 클립까지 깎으면 안 된다.
-        val fits = episode(
-            duration = 60.minutes,
-            clipStartTime = Instant.fromEpochSeconds(100),
-            clipDuration = 30.seconds,
-        )
-
-        assertEquals(30.seconds, fits.clipPlaybackDuration)
-    }
-
-    @Test
-    fun `clipPlaybackDuration keeps the clip length when the episode length is unknown`() {
-        // 상한을 걸 근거가 없으면 피드가 준 클립 길이를 그대로 믿는다.
-        val unknownEpisodeLength = episode(
-            clipStartTime = Instant.fromEpochSeconds(100),
-            clipDuration = 30.seconds,
-        )
-
-        assertEquals(30.seconds, unknownEpisodeLength.clipPlaybackDuration)
-    }
-
-    @Test
-    fun `clipPlaybackDuration keeps the clip length when the clip starts past the episode end`() {
-        // 시작점부터 에피소드 밖이면 남은 길이가 음수다. 그 값을 표시할 수는 없으니 클립
-        // 길이를 그대로 둔다 — 이 경우 media3 는 IllegalClippingException 으로 재생 자체를
-        // 거부하므로, 표시 길이로 메울 수 있는 문제가 아니다.
-        val startsPastEnd = episode(
-            duration = 10.seconds,
-            clipStartTime = Instant.fromEpochSeconds(60),
-            clipDuration = 30.seconds,
-        )
-
-        assertEquals(30.seconds, startsPastEnd.clipPlaybackDuration)
+        assertEquals(60.seconds, overrunning.clipPlaybackDuration)
     }
 
     @Test

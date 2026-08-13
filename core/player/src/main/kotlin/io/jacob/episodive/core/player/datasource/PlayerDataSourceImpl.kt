@@ -114,7 +114,12 @@ class PlayerDataSourceImpl @Inject constructor(
                     // 길이만 재생되므로, 전체 길이를 실어 보내면 준비가 끝나 progressUpdater
                     // 가 실제 길이를 읽을 때까지 화면의 남은 시간이 에피소드 전체 길이로
                     // 보였다가 클립 길이로 튄다.
-                    duration = mediaItem?.playbackDuration() ?: Duration.ZERO,
+                    //
+                    // 위에서 이미 꺼낸 episode 를 그대로 쓴다 — 길이와 id 가 한 번의 읽기에서
+                    // 나온 것임이 눈에 보여야 한다.
+                    duration = episode?.playbackDuration(
+                        clipped = mediaItem?.isClipped() == true,
+                    ) ?: Duration.ZERO,
                     episodeId = episode?.id,
                 )
             }
@@ -418,14 +423,19 @@ class PlayerDataSourceImpl @Inject constructor(
         // 잘라 올린 아이템이면 클립 길이를 쓴다(전체 길이를 쓰면 준비 전후로 값이 튄다).
         // 직전 progress 의 duration 을 쓰면 안 된다 — 전환 직후엔 그것이 이전 에피소드의
         // 길이여서, 짧은 길이 + 큰 위치 조합이 완료 판정을 잘못 뒤집는다.
+        //
+        // 아이템은 한 번만 읽는다. 길이와 id 를 따로 읽으면 그 사이에 전환이 끼어들어
+        // "A 의 길이 + B 의 id" 가 나갈 수 있고, 그 쌍이 원자적이라는 것이 publishProgress
+        // 의 계약이다. 수면 타이머가 바로 이 쌍으로 남은 시간을 셈한다.
+        val item = player.currentMediaItem
         val duration = player.duration.toDurationMillis().takeIf { it.isPositive() }
-            ?: player.currentMediaItem?.playbackDuration()
+            ?: item?.playbackDuration()
             ?: Duration.ZERO
         publishProgress(
             position = position.toDurationMillis(),
             buffered = player.bufferedPosition.toDurationMillis(),
             duration = duration,
-            episodeId = currentEpisodeId(),
+            episodeId = item?.episodeTag()?.id,
         )
     }
 

@@ -2,7 +2,6 @@ package io.jacob.episodive.core.model
 
 import io.jacob.episodive.core.model.mapper.toIntSeconds
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 data class Episode(
@@ -89,14 +88,15 @@ data class Episode(
      */
     fun playbackDuration(clipped: Boolean): Duration {
         if (!clipped) return duration ?: Duration.ZERO
-        val clip = clipDuration ?: return duration ?: Duration.ZERO
 
-        // 사운드바이트의 시작+길이는 피드가 준 값이라 에피소드 끝을 넘길 때가 있다. 그러면
-        // media3 는 실제 미디어 끝에서 자르므로(ClippingMediaSource) 준비가 끝나는 순간
-        // player.duration 이 더 작은 값을 준다 — 표시가 그것을 모르면 숫자가 한 번 줄어들고,
-        // 그게 이 규약이 없애려는 바로 그 튐이다. 에피소드 길이를 아는 경우 미리 맞춘다.
-        val room = duration?.minus(clipStartPositionMs.milliseconds)
-        return if (room != null && room.isPositive()) minOf(clip, room) else clip
+        // 길이가 0 이하인 사운드바이트는 피드 오류다. 그대로 쓰면 클립이 올라가자마자 끝나
+        // ENDED 자동 넘김이 연쇄해, 목록을 소리 없이 훑고 지나간다.
+        //
+        // 반대로 클립이 에피소드 끝을 넘기는 경우는 여기서 손대지 않는다. media3 는 실제
+        // 미디어 길이로 자르는데 여기서 쓸 수 있는 것은 피드가 말한 duration 뿐이고, 그 둘은
+        // 자주 어긋난다. 피드가 실제보다 짧게 말하면(흔하다) 상한이 실제보다 더 깎아, 준비가
+        // 끝나는 순간 표시가 도로 늘어난다 — 줄어드는 튐을 늘어나는 튐으로 바꿀 뿐이다.
+        return clipDuration?.takeIf { it.isPositive() } ?: duration ?: Duration.ZERO
     }
 
     /**

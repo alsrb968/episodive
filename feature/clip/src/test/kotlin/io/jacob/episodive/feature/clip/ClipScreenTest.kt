@@ -35,6 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 class ClipScreenTest {
@@ -331,19 +332,30 @@ class ClipScreenTest {
     // --- New: Play button click ---
 
     @Test
+    // 기본 Robolectric 화면은 카드의 컨트롤 줄이 밑으로 밀려 나갈 만큼 좁다. 버튼이 화면
+    // 밖이면 performClick 은 조용히 아무 일도 하지 않으므로, 실기와 같은 크기를 준다.
+    @Config(qualifiers = "w411dp-h914dp")
     fun playButton_clickInvokesOnEpisodeChanged() {
-        var changedEpisode: Episode? = null
+        // "null 이 아니다" 로는 부족하다 — 화면에 들어오는 것만으로 자동 재생이 이미 한 번
+        // 채우므로, 재생 버튼을 통째로 없애도 그 단언은 통과한다. 클릭 전후를 비교한다.
+        val requested = mutableListOf<Episode>()
         setClipScreen(
             episodes = clipEpisodes.take(1),
             isPlaying = false,
-            onEpisodeChanged = { changedEpisode = it },
+            onEpisodeChanged = { requested.add(it) },
         )
+        composeTestRule.waitForIdle()
+        val beforeClick = requested.size
 
-        // The play button is an IconToggleButton with "Play" content description
+        // 표시 확인이 먼저다. 화면 밖 노드에 performClick 을 하면 예외도 없이 그냥 아무 일도
+        // 일어나지 않아, 클릭을 검증한 적 없는 테스트가 초록으로 남는다.
         composeTestRule.onNodeWithContentDescription("Play")
+            .assertIsDisplayed()
             .performClick()
+        composeTestRule.waitForIdle()
 
-        assert(changedEpisode != null)
+        assertEquals(beforeClick + 1, requested.size)
+        assertEquals(clipEpisodes.first().id, requested.last().id)
     }
 
     // --- New: 카드에 뜨는 시간은 처음부터 그 카드의 클립 시간이어야 한다 ---
@@ -471,6 +483,40 @@ class ClipScreenTest {
         composeTestRule.waitForIdle()
 
         assertEquals(1, requested.size)
+    }
+
+    @Test
+    fun whenAPagingRefreshShiftsTheWindow_thePlayingClipIsNotSwappedOut() {
+        // 좋아요를 누르면 SoundbiteEpisodePagingSource 가 liked_episodes 무효화로 refresh 하고,
+        // getRefreshKey 가 앵커 기준으로 창을 옮긴다. 그러면 같은 자리에 다른 에피소드가 앉는데,
+        // 그때 재생을 갈아치우면 듣고 있던 클립이 잘려 나간다. 페이지가 그대로면 재생도 그대로여야
+        // 한다 — 화면에 보이는 카드가 바뀌는 것과 무엇을 재생할지는 별개다.
+        val requested = mutableListOf<Episode>()
+        lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
+
+        composeTestRule.setContent {
+            val flow = remember {
+                MutableStateFlow(PagingData.from(clipEpisodes.take(5)))
+            }
+            pagingFlow = flow
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flow,
+                    playback = Playback.READY,
+                    progress = Progress(0.seconds, 0.seconds, 0.seconds),
+                    isPlaying = true,
+                    onEpisodeChanged = { requested.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        val playingBeforeRefresh = requested.last().id
+
+        // 창이 뒤로 밀려 같은 자리에 다른 에피소드가 앉는다.
+        pagingFlow.value = PagingData.from(clipEpisodes.drop(3).take(5))
+        composeTestRule.waitForIdle()
+
+        assertEquals(playingBeforeRefresh, requested.last().id)
     }
 
     @Test

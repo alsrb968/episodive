@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -62,6 +63,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -233,32 +235,36 @@ fun EpisodeClipPager(
         currentPageColor?.let(onCurrentDominantColor)
     }
 
+    // 이펙트가 붙들지 않고 늘 최신 목록을 보게 한다. 키에 걸면, 호출자가 episodes 흐름을
+    // remember 로 붙들지 않았을 때 재구성마다 새 LazyPagingItems 가 생겨 이펙트가 다시
+    // 돌고 클립이 처음부터 다시 재생된다 — 공개 함수라 그 전제를 강요할 수 없다.
+    val currentEpisodes by rememberUpdatedState(episodesPaging)
+
     // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
     //
     // 예전에는 "첫 클립 자동 재생" 이펙트를 따로 두었는데, settledPage 가 처음부터 0 을
     // 내보내는 데다 이 지점은 이미 Content(= itemCount > 0)라서 둘이 반드시 겹쳤다. 같은
     // 클립에 setMediaItem 이 두 번 걸리면 두 번째가 방금 시작한 재생을 처음으로 되돌린다.
     //
-    // 페이지 번호가 아니라 그 자리의 에피소드를 본다. 아직 로드되지 않았으면 도착한 뒤
-    // 다시 흘러 재생을 놓치지 않고, 좋아요 토글처럼 같은 에피소드가 새 인스턴스로 갱신될
-    // 때는 id 가 같으므로 재생을 다시 걸지 않는다.
+    // **무엇을 재생할지는 페이지 번호로 정한다.** 그 자리의 에피소드를 직접 흘려보내면,
+    // Paging 이 목록을 다시 불러올 때 같은 자리에 다른 에피소드가 앉아 듣고 있던 클립이
+    // 갈아치워진다. 가정이 아니라 실제 경로다 — 좋아요를 누르면 SoundbiteEpisodePagingSource
+    // 가 liked_episodes 무효화로 refresh 하고, getRefreshKey 가 앵커 기준으로 창을 옮긴다.
     //
-    // 읽기는 `episodesPaging[i]` 가 아니라 itemSnapshotList 로 한다. 전자는 두 가지가
-    // 곤란하다 — 범위를 벗어나면 예외를 던지고(목록이 갱신되어 짧아지는 순간 settledPage
-    // 가 남는다), 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
-    // 부작용이라 스냅샷이 바뀔 때마다 다시 쏘아 페이저가 실제로 그리는 페이지의 힌트와
-    // 다툰다. 후자는 같은 값을 부작용 없이, 범위 밖이면 null 로 준다.
+    // 번호만 보면 아직 로드되지 않은 자리에서 아무 일도 못 하고 끝나므로, 그 자리의 항목이
+    // 도착할 때까지 기다렸다가 재생한다. 기다리는 동안 페이지가 또 바뀌면 collectLatest 가
+    // 그 대기를 걷어낸다 — 여기서는 안쪽이 실제로 suspend 라 끊을 것이 있다.
     //
-    // 키에 episodesPaging 을 함께 건다. pagerState 는 initialPage 로만 remember 되어
-    // episodes 흐름이 바뀌어도 살아남으므로, 키가 pagerState 뿐이면 이펙트가 죽은
-    // LazyPagingItems 를 계속 들여다보며 아무 클립도 재생하지 않는다.
-    LaunchedEffect(pagerState, episodesPaging) {
-        snapshotFlow { episodesPaging.itemSnapshotList.getOrNull(pagerState.settledPage) }
-            .filterNotNull()
-            .distinctUntilChanged { old, new -> old.id == new.id }
-            // collect 다. onEpisodeChanged 는 suspend 가 아니라 collectLatest 로 감싸도
-            // 중간에 끊을 것이 없고, "마지막 것만 이긴다" 는 없는 보장을 있는 척하게 된다.
-            .collect { episode ->
+    // 읽기는 `episodesPaging[i]` 가 아니라 itemSnapshotList 로 한다. 전자는 범위를 벗어나면
+    // 예외를 던지고, 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
+    // 부작용이라 페이저가 실제로 그리는 페이지의 힌트와 다툰다.
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }
+            .distinctUntilChanged()
+            .collectLatest { page ->
+                val episode = snapshotFlow { currentEpisodes.itemSnapshotList.getOrNull(page) }
+                    .filterNotNull()
+                    .first()
                 onEpisodeChanged(episode)
             }
     }
