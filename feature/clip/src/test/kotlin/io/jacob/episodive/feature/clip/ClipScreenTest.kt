@@ -225,7 +225,7 @@ class ClipScreenTest {
     fun whenMultipleEpisodesExist_pagerShowsClipItems() {
         setClipScreen(
             episodes = clipEpisodes.take(5),
-            progress = Progress(500.seconds, 1000.seconds, 1278.seconds),
+            progress = Progress(500.seconds, 1000.seconds, 1278.seconds, clipEpisodes.first().id),
         )
 
         composeTestRule.onNodeWithText(clipEpisodes.first().title, substring = true)
@@ -236,7 +236,7 @@ class ClipScreenTest {
     fun whenSingleClipEpisode_titleIsDisplayed() {
         setClipScreen(
             episodes = clipEpisodes.take(1),
-            progress = Progress(100.seconds, 500.seconds, 1278.seconds),
+            progress = Progress(100.seconds, 500.seconds, 1278.seconds, clipEpisodes.first().id),
         )
 
         composeTestRule.onNodeWithText(clipEpisodes.first().title, substring = true)
@@ -311,7 +311,7 @@ class ClipScreenTest {
     fun zeroProgress_clipItemStillRendered() {
         setClipScreen(
             episodes = clipEpisodes.take(1),
-            progress = Progress(0.seconds, 0.seconds, 1278.seconds),
+            progress = Progress(0.seconds, 0.seconds, 1278.seconds, clipEpisodes.first().id),
         )
 
         composeTestRule.onNodeWithText(clipEpisodes.first().title, substring = true)
@@ -322,7 +322,7 @@ class ClipScreenTest {
     fun fullProgress_clipItemStillRendered() {
         setClipScreen(
             episodes = clipEpisodes.take(1),
-            progress = Progress(1278.seconds, 1278.seconds, 1278.seconds),
+            progress = Progress(1278.seconds, 1278.seconds, 1278.seconds, clipEpisodes.first().id),
         )
 
         composeTestRule.onNodeWithText(clipEpisodes.first().title, substring = true)
@@ -365,6 +365,9 @@ class ClipScreenTest {
     // 차례가 오는 순간 숫자가 튄다.
 
     @Test
+    // 시간 배지는 카드 아래쪽 컨트롤 줄에 있어 기본 화면에서는 밀려 나간다.
+    // 실기 크기를 주고 assertIsDisplayed 까지 가야 실제로 보이는 것을 검사한다.
+    @Config(qualifiers = "w411dp-h914dp")
     fun whenNothingIsPlayingYet_cardShowsItsOwnClipDuration() {
         // 첫 진입: 아직 어떤 클립도 플레이어에 올라가지 않아 progress 에 episodeId 가 없다.
         // 이때 progress.remaining 을 그대로 쓰면 0초가 뜬다.
@@ -377,10 +380,13 @@ class ClipScreenTest {
         )
 
         composeTestRule.onNodeWithText(episode.clipPlaybackDuration.toHumanReadable())
-            .assertExists()
+            .assertIsDisplayed()
     }
 
     @Test
+    // 시간 배지는 카드 아래쪽 컨트롤 줄에 있어 기본 화면에서는 밀려 나간다.
+    // 실기 크기를 주고 assertIsDisplayed 까지 가야 실제로 보이는 것을 검사한다.
+    @Config(qualifiers = "w411dp-h914dp")
     fun whenProgressBelongsToAnotherEpisode_cardShowsItsOwnClipDuration() {
         // 스와이프 직후처럼 progress 가 아직 이전 클립의 것일 때. 그 값을 빌려 쓰면
         // 이 카드에 엉뚱한 에피소드의 남은 시간이 뜬다.
@@ -396,13 +402,16 @@ class ClipScreenTest {
         )
 
         composeTestRule.onNodeWithText(episode.clipPlaybackDuration.toHumanReadable())
-            .assertExists()
+            .assertIsDisplayed()
         // 남의 남은 시간(6900초)이 새어 나오지 않아야 한다.
         composeTestRule.onNodeWithText(6900.seconds.toHumanReadable())
             .assertDoesNotExist()
     }
 
     @Test
+    // 시간 배지는 카드 아래쪽 컨트롤 줄에 있어 기본 화면에서는 밀려 나간다.
+    // 실기 크기를 주고 assertIsDisplayed 까지 가야 실제로 보이는 것을 검사한다.
+    @Config(qualifiers = "w411dp-h914dp")
     fun whenProgressBelongsToThisEpisode_cardShowsTheRemainingTime() {
         // 자기 차례인 카드만 실시간으로 흐른다.
         val episode = clipEpisodes.first()
@@ -417,7 +426,7 @@ class ClipScreenTest {
         )
 
         composeTestRule.onNodeWithText(1000.seconds.toHumanReadable())
-            .assertExists()
+            .assertIsDisplayed()
     }
 
     // --- New: 첫 클립은 한 번만 올린다 ---
@@ -483,6 +492,40 @@ class ClipScreenTest {
         composeTestRule.waitForIdle()
 
         assertEquals(1, requested.size)
+    }
+
+    @Test
+    fun whenTheSameClipMovesToAnotherPageIndex_itIsNotRestarted() {
+        // 페이저의 key 가 에피소드 id 라, 목록이 갱신되면 Compose 는 같은 카드를 붙들려고
+        // 인덱스를 옮긴다. 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다 —
+        // 자리가 바뀌었을 뿐 같은 클립이면 그대로 둬야 한다.
+        val playing = clipEpisodes.first()
+        val requested = mutableListOf<Episode>()
+        lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
+
+        composeTestRule.setContent {
+            val flow = remember {
+                MutableStateFlow(PagingData.from(listOf(playing)))
+            }
+            pagingFlow = flow
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flow,
+                    playback = Playback.READY,
+                    progress = Progress(0.seconds, 0.seconds, 0.seconds),
+                    isPlaying = true,
+                    onEpisodeChanged = { requested.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertEquals(listOf(playing.id), requested.map { it.id })
+
+        // 같은 클립이 앞에 항목이 끼면서 1번 자리로 밀린다.
+        pagingFlow.value = PagingData.from(listOf(clipEpisodes[1], playing))
+        composeTestRule.waitForIdle()
+
+        assertEquals(listOf(playing.id), requested.map { it.id })
     }
 
     @Test
@@ -554,9 +597,12 @@ class ClipScreenTest {
             composeTestRule.onRoot().performTouchInput { swipeUp() }
             composeTestRule.waitForIdle()
         }
-        val settledBeyondShrunkList = requested.size > 1
-        check(settledBeyondShrunkList) {
-            "스와이프가 페이지를 넘기지 못했다 — 이 테스트는 settledPage > 0 을 전제한다"
+        // "몇 번 불렸나" 가 아니라 "지금 어디에 있나" 로 전제를 확인한다. 횟수는 스와이프가
+        // 한 칸만 먹어도 늘어나므로, 정작 필요한 "줄어든 목록 밖" 이 아닌 채로 검사가 지나갈
+        // 수 있다. (fling 때문에 몇 칸을 갈지는 정해져 있지 않으니 정확한 순서도 못 박지 않는다.)
+        check(requested.last().id != clipEpisodes.first().id) {
+            "스와이프가 페이지를 넘기지 못했다 — 이 테스트는 settledPage 가 뒤로 가 있어 곧 " +
+                "줄일 목록(1개) 밖에 남는 상태를 전제한다. 실제 요청 순서: ${requested.map { it.id }}"
         }
 
         // 5개 → 1개. 앞서 자리잡은 페이지 번호가 새 목록에는 없다.
@@ -568,6 +614,9 @@ class ClipScreenTest {
     }
 
     @Test
+    // 시간 배지는 카드 아래쪽 컨트롤 줄에 있어 기본 화면에서는 밀려 나간다.
+    // 실기 크기를 주고 assertIsDisplayed 까지 가야 실제로 보이는 것을 검사한다.
+    @Config(qualifiers = "w411dp-h914dp")
     fun whenEpisodeHasNoClipMetadata_cardFallsBackToTheEpisodeDuration() {
         // 클립 정보가 없으면 플레이어도 잘라 올리지 않으므로 전체 길이가 실제 재생 길이다.
         val whole = episodeTestDataList.first()
@@ -582,6 +631,6 @@ class ClipScreenTest {
         )
 
         composeTestRule.onNodeWithText(duration.toHumanReadable())
-            .assertExists()
+            .assertIsDisplayed()
     }
 }

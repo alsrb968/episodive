@@ -76,7 +76,16 @@ data class Episode(
 
     val clipStartPositionMs: Long = clipStartTime?.toEpochMilliseconds() ?: 0L
     val clipEndPositionMs: Long = clipStartPositionMs + (clipDuration?.inWholeMilliseconds ?: 0L)
-    val hasClip: Boolean = clipStartTime != null && clipDuration != null
+    /**
+     * 클립으로 재생할 수 있는가. 플레이어는 이 값이 참일 때만 미디어 아이템을 잘라 올린다.
+     *
+     * 길이가 0 이하인 사운드바이트는 여기서 걸러낸다. 그대로 두면 시작=끝인 창이 올라가
+     * 재생하자마자 ENDED 가 되고, 그 ENDED 가 다음 페이지로 넘기는 것을 연쇄시켜 목록을
+     * 소리 없이 훑고 지나간다. 표시 길이만 손보는 것으로는 막을 수 없다 — 잘라 올리는
+     * 판단 자체가 여기서 갈리기 때문이다.
+     */
+    val hasClip: Boolean =
+        clipStartTime != null && clipDuration != null && clipDuration.isPositive()
 
     /**
      * 재생할 때 실제로 흐르는 길이. [clipped] 는 "잘라 올렸는가" 다.
@@ -87,16 +96,11 @@ data class Episode(
      * 클리핑이 걸렸는지로, 화면은 [clipPlaybackDuration] 을 통해 [hasClip] 으로.
      */
     fun playbackDuration(clipped: Boolean): Duration {
-        if (!clipped) return duration ?: Duration.ZERO
-
-        // 길이가 0 이하인 사운드바이트는 피드 오류다. 그대로 쓰면 클립이 올라가자마자 끝나
-        // ENDED 자동 넘김이 연쇄해, 목록을 소리 없이 훑고 지나간다.
-        //
-        // 반대로 클립이 에피소드 끝을 넘기는 경우는 여기서 손대지 않는다. media3 는 실제
-        // 미디어 길이로 자르는데 여기서 쓸 수 있는 것은 피드가 말한 duration 뿐이고, 그 둘은
-        // 자주 어긋난다. 피드가 실제보다 짧게 말하면(흔하다) 상한이 실제보다 더 깎아, 준비가
-        // 끝나는 순간 표시가 도로 늘어난다 — 줄어드는 튐을 늘어나는 튐으로 바꿀 뿐이다.
-        return clipDuration?.takeIf { it.isPositive() } ?: duration ?: Duration.ZERO
+        // 클립이 에피소드 끝을 넘기는 경우는 손대지 않는다. media3 는 실제 미디어 길이로
+        // 자르는데 여기서 쓸 수 있는 것은 피드가 말한 duration 뿐이고, 그 둘은 자주 어긋난다.
+        // 피드가 실제보다 짧게 말하면(흔하다) 상한이 실제보다 더 깎아, 준비가 끝나는 순간
+        // 표시가 도로 늘어난다 — 줄어드는 튐을 늘어나는 튐으로 바꿀 뿐이다.
+        return (if (clipped) clipDuration else duration) ?: duration ?: Duration.ZERO
     }
 
     /**

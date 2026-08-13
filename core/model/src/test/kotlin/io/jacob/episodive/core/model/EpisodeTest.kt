@@ -8,8 +8,12 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
- * `:core:testing` 의 팩토리를 쓰지 않고 여기서 직접 만든다 — 그 모듈이 `:core:model` 에
- * 의존하므로 반대로 끌어오면 순환이 된다.
+ * `:core:testing` 의 팩토리를 쓰지 않고 여기서 직접 만든다.
+ *
+ * 의존 순환 때문이 아니다 — `testImplementation` 방향은 태스크 그래프상 순환이 아니다.
+ * 막는 것은 산출물 형식이다: `:core:testing` 은 `episodive.android.library` 라 AAR 을 내놓고,
+ * 이 모듈은 `episodive.jvm.library` 라 그것을 소비할 수 없다. 팩토리를 함께 쓰려면 순수 JVM
+ * 모듈로 떼어내야 한다.
  */
 class EpisodeTest {
 
@@ -73,15 +77,17 @@ class EpisodeTest {
     // --- 피드가 준 클립 길이를 어디까지 믿는가 ---
 
     @Test
-    fun `clipPlaybackDuration falls back to the episode duration when the clip length is zero`() {
-        // 길이 0 짜리 사운드바이트를 그대로 쓰면 클립이 올라가자마자 끝나고, 그 ENDED 가
-        // 다음 페이지로 넘기는 것을 연쇄시켜 목록을 소리 없이 훑고 지나간다.
+    fun `a zero length soundbite is not treated as a clip at all`() {
+        // 표시 길이만 되돌리는 것으로는 모자라다. hasClip 이 참으로 남으면 플레이어가 시작=끝인
+        // 창을 그대로 올려, 재생하자마자 ENDED 가 되고 그것이 다음 페이지로 넘기는 것을
+        // 연쇄시켜 목록을 소리 없이 훑고 지나간다. 잘라 올릴지 자체를 여기서 막아야 한다.
         val zeroLength = episode(
             duration = 60.minutes,
             clipStartTime = Instant.fromEpochSeconds(100),
             clipDuration = Duration.ZERO,
         )
 
+        assertEquals(false, zeroLength.hasClip)
         assertEquals(60.minutes, zeroLength.clipPlaybackDuration)
     }
 

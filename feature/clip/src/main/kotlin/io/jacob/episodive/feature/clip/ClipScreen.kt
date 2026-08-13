@@ -239,6 +239,12 @@ fun EpisodeClipPager(
     // remember 로 붙들지 않았을 때 재구성마다 새 LazyPagingItems 가 생겨 이펙트가 다시
     // 돌고 클립이 처음부터 다시 재생된다 — 공개 함수라 그 전제를 강요할 수 없다.
     val currentEpisodes by rememberUpdatedState(episodesPaging)
+    val currentOnEpisodeChanged by rememberUpdatedState(onEpisodeChanged)
+
+    // 마지막으로 재생을 건 클립. 페이지 번호가 바뀌어도 같은 클립이면 다시 걸지 않는다 —
+    // 페이저의 key 가 에피소드 id 라, 목록이 갱신되면 Compose 가 같은 카드를 붙들려고
+    // 인덱스를 옮긴다(3 → 0). 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다.
+    val lastPlayedId = remember { mutableStateOf<Long?>(null) }
 
     // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
     //
@@ -265,7 +271,12 @@ fun EpisodeClipPager(
                 val episode = snapshotFlow { currentEpisodes.itemSnapshotList.getOrNull(page) }
                     .filterNotNull()
                     .first()
-                onEpisodeChanged(episode)
+                // 자리가 바뀌었을 뿐 같은 클립이면 그대로 둔다. playClip 은 미디어 아이템을
+                // 새로 올리는 호출이라, 다시 부르면 듣던 지점이 사라진다.
+                if (episode.id != lastPlayedId.value) {
+                    lastPlayedId.value = episode.id
+                    currentOnEpisodeChanged(episode)
+                }
             }
     }
 
