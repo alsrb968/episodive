@@ -473,12 +473,9 @@ class ClipScreenTest {
                 ClipScreen(
                     episodes = flow,
                     playback = Playback.READY,
-                    progress = Progress(
-                        position = 100.seconds,
-                        buffered = 100.seconds,
-                        duration = 1278.seconds,
-                        episodeId = episode.id,
-                    ),
+                    // episodeId 를 비워 둔다. 이미 올라 있는 것으로 두면 첫 요청부터
+                    // 건너뛰어, 정작 보려는 "재방출 때 다시 걸지 않는가" 를 못 본다.
+                    progress = Progress(0.seconds, 0.seconds, 0.seconds),
                     isPlaying = true,
                     onEpisodeChanged = { requested.add(it) },
                 )
@@ -492,6 +489,48 @@ class ClipScreenTest {
         composeTestRule.waitForIdle()
 
         assertEquals(1, requested.size)
+    }
+
+    @Test
+    fun whenTheClipIsAlreadyOnThePlayer_itIsNotRequestedAgain() {
+        // 탭을 오갔다 돌아온 자리. 컴포지션이 새로 서서 "무엇을 요청해 뒀는지" 는 잊혔지만
+        // 플레이어에는 그 클립이 그대로 올라 있다(progress.episodeId 가 그것을 말한다).
+        // 그 상태에서 다시 올리면 듣던 지점이 사라진다.
+        val playing = clipEpisodes.first()
+        val requested = mutableListOf<Episode>()
+
+        setClipScreen(
+            episodes = listOf(playing),
+            progress = Progress(
+                position = 100.seconds,
+                buffered = 100.seconds,
+                duration = 1278.seconds,
+                episodeId = playing.id,
+            ),
+            onEpisodeChanged = { requested.add(it) },
+        )
+        composeTestRule.waitForIdle()
+
+        assertEquals(emptyList<Long>(), requested.map { it.id })
+    }
+
+    @Test
+    fun whenNothingIsOnThePlayer_theSettledClipIsRequested() {
+        // 프로세스가 죽었다 살아난 자리. 플레이어가 비어 있으면(progress.episodeId == null)
+        // 페이지가 복원돼 있더라도 재생을 걸어야 한다 — 건너뛰면 화면이 소리 없이 멎는다.
+        val playing = clipEpisodes.first()
+        val requested = mutableListOf<Episode>()
+
+        setClipScreen(
+            episodes = listOf(playing),
+            playback = Playback.IDLE,
+            progress = Progress(0.seconds, 0.seconds, 0.seconds),
+            isPlaying = false,
+            onEpisodeChanged = { requested.add(it) },
+        )
+        composeTestRule.waitForIdle()
+
+        assertEquals(listOf(playing.id), requested.map { it.id })
     }
 
     @Test

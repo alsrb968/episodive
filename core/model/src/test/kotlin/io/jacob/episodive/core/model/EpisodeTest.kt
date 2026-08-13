@@ -77,6 +77,19 @@ class EpisodeTest {
     // --- 피드가 준 클립 길이를 어디까지 믿는가 ---
 
     @Test
+    fun `a soundbite starting before zero is not treated as a clip at all`() {
+        // 시작이 음수면 media3 의 setStartPositionMs 가 그 자리에서 IllegalArgumentException
+        // 을 던진다. 표시 길이의 문제가 아니라 크래시이므로, 잘라 올릴지 자체를 막아야 한다.
+        val negativeStart = episode(
+            duration = 60.minutes,
+            clipStartTime = Instant.fromEpochSeconds(-5),
+            clipDuration = 30.seconds,
+        )
+
+        assertEquals(false, negativeStart.hasClip)
+    }
+
+    @Test
     fun `a zero length soundbite is not treated as a clip at all`() {
         // 표시 길이만 되돌리는 것으로는 모자라다. hasClip 이 참으로 남으면 플레이어가 시작=끝인
         // 창을 그대로 올려, 재생하자마자 ENDED 가 되고 그것이 다음 페이지로 넘기는 것을

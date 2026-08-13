@@ -263,13 +263,17 @@ class PlayerDataSourceImpl @Inject constructor(
         // 확인하고 없다고 0 을 돌려주면 알 수 있는 길이를 스스로 버리는 셈이 된다.
         //
         // 밀리초 쪽을 읽는다. 마이크로초 변형이 더 정밀해 보이지만 @UnstableApi 라 lint 가
-        // 막는다. 끝을 지정하지 않은 클리핑이면 endPositionMs 가 TIME_END_OF_SOURCE
-        // (거대한 음수)라 폭이 음수로 나오고 isPositive 에 걸린다 — 센티널을 따로 견주지
-        // 않아도 된다.
+        // 막는다.
+        //
+        // 끝을 지정하지 않은 클리핑은 센티널을 직접 견줘 걸러낸다. 뺄셈 결과가 음수라
+        // isPositive 에 걸릴 것 같지만, TIME_END_OF_SOURCE 가 Long 최솟값 근처라 시작이
+        // 0 보다 크면 뺄셈이 넘쳐 거대한 양수가 된다 — 292만 년짜리 길이가 발행된다.
         if (isClipped()) {
             val clip = clippingConfiguration
-            val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
-            if (window.isPositive()) return window
+            if (clip.endPositionMs != C.TIME_END_OF_SOURCE) {
+                val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
+                if (window.isPositive()) return window
+            }
         }
         return episodeTag()?.duration ?: Duration.ZERO
     }
@@ -348,7 +352,7 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         player.playWhenReady = true
 
-        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0))
+        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0), position = Duration.ZERO)
     }
 
     override fun playClip(episode: Episode) {
@@ -377,7 +381,7 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         player.playWhenReady = true
 
-        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0))
+        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0), position = Duration.ZERO)
     }
 
     override fun playIndex(index: Int) {
@@ -580,11 +584,11 @@ class PlayerDataSourceImpl @Inject constructor(
      * 두 곳으로 갈라져 [playbackDuration] 의 기준과 어긋날 수 있다 — 실제로 잘라 올린 그
      * 아이템에게 직접 묻는 편이 어긋날 여지가 없다.
      *
-     * @param position 발행할 재생 위치. 목록을 새로 트는 경로(`play`·`playClips`)는 0 이지만,
-     * `prepare` 는 앱을 다시 켰을 때 듣던 자리를 복원하므로 그 위치를 넘긴다. 기본값에 기대어
-     * 빠뜨리면 이어듣기 지점이 0 으로 발행되어 그대로 저장된다.
+     * @param position 발행할 재생 위치. 기본값을 두지 않는다 — 목록을 새로 트는
+     * 경로(`play`·`playClips`)는 0 이지만 `prepare` 는 듣던 자리를 복원하므로, 잊고 빠뜨리면
+     * 이어듣기 지점이 0 으로 발행되어 그대로 저장된다. 컴파일이 막게 두는 편이 낫다.
      */
-    private fun publishStartOfPlayback(mediaItem: MediaItem?, position: Duration = Duration.ZERO) {
+    private fun publishStartOfPlayback(mediaItem: MediaItem?, position: Duration) {
         publishProgress(
             position = position,
             buffered = Duration.ZERO,

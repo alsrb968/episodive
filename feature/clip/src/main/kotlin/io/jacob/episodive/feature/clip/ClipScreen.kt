@@ -27,7 +27,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -235,23 +234,19 @@ fun EpisodeClipPager(
         currentPageColor?.let(onCurrentDominantColor)
     }
 
-    // 이펙트가 붙들지 않고 늘 최신 것을 보게 한다. 키에 걸면 그 값이 바뀔 때마다 이펙트가
-    // 다시 돌고, 그때 클립이 처음부터 재생된다. (호출자가 episodes 흐름을 remember 로 붙들지
-    // 않은 경우까지 이것으로 막지는 못한다 — 새 LazyPagingItems 는 첫 프레임에 itemCount 가
-    // 0 이라 아래 refreshPhase 가 Loading 으로 갈라져 이 블록 자체가 헐린다. 그 경로는
-    // 호출자가 흐름을 붙드는 것으로만 막힌다.)
-    val currentEpisodes by rememberUpdatedState(episodesPaging)
+    // 이펙트는 한 번 뜨면 다시 돌지 않으므로, 그 안에서 읽는 것은 붙들지 말고 최신을 본다.
     val currentOnEpisodeChanged by rememberUpdatedState(onEpisodeChanged)
+    val currentProgress by rememberUpdatedState(progress)
 
-    // 마지막으로 재생을 건 클립. 페이지 번호가 바뀌어도 같은 클립이면 다시 걸지 않는다 —
-    // 페이저의 key 가 에피소드 id 라, 목록이 갱신되면 Compose 가 같은 카드를 붙들려고
-    // 인덱스를 옮긴다(3 → 0). 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다.
+    // 요청해 둔 클립. 페이지 번호가 바뀌어도 같은 클립이면 다시 걸지 않는다 — 페이저의 key 가
+    // 에피소드 id 라, 목록이 갱신되면 Compose 가 같은 카드를 붙들려고 인덱스를 옮긴다(3 → 0).
+    // 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다.
     //
-    // rememberSaveable 이다. 짝이 되는 pagerState 도 저장되는 상태라, 이쪽만 평범한
-    // remember 로 두면 탭을 옮겼다 돌아오거나 화면이 다시 만들어질 때 짝이 어긋난다 —
-    // 페이지는 6 으로 복원되는데 "무엇을 걸어 뒀는지" 는 잊어버려, 듣고 있던 클립을 다시
-    // 올리고 그 지점이 사라진다.
-    val lastPlayedId = rememberSaveable { mutableStateOf<Long?>(null) }
+    // 저장하지 않는 상태다. 이것만으로는 탭을 오갈 때 잊혀지지만, 그 경우는 아래에서
+    // progress.episodeId 가 대신 답한다 — 그쪽이 "실제로 플레이어에 올라 있는 것" 이라 더
+    // 믿을 만하다. 반대로 저장해 두면 프로세스가 죽었다 살아났을 때 거짓말이 된다: 기억은
+    // 복원되는데 플레이어는 빈 채라, 재생을 건너뛰고 화면이 소리 없이 멎는다.
+    val lastRequestedId = remember { mutableStateOf<Long?>(null) }
 
     // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
     //
@@ -272,18 +267,22 @@ fun EpisodeClipPager(
     // 예외를 던지고, 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
     // 부작용이라 페이저가 실제로 그리는 페이지의 힌트와 다툰다.
     // snapshotFlow 는 이미 연속된 같은 값을 삼키므로 distinctUntilChanged 를 덧붙이지 않는다.
-    // 실제 중복 방지는 아래 lastPlayedId 가 맡는다 — 방어선이 둘로 보이면 어느 쪽이 계약을
-    // 지고 있는지 흐려진다.
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
             .collectLatest { page ->
-                val episode = snapshotFlow { currentEpisodes.itemSnapshotList.getOrNull(page) }
+                val episode = snapshotFlow { episodesPaging.itemSnapshotList.getOrNull(page) }
                     .filterNotNull()
                     .first()
                 // 자리가 바뀌었을 뿐 같은 클립이면 그대로 둔다. playClip 은 미디어 아이템을
                 // 새로 올리는 호출이라, 다시 부르면 듣던 지점이 사라진다.
-                if (episode.id != lastPlayedId.value) {
-                    lastPlayedId.value = episode.id
+                //
+                // 두 가지를 함께 본다. progress.episodeId 는 "실제로 올라 있는 것" 이라 탭을
+                // 오가도 남아 있지만, 요청부터 그 값이 따라올 때까지 몇 번의 디스패치가 걸린다.
+                // lastRequestedId 가 그 빈틈을 메운다. 프로세스가 죽었다 살아나면 둘 다 비어
+                // 있어 재생을 다시 거는데, 그게 맞다 — 플레이어도 비어 있으니까.
+                val alreadyOnPlayer = episode.id == currentProgress.episodeId
+                if (episode.id != lastRequestedId.value && !alreadyOnPlayer) {
+                    lastRequestedId.value = episode.id
                     currentOnEpisodeChanged(episode)
                 }
             }
@@ -349,10 +348,10 @@ fun EpisodeClipPager(
                         onEpisodeClick(episode)
                     },
                     onPlayEpisode = {
-                        // 여기서도 lastPlayedId 를 함께 옮긴다. 버튼으로 올린 것을 기록하지
-                        // 않으면 "무엇이 올라가 있는지" 가 실제와 어긋나, 그 카드로 스와이프해
-                        // 멎는 순간 같은 클립을 한 번 더 올려 듣던 지점을 지운다.
-                        lastPlayedId.value = episode.id
+                        // 여기서도 요청 기록을 함께 옮긴다. 버튼으로 올린 것을 남기지 않으면
+                        // "무엇을 올려 뒀는지" 가 실제와 어긋나, 그 카드로 스와이프해 멎는
+                        // 순간 같은 클립을 한 번 더 올려 듣던 지점을 지운다.
+                        lastRequestedId.value = episode.id
                         onEpisodeChanged(episode)
                     },
                     onToggleLikedEpisode = {

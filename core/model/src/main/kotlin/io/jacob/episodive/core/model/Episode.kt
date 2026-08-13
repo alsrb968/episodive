@@ -79,13 +79,18 @@ data class Episode(
     /**
      * 클립으로 재생할 수 있는가. 플레이어는 이 값이 참일 때만 미디어 아이템을 잘라 올린다.
      *
-     * 길이가 0 이하인 사운드바이트는 여기서 걸러낸다. 그대로 두면 시작=끝인 창이 올라가
-     * 재생하자마자 ENDED 가 되고, 그 ENDED 가 다음 페이지로 넘기는 것을 연쇄시켜 목록을
-     * 소리 없이 훑고 지나간다. 표시 길이만 손보는 것으로는 막을 수 없다 — 잘라 올리는
-     * 판단 자체가 여기서 갈리기 때문이다.
+     * 피드가 주는 값을 그대로 믿지 않고 두 가지를 함께 본다. 표시 길이만 손보는 것으로는
+     * 막을 수 없다 — 잘라 올리는 판단 자체가 여기서 갈리기 때문이다.
+     *
+     * - 길이가 0 이하면 시작=끝인 창이 올라가 재생하자마자 ENDED 가 되고, 그 ENDED 가 다음
+     *   페이지로 넘기는 것을 연쇄시켜 목록을 소리 없이 훑고 지나간다.
+     * - 시작이 음수면 `ClippingConfiguration.Builder.setStartPositionMs` 가 그 자리에서
+     *   IllegalArgumentException 을 던진다(media3 가 `>= 0` 을 단언한다). 즉 크래시다.
      */
-    val hasClip: Boolean =
-        clipStartTime != null && clipDuration != null && clipDuration.isPositive()
+    val hasClip: Boolean = clipStartTime != null &&
+            clipDuration != null &&
+            clipDuration.isPositive() &&
+            clipStartPositionMs >= 0L
 
     /**
      * 클립으로 재생할 때 흐르는 길이 — **아직 플레이어에 올리기 전인 화면**이 쓴다.
