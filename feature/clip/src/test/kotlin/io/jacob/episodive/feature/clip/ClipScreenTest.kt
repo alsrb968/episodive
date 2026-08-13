@@ -2,10 +2,7 @@ package io.jacob.episodive.feature.clip
 
 import android.content.Context
 import android.provider.Settings
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -13,8 +10,8 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import androidx.paging.LoadState
@@ -82,9 +79,13 @@ class ClipScreenTest {
         onPodcastClick: (Long) -> Unit = {},
     ) {
         composeTestRule.setContent {
+            // 흐름을 remember 로 붙든다. 컴포지션 안에서 새로 만들면 재구성 때마다
+            // collectAsLazyPagingItems 가 새 LazyPagingItems 를 세우고, 그것을 키로 삼는
+            // 자동 재생 이펙트가 다시 돌아 같은 클립을 두 번 요청한다.
+            val flow = remember(episodes) { flowOf(PagingData.from(episodes)) }
             EpisodiveTheme {
                 ClipScreen(
-                    episodes = flowOf(PagingData.from(episodes)),
+                    episodes = flow,
                     playback = playback,
                     progress = progress,
                     isPlaying = isPlaying,
@@ -473,9 +474,14 @@ class ClipScreenTest {
     }
 
     @Test
-    fun whenTheSettledPageFallsOutsideAShrunkList_theClipTabDoesNotCrash() {
+    fun whenTheSettledPageFallsOutsideAShrunkList_theRemainingClipIsRequested() {
         // 목록이 갱신되어 짧아지면 그 순간 settledPage 가 범위 밖에 남는다. 그 자리를
         // LazyPagingItems.get 으로 읽으면 IndexOutOfBoundsException 이 그대로 터진다.
+        //
+        // 다만 예외를 삼키는 것만으로는 모자라다. 범위 밖을 null 로 흘려보내고 걸러 버리면
+        // 크래시 대신 "아무 일도 일어나지 않는" 상태가 남는다 — 사라진 클립의 소리는 계속
+        // 나는데 화면은 멈춘 카드를 보여주고, 페이지가 하나뿐이라 스와이프로 빠져나올 수도
+        // 없다. 남아 있는 클립을 재생하는 데까지 가야 한다.
         val requested = mutableListOf<Episode>()
         lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
 
@@ -511,7 +517,8 @@ class ClipScreenTest {
         pagingFlow.value = PagingData.from(listOf(clipEpisodes.first()))
         composeTestRule.waitForIdle()
 
-        // 여기까지 예외 없이 왔으면 통과.
+        // 예외가 없는 것으로는 부족하다 — 남은 클립으로 실제로 옮겨가야 한다.
+        assertEquals(clipEpisodes.first().id, requested.last().id)
     }
 
     @Test

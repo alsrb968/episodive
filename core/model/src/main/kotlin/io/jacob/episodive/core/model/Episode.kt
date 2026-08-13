@@ -79,12 +79,22 @@ data class Episode(
     val hasClip: Boolean = clipStartTime != null && clipDuration != null
 
     /**
-     * 클립으로 재생할 때 실제로 흐르는 길이.
+     * 재생할 때 실제로 흐르는 길이. [clipped] 는 "잘라 올렸는가" 다.
      *
-     * 플레이어는 [hasClip] 일 때만 미디어 아이템을 잘라 올리므로 그 판정과 같은 기준을 쓴다.
-     * 클립 화면의 남은 시간과 플레이어가 발행하는 길이가 이 값 하나로 맞춰져야, 재생이
-     * 준비되는 순간 화면의 숫자가 에피소드 전체 길이에서 클립 길이로 튀지 않는다.
+     * **어느 길이를 고르는지는 여기 한 곳에서만 정한다.** 화면(아직 올리기 전)과 플레이어
+     * (이미 올린 뒤)가 각자 셈하면 둘이 어긋나는 순간 숫자가 튀는데, 그게 이 규약이 막으려는
+     * 것이다. 부르는 쪽은 [clipped] 를 판정해 넘기기만 한다 — 플레이어는 실제 미디어 아이템에
+     * 클리핑이 걸렸는지로, 화면은 [clipPlaybackDuration] 을 통해 [hasClip] 으로.
      */
-    val clipPlaybackDuration: Duration =
-        (if (hasClip) clipDuration else duration) ?: Duration.ZERO
+    fun playbackDuration(clipped: Boolean): Duration =
+        (if (clipped) clipDuration else duration) ?: Duration.ZERO
+
+    /**
+     * 클립으로 재생할 때 흐르는 길이 — 아직 플레이어에 올리기 전인 화면이 쓴다.
+     *
+     * 플레이어는 [hasClip] 일 때만 잘라 올리므로 그 판정을 그대로 따른다. 이 기준이
+     * `toMediaItem` 의 클리핑 조건과 어긋나면 카드의 시간과 플레이어가 발행하는 길이가
+     * 갈라져, 재생이 준비되는 순간 숫자가 튄다.
+     */
+    val clipPlaybackDuration: Duration get() = playbackDuration(clipped = hasClip)
 }

@@ -256,7 +256,9 @@ fun EpisodeClipPager(
         snapshotFlow { episodesPaging.itemSnapshotList.getOrNull(pagerState.settledPage) }
             .filterNotNull()
             .distinctUntilChanged { old, new -> old.id == new.id }
-            .collectLatest { episode ->
+            // collect 다. onEpisodeChanged 는 suspend 가 아니라 collectLatest 로 감싸도
+            // 중간에 끊을 것이 없고, "마지막 것만 이긴다" 는 없는 보장을 있는 척하게 된다.
+            .collect { episode ->
                 onEpisodeChanged(episode)
             }
     }
@@ -446,11 +448,13 @@ private fun ClipScreenPreview() {
             episodes = flowOf(PagingData.from(clips)),
             playback = Playback.READY,
             progress = Progress(
-                position = 1000L.seconds,
+                position = 278.seconds,
                 buffered = 1278.seconds,
-                duration = 2000L.seconds,
-                // 미리보기에서 재생 중인 카드를 보려면 progress 가 그 카드의 것이어야 한다.
-                // 빠뜨리면 isPlaying = true 를 줘도 멈춘 카드가 그려진다.
+                // 클립 길이와 같아야 한다. 다른 값을 두면 미리보기가 실제 화면에서는 나올 수
+                // 없는 남은 시간을 보여준다 — 이 변경이 없애려는 바로 그 어긋남이다.
+                duration = 1278.seconds,
+                // 재생 중인 카드를 보려면 progress 가 그 카드의 것이어야 한다. 빠뜨리면
+                // isPlaying = true 를 줘도 멈춘 카드가 그려진다.
                 episodeId = clips.first().id,
             ),
             isPlaying = true,

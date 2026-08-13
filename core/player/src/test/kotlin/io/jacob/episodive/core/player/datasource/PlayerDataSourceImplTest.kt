@@ -1322,18 +1322,15 @@ class PlayerDataSourceImplTest {
         runTest {
             // Given: 준비 전이라 player.duration 이 TIME_UNSET 이다. 이때 메타에서 길이를
             // 가져오는데, 잘라 올린 아이템이면 전체 길이가 아니라 클립 길이를 써야 한다.
-            val clippedItem = MediaItem.Builder()
-                .setMediaId(clipEpisode.id.toString())
-                .setUri(mockk<Uri>(relaxed = true))
-                .setTag(clipEpisode)
-                .setClippingConfiguration(
-                    MediaItem.ClippingConfiguration.Builder()
-                        .setStartPositionMs(clipEpisode.clipStartPositionMs)
-                        .setEndPositionMs(clipEpisode.clipEndPositionMs)
-                        .build()
-                )
-                .build()
-            every { player.currentMediaItem } returns clippedItem
+            //
+            // 아이템을 손으로 짓지 않고 playClip 이 실제로 만든 것을 되돌려 준다. 손으로 지으면
+            // toMediaItem 에서 클리핑을 떼어내도 이 테스트는 초록으로 남는다 — 프로덕션이
+            // 만들지 않는 표본을 검사하게 되기 때문이다.
+            val built = slot<MediaItem>()
+            every { player.setMediaItem(capture(built)) } just Runs
+            dataSource.playClip(clipEpisode)
+
+            every { player.currentMediaItem } returns built.captured
             every { player.duration } returns C.TIME_UNSET
             every { player.bufferedPosition } returns 0L
 

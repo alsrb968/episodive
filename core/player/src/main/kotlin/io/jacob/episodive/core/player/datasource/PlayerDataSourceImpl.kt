@@ -64,7 +64,7 @@ class PlayerDataSourceImpl @Inject constructor(
                 items.add(player.getMediaItemAt(i))
             }
             _playlist.value = items.mapNotNull { item ->
-                item.localConfiguration?.tag as? Episode
+                item.episodeTag()
             }
         }
 
@@ -88,7 +88,7 @@ class PlayerDataSourceImpl @Inject constructor(
                 }
             }
 
-            val episode = mediaItem?.localConfiguration?.tag as? Episode
+            val episode = mediaItem?.episodeTag()
             _nowPlaying.value = episode
             _indexOfList.value = player.currentMediaItemIndex
             // 재생목록을 통째로 갈아끼우는 중에는 발행하지 않는다. media3 가 setMediaItems 호출
@@ -256,10 +256,8 @@ class PlayerDataSourceImpl @Inject constructor(
      * 둘이 어긋나면 그 순간 숫자가 튀므로, [toMediaItem] 의 클리핑 조건을 바꿀 때는
      * `clipPlaybackDuration` 의 [Episode.hasClip] 기준도 함께 맞춰야 한다.
      */
-    private fun MediaItem.playbackDuration(): Duration {
-        val episode = episodeTag() ?: return Duration.ZERO
-        return if (isClipped()) episode.clipPlaybackDuration else episode.duration ?: Duration.ZERO
-    }
+    private fun MediaItem.playbackDuration(): Duration =
+        episodeTag()?.playbackDuration(clipped = isClipped()) ?: Duration.ZERO
 
     /**
      * 이 아이템에 실린 에피소드. [toMediaItem] 이 `setTag` 로 붙여 둔 것이다.
@@ -550,7 +548,7 @@ class PlayerDataSourceImpl @Inject constructor(
      * 플레이어 스레드에서만 호출할 것.
      */
     private fun currentEpisode(): Episode? =
-        player.currentMediaItem?.localConfiguration?.tag as? Episode
+        player.currentMediaItem?.episodeTag()
 
     private fun currentEpisodeId(): Long? = currentEpisode()?.id
 
