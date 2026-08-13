@@ -1281,9 +1281,29 @@ class PlayerDataSourceImplTest {
     }
 
     @Test
-    fun `Given the same clip is already playing, When playClip called again, Then the player is not touched`() {
+    fun `Given the same clip is already playing, When playClip called again, Then the listening position is left alone`() {
         // Given
         givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.isPlaying } returns true
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then: 다시 올리지 않는 것만으로는 부족하다. 되감거나 비우는 것도 듣던 자리를
+        // 지우므로, 지점을 건드릴 수 있는 호출을 모두 막는다.
+        verify(exactly = 0) { player.setMediaItem(any()) }
+        verify(exactly = 0) { player.seekTo(any()) }
+        verify(exactly = 0) { player.stop() }
+        verify(exactly = 0) { player.clearMediaItems() }
+    }
+
+    @Test
+    fun `Given the same clip is loaded but paused, When playClip called, Then it resumes without reloading`() {
+        // 멈춰 둔 클립의 재생 버튼이 죽으면 안 된다 — 다시 올리지 않되 이어서 틀어야 한다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.isPlaying } returns false
         clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
 
         // When
@@ -1291,7 +1311,54 @@ class PlayerDataSourceImplTest {
 
         // Then
         verify(exactly = 0) { player.setMediaItem(any()) }
+        verify(exactly = 1) { player.play() }
     }
+
+    @Test
+    fun `Given the same episode with a different clip window, When playClip called, Then it is loaded again`() {
+        // soundbites 는 episodeId 가 기본키라, 캐시가 갱신되면 같은 에피소드의 창만 바뀐
+        // 행이 온다. 그때 넘기면 플레이어는 옛 창을, 카드는 새 길이를 말하게 된다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+        val shiftedWindow = clipEpisode.copy(clipStartTime = Instant.fromEpochSeconds(200))
+
+        // When
+        dataSource.playClip(shiftedWindow)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given a clipped item with no end position, When its duration is read, Then only what is left after the start counts`() =
+        runTest {
+            // toMediaItem 은 늘 양끝을 지정하지만, playbackDuration 은 "끝을 지정하지 않은
+            // 클리핑" 도 답할 수 있어야 한다고 적어 두었다. 그 분기를 실제로 짚어 둔다.
+            // Given
+            val openEnded = MediaItem.Builder()
+                .setMediaId(clipEpisode.id.toString())
+                .setUri(mockk<Uri>(relaxed = true))
+                .setTag(clipEpisode)
+                .setClippingConfiguration(
+                    MediaItem.ClippingConfiguration.Builder()
+                        .setStartPositionMs(10.minutes.inWholeMilliseconds)
+                        .build()
+                )
+                .build()
+            every { player.currentMediaItem } returns openEnded
+            every { player.duration } returns C.TIME_UNSET
+            every { player.bufferedPosition } returns 0L
+
+            // When
+            dataSource.seekTo(0L)
+
+            // Then: 60분 에피소드의 10분 지점부터면 남은 것은 50분이다.
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(50.minutes, progress.duration)
+            }
+        }
 
     @Test
     fun `Given the clip ended, When playClip called with the same clip, Then it is loaded again`() {

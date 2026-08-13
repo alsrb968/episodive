@@ -374,7 +374,15 @@ class PlayerDataSourceImpl @Inject constructor(
      * "처음부터 다시 듣기" 라는 정상 요청이고, 지울 지점도 없다.
      */
     override fun playClip(episode: Episode) {
-        val alreadyLoaded = currentEpisode()?.id == episode.id &&
+        // 같은 에피소드라도 잘라낸 창이 다르면 다시 올려야 한다. soundbites 는 episodeId 가
+        // 기본키라, 캐시가 갱신되면 같은 에피소드의 창만 바뀐 행이 온다. 그때 그냥 넘기면
+        // 플레이어는 옛 창을 흘리는데 카드는 새 길이를 보여준다.
+        // 태그부터 견준다. 우리가 올린 아이템일 때만 클리핑 창을 들여다본다.
+        val loaded = player.currentMediaItem
+        val alreadyLoaded = loaded != null &&
+                loaded.episodeTag()?.id == episode.id &&
+                loaded.clippingConfiguration.startPositionMs == episode.clipStartPositionMs &&
+                loaded.clippingConfiguration.endPositionMs == episode.clipEndPositionMs &&
                 player.playbackState != Player.STATE_IDLE &&
                 player.playbackState != Player.STATE_ENDED
         if (alreadyLoaded) {
@@ -443,6 +451,16 @@ class PlayerDataSourceImpl @Inject constructor(
     override fun stop() {
         player.stop()
         player.clearMediaItems()
+        // 진행 상태도 비운다. 남겨 두면 마지막 값이 그대로 붙어 있어, 화면이 그 에피소드를
+        // "지금 재생 중" 으로 보고 멈춘 숫자를 남은 시간인 양 계속 보여준다.
+        // episodeId 를 null 로 싣는 것은 "재생 대상 미확정" 이라는 뜻이고, 저장 경로는
+        // 그 값을 저장하지 않는다.
+        publishProgress(
+            position = Duration.ZERO,
+            buffered = Duration.ZERO,
+            duration = Duration.ZERO,
+            episodeId = null,
+        )
     }
 
     override fun next() {

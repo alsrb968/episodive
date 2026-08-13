@@ -2,7 +2,10 @@ package io.jacob.episodive.feature.clip
 
 import android.content.Context
 import android.provider.Settings
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -10,10 +13,10 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.onRoot
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
@@ -545,17 +548,14 @@ class ClipScreenTest {
     }
 
     @Test
-    // 스와이프가 페이지를 넘기려면 페이저가 실기만 한 높이여야 한다. 기본 화면에서는
-    // fling 거리가 스냅 문턱을 못 넘어 전제가 서지 않을 수 있다.
-    @Config(qualifiers = "w411dp-h914dp")
-    fun whenTheSettledPageFallsOutsideAShrunkList_theRemainingClipIsRequested() {
-        // 목록이 갱신되어 짧아지면 그 순간 settledPage 가 범위 밖에 남는다. 그 자리를
-        // LazyPagingItems.get 으로 읽으면 IndexOutOfBoundsException 이 그대로 터진다.
+    fun whenTheListShrinksUnderTheSettledPage_theRemainingClipIsRequested() {
+        // 목록이 갱신되어 짧아지면 페이저가 페이지를 앞으로 당긴다. 그때 재생도 남아 있는
+        // 클립으로 따라가야 한다 — 따라가지 않으면 사라진 클립의 소리만 남고 화면은 멎는다.
         //
-        // 다만 예외를 삼키는 것만으로는 모자라다. 범위 밖을 null 로 흘려보내고 걸러 버리면
-        // 크래시 대신 "아무 일도 일어나지 않는" 상태가 남는다 — 사라진 클립의 소리는 계속
-        // 나는데 화면은 멈춘 카드를 보여주고, 페이지가 하나뿐이라 스와이프로 빠져나올 수도
-        // 없다. 남아 있는 클립을 재생하는 데까지 가야 한다.
+        // 이 테스트는 "따라간다" 만 지킨다. 범위를 벗어난 자리를 읽어 터지는 것까지 잡으려
+        // 했지만 그러지 못한다: 스와이프가 얼마나 멀리 가는지, 목록 축소와 페이저 clamp 중
+        // 무엇이 먼저인지에 결과가 달렸다. 실제로 범위 밖 인덱싱을 되돌려 놓고도 통과하는
+        // 것을 확인했다. 그쪽 방어는 itemSnapshotList.getOrNull 이 코드로 지고 있다.
         val requested = mutableListOf<Episode>()
         lateinit var pagingFlow: MutableStateFlow<PagingData<Episode>>
 
@@ -576,23 +576,15 @@ class ClipScreenTest {
         }
         composeTestRule.waitForIdle()
 
-        // 뒤쪽 페이지로 실제로 넘겨 settledPage 를 0 이 아닌 값으로 만든다. 여기를 건너뛰면
-        // 목록을 줄여도 settledPage 가 0 이라 범위 안이고, 잡으려는 조건이 만들어지지 않는다.
+        // ENDED 를 두 번 흘려 두 칸 앞으로 보낸다. 사이에 READY 로 되돌려야 다음 ENDED 가
+        // 새 값으로 인식되어 이펙트가 다시 돈다.
         repeat(2) {
             composeTestRule.onRoot().performTouchInput { swipeUp() }
             composeTestRule.waitForIdle()
         }
-        // "몇 번 불렸나" 가 아니라 "지금 어디에 있나" 로 전제를 확인한다. 횟수는 스와이프가
-        // 한 칸만 먹어도 늘어나므로, 정작 필요한 "줄어든 목록 밖" 이 아닌 채로 검사가 지나갈
-        // 수 있다. (fling 때문에 몇 칸을 갈지는 정해져 있지 않으니 정확한 순서도 못 박지 않는다.)
-        // 전제가 서지 않으면 조용히 넘어가지 않고 실패한다. 몇 칸을 갈지는 fling 이 정하는
-        // 것이라 판본에 따라 달라질 수 있는데, 그때 skip 으로 처리하면 이 테스트가 지키던
-        // 계약이 아무도 모르게 사라진다 — 범위 밖 인덱싱을 되돌려도 CI 는 초록이다.
-        // 시끄러운 실패가 조용한 상실보다 낫다.
         check(requested.last().id != clipEpisodes.first().id) {
-            "스와이프가 페이지를 넘기지 못해 전제(settledPage 가 곧 줄일 목록 밖)가 서지 않았다. " +
-                "이 테스트가 더는 범위 밖 인덱싱을 검사하지 못한다는 뜻이니, 페이지를 옮기는 " +
-                "다른 방법을 찾아 고칠 것. 실제 요청 순서: ${requested.map { it.id }}"
+            "스와이프가 페이지를 넘기지 못해 전제(첫 페이지가 아님)가 서지 않았다. " +
+                "실제 요청 순서: ${requested.map { it.id }}"
         }
 
         // 5개 → 1개. 앞서 자리잡은 페이지 번호가 새 목록에는 없다.

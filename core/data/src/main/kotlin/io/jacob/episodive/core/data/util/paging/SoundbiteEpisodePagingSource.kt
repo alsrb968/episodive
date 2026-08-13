@@ -110,19 +110,18 @@ class SoundbiteEpisodePagingSource(
                             it.feedTitle.contains(regex)
                 }
 
-            // 재생할 수 없는 행(길이 0 이하, 시작이 음수)은 여기서 거르지 않고 그대로 넣는다.
-            // 거르고 싶지만 replaceSoundbites 가 통째로 갈아끼우는 호출이라, 응답이 전부
-            // 걸러지면 표가 비고 그러면 getSoundbitesOldestCachedAt() 이 null 을 준다 —
-            // TTL 이 늘 만료로 판정되어 페이지를 넘길 때마다 원격을 다시 때린다.
-            // 걸러내는 일은 조회 쪽(SoundbiteDao)이 맡는다. 캐시 신선도는 받은 것을 그대로
-            // 세고, 무엇을 보여줄지만 조회가 정한다.
+            // 재생할 수 없는 행(길이 0 이하, 시작이 음수)은 들이지 않는다. 조회 쪽에도 같은
+            // 조건이 있지만(SoundbiteDao) 그쪽은 이미 캐시에 들어온 옛 행을 막는 뒷문이다.
             //
-            // 이 선택에도 대칭인 그늘이 있다: 응답이 통째로 재생 불가한 행뿐이면 캐시는
-            // "신선함" 으로 판정되는데 조회는 빈 목록을 준다 — TTL 이 끝날 때까지 빈 화면이
-            // 된다. 페이지를 넘길 때마다 원격을 때리는 쪽보다는 낫다고 보고 이쪽을 택했다.
+            // 한때 이 필터를 뺀 적이 있다. "응답이 전부 걸러지면 표가 비고, 그러면
+            // getSoundbitesOldestCachedAt() 이 null 이라 페이지를 넘길 때마다 원격을 때린다" 는
+            // 걱정이었는데 틀린 걱정이었다 — 목록이 비면 넘길 페이지도 없어 load 가 다시
+            // 불리지 않는다. 오히려 넣어 두는 쪽이 나빴다: 표는 차 있어 "신선함" 으로
+            // 판정되는데 조회는 빈 목록을 주어, 다시 받아올 길 없이 빈 화면에 갇힌다.
             val soundbiteEntities = soundbiteResponses
                 .toSoundbites()
                 .toSoundbiteEntities()
+                .filterNot { it.duration <= Duration.ZERO || it.startTime.epochSeconds < 0 }
 
             soundbiteLocal.replaceSoundbites(soundbiteEntities)
             // 기존 soundbite 그룹의 episodes와 groups 정리

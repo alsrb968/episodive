@@ -92,12 +92,19 @@ data class Episode(
      * 마지막 조건이 `>` 인 것은 넘침만 잡으려는 것이 아니다. 밀리초로 내리면 0 이 되는 길이
      * (예: 500µs)가 `isPositive()` 를 통과해 시작=끝인 창을 만들 수 있는데, 그것이 바로 위의
      * 첫 항목이 막으려는 상태다.
+     *
+     * 시작이 에피소드 끝을 넘는 경우도 막는다. media3 는 창의 끝을 실제 미디어 길이로 자르는데
+     * 시작이 그보다 뒤면 시작 > 끝이 되어 `IllegalClippingException(REASON_START_EXCEEDS_END)`
+     * 로 재생이 실패한다. 이때는 [duration] 을 근거로 삼는다 — 피드가 준 길이라 정확하지 않을
+     * 수 있지만, 시작이 그 길이를 통째로 넘는 것은 "조금 어긋남" 이 아니라 명백히 잘못된
+     * 데이터다. (그래서 [clipPlaybackDuration] 이 상한을 두지 않는 것과 판단이 다르다.)
      */
     val hasClip: Boolean = clipStartTime != null &&
             clipDuration != null &&
             clipDuration.isPositive() &&
             clipStartPositionMs >= 0L &&
-            clipEndPositionMs > clipStartPositionMs
+            clipEndPositionMs > clipStartPositionMs &&
+            (duration == null || clipStartPositionMs < duration.inWholeMilliseconds)
 
     /**
      * 클립으로 재생할 때 흐르는 길이 — **아직 플레이어에 올리기 전인 화면**이 쓴다.
