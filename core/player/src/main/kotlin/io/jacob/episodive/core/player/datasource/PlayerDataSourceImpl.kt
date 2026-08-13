@@ -259,18 +259,19 @@ class PlayerDataSourceImpl @Inject constructor(
      * 아이템이 없어 [Episode.clipPlaybackDuration] 을 쓴다. 그쪽만 [Episode.hasClip] 기준이다.)
      */
     private fun MediaItem.playbackDuration(): Duration {
-        // 태그부터 본다. 우리가 올린 아이템이 아니면 길이를 알 방법이 없으므로 더 볼 것이 없다.
-        val episode = episodeTag() ?: return Duration.ZERO
+        // 클리핑 창을 먼저 잰다. 이 폭은 태그가 없어도 알 수 있는 확정값이라, 태그부터
+        // 확인하고 없다고 0 을 돌려주면 알 수 있는 길이를 스스로 버리는 셈이 된다.
+        //
+        // 밀리초 쪽을 읽는다. 마이크로초 변형이 더 정밀해 보이지만 @UnstableApi 라 lint 가
+        // 막는다. 끝을 지정하지 않은 클리핑이면 endPositionMs 가 TIME_END_OF_SOURCE
+        // (거대한 음수)라 폭이 음수로 나오고 isPositive 에 걸린다 — 센티널을 따로 견주지
+        // 않아도 된다.
         if (isClipped()) {
             val clip = clippingConfiguration
-            // 밀리초 쪽을 읽는다. 마이크로초 변형이 더 정밀해 보이지만 @UnstableApi 라
-            // lint 가 막는다. 끝을 지정하지 않은 클리핑이면 endPositionMs 가
-            // TIME_END_OF_SOURCE(거대한 음수)라 폭이 음수로 나오고, 아래 isPositive 에
-            // 걸려 에피소드 길이로 물러선다 — 센티널을 따로 견주지 않아도 된다.
             val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
             if (window.isPositive()) return window
         }
-        return episode.duration ?: Duration.ZERO
+        return episodeTag()?.duration ?: Duration.ZERO
     }
 
     /**

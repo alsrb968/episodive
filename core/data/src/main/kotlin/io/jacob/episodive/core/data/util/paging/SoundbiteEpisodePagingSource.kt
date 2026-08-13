@@ -113,6 +113,11 @@ class SoundbiteEpisodePagingSource(
             val soundbiteEntities = soundbiteResponses
                 .toSoundbites()
                 .toSoundbiteEntities()
+                // 길이가 0 이하인 행은 아예 들이지 않는다. 재생할 수 없는 항목이라 목록에
+                // 올라 봐야 시작=끝인 창이 되어 재생하자마자 끝나고, 그 완료가 다음 클립으로
+                // 넘기는 것을 연쇄시킨다. 조회 쪽에도 같은 조건이 걸려 있지만(SoundbiteDao)
+                // 그쪽은 이미 캐시에 들어온 옛 행을 막는 뒷문이고, 새로 들이는 길은 여기다.
+                .filterNot { it.duration <= Duration.ZERO }
 
             soundbiteLocal.replaceSoundbites(soundbiteEntities)
             // 기존 soundbite 그룹의 episodes와 groups 정리

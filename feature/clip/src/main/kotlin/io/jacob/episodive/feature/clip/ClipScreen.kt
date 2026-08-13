@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -245,7 +246,12 @@ fun EpisodeClipPager(
     // 마지막으로 재생을 건 클립. 페이지 번호가 바뀌어도 같은 클립이면 다시 걸지 않는다 —
     // 페이저의 key 가 에피소드 id 라, 목록이 갱신되면 Compose 가 같은 카드를 붙들려고
     // 인덱스를 옮긴다(3 → 0). 그 이동을 재생 요청으로 받으면 듣던 클립이 0:00 으로 되감긴다.
-    val lastPlayedId = remember { mutableStateOf<Long?>(null) }
+    //
+    // rememberSaveable 이다. 짝이 되는 pagerState 도 저장되는 상태라, 이쪽만 평범한
+    // remember 로 두면 탭을 옮겼다 돌아오거나 화면이 다시 만들어질 때 짝이 어긋난다 —
+    // 페이지는 6 으로 복원되는데 "무엇을 걸어 뒀는지" 는 잊어버려, 듣고 있던 클립을 다시
+    // 올리고 그 지점이 사라진다.
+    val lastPlayedId = rememberSaveable { mutableStateOf<Long?>(null) }
 
     // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
     //
@@ -343,6 +349,10 @@ fun EpisodeClipPager(
                         onEpisodeClick(episode)
                     },
                     onPlayEpisode = {
+                        // 여기서도 lastPlayedId 를 함께 옮긴다. 버튼으로 올린 것을 기록하지
+                        // 않으면 "무엇이 올라가 있는지" 가 실제와 어긋나, 그 카드로 스와이프해
+                        // 멎는 순간 같은 클립을 한 번 더 올려 듣던 지점을 지운다.
+                        lastPlayedId.value = episode.id
                         onEpisodeChanged(episode)
                     },
                     onToggleLikedEpisode = {
@@ -457,15 +467,20 @@ private fun ClipTitle(
 @DevicePreviews
 @Composable
 private fun ClipScreenPreview() {
-    val clips = episodeTestDataList.map {
-        it.copy(
-            clipStartTime = Instant.fromEpochMilliseconds(60_000L),
-            clipDuration = 1278.seconds,
-        )
+    val clips = remember {
+        episodeTestDataList.map {
+            it.copy(
+                clipStartTime = Instant.fromEpochMilliseconds(60_000L),
+                clipDuration = 1278.seconds,
+            )
+        }
     }
+    // 흐름도 remember 로 붙든다. 컴포지션 안에서 새로 만들면 재구성마다 새 LazyPagingItems
+    // 가 서고, 그 첫 프레임은 itemCount 가 0 이라 미리보기가 스켈레톤과 본문 사이를 오간다.
+    val episodes = remember(clips) { flowOf(PagingData.from(clips)) }
     EpisodiveTheme {
         ClipScreen(
-            episodes = flowOf(PagingData.from(clips)),
+            episodes = episodes,
             playback = Playback.READY,
             progress = Progress(
                 position = 278.seconds,

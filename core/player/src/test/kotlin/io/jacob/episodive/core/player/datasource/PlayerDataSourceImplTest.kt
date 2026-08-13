@@ -1021,9 +1021,11 @@ class PlayerDataSourceImplTest {
 
     @Test
     fun `Given player duration is TIME_UNSET, When seekTo called, Then progress duration is not negative`() = runTest {
-        // Given
+        // Given: 아직 아무 항목도 올리지 않은 상태. 길이를 알 방법이 전혀 없을 때도
+        // TIME_UNSET(음수)이 그대로 새어 나가면 안 된다.
         every { player.duration } returns C.TIME_UNSET
         every { player.bufferedPosition } returns 0L
+        every { player.currentMediaItem } returns null
 
         // When
         dataSource.seekTo(1000L)
