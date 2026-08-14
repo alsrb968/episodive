@@ -120,8 +120,10 @@ class EpisodeTest {
 
     @Test
     fun `a soundbite whose end overflows is not treated as a clip at all`() {
-        // 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 되고,
-        // setEndPositionMs 가 그 자리에서 IllegalArgumentException 을 던진다. 크래시다.
+        // 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 된다. 그대로
+        // 올라가면 크래시다 — 다만 던지는 것은 `setStartPositionMs` 다. msToUs 가 포화 없이
+        // 1000 을 곱해 거대한 시작이 마이크로초로 내려가며 음수로 감기기 때문이고, 정작
+        // 음수가 된 끝은 다시 감겨 양수가 되어 통과한다(media3 1.8.0 실행 확인).
         // 세 조항 중 이것만 테스트가 없었다.
         val overflowing = episode(
             duration = 60.minutes,

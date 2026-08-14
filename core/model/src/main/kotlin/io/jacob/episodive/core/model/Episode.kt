@@ -86,8 +86,12 @@ data class Episode(
      *   페이지로 넘기는 것을 연쇄시켜 목록을 소리 없이 훑고 지나간다.
      * - 시작이 음수면 `ClippingConfiguration.Builder.setStartPositionMs` 가 그 자리에서
      *   IllegalArgumentException 을 던진다(media3 가 `>= 0` 을 단언한다). 즉 크래시다.
-     * - 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 되고, 이번엔
-     *   `setEndPositionMs` 가 같은 이유로 던진다. 끝이 시작보다 **뒤** 여야 한다.
+     * - 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 된다. 그런 값이
+     *   그대로 올라가면 `setStartPositionMs` 가 던진다 — media3 를 실행해 확인한 것인데,
+     *   이유가 조금 뜻밖이다. `Util.msToUs` 는 센티널 둘(TIME_UNSET·TIME_END_OF_SOURCE)만
+     *   통과시키고 나머지는 **포화 없이 1000 을 곱하므로**, 거대한 양수 시작이 마이크로초로
+     *   내려가며 도로 음수로 감긴다. 위의 `clipStartPositionMs >= 0` 은 그것을 잡지 못한다.
+     *   실제로 막는 것은 이 조항(`끝 > 시작`)이다.
      *
      * 마지막 조건이 `>` 인 것은 넘침만 잡으려는 것이 아니다. 밀리초로 내리면 0 이 되는 길이
      * (예: 500µs)가 `isPositive()` 를 통과해 시작=끝인 창을 만들 수 있는데, 그것이 바로 위의
