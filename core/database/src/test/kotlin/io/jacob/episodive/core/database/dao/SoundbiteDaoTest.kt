@@ -236,6 +236,22 @@ class SoundbiteDaoTest {
         }
 
     @Test
+    fun `Given only unplayable rows, When getSoundbitesOldestCachedAt, Then the cache reads as empty`() =
+        runTest {
+            // 신선도 판정이 조회와 다른 것을 보면, 재생 불가 행만 남은 캐시가 "신선함" 으로
+            // 판정되는데 목록은 빈 결과라 다시 받아올 계기가 사라진다.
+            // Given
+            dao.upsertSoundbites(soundbiteEntities.map { it.copy(duration = Duration.ZERO) })
+
+            // When / Then
+            assertEquals(null, dao.getSoundbitesOldestCachedAt())
+            assertEquals(
+                0,
+                dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size).size,
+            )
+        }
+
+    @Test
     fun `Given a zero length soundbite, When getSoundbitesPaging, Then it is left out`() =
         runTest {
             // Given

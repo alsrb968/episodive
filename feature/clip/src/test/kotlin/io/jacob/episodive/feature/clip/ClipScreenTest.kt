@@ -244,7 +244,40 @@ class ClipScreenTest {
         )
         composeTestRule.waitForIdle()
 
+        // 요청만 보면 "넘어갔는데 요청이 안 된 것" 과 구분되지 않는다. 보이는 카드도 함께 본다.
         assertEquals(clipEpisodes.first().id, requested.last().id)
+        composeTestRule.onNodeWithText(clipEpisodes.first().title, substring = true)
+            .assertExists()
+    }
+
+    @Test
+    fun whenTheEndedClipIsNotTheOneOnScreen_theListDoesNotAdvance() {
+        // 클립 플레이어는 싱글턴이라, 클립을 끝까지 듣고 다른 탭에 갔다 오면 (ENDED,
+        // position > 0) 이 그대로 남아 있다. 페이저는 0 페이지로 새로 서는데 그 값으로
+        // 넘겨 버리면 사용자는 들어오자마자 첫 클립을 빼앗긴다.
+        //
+        // 같은 가드가 "대기 중 사용자가 다른 페이지로 옮긴 경우" 도 함께 막는다. 그쪽은
+        // 드래그 상태가 있어야 재현되지만, 판정하는 조건은 이것과 같은 한 줄이다.
+        val requested = mutableListOf<Episode>()
+
+        setClipScreen(
+            episodes = clipEpisodes.take(3),
+            playback = Playback.ENDED,
+            progress = Progress(
+                position = 1278.seconds,
+                buffered = 1278.seconds,
+                duration = 1278.seconds,
+                // 화면에 뜬 0 페이지의 클립이 아니라 지난번에 듣던 클립이다.
+                episodeId = clipEpisodes[2].id,
+            ),
+            isPlaying = false,
+            onEpisodeChanged = { requested.add(it) },
+        )
+        composeTestRule.waitForIdle()
+
+        assertEquals(listOf(clipEpisodes.first().id), requested.map { it.id })
+        composeTestRule.onNodeWithText(clipEpisodes.first().title, substring = true)
+            .assertExists()
     }
 
     @Test

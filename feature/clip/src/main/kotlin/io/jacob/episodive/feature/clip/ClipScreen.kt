@@ -297,15 +297,30 @@ fun EpisodeClipPager(
         // 이미 0 보다 크다(목록에 오르는 클립은 1초 이상이다 — SoundbiteDao 가 걸러낸다).
         if (!progress.position.isPositive()) return@LaunchedEffect
 
-        // 사용자가 움직이는 중이면 그 손을 이기지 않는다. 멎기를 기다렸다가 멎은 자리에서
-        // 한 칸 넘긴다. 곧바로 넘기면 뒤로 넘기는 손을 앞으로 되던진다.
-        //
-        // 기다리는 동안 사용자가 다른 클립에 닿아 재생이 시작되면 playback 이 ENDED 를 벗어나
-        // 이 이펙트 자체가 취소된다 — 그때는 넘길 이유도 사라진 것이다.
+        // 사용자가 움직이는 중이면 그 손을 이기지 않는다. 멎기를 기다린다.
         snapshotFlow { pagerState.isScrollInProgress }.first { !it }
 
-        val nextPage = pagerState.settledPage + 1
-        if (nextPage < episodesPaging.itemCount) {
+        // **끝난 그 클립이 아직 이 자리에 있을 때만** 넘긴다.
+        //
+        // 멎기를 기다리는 것만으로는 모자란다. `settledPage` 는 파생값이라
+        // (foundation 1.10.0 바이트코드: `if (isScrollInProgress) settledPageState else
+        // currentPage`) 대기가 풀리는 그 스냅샷에서 **이미 사용자가 착지한 페이지** 다.
+        // 그 값에서 무턱대고 한 칸 더 가면, 사용자가 방금 고른 클립을 듣지도 않고 건너뛴다.
+        // "그 사이 재생이 시작되면 이펙트가 취소된다" 에 기대서도 안 된다 — 그 취소는
+        // 요청→ViewModel→플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은
+        // 스냅샷을 이기지 못한다.
+        //
+        // 같은 조건이 탭을 다시 열 때도 지킨다. 클립 플레이어는 싱글턴이라 지난번의
+        // (ENDED, position > 0) 이 그대로 남아 있고, 페이저는 0 페이지로 새로 선다. 자기 것이
+        // 아닌 그 값으로 넘기면 사용자는 들어오자마자 첫 클립을 빼앗긴다.
+        //
+        // 판정 근거는 카드가 "자기 차례" 를 가르는 것과 같은 `progress.episodeId` 다.
+        val settledPage = pagerState.settledPage
+        val settledEpisode = currentEpisodes.itemSnapshotList.getOrNull(settledPage)
+        if (settledEpisode?.id != progress.episodeId) return@LaunchedEffect
+
+        val nextPage = settledPage + 1
+        if (nextPage < currentEpisodes.itemCount) {
             pagerState.animateScrollToPage(nextPage)
         }
     }

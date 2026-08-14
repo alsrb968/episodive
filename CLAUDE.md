@@ -186,10 +186,20 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
   직접 실행해 확인했다.) `ClippingMediaSource` 가 `startUs = endUs` 로 창을 접어 **길이 0** 으로
   만들고, 그 창은 재생하자마자 ENDED 가 된다. `IllegalClippingException(REASON_START_EXCEEDS_END)`
   은 **요청한** 끝이 시작보다 앞일 때만 나는데 `hasClip` 이 이미 막아 도달 불가다. 그러니
-  "클리핑이 잘못되면 재생 오류로 드러난다" 고 가정하지 마라 — **조용히 끝난 것처럼 보인다.**
-- 그래서 **클립의 ENDED 자동 넘김은 반드시 "실제로 재생됐는가" 를 함께 본다**(`progress.position`
-  이 0 을 벗어났는가). 접힌 창의 ENDED 로 다음 장을 넘기면 그런 항목이 이어질 때 목록을 소리
-  없이 훑고 지나간다. 피드 메타로 점치지 말고 재생해 본 결과로 가른다.
+  이 경우를 두고 "클리핑이 잘못되면 재생 오류로 드러난다" 고 가정하지 마라 — **조용히 끝난
+  것처럼 보인다.** (클리핑이 예외로 실패하는 길이 아주 없지는 않다. 탐색 불가 미디어에 시작
+  오프셋을 걸면 `REASON_NOT_SEEKABLE_TO_START` 가 난다. 그쪽은 `onPlayerError` 로 오는데 지금은
+  로그만 남기므로, 화면은 멈춘 카드가 된다.)
+- 그래서 **클립의 ENDED 자동 넘김은 두 가지를 함께 본다.**
+  1. `progress.position` 이 0 을 벗어났는가 — 접힌 창의 ENDED 로 넘기면 그런 항목이 이어질 때
+     목록을 소리 없이 훑고 지나간다. 피드 메타로 점치지 말고 재생해 본 결과로 가른다.
+  2. **끝난 그 클립이 아직 그 자리에 있는가**(`progress.episodeId`). `settledPage` 는
+     `if (isScrollInProgress) settledPageState else currentPage` 인 파생값이라, 스크롤이 멎기를
+     기다렸다가 읽으면 **이미 사용자가 착지한 페이지** 다. 거기서 한 칸 더 가면 사용자가 방금
+     고른 클립을 건너뛴다. 탭을 다시 열 때도 같은 조건이 지킨다 — 플레이어가 싱글턴이라
+     지난번 (ENDED, position > 0) 이 남아 있어 0 페이지에서 곧바로 넘어가 버린다.
+  "그 사이 재생이 시작되면 이펙트가 취소된다" 에 기대지 마라. 그 취소는 요청→ViewModel→
+  플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은 스냅샷을 이기지 못한다.
 - 클리핑 창을 짓는 곳은 **`Episode.clippingConfiguration(isClip)` 하나뿐이다.** `toMediaItem` 과
   `playClip` 의 "이미 올라 있는가" 판정이 둘 다 이 함수를 거친다. 판정 쪽에서 조건을 손으로
   베껴 쓰면 `hasClip` 이 거짓인 경우가 곧바로 갈라진다 — 실제로 갈라져서, 그 에피소드만 누를

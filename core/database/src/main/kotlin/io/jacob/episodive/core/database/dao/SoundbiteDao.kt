@@ -50,6 +50,10 @@ interface SoundbiteDao {
     @Query("SELECT * FROM soundbites WHERE duration > 0 AND startTime >= 0 ORDER BY sortOrder, episodeId LIMIT :limit OFFSET :offset")
     suspend fun getSoundbitesPagingList(offset: Int, limit: Int): List<SoundbiteEntity>
 
-    @Query("SELECT MIN(cachedAt) FROM soundbites")
+    // 신선도도 **내보낼 수 있는 행** 만 보고 잰다. 조회 셋과 조건이 어긋나면, 재생 불가 행만
+    // 남은 캐시가 "신선함" 으로 판정되는데 목록 조회는 빈 결과를 준다 — 위 주석이 막겠다고 한
+    // "표는 차 있는데 화면은 비어 있고 다시 받아올 길도 없는" 상태가 TTL 이 지날 때까지 이어진다.
+    // 앞문 필터가 생기기 전에 캐시된 옛 행이 정확히 그 경우다.
+    @Query("SELECT MIN(cachedAt) FROM soundbites WHERE duration > 0 AND startTime >= 0")
     suspend fun getSoundbitesOldestCachedAt(): Instant?
 }
