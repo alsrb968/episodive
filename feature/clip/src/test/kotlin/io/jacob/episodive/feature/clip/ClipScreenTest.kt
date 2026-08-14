@@ -2,7 +2,10 @@ package io.jacob.episodive.feature.clip
 
 import android.content.Context
 import android.provider.Settings
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -14,6 +17,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.up
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
@@ -281,7 +285,69 @@ class ClipScreenTest {
     }
 
     @Test
-    fun whenTheLastClipFinishes_thereIsNothingToAdvanceTo() {
+    @Config(qualifiers = "w411dp-h914dp")
+    fun whenTheUserSwipesWhileAClipEnds_theClipTheyLandedOnIsNotSkipped() {
+        // 이 브랜치의 대표 회귀다. 손가락이 닿아 있는 동안 클립이 끝나면 자동 넘김이 대기에
+        // 들어가는데, 대기가 풀리는 순간 settledPage 는 이미 **사용자가 착지한 페이지** 다
+        // (foundation 1.10.0: `if (isScrollInProgress) settledPageState else currentPage`).
+        // 거기서 한 칸 더 가면 사용자가 방금 고른 클립을 듣지도 못하고 건너뛴다.
+        //
+        // 한때 "드래그 상태가 필요해 결정적으로 테스트할 수 없다" 고 적었으나 틀렸다.
+        // 손을 떼지 않으면 isScrollInProgress 가 true 로 유지되므로 그 사이에 ENDED 를
+        // 넣으면 된다 — playback 을 컴포지션 밖 상태로 들어 올리는 것이 전부다.
+        val requested = mutableListOf<Episode>()
+        val episodes = clipEpisodes.take(3)
+        lateinit var playbackState: MutableState<Playback>
+
+        composeTestRule.setContent {
+            val flow = remember { flowOf(PagingData.from(episodes)) }
+            playbackState = remember { mutableStateOf(Playback.READY) }
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flow,
+                    playback = playbackState.value,
+                    progress = Progress(
+                        position = 1278.seconds,
+                        buffered = 1278.seconds,
+                        duration = 1278.seconds,
+                        episodeId = episodes.first().id,
+                    ),
+                    isPlaying = playbackState.value == Playback.READY,
+                    onEpisodeChanged = { requested.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // 손가락을 대고 다음 페이지 쪽으로 끈다. 아직 떼지 않았으므로 스크롤이 진행 중이다.
+        composeTestRule.onRoot().performTouchInput {
+            down(center)
+            moveBy(Offset(0f, -height * 0.6f))
+        }
+        composeTestRule.waitForIdle()
+
+        // 그 상태에서 클립이 끝난다 — 자동 넘김은 스크롤이 멎기를 기다린다.
+        composeTestRule.runOnIdle { playbackState.value = Playback.ENDED }
+
+        // 손을 떼 페이지 1 에 착지시킨다.
+        composeTestRule.onRoot().performTouchInput {
+            moveBy(Offset(0f, -height * 0.1f))
+            advanceEventTime(500)
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        // 사용자가 고른 클립이 마지막 요청이어야 한다. 건너뛰면 여기서 2 번이 잡힌다.
+        assertEquals(episodes[1].id, requested.last().id)
+    }
+
+    @Test
+    fun whenTheLastClipFinishes_noFurtherClipIsRequested() {
+        // 이 테스트가 지키는 것은 "목록 끝에서 엉뚱한 요청이 생기지 않는다" 뿐이다.
+        // `nextPage < itemCount` 경계 검사를 지워도 **잡지 못한다** — foundation 1.10.0 의
+        // animateScrollToPage 가 목표를 coerceInPageRange 로 접어 같은 페이지에 머무르므로
+        // settledPage 가 바뀌지 않고, 따라서 새 요청도 생기지 않는다. 그 검사는 의도를
+        // 드러내는 안전장치일 뿐 이 테스트의 판정 대상이 아니다.
         val requested = mutableListOf<Episode>()
 
         setClipScreen(

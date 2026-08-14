@@ -252,6 +252,25 @@ class SoundbiteDaoTest {
         }
 
     @Test
+    fun `Given only rows starting before zero, When getSoundbitesOldestCachedAt, Then the cache reads as empty`() =
+        runTest {
+            // 술어가 둘(duration, startTime)이라 한쪽만 덮으면 나머지 절반이 조용히 빠져도
+            // 아무 테스트가 빨개지지 않는다. 신선도 쿼리의 술어는 조회 셋과 글자 그대로
+            // 같아야 한다.
+            // Given
+            dao.upsertSoundbites(
+                soundbiteEntities.map { it.copy(startTime = Instant.fromEpochSeconds(-5)) }
+            )
+
+            // When / Then
+            assertEquals(null, dao.getSoundbitesOldestCachedAt())
+            assertEquals(
+                0,
+                dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size).size,
+            )
+        }
+
+    @Test
     fun `Given a zero length soundbite, When getSoundbitesPaging, Then it is left out`() =
         runTest {
             // Given

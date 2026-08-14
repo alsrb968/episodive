@@ -310,11 +310,21 @@ fun EpisodeClipPager(
         // 요청→ViewModel→플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은
         // 스냅샷을 이기지 못한다.
         //
-        // 같은 조건이 탭을 다시 열 때도 지킨다. 클립 플레이어는 싱글턴이라 지난번의
-        // (ENDED, position > 0) 이 그대로 남아 있고, 페이저는 0 페이지로 새로 선다. 자기 것이
-        // 아닌 그 값으로 넘기면 사용자는 들어오자마자 첫 클립을 빼앗긴다.
+        // 같은 조건이 탭을 다시 열 때도 쓰인다. 클립 플레이어는 싱글턴이라 지난번의
+        // (ENDED, position > 0) 이 그대로 남아 있어, 들어오자마자 이펙트가 돌 수 있다.
+        // 그것이 지금 보고 있는 클립의 것이 아니면 넘기지 않는다.
+        //
+        // 다만 **재진입을 통째로 막아 주지는 못한다.** 멎어 있는 페이지의 클립이 마침 그때
+        // 끝난 클립이면 "정상 종료" 와 구분할 근거가 없다. (페이저 위치는
+        // `rememberPagerState` 가 `rememberSaveable` 로 복원하므로 늘 0 페이지로 돌아오지도
+        // 않는다 — foundation 1.10.0 바이트코드 확인.)
         //
         // 판정 근거는 카드가 "자기 차례" 를 가르는 것과 같은 `progress.episodeId` 다.
+        //
+        // **`progress` 는 일부러 붙잡힌 값이다.** 목록·콜백처럼 rememberUpdatedState 로 감싸
+        // "최신" 을 보게 만들지 마라 — ENDED 뒤에 도착하는 확정 progress 로 판정이 뒤집혀
+        // 위의 두 가드가 함께 무력해진다. 여기서 알고 싶은 것은 "지금 무엇이 재생 중인가" 가
+        // 아니라 "무엇이 끝났는가" 이므로, 그 순간의 값이 정답이다.
         val settledPage = pagerState.settledPage
         val settledEpisode = currentEpisodes.itemSnapshotList.getOrNull(settledPage)
         if (settledEpisode?.id != progress.episodeId) return@LaunchedEffect

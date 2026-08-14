@@ -196,8 +196,13 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
   2. **끝난 그 클립이 아직 그 자리에 있는가**(`progress.episodeId`). `settledPage` 는
      `if (isScrollInProgress) settledPageState else currentPage` 인 파생값이라, 스크롤이 멎기를
      기다렸다가 읽으면 **이미 사용자가 착지한 페이지** 다. 거기서 한 칸 더 가면 사용자가 방금
-     고른 클립을 건너뛴다. 탭을 다시 열 때도 같은 조건이 지킨다 — 플레이어가 싱글턴이라
-     지난번 (ENDED, position > 0) 이 남아 있어 0 페이지에서 곧바로 넘어가 버린다.
+     고른 클립을 건너뛴다. 탭 재진입에도 같은 조건이 쓰인다 — 플레이어가 싱글턴이라 지난번
+     (ENDED, position > 0) 이 남아 있어 들어오자마자 이펙트가 돈다. 다만 재진입을 **통째로
+     막지는 못한다**: 멎어 있는 페이지의 클립이 마침 그때 끝난 클립이면 정상 종료와 구분할
+     근거가 없다.
+  이 가드는 **`progress` 가 ENDED 순간의 스냅샷이라는 데 기댄다.** 목록·콜백처럼
+  `rememberUpdatedState` 로 감싸 "최신" 을 보게 만들면, 뒤늦게 도착하는 확정 progress 로
+  판정이 뒤집혀 가드가 무력해진다. 일관성을 명목으로 감싸지 마라.
   "그 사이 재생이 시작되면 이펙트가 취소된다" 에 기대지 마라. 그 취소는 요청→ViewModel→
   플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은 스냅샷을 이기지 못한다.
 - 클리핑 창을 짓는 곳은 **`Episode.clippingConfiguration(isClip)` 하나뿐이다.** `toMediaItem` 과
