@@ -291,7 +291,9 @@ class SoundbiteDaoTest {
     @Test
     fun `Given a zero length soundbite, When getSoundbites, Then it is left out`() =
         runTest {
-            // 목록 조회 경로가 셋이라 하나만 막으면 나머지로 그대로 새어 나온다.
+            // 목록 조회가 셋인데 술어를 하나만 손보면 나머지로 새어 나간다. 오늘 프로덕션이
+            // 실제로 부르는 것은 getSoundbitesPagingList 하나뿐이지만, 나머지 둘도 같은 표를
+            // 같은 뜻으로 읽으므로 조건이 갈라지면 그대로 함정이 된다.
             // Given
             val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
             val playable = soundbiteEntities.drop(1)

@@ -119,6 +119,20 @@ class EpisodeTest {
     }
 
     @Test
+    fun `a soundbite whose end overflows is not treated as a clip at all`() {
+        // 시작이 터무니없이 크면 `시작 + 길이` 가 Long 을 넘겨 끝이 음수가 되고,
+        // setEndPositionMs 가 그 자리에서 IllegalArgumentException 을 던진다. 크래시다.
+        // 세 조항 중 이것만 테스트가 없었다.
+        val overflowing = episode(
+            duration = 60.minutes,
+            clipStartTime = Instant.fromEpochMilliseconds(Long.MAX_VALUE),
+            clipDuration = 30.seconds,
+        )
+
+        assertEquals(false, overflowing.hasClip)
+    }
+
+    @Test
     fun `a clip starting past the feed reported duration is still a clip`() {
         // 피드가 실제보다 짧게 말하는 일은 흔하다. 실제 60분짜리를 30분이라 말하고 사운드바이트
         // 는 40분 지점에서 시작하는 경우 — 여기서 hasClip 을 내리면 클립 탭이 에피소드 전체를

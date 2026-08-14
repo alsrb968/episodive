@@ -281,7 +281,8 @@ class PlayerDataSourceImpl @Inject constructor(
         //
         // 끝을 지정하지 않은 클리핑은 센티널을 직접 견줘 걸러낸다. 뺄셈 결과가 음수라
         // isPositive 에 걸릴 것 같지만, TIME_END_OF_SOURCE 가 Long 최솟값 근처라 시작이
-        // 0 보다 크면 뺄셈이 넘쳐 거대한 양수가 된다 — 292만 년짜리 길이가 발행된다.
+        // 0 보다 크면 뺄셈이 넘쳐 거대한 양수가 된다 — 억 단위 연 수에 해당하는 길이가
+        // 발행된다(정확한 자릿수는 래핑 결과에 달렸다).
         if (isClipped()) {
             val clip = clippingConfiguration
             if (clip.endPositionMs != C.TIME_END_OF_SOURCE) {
