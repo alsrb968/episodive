@@ -85,8 +85,9 @@ class ClipScreenTest {
     ) {
         composeTestRule.setContent {
             // 흐름을 remember 로 붙든다. 컴포지션 안에서 새로 만들면 재구성 때마다
-            // collectAsLazyPagingItems 가 새 LazyPagingItems 를 세우고, 그것을 키로 삼는
-            // 자동 재생 이펙트가 다시 돌아 같은 클립을 두 번 요청한다.
+            // collectAsLazyPagingItems 가 새 LazyPagingItems 를 세운다. 지금 재생 요청
+            // 이펙트의 키는 pagerState 라 그것만으로 다시 돌지는 않지만, 이펙트가 들여다보는
+            // 목록이 매번 갈리면 그 자리의 항목을 기다리는 대기가 끊겨 요청이 어긋난다.
             val flow = remember(episodes) { flowOf(PagingData.from(episodes)) }
             EpisodiveTheme {
                 ClipScreen(
@@ -257,8 +258,8 @@ class ClipScreenTest {
     @Test
     fun whenTheEndedClipIsNotTheOneOnScreen_theListDoesNotAdvance() {
         // 클립 플레이어는 싱글턴이라, 클립을 끝까지 듣고 다른 탭에 갔다 오면 (ENDED,
-        // position > 0) 이 그대로 남아 있다. 페이저는 0 페이지로 새로 서는데 그 값으로
-        // 넘겨 버리면 사용자는 들어오자마자 첫 클립을 빼앗긴다.
+        // position > 0) 이 그대로 남아 있다. 그 값이 지금 보고 있는 클립의 것이 아닌데도
+        // 넘겨 버리면 사용자는 들어오자마자 보던 클립을 빼앗긴다.
         //
         // 같은 가드가 "대기 중 사용자가 다른 페이지로 옮긴 경우" 도 함께 막는다. 그쪽은
         // 드래그 상태가 있어야 재현되지만, 판정하는 조건은 이것과 같은 한 줄이다.
@@ -337,7 +338,74 @@ class ClipScreenTest {
         }
         composeTestRule.waitForIdle()
 
+        // 전제를 먼저 못박는다. 착지가 0 페이지로 되돌아가 버리면 자동 넘김도 똑같이
+        // episodes[1] 을 요청하므로, 아래 어써션이 조용히 무의미해진다.
+        composeTestRule.onNodeWithText(episodes[1].title, substring = true)
+            .assertIsDisplayed()
+
         // 사용자가 고른 클립이 마지막 요청이어야 한다. 건너뛰면 여기서 2 번이 잡힌다.
+        assertEquals(episodes[1].id, requested.last().id)
+    }
+
+    @Test
+    @Config(qualifiers = "w411dp-h914dp")
+    fun whenAClipEndsDuringADragThatSnapsBack_theListStillAdvances() {
+        // 위 테스트와 짝이다. 그쪽은 소유권 가드를, 이쪽은 **스크롤 대기 자체**를 지킨다.
+        //
+        // 대기를 지우면 ENDED 순간 곧바로 animateScrollToPage 가 불린다. 그런데 그때 손가락이
+        // 스크롤 뮤텍스를 MutatePriority.UserInput 으로 쥐고 있고 animateScrollToPage 는
+        // Default 라, 그 자리에서 CancellationException 으로 잘려 이펙트가 조용히 죽는다.
+        // 사용자가 페이지를 바꾸지 않고 제자리로 돌아오면 settledPage 도 그대로여서 재생을
+        // 거는 이펙트마저 뜨지 않는다 — 자동 넘김이 지연이 아니라 **영구히 사라진다.**
+        //
+        // 앞 테스트는 이 변이를 잡지 못한다. 그쪽은 사용자가 어차피 1 페이지에 착지하므로
+        // 요청열이 정상과 같아지기 때문이다. 둘이 상보적이라 둘 다 필요하다.
+        val requested = mutableListOf<Episode>()
+        val episodes = clipEpisodes.take(3)
+        lateinit var playbackState: MutableState<Playback>
+
+        composeTestRule.setContent {
+            val flow = remember { flowOf(PagingData.from(episodes)) }
+            playbackState = remember { mutableStateOf(Playback.READY) }
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flow,
+                    playback = playbackState.value,
+                    progress = Progress(
+                        position = 1278.seconds,
+                        buffered = 1278.seconds,
+                        duration = 1278.seconds,
+                        episodeId = episodes.first().id,
+                    ),
+                    isPlaying = playbackState.value == Playback.READY,
+                    onEpisodeChanged = { requested.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+
+        // 페이지가 넘어가지 않을 만큼만 끈다.
+        composeTestRule.onRoot().performTouchInput {
+            down(center)
+            moveBy(Offset(0f, -height * 0.15f))
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle { playbackState.value = Playback.ENDED }
+
+        // 제자리로 돌려놓고 손을 뗀다 — 페이지는 0 그대로다.
+        composeTestRule.onRoot().performTouchInput {
+            moveBy(Offset(0f, height * 0.15f))
+            advanceEventTime(500)
+            up()
+        }
+        composeTestRule.waitForIdle()
+
+        // 전제: 페이지가 그대로여야 이 테스트가 의미를 가진다.
+        composeTestRule.onNodeWithText(episodes.first().title, substring = true)
+            .assertIsDisplayed()
+
+        // 손을 뗀 뒤에는 넘어가야 한다. 대기가 없으면 여기서 요청이 [0] 에 멈춘다.
         assertEquals(episodes[1].id, requested.last().id)
     }
 

@@ -114,7 +114,9 @@ data class Episode(
      * 것만 떨어뜨리는 조건이다.**
      *
      * 접힌 창에 대한 방어는 `ClipScreen` 의 ENDED 자동 넘김에 있다 — 피드가 뭐라 했든
-     * **재생해 본 결과**(position 이 0 을 벗어났는가)로 가르므로 어긋날 여지가 없다.
+     * **재생해 본 결과**(position 이 0 을 벗어났는가)로 가르므로 피드 메타와 어긋날 여지가
+     * 없다. 다만 완전한 방어는 아니다 — progressUpdater 의 0.5초 격자보다 짧은 재생 창은
+     * 정상인데도 position 이 0 인 채로 판정될 수 있다. 그때는 넘기지 않는 쪽으로 실패한다.
      */
     val hasClip: Boolean = clipStartTime != null &&
             clipDuration != null &&

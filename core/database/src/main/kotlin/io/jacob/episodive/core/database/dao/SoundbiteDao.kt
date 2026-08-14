@@ -38,9 +38,14 @@ interface SoundbiteDao {
     // 받아들이는 쪽(SoundbiteEpisodePagingSource)에도 같은 조건이 있다. 그쪽이 새 응답을
     // 막는 앞문이고 여기는 이미 캐시에 들어와 있는 옛 행을 막는 뒷문이라, 둘 다 필요하다.
     // 한때 "앞문에서 걸러 표가 비면 MIN(cachedAt) 이 null 이라 페이지마다 원격을 다시
-    // 때린다" 며 앞문을 뺀 적이 있는데 틀린 걱정이었다 — 목록이 비면 넘길 페이지가 없어
-    // load 가 다시 불리지 않는다. 오히려 뒷문만 남기면 표는 차 있어 "신선함" 으로 판정되는데
-    // 조회는 빈 목록을 주어, 다시 받아올 길 없이 빈 화면에 갇힌다.
+    // 때린다" 며 앞문을 뺀 적이 있다. **넘기는 쪽(APPEND)에 대해서는 틀린 걱정이다** — 목록이
+    // 비면 넘길 페이지가 없어 그쪽으로는 load 가 다시 불리지 않는다. 다만 REFRESH 는 다르다:
+    // 좋아요 토글이 liked_episodes 를 무효화하면 그때마다 load 가 다시 불린다(Paging 3.3.6 은
+    // 무효화 뒤 LoadType.REFRESH 로 부른다). 캐시가 통째로 재생 불가면 그때마다 원격을 때린다.
+    // 그 값을 치르고도 앞문을 두는 이유는 없을 때가 더 나쁘기 때문이다: 뒷문만 남기면 표는
+    // 차 있어 "신선함" 으로 판정되는데 조회는 빈 목록을 주어, 다시 받아올 길 없이 빈 화면에
+    // 갇힌다. (같은 설명이 SoundbiteEpisodePagingSource 에도 있다 — 둘은 짝이므로 한쪽만
+    // 고치지 마라.)
     @Query("SELECT * FROM soundbites WHERE duration > 0 AND startTime >= 0 ORDER BY sortOrder, episodeId LIMIT :limit")
     fun getSoundbites(limit: Int): Flow<List<SoundbiteEntity>>
 

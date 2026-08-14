@@ -322,8 +322,9 @@ fun EpisodeClipPager(
         // 판정 근거는 카드가 "자기 차례" 를 가르는 것과 같은 `progress.episodeId` 다.
         //
         // **`progress` 는 일부러 붙잡힌 값이다.** 목록·콜백처럼 rememberUpdatedState 로 감싸
-        // "최신" 을 보게 만들지 마라 — ENDED 뒤에 도착하는 확정 progress 로 판정이 뒤집혀
-        // 위의 두 가드가 함께 무력해진다. 여기서 알고 싶은 것은 "지금 무엇이 재생 중인가" 가
+        // "최신" 을 보게 만들지 마라 — 대기 뒤에 읽는 이 소유권 판정이 그 사이 도착한
+        // 값으로 뒤집힌다. (앞의 position 가드는 어떤 중단점보다 앞에서 읽으므로 영향이
+        // 덜하다.) 여기서 알고 싶은 것은 "지금 무엇이 재생 중인가" 가
         // 아니라 "무엇이 끝났는가" 이므로, 그 순간의 값이 정답이다.
         val settledPage = pagerState.settledPage
         val settledEpisode = currentEpisodes.itemSnapshotList.getOrNull(settledPage)
