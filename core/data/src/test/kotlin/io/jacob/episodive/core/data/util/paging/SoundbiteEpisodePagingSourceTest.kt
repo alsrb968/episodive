@@ -17,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -116,6 +117,46 @@ class SoundbiteEpisodePagingSourceTest {
                 )
             }
         }
+
+    @Test
+    fun `Given unplayable soundbites from remote, When load, Then they are not stored`() =
+        runTest {
+            // 앞문 필터다. 재생할 수 없는 행(길이 0 이하, 시작이 음수)이 캐시에 들어가면
+            // 조회 쪽 WHERE 가 도로 걸러 "표는 차 있는데 화면은 비어 있는" 상태가 된다.
+            // 이 필터는 한 번 지웠다 되살린 적이 있어(11차 → 12차) 결정을 테스트로 못박는다.
+            // Given
+            coEvery { soundbiteLocal.getSoundbitesOldestCachedAt() } returns null
+            coEvery { soundbiteRemote.getSoundbites(1000) } returns listOf(
+                soundbiteResponse(episodeId = 1L, startTime = 10L, duration = 30),
+                soundbiteResponse(episodeId = 2L, startTime = 10L, duration = 0),
+                soundbiteResponse(episodeId = 3L, startTime = -5L, duration = 30),
+            )
+            coEvery { soundbiteLocal.getSoundbitesPagingList(any(), any()) } returns emptyList()
+
+            // When
+            createPagingSource().loadPage(loadSize = 10)
+
+            // Then
+            val stored = slot<List<SoundbiteEntity>>()
+            coVerify { soundbiteLocal.replaceSoundbites(capture(stored)) }
+            assertEquals(listOf(1L), stored.captured.map { it.episodeId })
+        }
+
+    private fun soundbiteResponse(
+        episodeId: Long,
+        startTime: Long,
+        duration: Int,
+    ) = SoundbiteResponse(
+        enclosureUrl = "https://example.com/$episodeId.mp3",
+        title = "title $episodeId",
+        startTime = startTime,
+        duration = duration,
+        episodeId = episodeId,
+        episodeTitle = "episode $episodeId",
+        feedTitle = "feed $episodeId",
+        feedUrl = "https://example.com/feed",
+        feedId = 10L,
+    )
 
     @Test
     fun `Given missing episodes, When load, Then fetches from remote and upserts`() =

@@ -104,6 +104,33 @@ class ClipScreenTest {
         }
     }
 
+    /**
+     * 지금 화면 한가운데 있는 카드가 [expected] 인지 [rival] 인지 좌표로 가른다.
+     *
+     * 페이지 착지를 `assertIsDisplayed` 로 확인할 수 없어서 둔다 — 세로 페이저가
+     * contentPadding·pageSpacing 을 두므로 이웃 카드가 늘 틈으로 비쳐, 어느 페이지에 있든
+     * 두 카드가 모두 "표시됨" 으로 나온다. 요청열로도 못 가른다: 자동 넘김이 같은 클립을
+     * 요청하는 세계와 사용자가 그 자리에 착지한 세계가 같은 열을 만든다.
+     */
+    private fun assertCenteredClip(expected: Episode, rival: Episode) {
+        val rootCenter = composeTestRule.onRoot()
+            .fetchSemanticsNode().boundsInRoot.center.y
+
+        fun distanceFromCenter(episode: Episode): Float {
+            val bounds = composeTestRule.onNodeWithText(episode.title, substring = true)
+                .fetchSemanticsNode().boundsInRoot
+            return kotlin.math.abs(bounds.center.y - rootCenter)
+        }
+
+        val expectedDistance = distanceFromCenter(expected)
+        val rivalDistance = distanceFromCenter(rival)
+        check(expectedDistance < rivalDistance) {
+            "화면 한가운데 있어야 할 카드가 다르다. " +
+                "기대=${expected.id}(중심까지 $expectedDistance), " +
+                "실제로 더 가까움=${rival.id}(중심까지 $rivalDistance)"
+        }
+    }
+
     /** loadState를 직접 통제해야 하는 테스트용 — setClipScreen은 항상 완료된 상태만 만든다. */
     private fun setClipScreenWithPagingData(pagingData: PagingData<Episode>) {
         composeTestRule.setContent {
@@ -383,12 +410,9 @@ class ClipScreenTest {
         composeTestRule.waitForIdle()
 
         // 전제를 먼저 못박는다. 착지가 0 페이지로 되돌아가면 자동 넘김도 똑같이 episodes[1] 을
-        // 요청하므로 아래 어써션이 조용히 무의미해진다. **보이는 카드로는 못 가른다** —
-        // 이웃 카드가 contentPadding·pageSpacing 틈으로 비쳐 어느 쪽이든 표시된 것으로 나온다.
-        // 요청열로 가른다: 실제로 옮겨 갔다면 그 자리의 클립이 요청됐어야 한다.
-        check(requested.any { it.id == episodes[1].id }) {
-            "스와이프가 페이지를 넘기지 못해 전제가 서지 않았다. 요청열: ${requested.map { it.id }}"
-        }
+        // 요청하므로 아래 어써션이 조용히 무의미해진다. 요청열로는 두 세계가 같은 열을 내니
+        // **실제 위치** 로 가른다.
+        assertCenteredClip(expected = episodes[1], rival = episodes[0])
 
         // 사용자가 고른 클립이 마지막 요청이어야 한다. 건너뛰면 여기서 2 번이 잡힌다.
         assertEquals(episodes[1].id, requested.last().id)
@@ -438,6 +462,11 @@ class ClipScreenTest {
         }
         composeTestRule.waitForIdle()
 
+        // 전제는 **지금** 확인해야 한다. 손을 떼고 나면 "드래그가 안 넘어갔고 대기 덕에
+        // 넘어갔다" 와 "드래그가 넘어갔고 소유권 가드가 막았다" 의 최종 상태가 똑같아져
+        // 무엇으로도 가를 수 없다. 절반을 넘지 않았으니 아직 첫 카드가 가운데다.
+        assertCenteredClip(expected = episodes[0], rival = episodes[1])
+
         composeTestRule.runOnIdle { playbackState.value = Playback.ENDED }
 
         // 제자리로 돌려놓고 손을 뗀다 — 페이지는 0 그대로다.
@@ -447,13 +476,6 @@ class ClipScreenTest {
             up()
         }
         composeTestRule.waitForIdle()
-
-        // 전제: 드래그 자체로는 페이지가 넘어가지 않았어야 한다. 넘어갔다면 그 자리의 클립이
-        // 요청됐을 것이므로, 아래 어써션이 "대기 덕분"인지 "그냥 넘어가서"인지 갈리지 않는다.
-        // 여기서도 보이는 카드로는 못 가른다(이웃이 틈으로 비친다) — 요청 **횟수** 로 가른다.
-        check(requested.size == 2) {
-            "드래그가 페이지를 넘겨 전제가 서지 않았다. 요청열: ${requested.map { it.id }}"
-        }
 
         // 손을 뗀 뒤에는 넘어가야 한다. 대기가 없으면 여기서 요청이 [0] 에 멈춘다.
         assertEquals(episodes[1].id, requested.last().id)

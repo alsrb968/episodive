@@ -282,10 +282,10 @@ fun EpisodeClipPager(
     // 건너뛰고 그 다음으로 보내 버린다.
     // 키에 `progress.episodeId` 를 함께 둔다. playback 만으로는 **재무장이 안 되는** 경우가
     // 있다. 다음 클립을 올리면 media3 는 반드시 BUFFERING 을 한 번 발행하지만
-    // (ExoPlayerImpl.setMediaSourcesInternal 바이트코드 확인), 그 값이 컴포지션까지 닿는다는
-    // 보장은 없다 — _playback → combine → stateIn → collectAsStateWithLifecycle 전 구간이
-    // conflate 하므로 한 프레임 안에 BUFFERING·READY·ENDED 가 쌓이면 화면은 ENDED → ENDED 만
-    // 본다. 그러면 키가 그대로라 이펙트가 영영 다시 뜨지 않고 자동 넘김이 세션 내내 죽는다.
+    // (ExoPlayerImpl.setMediaSourcesInternal 바이트코드 확인), 그 값을 화면이 본다는 보장이
+    // 없다. 화면이 멈춰 있는 동안(예: 백그라운드로 나가 프레임 클록이 서 있는 사이)에 오간
+    // 상태는 중간값이 남지 않고, 돌아왔을 때 화면이 보는 것은 ENDED → ENDED 다. 그러면 키가
+    // 그대로라 이펙트가 영영 다시 뜨지 않고 자동 넘김이 세션 내내 죽는다.
     // 그때도 끝난 에피소드는 바뀌므로 episodeId 가 재무장의 두 번째 손잡이가 된다.
     LaunchedEffect(playback, progress.episodeId) {
         if (playback != Playback.ENDED) return@LaunchedEffect
@@ -351,17 +351,26 @@ fun EpisodeClipPager(
             } finally {
                 // 애니메이션이 중간에 끊기면 페이저가 **두 페이지 사이에 그대로 남는다.**
                 // foundation 1.10.0 의 scroll 에는 되-스냅 경로가 없어(예외 테이블 없음)
-                // 취소된 자리에서 멈춘다. 끊기는 경로는 실재한다 — 이 이펙트의 키가 바뀌거나
-                // (재생 버튼을 누르면 playback 이 바뀐다) 애니메이션 도중 화면을 떠나면
-                // 취소되고, 후자는 저장·복원까지 되어 어긋난 오프셋이 되살아난다.
+                // 취소된 자리에서 멈춘다. 여기서 가장 가까운 페이지로 붙여 준다.
                 //
-                // 사용자 드래그로 끊긴 경우는 스스로 낫는다(fling 이 스냅한다). 그 외에는
-                // 여기서 가장 가까운 페이지로 붙여 준다.
+                // **무엇을 고치고 무엇을 못 고치는지 분명히 해 둔다** — 재려 봤다.
+                //  - 화면에 머문 채 키가 바뀌어 취소된 경우(재생 버튼을 누르면 playback 이
+                //    바뀐다): 고친다. 여기서 오프셋이 0 으로 돌아간다.
+                //  - 사용자 드래그가 가로챈 경우: 이 호출이 뮤텍스를 못 잡아 거절된다.
+                //    그래도 괜찮다 — 드래그가 끝나며 fling 이 스스로 스냅한다.
+                //  - 애니메이션 도중 화면을 떠난 경우: **못 고친다.** 어긋난 오프셋은
+                //    컴포지션이 사라지는 그 자리에서 rememberSaveable 이 먼저 저장하고,
+                //    취소 재개는 그보다 뒤에 디스패치된다. 여기서 고쳐 봐야 이미 떨어져 나간
+                //    페이저만 손보게 된다. 되돌아오면 그 어긋난 값이 복원된다.
+                //
+                // 거절될 수 있으므로 결과를 삼킨다. 그러지 않으면 드래그 경합의
+                // CancellationException 이 이 블록 밖으로 새어 나가고, 그 뒤에 정리 코드를
+                // 한 줄이라도 더하면 드래그 때마다 조용히 건너뛰게 된다.
                 withContext(NonCancellable) {
-                    if (pagerState.currentPageOffsetFraction != 0f &&
-                        !pagerState.isScrollInProgress
-                    ) {
-                        pagerState.scrollToPage(pagerState.currentPage)
+                    runCatching {
+                        if (pagerState.currentPageOffsetFraction != 0f) {
+                            pagerState.scrollToPage(pagerState.currentPage)
+                        }
                     }
                 }
             }
