@@ -279,11 +279,34 @@ fun EpisodeClipPager(
     // 순간 뒤집히므로, 넘기는 도중에 클립이 끝나면 아직 재생해 보지도 않은 다음 클립을
     // 건너뛰고 그 다음으로 보내 버린다.
     LaunchedEffect(playback) {
-        if (playback == Playback.ENDED) {
-            val nextPage = pagerState.settledPage + 1
-            if (nextPage < episodesPaging.itemCount) {
-                pagerState.animateScrollToPage(nextPage)
-            }
+        if (playback != Playback.ENDED) return@LaunchedEffect
+
+        // 소리 한 번 없이 끝난 클립으로는 넘기지 않는다.
+        //
+        // 잘라낸 창의 시작이 **실제 오디오 길이** 를 넘으면 media3 는 예외를 던지지 않는다.
+        // `ClippingMediaSource` 는 `startUs = endUs` 로 창을 접어 길이 0 으로 만들고, 그 창은
+        // 재생하자마자 ENDED 가 된다. 그 ENDED 가 여기서 다음 장으로 넘기면, 그런 항목이
+        // 이어질 때 목록을 소리 없이 훑고 지나간다.
+        //
+        // 이것을 [Episode.hasClip] 에서 막을 수는 없다. 거기서 견줄 수 있는 것은 피드가 말한
+        // 길이뿐이고 그 값은 실제와 양방향으로 어긋난다 — 짧게 말하면 멀쩡한 클립을 떨어뜨리고,
+        // 길게 말하면 이 창을 그대로 통과시킨다. 그래서 **재생해 본 결과** 로 가른다.
+        //
+        // 근거는 position 이다. progressUpdater 는 `player.duration` 이 양수일 때만 발행하므로
+        // 접힌 창은 position 이 0 에 머문다. 정상 클립은 0.5초마다 갱신되어 ENDED 시점에는
+        // 이미 0 보다 크다(목록에 오르는 클립은 1초 이상이다 — SoundbiteDao 가 걸러낸다).
+        if (!progress.position.isPositive()) return@LaunchedEffect
+
+        // 사용자가 움직이는 중이면 그 손을 이기지 않는다. 멎기를 기다렸다가 멎은 자리에서
+        // 한 칸 넘긴다. 곧바로 넘기면 뒤로 넘기는 손을 앞으로 되던진다.
+        //
+        // 기다리는 동안 사용자가 다른 클립에 닿아 재생이 시작되면 playback 이 ENDED 를 벗어나
+        // 이 이펙트 자체가 취소된다 — 그때는 넘길 이유도 사라진 것이다.
+        snapshotFlow { pagerState.isScrollInProgress }.first { !it }
+
+        val nextPage = pagerState.settledPage + 1
+        if (nextPage < episodesPaging.itemCount) {
+            pagerState.animateScrollToPage(nextPage)
         }
     }
 

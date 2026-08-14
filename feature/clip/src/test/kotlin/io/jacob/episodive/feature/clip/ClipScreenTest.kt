@@ -195,6 +195,79 @@ class ClipScreenTest {
             .assertExists()
     }
 
+    // --- 재생이 끝나면 다음 클립으로 넘어간다 ---
+    //
+    // 이 동작에는 한동안 테스트가 하나도 없었다. 기준을 currentPage 로 되돌려도, 자동 넘김을
+    // 통째로 지워도 빨개지는 것이 없었다.
+
+    @Test
+    fun whenAClipFinishesAfterPlaying_theNextClipIsRequested() {
+        val requested = mutableListOf<Episode>()
+
+        setClipScreen(
+            episodes = clipEpisodes.take(3),
+            playback = Playback.ENDED,
+            // position 이 0 을 벗어나 있다 = 실제로 재생됐다.
+            progress = Progress(
+                position = 1278.seconds,
+                buffered = 1278.seconds,
+                duration = 1278.seconds,
+                episodeId = clipEpisodes.first().id,
+            ),
+            isPlaying = false,
+            onEpisodeChanged = { requested.add(it) },
+        )
+        composeTestRule.waitForIdle()
+
+        assertEquals(clipEpisodes[1].id, requested.last().id)
+    }
+
+    @Test
+    fun whenAClipEndsWithoutEverPlaying_theListDoesNotAdvance() {
+        // 잘라낸 창의 시작이 실제 오디오 길이를 넘으면 media3 는 예외를 던지지 않고 창을
+        // 길이 0 으로 접는다(1.8.0 실행 확인). 그 창은 재생하자마자 ENDED 다. 그 ENDED 로
+        // 다음 장을 넘기면 그런 항목이 이어질 때 목록을 소리 없이 훑고 지나간다.
+        // 가르는 근거는 피드 메타가 아니라 position — 접힌 창은 0 에 머문다.
+        val requested = mutableListOf<Episode>()
+
+        setClipScreen(
+            episodes = clipEpisodes.take(3),
+            playback = Playback.ENDED,
+            progress = Progress(
+                position = 0.seconds,
+                buffered = 0.seconds,
+                duration = 0.seconds,
+                episodeId = clipEpisodes.first().id,
+            ),
+            isPlaying = false,
+            onEpisodeChanged = { requested.add(it) },
+        )
+        composeTestRule.waitForIdle()
+
+        assertEquals(clipEpisodes.first().id, requested.last().id)
+    }
+
+    @Test
+    fun whenTheLastClipFinishes_thereIsNothingToAdvanceTo() {
+        val requested = mutableListOf<Episode>()
+
+        setClipScreen(
+            episodes = clipEpisodes.take(1),
+            playback = Playback.ENDED,
+            progress = Progress(
+                position = 1278.seconds,
+                buffered = 1278.seconds,
+                duration = 1278.seconds,
+                episodeId = clipEpisodes.first().id,
+            ),
+            isPlaying = false,
+            onEpisodeChanged = { requested.add(it) },
+        )
+        composeTestRule.waitForIdle()
+
+        assertEquals(listOf(clipEpisodes.first().id), requested.map { it.id })
+    }
+
     @Test
     fun whenPlaybackIdle_clipItemsShown() {
         setClipScreen(

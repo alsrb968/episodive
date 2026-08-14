@@ -1411,6 +1411,30 @@ class PlayerDataSourceImplTest {
     }
 
     @Test
+    fun `Given the loaded episode gains clip metadata, When playClip called, Then it is loaded again`() {
+        // 같은 에피소드인데 hasClip 이 거짓에서 참으로 뒤집힌 경우. 창 없이 올라가 있던 것을
+        // 그대로 두면 카드는 클립 길이를 보여주는데 플레이어는 에피소드 전체를 흘린다.
+        // 판정이 두 상태를 가르지 못하면 이 어긋남이 조용히 남는다.
+        // Given
+        val withoutClip = episodeTestData
+        check(!withoutClip.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+        givenClipIsLoadedAndPlaying(withoutClip)
+        every { player.isPlaying } returns true
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When: 같은 에피소드에 클립 메타가 붙어 다시 들어온다
+        val gainedClip = withoutClip.copy(
+            clipStartTime = Instant.fromEpochSeconds(100),
+            clipDuration = 30.seconds,
+        )
+        check(gainedClip.hasClip) { "뒤집힌 쪽은 클립이어야 한다" }
+        dataSource.playClip(gainedClip)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
     fun `Given the player is idle, When playClip called with the loaded clip, Then it is loaded again`() {
         // 프로세스가 죽었다 살아난 자리. 태그는 남아 보여도 플레이어가 비어 있으면 올려야 한다.
         // Given
