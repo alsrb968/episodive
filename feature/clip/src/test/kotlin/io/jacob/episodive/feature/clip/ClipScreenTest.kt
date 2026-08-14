@@ -286,6 +286,49 @@ class ClipScreenTest {
     }
 
     @Test
+    fun whenTheIntermediateStatesAreSwallowed_theNextAdvanceStillFires() {
+        // 자동 넘김이 다시 무장하려면 playback 값이 실제로 바뀌어야 한다. 다음 클립을 올리면
+        // media3 는 BUFFERING 을 반드시 한 번 발행하지만, 그 값이 화면까지 닿는다는 보장은
+        // 없다 — 플레이어에서 화면까지 전 구간이 conflate 하므로 한 프레임 안에 BUFFERING·
+        // READY·ENDED 가 쌓이면 화면은 ENDED → ENDED 만 본다.
+        //
+        // 그때도 **끝난 에피소드는 바뀐다.** 그것이 재무장의 두 번째 손잡이다. 이 테스트는
+        // 중간 상태를 일부러 빼고 progress 만 다음 클립 것으로 갈아, 그래도 넘어가는지 본다.
+        val requested = mutableListOf<Episode>()
+        val episodes = clipEpisodes.take(3)
+        lateinit var progressState: MutableState<Progress>
+
+        fun playedTo(episode: Episode) = Progress(
+            position = 1278.seconds,
+            buffered = 1278.seconds,
+            duration = 1278.seconds,
+            episodeId = episode.id,
+        )
+
+        composeTestRule.setContent {
+            val flow = remember { flowOf(PagingData.from(episodes)) }
+            progressState = remember { mutableStateOf(playedTo(episodes.first())) }
+            EpisodiveTheme {
+                ClipScreen(
+                    episodes = flow,
+                    playback = Playback.ENDED,
+                    progress = progressState.value,
+                    isPlaying = false,
+                    onEpisodeChanged = { requested.add(it) },
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        assertEquals(episodes[1].id, requested.last().id)
+
+        // playback 은 ENDED 그대로 — 중간 상태가 삼켜진 상황이다.
+        composeTestRule.runOnIdle { progressState.value = playedTo(episodes[1]) }
+        composeTestRule.waitForIdle()
+
+        assertEquals(episodes[2].id, requested.last().id)
+    }
+
+    @Test
     @Config(qualifiers = "w411dp-h914dp")
     fun whenTheUserSwipesWhileAClipEnds_theClipTheyLandedOnIsNotSkipped() {
         // 이 브랜치의 대표 회귀다. 손가락이 닿아 있는 동안 클립이 끝나면 자동 넘김이 대기에
@@ -321,9 +364,10 @@ class ClipScreenTest {
         composeTestRule.waitForIdle()
 
         // 손가락을 대고 다음 페이지 쪽으로 끈다. 아직 떼지 않았으므로 스크롤이 진행 중이다.
+        // 이동량은 뷰포트 한 장 — 페이지 높이보다 크므로 스냅 임계에 넉넉히 걸린다.
         composeTestRule.onRoot().performTouchInput {
             down(center)
-            moveBy(Offset(0f, -height * 0.6f))
+            moveBy(Offset(0f, -height.toFloat()))
         }
         composeTestRule.waitForIdle()
 
@@ -338,10 +382,13 @@ class ClipScreenTest {
         }
         composeTestRule.waitForIdle()
 
-        // 전제를 먼저 못박는다. 착지가 0 페이지로 되돌아가 버리면 자동 넘김도 똑같이
-        // episodes[1] 을 요청하므로, 아래 어써션이 조용히 무의미해진다.
-        composeTestRule.onNodeWithText(episodes[1].title, substring = true)
-            .assertIsDisplayed()
+        // 전제를 먼저 못박는다. 착지가 0 페이지로 되돌아가면 자동 넘김도 똑같이 episodes[1] 을
+        // 요청하므로 아래 어써션이 조용히 무의미해진다. **보이는 카드로는 못 가른다** —
+        // 이웃 카드가 contentPadding·pageSpacing 틈으로 비쳐 어느 쪽이든 표시된 것으로 나온다.
+        // 요청열로 가른다: 실제로 옮겨 갔다면 그 자리의 클립이 요청됐어야 한다.
+        check(requested.any { it.id == episodes[1].id }) {
+            "스와이프가 페이지를 넘기지 못해 전제가 서지 않았다. 요청열: ${requested.map { it.id }}"
+        }
 
         // 사용자가 고른 클립이 마지막 요청이어야 한다. 건너뛰면 여기서 2 번이 잡힌다.
         assertEquals(episodes[1].id, requested.last().id)
@@ -401,9 +448,12 @@ class ClipScreenTest {
         }
         composeTestRule.waitForIdle()
 
-        // 전제: 페이지가 그대로여야 이 테스트가 의미를 가진다.
-        composeTestRule.onNodeWithText(episodes.first().title, substring = true)
-            .assertIsDisplayed()
+        // 전제: 드래그 자체로는 페이지가 넘어가지 않았어야 한다. 넘어갔다면 그 자리의 클립이
+        // 요청됐을 것이므로, 아래 어써션이 "대기 덕분"인지 "그냥 넘어가서"인지 갈리지 않는다.
+        // 여기서도 보이는 카드로는 못 가른다(이웃이 틈으로 비친다) — 요청 **횟수** 로 가른다.
+        check(requested.size == 2) {
+            "드래그가 페이지를 넘겨 전제가 서지 않았다. 요청열: ${requested.map { it.id }}"
+        }
 
         // 손을 뗀 뒤에는 넘어가야 한다. 대기가 없으면 여기서 요청이 [0] 에 멈춘다.
         assertEquals(episodes[1].id, requested.last().id)

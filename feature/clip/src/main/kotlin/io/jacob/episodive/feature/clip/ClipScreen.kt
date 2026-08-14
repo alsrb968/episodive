@@ -59,11 +59,13 @@ import io.jacob.episodive.core.ui.EpisodeClipItem
 import io.jacob.episodive.core.ui.EpisodeClipItemSkeleton
 import io.jacob.episodive.core.ui.PagingRefreshPhase
 import io.jacob.episodive.core.ui.refreshPhase
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -278,7 +280,14 @@ fun EpisodeClipPager(
     // 기준은 재생을 거는 쪽과 같은 settledPage 다. currentPage 는 스와이프가 절반을 넘는
     // 순간 뒤집히므로, 넘기는 도중에 클립이 끝나면 아직 재생해 보지도 않은 다음 클립을
     // 건너뛰고 그 다음으로 보내 버린다.
-    LaunchedEffect(playback) {
+    // 키에 `progress.episodeId` 를 함께 둔다. playback 만으로는 **재무장이 안 되는** 경우가
+    // 있다. 다음 클립을 올리면 media3 는 반드시 BUFFERING 을 한 번 발행하지만
+    // (ExoPlayerImpl.setMediaSourcesInternal 바이트코드 확인), 그 값이 컴포지션까지 닿는다는
+    // 보장은 없다 — _playback → combine → stateIn → collectAsStateWithLifecycle 전 구간이
+    // conflate 하므로 한 프레임 안에 BUFFERING·READY·ENDED 가 쌓이면 화면은 ENDED → ENDED 만
+    // 본다. 그러면 키가 그대로라 이펙트가 영영 다시 뜨지 않고 자동 넘김이 세션 내내 죽는다.
+    // 그때도 끝난 에피소드는 바뀌므로 episodeId 가 재무장의 두 번째 손잡이가 된다.
+    LaunchedEffect(playback, progress.episodeId) {
         if (playback != Playback.ENDED) return@LaunchedEffect
 
         // 소리 한 번 없이 끝난 클립으로는 넘기지 않는다.
@@ -305,6 +314,8 @@ fun EpisodeClipPager(
         // 멎기를 기다리는 것만으로는 모자란다. `settledPage` 는 파생값이라
         // (foundation 1.10.0 바이트코드: `if (isScrollInProgress) settledPageState else
         // currentPage`) 대기가 풀리는 그 스냅샷에서 **이미 사용자가 착지한 페이지** 다.
+        // (그래서 이 자리에서는 settledPage 와 currentPage 가 같은 값이다. settledPage 를
+        // 쓰는 것은 "멎은 자리" 라는 뜻을 드러내기 위해서지 값이 달라서가 아니다.)
         // 그 값에서 무턱대고 한 칸 더 가면, 사용자가 방금 고른 클립을 듣지도 않고 건너뛴다.
         // "그 사이 재생이 시작되면 이펙트가 취소된다" 에 기대서도 안 된다 — 그 취소는
         // 요청→ViewModel→플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은
@@ -321,18 +332,39 @@ fun EpisodeClipPager(
         //
         // 판정 근거는 카드가 "자기 차례" 를 가르는 것과 같은 `progress.episodeId` 다.
         //
-        // **`progress` 는 일부러 붙잡힌 값이다.** 목록·콜백처럼 rememberUpdatedState 로 감싸
-        // "최신" 을 보게 만들지 마라 — 대기 뒤에 읽는 이 소유권 판정이 그 사이 도착한
-        // 값으로 뒤집힌다. (앞의 position 가드는 어떤 중단점보다 앞에서 읽으므로 영향이
-        // 덜하다.) 여기서 알고 싶은 것은 "지금 무엇이 재생 중인가" 가
-        // 아니라 "무엇이 끝났는가" 이므로, 그 순간의 값이 정답이다.
+        // **`progress` 는 한 번 뜬 이펙트 안에서 붙잡힌 값이다.** 목록·콜백처럼
+        // rememberUpdatedState 로 감싸지 마라 — 대기 뒤에 읽는 이 소유권 판정이 그 사이
+        // 도착한 값으로 뒤집힌다. 여기서 알고 싶은 것은 "지금 무엇이 재생 중인가" 가 아니라
+        // "무엇이 끝났는가" 이므로 그 순간의 값이 정답이다.
+        //
+        // 위에서 episodeId 를 **키** 에 넣은 것은 이것과 어긋나지 않는다. 키가 바뀌면 이펙트가
+        // 통째로 다시 떠서 새로 붙잡은 값 하나로 판정한다 — 한 판정 안에서 값이 갈리는 일은
+        // 여전히 없다.
         val settledPage = pagerState.settledPage
         val settledEpisode = currentEpisodes.itemSnapshotList.getOrNull(settledPage)
         if (settledEpisode?.id != progress.episodeId) return@LaunchedEffect
 
         val nextPage = settledPage + 1
         if (nextPage < currentEpisodes.itemCount) {
-            pagerState.animateScrollToPage(nextPage)
+            try {
+                pagerState.animateScrollToPage(nextPage)
+            } finally {
+                // 애니메이션이 중간에 끊기면 페이저가 **두 페이지 사이에 그대로 남는다.**
+                // foundation 1.10.0 의 scroll 에는 되-스냅 경로가 없어(예외 테이블 없음)
+                // 취소된 자리에서 멈춘다. 끊기는 경로는 실재한다 — 이 이펙트의 키가 바뀌거나
+                // (재생 버튼을 누르면 playback 이 바뀐다) 애니메이션 도중 화면을 떠나면
+                // 취소되고, 후자는 저장·복원까지 되어 어긋난 오프셋이 되살아난다.
+                //
+                // 사용자 드래그로 끊긴 경우는 스스로 낫는다(fling 이 스냅한다). 그 외에는
+                // 여기서 가장 가까운 페이지로 붙여 준다.
+                withContext(NonCancellable) {
+                    if (pagerState.currentPageOffsetFraction != 0f &&
+                        !pagerState.isScrollInProgress
+                    ) {
+                        pagerState.scrollToPage(pagerState.currentPage)
+                    }
+                }
+            }
         }
     }
 
