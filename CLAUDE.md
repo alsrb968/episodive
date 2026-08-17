@@ -155,6 +155,67 @@ Room 왕복과 `flowOn(IO)` 를 거쳐 `progress` 보다 늦게 도착한다. �
 - `position == 0 이면 저장하지 않는다` 류 가드를 넣지 마라. "맨 앞으로 되감기" 와 "완료 후 처음부터
   다시 듣기" 가 0 을 저장해야 정상이다. `PlayerViewModelTest` 에 이를 지키는 계약 테스트가 있다.
 
+### 클립 길이 규약 (필수)
+
+준비가 끝나기 전에는 `player.duration` 이 `TIME_UNSET` 이라 **에피소드 메타에서 길이를 가져와야
+한다.** 그때 **클립은 `Episode.duration`(전체 길이)이 아니라 `Episode.clipPlaybackDuration` 을 쓴다.**
+클립은 `ClippingConfiguration` 으로 잘라 올리므로 실제로 흐르는 길이가 다르다.
+
+전체 길이를 실으면 준비가 끝나 `progressUpdater` 가 `player.duration` 을 읽는 순간 화면의 시간이
+**에피소드 전체 길이에서 클립 길이로 튄다.** 실제로 겪은 버그다.
+
+- 메타에서 길이를 가져오는 지점은 **예외 없이 `MediaItem.playbackDuration()` 을 거친다.**
+  직접 부르는 곳은 transition 콜백·`publishStartOfPlayback`·`seekTo` 의 폴백 세 곳이고,
+  목록을 갈아끼우는 `prepare`·`play(list, index)`·`playClips` 는 `publishStartOfPlayback` 을
+  통해 거친다. "이 경로는 늘 일반 재생이니 괜찮다" 는 예외를 두지 마라 — 그 전제가 깨지는
+  날 그 경로만 조용히 전체 길이를 싣는다.
+- 판정 근거는 "클립 화면인가" 가 아니라 **`toMediaItem` 이 실제로 클리핑을 걸었는지** 그 자체다
+  (`MediaItem.isClipped()`). 클립 여부를 인자로 넘겨받지 마라 — 판정이 두 곳으로 갈라진다.
+  클립 플레이어 인스턴스에도 잘라 올리지 않는 경로(`addTrack` 계열)가 있고, `hasClip` 이
+  거짓이면 클립으로 요청해도 클리핑이 걸리지 않는다.
+- 화면용 `Episode.clipPlaybackDuration` 과 발행용 `playbackDuration()` 은 **같은 것을 다른 자리에서
+  답한다**(올리기 전 / 올린 뒤). 둘이 어긋나면 그 순간 숫자가 튀므로, `toMediaItem` 의 클리핑
+  조건을 바꿀 때는 `clipPlaybackDuration` 의 `hasClip` 기준도 함께 맞춘다.
+- **`Episode.hasClip` 은 피드 값만으로 판정할 수 있는 것만 막는다.** 시작이 음수이거나
+  `시작 + 길이` 가 넘치면 `ClippingConfiguration.Builder` 가 그 자리에서 던지고, 길이가 0 이하면
+  시작=끝인 창이 올라간다. 여기에 **"피드가 말한 `duration` 보다 시작이 뒤면 뺀다" 를 더하지
+  마라** — 한 번 넣었다가 되돌렸다. 막지도 못하면서 멀쩡한 것만 떨어뜨린다: 피드 길이는 실제와
+  양쪽으로 어긋나서, 짧게 말하면(흔하다) 정상 사운드바이트가 클립 탭에서 **에피소드 전체 재생**
+  으로 바뀌고, 길게 말하면 정작 막아야 할 창을 통과시킨다.
+- **잘라낸 창의 시작이 실제 오디오 길이를 넘으면 media3 는 예외를 던지지 않는다.** (1.8.0 을
+  직접 실행해 확인했다.) `ClippingMediaSource` 가 `startUs = endUs` 로 창을 접어 **길이 0** 으로
+  만들고, 그 창은 재생하자마자 ENDED 가 된다. `IllegalClippingException(REASON_START_EXCEEDS_END)`
+  은 **요청한** 끝이 시작보다 앞일 때만 나는데 `hasClip` 이 이미 막아 도달 불가다. 그러니
+  이 경우를 두고 "클리핑이 잘못되면 재생 오류로 드러난다" 고 가정하지 마라 — **조용히 끝난
+  것처럼 보인다.** (클리핑이 예외로 실패하는 길이 아주 없지는 않다. 탐색 불가 미디어에 시작
+  오프셋을 걸면 `REASON_NOT_SEEKABLE_TO_START` 가 난다. 그쪽은 `onPlayerError` 로 오는데 지금은
+  로그만 남기므로, 화면은 멈춘 카드가 된다.)
+- 그래서 **클립의 ENDED 자동 넘김은 두 가지를 함께 본다.**
+  1. `progress.position` 이 0 을 벗어났는가 — 접힌 창의 ENDED 로 넘기면 그런 항목이 이어질 때
+     목록을 소리 없이 훑고 지나간다. 피드 메타로 점치지 말고 재생해 본 결과로 가른다.
+  2. **끝난 그 클립이 아직 그 자리에 있는가**(`progress.episodeId`). `settledPage` 는
+     `if (isScrollInProgress) settledPageState else currentPage` 인 파생값이라, 스크롤이 멎기를
+     기다렸다가 읽으면 **이미 사용자가 착지한 페이지** 다. 거기서 한 칸 더 가면 사용자가 방금
+     고른 클립을 건너뛴다. 탭 재진입에도 같은 조건이 쓰인다 — 플레이어가 싱글턴이라 지난번
+     (ENDED, position > 0) 이 남아 있어 들어오자마자 이펙트가 돈다. 다만 재진입을 **통째로
+     막지는 못한다**: 멎어 있는 페이지의 클립이 마침 그때 끝난 클립이면 정상 종료와 구분할
+     근거가 없다.
+  이 가드는 **`progress` 가 ENDED 순간의 스냅샷이라는 데 기댄다.** 목록·콜백처럼
+  `rememberUpdatedState` 로 감싸 "최신" 을 보게 만들면, 뒤늦게 도착하는 확정 progress 로
+  판정이 뒤집혀 가드가 무력해진다. 일관성을 명목으로 감싸지 마라.
+  "그 사이 재생이 시작되면 이펙트가 취소된다" 에 기대지 마라. 그 취소는 요청→ViewModel→
+  플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은 스냅샷을 이기지 못한다.
+- 클리핑 창을 짓는 곳은 **`Episode.clippingConfiguration(isClip)` 하나뿐이다.** `toMediaItem` 과
+  `playClip` 의 "이미 올라 있는가" 판정이 둘 다 이 함수를 거친다. 판정 쪽에서 조건을 손으로
+  베껴 쓰면 `hasClip` 이 거짓인 경우가 곧바로 갈라진다 — 실제로 갈라져서, 그 에피소드만 누를
+  때마다 처음으로 되감겼다.
+- 화면 쪽에서는 **`progress.episodeId` 로 자기 차례인지 가른 뒤** 남은 시간을 그린다. 지금 재생
+  중인 클립의 `progress` 를 모든 카드가 공유하면, 아직 자기 차례가 아닌 카드가 남의 진행 시간을
+  빌려 그리고 재생이 시작되는 순간 숫자가 튄다. **한 배지 안의 파도 애니메이션과 시간은 반드시
+  같은 기준으로 가른다** — 애니메이션만 `currentPage` 로 가르면 그 값은 스와이프 50% 에서
+  뒤집히는데 `progress` 는 페이지가 멎은 뒤 따라와, 넘기는 내내 둘이 서로 다른 말을 한다.
+  `ClipScreenTest` 에 계약 테스트가 있다.
+
 ## 중요 구현 세부사항
 
 ### 1. Enum 처리 (필수)
@@ -259,6 +320,13 @@ class MyDaoTest {
 - `ChannelTestData` — 채널/카테고리 데이터
 
 **규칙:** 항상 테스트 데이터 팩토리 사용. Flow 테스트는 Turbine 사용. 인라인 테스트 객체 생성 금지.
+
+**예외는 `:core:model` 의 테스트 하나뿐이다.** `:core:testing` 은 `episodive.android.library`
+플러그인을 써서 산출물이 AAR 인데, `:core:model` 은 `episodive.jvm.library` 라 그 AAR 을 소비할
+수 없다. (Gradle 의존 순환은 아니다 — `testImplementation` 방향은 태스크 그래프상 순환이 아니다.
+막는 것은 산출물 형식이다.) 그래서 `:core:model` 의 테스트는 자기 파일 안에 최소한의 로컬
+팩토리를 두고 그 사유를 파일 머리에 적는다. 팩토리를 함께 쓰고 싶다면 순수 JVM 모듈로 떼어내는
+것이 길이지, 이 예외를 다른 모듈로 넓히는 것이 아니다.
 
 ## CLI 도구 사용 가이드
 

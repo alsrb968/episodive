@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -58,12 +59,13 @@ import io.jacob.episodive.core.ui.EpisodeClipItem
 import io.jacob.episodive.core.ui.EpisodeClipItemSkeleton
 import io.jacob.episodive.core.ui.PagingRefreshPhase
 import io.jacob.episodive.core.ui.refreshPhase
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -234,35 +236,143 @@ fun EpisodeClipPager(
         currentPageColor?.let(onCurrentDominantColor)
     }
 
-    // 첫 번째 에피소드 자동 재생 (최초 한 번만)
-    LaunchedEffect(Unit) {
-        snapshotFlow { episodesPaging.itemCount }
-            .filter { it > 0 }
-            .take(1)
-            .collectLatest {
-                episodesPaging[0]?.let { firstEpisode ->
-                    onEpisodeChanged(firstEpisode)
-                }
-            }
-    }
+    // 이펙트는 한 번 뜨면 다시 돌지 않으므로, 그 안에서 읽는 것은 붙들지 말고 최신을 본다.
+    // episodesPaging 도 마찬가지다 — episodes 흐름이 바뀌면 새 LazyPagingItems 가 서는데,
+    // 그때 pagerState 는 살아남아 이펙트가 다시 뜨지 않으므로 죽은 인스턴스를 들여다보게 된다.
+    val currentEpisodes by rememberUpdatedState(episodesPaging)
+    val currentOnEpisodeChanged by rememberUpdatedState(onEpisodeChanged)
 
-    // 페이지가 변경되면 해당 에피소드 재생
+    // 페이지가 멎으면 그 클립을 재생한다. 첫 진입도 이 한 곳이 맡는다.
+    //
+    // 예전에는 "첫 클립 자동 재생" 이펙트를 따로 두었는데, settledPage 가 처음부터 0 을
+    // 내보내는 데다 이 지점은 이미 Content(= itemCount > 0)라서 둘이 반드시 겹쳤다.
+    //
+    // **무엇을 재생할지는 페이지 번호로 정한다.** 그 자리의 에피소드를 직접 흘려보내면,
+    // Paging 이 목록을 다시 불러올 때 같은 자리에 다른 에피소드가 앉아 듣고 있던 클립이
+    // 갈아치워진다. 가정이 아니라 실제 경로다 — 좋아요를 누르면 SoundbiteEpisodePagingSource
+    // 가 liked_episodes 무효화로 refresh 하고, getRefreshKey 가 앵커 기준으로 창을 옮긴다.
+    //
+    // 번호만 보면 아직 로드되지 않은 자리에서 아무 일도 못 하고 끝나므로, 그 자리의 항목이
+    // 도착할 때까지 기다렸다가 재생한다. 기다리는 동안 페이지가 또 바뀌면 collectLatest 가
+    // 그 대기를 걷어낸다 — 여기서는 안쪽이 실제로 suspend 라 끊을 것이 있다.
+    //
+    // **같은 클립을 두 번 올리지 않게 막는 일은 여기서 하지 않는다.** 화면이 "무엇을 올려
+    // 뒀는지" 를 기억하려 하면 그 기억이 컴포지션과 함께 사라지거나(탭 전환) 실제와 어긋난다
+    // (요청과 progress 사이의 지연). 실제로 무엇이 올라가 있는지는 플레이어가 알고 있으므로,
+    // 판단을 PlayerDataSource.playClip 에 맡기고 여기서는 요청만 보낸다.
+    //
+    // 읽기는 `episodesPaging[i]` 가 아니라 itemSnapshotList 로 한다. 전자는 범위를 벗어나면
+    // 예외를 던지고, 조회 자체가 Paging 에 "이 언저리를 미리 불러라" 는 힌트를 남기는
+    // 부작용이라 페이저가 실제로 그리는 페이지의 힌트와 다툰다.
+    // snapshotFlow 는 이미 연속된 같은 값을 삼키므로 distinctUntilChanged 를 덧붙이지 않는다.
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
-            .distinctUntilChanged()
             .collectLatest { page ->
-                episodesPaging[page]?.let { episode ->
-                    onEpisodeChanged(episode)
-                }
+                val episode = snapshotFlow { currentEpisodes.itemSnapshotList.getOrNull(page) }
+                    .filterNotNull()
+                    .first()
+                currentOnEpisodeChanged(episode)
             }
     }
 
-    // 재생 완료 시 다음 페이지로 이동
-    LaunchedEffect(playback) {
-        if (playback == Playback.ENDED) {
-            val nextPage = pagerState.currentPage + 1
-            if (nextPage < episodesPaging.itemCount) {
+    // 재생 완료 시 다음 페이지로 이동.
+    //
+    // 기준은 재생을 거는 쪽과 같은 settledPage 다. currentPage 는 스와이프가 절반을 넘는
+    // 순간 뒤집히므로, 넘기는 도중에 클립이 끝나면 아직 재생해 보지도 않은 다음 클립을
+    // 건너뛰고 그 다음으로 보내 버린다.
+    // 키에 `progress.episodeId` 를 함께 둔다. playback 만으로는 **재무장이 안 되는** 경우가
+    // 있다. 다음 클립을 올리면 media3 는 반드시 BUFFERING 을 한 번 발행하지만
+    // (ExoPlayerImpl.setMediaSourcesInternal 바이트코드 확인), 그 값을 화면이 본다는 보장이
+    // 없다. 화면이 멈춰 있는 동안(예: 백그라운드로 나가 프레임 클록이 서 있는 사이)에 오간
+    // 상태는 중간값이 남지 않고, 돌아왔을 때 화면이 보는 것은 ENDED → ENDED 다. 그러면 키가
+    // 그대로라 이펙트가 영영 다시 뜨지 않고 자동 넘김이 세션 내내 죽는다.
+    // 그때도 끝난 에피소드는 바뀌므로 episodeId 가 재무장의 두 번째 손잡이가 된다.
+    LaunchedEffect(playback, progress.episodeId) {
+        if (playback != Playback.ENDED) return@LaunchedEffect
+
+        // 소리 한 번 없이 끝난 클립으로는 넘기지 않는다.
+        //
+        // 잘라낸 창의 시작이 **실제 오디오 길이** 를 넘으면 media3 는 예외를 던지지 않는다.
+        // `ClippingMediaSource` 는 `startUs = endUs` 로 창을 접어 길이 0 으로 만들고, 그 창은
+        // 재생하자마자 ENDED 가 된다. 그 ENDED 가 여기서 다음 장으로 넘기면, 그런 항목이
+        // 이어질 때 목록을 소리 없이 훑고 지나간다.
+        //
+        // 이것을 [Episode.hasClip] 에서 막을 수는 없다. 거기서 견줄 수 있는 것은 피드가 말한
+        // 길이뿐이고 그 값은 실제와 양방향으로 어긋난다 — 짧게 말하면 멀쩡한 클립을 떨어뜨리고,
+        // 길게 말하면 이 창을 그대로 통과시킨다. 그래서 **재생해 본 결과** 로 가른다.
+        //
+        // 근거는 position 이다. progressUpdater 는 `player.duration` 이 양수일 때만 발행하므로
+        // 접힌 창은 position 이 0 에 머문다. 정상 클립은 0.5초마다 갱신되어 ENDED 시점에는
+        // 이미 0 보다 크다(목록에 오르는 클립은 1초 이상이다 — SoundbiteDao 가 걸러낸다).
+        if (!progress.position.isPositive()) return@LaunchedEffect
+
+        // 사용자가 움직이는 중이면 그 손을 이기지 않는다. 멎기를 기다린다.
+        snapshotFlow { pagerState.isScrollInProgress }.first { !it }
+
+        // **끝난 그 클립이 아직 이 자리에 있을 때만** 넘긴다.
+        //
+        // 멎기를 기다리는 것만으로는 모자란다. `settledPage` 는 파생값이라
+        // (foundation 1.10.0 바이트코드: `if (isScrollInProgress) settledPageState else
+        // currentPage`) 대기가 풀리는 그 스냅샷에서 **이미 사용자가 착지한 페이지** 다.
+        // (그래서 이 자리에서는 settledPage 와 currentPage 가 같은 값이다. settledPage 를
+        // 쓰는 것은 "멎은 자리" 라는 뜻을 드러내기 위해서지 값이 달라서가 아니다.)
+        // 그 값에서 무턱대고 한 칸 더 가면, 사용자가 방금 고른 클립을 듣지도 않고 건너뛴다.
+        // "그 사이 재생이 시작되면 이펙트가 취소된다" 에 기대서도 안 된다 — 그 취소는
+        // 요청→ViewModel→플레이어→StateFlow→재구성을 거쳐야 해서 대기가 풀리는 같은
+        // 스냅샷을 이기지 못한다.
+        //
+        // 같은 조건이 탭을 다시 열 때도 쓰인다. 클립 플레이어는 싱글턴이라 지난번의
+        // (ENDED, position > 0) 이 그대로 남아 있어, 들어오자마자 이펙트가 돌 수 있다.
+        // 그것이 지금 보고 있는 클립의 것이 아니면 넘기지 않는다.
+        //
+        // 다만 **재진입을 통째로 막아 주지는 못한다.** 멎어 있는 페이지의 클립이 마침 그때
+        // 끝난 클립이면 "정상 종료" 와 구분할 근거가 없다. (페이저 위치는
+        // `rememberPagerState` 가 `rememberSaveable` 로 복원하므로 늘 0 페이지로 돌아오지도
+        // 않는다 — foundation 1.10.0 바이트코드 확인.)
+        //
+        // 판정 근거는 카드가 "자기 차례" 를 가르는 것과 같은 `progress.episodeId` 다.
+        //
+        // **`progress` 는 한 번 뜬 이펙트 안에서 붙잡힌 값이다.** 목록·콜백처럼
+        // rememberUpdatedState 로 감싸지 마라 — 대기 뒤에 읽는 이 소유권 판정이 그 사이
+        // 도착한 값으로 뒤집힌다. 여기서 알고 싶은 것은 "지금 무엇이 재생 중인가" 가 아니라
+        // "무엇이 끝났는가" 이므로 그 순간의 값이 정답이다.
+        //
+        // 위에서 episodeId 를 **키** 에 넣은 것은 이것과 어긋나지 않는다. 키가 바뀌면 이펙트가
+        // 통째로 다시 떠서 새로 붙잡은 값 하나로 판정한다 — 한 판정 안에서 값이 갈리는 일은
+        // 여전히 없다.
+        val settledPage = pagerState.settledPage
+        val settledEpisode = currentEpisodes.itemSnapshotList.getOrNull(settledPage)
+        if (settledEpisode?.id != progress.episodeId) return@LaunchedEffect
+
+        val nextPage = settledPage + 1
+        if (nextPage < currentEpisodes.itemCount) {
+            try {
                 pagerState.animateScrollToPage(nextPage)
+            } finally {
+                // 애니메이션이 중간에 끊기면 페이저가 **두 페이지 사이에 그대로 남는다.**
+                // foundation 1.10.0 의 scroll 에는 되-스냅 경로가 없어(예외 테이블 없음)
+                // 취소된 자리에서 멈춘다. 여기서 가장 가까운 페이지로 붙여 준다.
+                //
+                // **무엇을 고치고 무엇을 못 고치는지 분명히 해 둔다** — 재려 봤다.
+                //  - 화면에 머문 채 키가 바뀌어 취소된 경우(재생 버튼을 누르면 playback 이
+                //    바뀐다): 고친다. 여기서 오프셋이 0 으로 돌아간다.
+                //  - 사용자 드래그가 가로챈 경우: 이 호출이 뮤텍스를 못 잡아 거절된다.
+                //    그래도 괜찮다 — 드래그가 끝나며 fling 이 스스로 스냅한다.
+                //  - 애니메이션 도중 화면을 떠난 경우: **못 고친다.** 어긋난 오프셋은
+                //    컴포지션이 사라지는 그 자리에서 rememberSaveable 이 먼저 저장하고,
+                //    취소 재개는 그보다 뒤에 디스패치된다. 여기서 고쳐 봐야 이미 떨어져 나간
+                //    페이저만 손보게 된다. 되돌아오면 그 어긋난 값이 복원된다.
+                //
+                // 거절될 수 있으므로 결과를 삼킨다. 그러지 않으면 드래그 경합의
+                // CancellationException 이 이 블록 밖으로 새어 나가고, 그 뒤에 정리 코드를
+                // 한 줄이라도 더하면 드래그 때마다 조용히 건너뛰게 된다.
+                withContext(NonCancellable) {
+                    runCatching {
+                        if (pagerState.currentPageOffsetFraction != 0f) {
+                            pagerState.scrollToPage(pagerState.currentPage)
+                        }
+                    }
+                }
             }
         }
     }
@@ -292,11 +402,27 @@ fun EpisodeClipPager(
             )
         ) { page ->
             episodesPaging[page]?.let { episode ->
+                // 이 카드가 지금 플레이어에 올라 있는 그 클립인지. 파도 애니메이션과 남은
+                // 시간은 한 배지의 두 짝이므로 반드시 같은 기준으로 갈라야 한다. 애니메이션만
+                // currentPage 로 가르면, 그 값은 스와이프 50% 지점에서 뒤집히는 반면
+                // progress 는 페이지가 멎은 뒤에야 따라와서 — 넘기는 내내 들어오는 카드가
+                // "재생 중 파도 + 멈춘 시간"을, 나가는 카드가 "멈춘 파도 + 흐르는 시간"을
+                // 보여준다.
+                val isCurrentClip = progress.episodeId == episode.id
+
                 EpisodeClipItem(
                     modifier = Modifier.fillMaxSize(),
                     episode = episode,
-                    isPlaying = isPlaying && page == pagerState.currentPage,
-                    remaining = progress.remaining,
+                    isPlaying = isPlaying && isCurrentClip,
+                    // 흐르는 남은 시간은 지금 플레이어에 올라 있는 클립의 것뿐이다. 아직
+                    // 자기 차례가 아닌 카드(첫 진입, 스와이프 직후, 위아래로 걸쳐 보이는
+                    // 이웃)까지 같은 값을 쓰면 남의 진행 시간을 빌려 보여주게 되고, 재생이
+                    // 시작되는 순간 숫자가 튄다. 그런 카드는 자기 클립의 전체 길이를 보여준다.
+                    remaining = if (isCurrentClip) {
+                        progress.remaining
+                    } else {
+                        episode.clipPlaybackDuration
+                    },
                     onClick = {
                         onEpisodeClick(episode)
                     },
@@ -415,22 +541,30 @@ private fun ClipTitle(
 @DevicePreviews
 @Composable
 private fun ClipScreenPreview() {
+    val clips = remember {
+        episodeTestDataList.map {
+            it.copy(
+                clipStartTime = Instant.fromEpochMilliseconds(60_000L),
+                clipDuration = 1278.seconds,
+            )
+        }
+    }
+    // 흐름도 remember 로 붙든다. 컴포지션 안에서 새로 만들면 재구성마다 새 LazyPagingItems
+    // 가 서고, 그 첫 프레임은 itemCount 가 0 이라 미리보기가 스켈레톤과 본문 사이를 오간다.
+    val episodes = remember(clips) { flowOf(PagingData.from(clips)) }
     EpisodiveTheme {
         ClipScreen(
-            episodes = flowOf(
-                PagingData.from(
-                    episodeTestDataList.map {
-                        it.copy(
-                            clipStartTime = Instant.fromEpochMilliseconds(60_000L),
-                            clipDuration = 1278.seconds,
-                        )
-                    }
-                )),
+            episodes = episodes,
             playback = Playback.READY,
             progress = Progress(
-                position = 1000L.seconds,
+                position = 278.seconds,
                 buffered = 1278.seconds,
-                duration = 2000L.seconds,
+                // 클립 길이와 같아야 한다. 다른 값을 두면 미리보기가 실제 화면에서는 나올 수
+                // 없는 남은 시간을 보여준다 — 이 변경이 없애려는 바로 그 어긋남이다.
+                duration = 1278.seconds,
+                // 재생 중인 카드를 보려면 progress 가 그 카드의 것이어야 한다. 빠뜨리면
+                // isPlaying = true 를 줘도 멈춘 카드가 그려진다.
+                episodeId = clips.first().id,
             ),
             isPlaying = true,
         )

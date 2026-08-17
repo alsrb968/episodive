@@ -13,10 +13,12 @@ import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.ExoPlayer
 import app.cash.turbine.test
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
+import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.mapper.toDurationMillis
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.mockk.Runs
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -31,6 +33,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 class PlayerDataSourceImplTest {
     private val player = mockk<ExoPlayer>(relaxed = true)
@@ -156,11 +161,8 @@ class PlayerDataSourceImplTest {
 
     @Test
     fun `Given clip episode, When playClip called, Then setMediaItem with clipping configuration applied`() {
-        // Given
-        val clipEpisode = episode.copy(
-            clipStartTime = kotlin.time.Instant.fromEpochSeconds(100),
-            clipDuration = kotlin.time.Duration.parse("PT10S"),
-        )
+        // Given: 클립 픽스처는 아래의 clipEpisode 프로퍼티 하나만 쓴다. 여기서 같은 이름의
+        // 지역 변수를 따로 만들면 프로퍼티를 가려, 그쪽을 손봐도 이 테스트는 꿈쩍하지 않는다.
 
         // When
         dataSource.playClip(clipEpisode)
@@ -1018,9 +1020,11 @@ class PlayerDataSourceImplTest {
 
     @Test
     fun `Given player duration is TIME_UNSET, When seekTo called, Then progress duration is not negative`() = runTest {
-        // Given
+        // Given: 아직 아무 항목도 올리지 않은 상태. 길이를 알 방법이 전혀 없을 때도
+        // TIME_UNSET(음수)이 그대로 새어 나가면 안 된다.
         every { player.duration } returns C.TIME_UNSET
         every { player.bufferedPosition } returns 0L
+        every { player.currentMediaItem } returns null
 
         // When
         dataSource.seekTo(1000L)
@@ -1212,4 +1216,352 @@ class PlayerDataSourceImplTest {
             assertEquals(episodeB.duration, progress.duration)
         }
     }
+
+    // ---------------------------------------------------------------------
+    // 4차 수정 회귀 테스트: 클립은 처음부터 클립 길이를 발행한다
+    //
+    // 클립은 ClippingConfiguration 으로 잘라 올리므로 실제로 흐르는 길이는 에피소드 전체가
+    // 아니라 클립 길이다. 준비 전에 메타에서 길이를 가져올 때 전체 길이를 실으면, 클립 화면의
+    // 남은 시간이 에피소드 전체 길이로 보였다가 progressUpdater 가 player.duration 을 읽는
+    // 순간 클립 길이로 튄다.
+    // ---------------------------------------------------------------------
+
+    /** 전체 1시간짜리 에피소드에서 30초만 잘라낸 클립. 두 길이가 뚜렷이 달라야 폴백 오류가 드러난다. */
+    private val clipEpisode = episodeTestData.copy(
+        duration = 60.minutes,
+        clipStartTime = Instant.fromEpochSeconds(100),
+        clipDuration = 30.seconds,
+    )
+
+    /** media3 가 setMediaItem 호출 스택 안에서 transition 콜백을 인라인 실행하는 것을 흉내낸다. */
+    private fun answerSetMediaItemWithInlineTransition() {
+        every { player.setMediaItem(any()) } answers {
+            listenerSlot.captured.onMediaItemTransition(
+                firstArg<MediaItem>(),
+                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED,
+            )
+        }
+    }
+
+    @Test
+    fun `Given clip episode, When playClip fires inline transition, Then progress duration is the clip duration`() =
+        runTest {
+            // Given
+            answerSetMediaItemWithInlineTransition()
+
+            // When
+            dataSource.playClip(clipEpisode)
+
+            // Then: 첫 발행부터 클립 길이여야 한다. 여기서 전체 길이가 나오면 화면의 남은 시간이
+            // 재생이 시작되는 순간 1시간에서 30초로 튄다.
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.clipDuration, progress.duration)
+                assertEquals(clipEpisode.id, progress.episodeId)
+            }
+        }
+
+    // --- 같은 클립을 두 번 올리지 않는다 ---
+    //
+    // setMediaItem 은 듣던 지점을 지운다. "같은 것을 다시 틀어 달라" 는 요청은 대개 화면이
+    // 무엇이 올라가 있는지 잘못 알고 보낸 것이라, 그대로 따르면 사용자가 듣던 자리가 사라진다.
+    // 화면이 기억으로 막으려 하면 그 기억이 컴포지션과 함께 사라지거나 실제와 어긋나므로,
+    // 실제로 무엇이 올라가 있는지 아는 이 자리에서 막는다.
+
+    /** 이미 그 클립이 올라가 재생 중인 상태를 만든다. */
+    private fun givenClipIsLoadedAndPlaying(loaded: Episode) {
+        val built = slot<MediaItem>()
+        every { player.setMediaItem(capture(built)) } just Runs
+        dataSource.playClip(loaded)
+        every { player.currentMediaItem } returns built.captured
+        every { player.playbackState } returns Player.STATE_READY
+    }
+
+    @Test
+    fun `Given the same clip is already playing, When playClip called again, Then the listening position is left alone`() {
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.isPlaying } returns true
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then: 다시 올리지 않는 것만으로는 부족하다. 되감거나 비우는 것도 듣던 자리를
+        // 지우므로, 지점을 건드릴 수 있는 호출을 모두 막는다.
+        verify(exactly = 0) { player.setMediaItem(any()) }
+        verify(exactly = 0) { player.seekTo(any()) }
+        verify(exactly = 0) { player.stop() }
+        verify(exactly = 0) { player.clearMediaItems() }
+    }
+
+    @Test
+    fun `Given the same clip is loaded but paused, When playClip called, Then it resumes without reloading`() {
+        // 멈춰 둔 클립의 재생 버튼이 죽으면 안 된다 — 다시 올리지 않되 이어서 틀어야 한다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.isPlaying } returns false
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then
+        verify(exactly = 0) { player.setMediaItem(any()) }
+        verify(exactly = 1) { player.play() }
+    }
+
+    @Test
+    fun `Given the same episode with a different clip window, When playClip called, Then it is loaded again`() {
+        // soundbites 는 episodeId 가 기본키라, 캐시가 갱신되면 같은 에피소드의 창만 바뀐
+        // 행이 온다. 그때 넘기면 플레이어는 옛 창을, 카드는 새 길이를 말하게 된다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+        val shiftedWindow = clipEpisode.copy(clipStartTime = Instant.fromEpochSeconds(200))
+
+        // When
+        dataSource.playClip(shiftedWindow)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given a clipped item with no end position, When its duration is read, Then only what is left after the start counts`() =
+        runTest {
+            // toMediaItem 은 늘 양끝을 지정하지만, playbackDuration 은 "끝을 지정하지 않은
+            // 클리핑" 도 답할 수 있어야 한다고 적어 두었다. 그 분기를 실제로 짚어 둔다.
+            // Given
+            val openEnded = MediaItem.Builder()
+                .setMediaId(clipEpisode.id.toString())
+                .setUri(mockk<Uri>(relaxed = true))
+                .setTag(clipEpisode)
+                .setClippingConfiguration(
+                    MediaItem.ClippingConfiguration.Builder()
+                        .setStartPositionMs(10.minutes.inWholeMilliseconds)
+                        .build()
+                )
+                .build()
+            every { player.currentMediaItem } returns openEnded
+            every { player.duration } returns C.TIME_UNSET
+            every { player.bufferedPosition } returns 0L
+
+            // When
+            dataSource.seekTo(0L)
+
+            // Then: 60분 에피소드의 10분 지점부터면 남은 것은 50분이다.
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(50.minutes, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given the clip ended, When playClip called with the same clip, Then it is loaded again`() {
+        // 끝난 뒤 같은 클립을 다시 트는 것은 "처음부터 다시 듣기" 라는 정상 요청이다.
+        // 지울 지점도 없으므로 막으면 안 된다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.playbackState } returns Player.STATE_ENDED
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given a different clip is playing, When playClip called, Then the new one is loaded`() {
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+        val other = episodeTestDataList[1].copy(
+            clipStartTime = Instant.fromEpochSeconds(0),
+            clipDuration = 15.seconds,
+        )
+
+        // When
+        dataSource.playClip(other)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given a clip request for an episode without clip metadata, When repeated, Then it is not loaded again`() {
+        // 잘라 올리지 않는 아이템도 "이미 올라 있다" 로 판정돼야 한다. 한때 판정 쪽만
+        // clipEndPositionMs 와 견주는 바람에, 창 없이 올라간 아이템의 끝값(UNSET =
+        // C.TIME_END_OF_SOURCE)과 영영 같아지지 않아 누를 때마다 처음으로 되감겼다.
+        // Given
+        val withoutClip = episodeTestData
+        check(!withoutClip.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+        givenClipIsLoadedAndPlaying(withoutClip)
+        every { player.isPlaying } returns true
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(withoutClip)
+
+        // Then
+        verify(exactly = 0) { player.setMediaItem(any()) }
+        verify(exactly = 0) { player.seekTo(any()) }
+    }
+
+    @Test
+    fun `Given the loaded episode gains clip metadata, When playClip called, Then it is loaded again`() {
+        // 같은 에피소드인데 hasClip 이 거짓에서 참으로 뒤집힌 경우. 창 없이 올라가 있던 것을
+        // 그대로 두면 카드는 클립 길이를 보여주는데 플레이어는 에피소드 전체를 흘린다.
+        // 판정이 두 상태를 가르지 못하면 이 어긋남이 조용히 남는다.
+        // Given
+        val withoutClip = episodeTestData
+        check(!withoutClip.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+        givenClipIsLoadedAndPlaying(withoutClip)
+        every { player.isPlaying } returns true
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When: 같은 에피소드에 클립 메타가 붙어 다시 들어온다
+        val gainedClip = withoutClip.copy(
+            clipStartTime = Instant.fromEpochSeconds(100),
+            clipDuration = 30.seconds,
+        )
+        check(gainedClip.hasClip) { "뒤집힌 쪽은 클립이어야 한다" }
+        dataSource.playClip(gainedClip)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given the player is idle, When playClip called with the loaded clip, Then it is loaded again`() {
+        // 프로세스가 죽었다 살아난 자리. 태그는 남아 보여도 플레이어가 비어 있으면 올려야 한다.
+        // Given
+        givenClipIsLoadedAndPlaying(clipEpisode)
+        every { player.playbackState } returns Player.STATE_IDLE
+        clearMocks(player, answers = false, recordedCalls = true, verificationMarks = true)
+
+        // When
+        dataSource.playClip(clipEpisode)
+
+        // Then
+        verify(exactly = 1) { player.setMediaItem(any()) }
+    }
+
+    @Test
+    fun `Given non-clip episode, When play fires inline transition, Then progress duration is the whole episode duration`() =
+        runTest {
+            // 클립 판정이 일반 재생까지 잡아채면 플레이어 화면의 길이가 무너진다.
+            // 잘라 올리지 않은 아이템은 전체 길이 그대로여야 한다.
+            answerSetMediaItemWithInlineTransition()
+
+            // When
+            dataSource.play(clipEpisode)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.duration, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given clip episodes, When playClips called, Then the confirmed emission carries the target's clip duration`() =
+        runTest {
+            // playClips 는 인라인 transition 을 isPreparing 으로 막고 확정값을 직접 발행한다.
+            // 그 확정 발행도 클립 길이를 실어야 하고, 목록의 첫 항목이 아니라 재생할 항목의
+            // 것이어야 한다 — indexToPlay 를 1 로 두어 둘을 구분한다.
+            val target = episodeTestDataList[1].copy(
+                duration = 90.minutes,
+                clipStartTime = Instant.fromEpochSeconds(0),
+                clipDuration = 15.seconds,
+            )
+
+            // When
+            dataSource.playClips(episodes = listOf(clipEpisode, target), indexToPlay = 1)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(target.clipDuration, progress.duration)
+                assertEquals(target.id, progress.episodeId)
+            }
+        }
+
+    @Test
+    fun `Given clip episodes without clip metadata, When playClips called, Then progress duration falls back to the episode duration`() =
+        runTest {
+            // 클립 정보가 없으면 플레이어도 잘라 올리지 않는다. 그 경우 길이는 에피소드 전체다.
+            val withoutClip = episodeTestData
+            check(!withoutClip.hasClip) { "이 테스트는 클립 메타가 없는 데이터를 전제한다" }
+
+            // When
+            dataSource.playClips(episodes = listOf(withoutClip), indexToPlay = 0)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(withoutClip.duration, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given a clipped media item with unset player duration, When seekTo called, Then progress duration falls back to the clip duration`() =
+        runTest {
+            // Given: 준비 전이라 player.duration 이 TIME_UNSET 이다. 이때 메타에서 길이를
+            // 가져오는데, 잘라 올린 아이템이면 전체 길이가 아니라 클립 길이를 써야 한다.
+            //
+            // 아이템을 손으로 짓지 않고 playClip 이 실제로 만든 것을 되돌려 준다. 손으로 지으면
+            // toMediaItem 에서 클리핑을 떼어내도 이 테스트는 초록으로 남는다 — 프로덕션이
+            // 만들지 않는 표본을 검사하게 되기 때문이다.
+            val built = slot<MediaItem>()
+            every { player.setMediaItem(capture(built)) } just Runs
+            dataSource.playClip(clipEpisode)
+
+            every { player.currentMediaItem } returns built.captured
+            every { player.duration } returns C.TIME_UNSET
+            every { player.bufferedPosition } returns 0L
+
+            // When
+            dataSource.seekTo(1000L)
+
+            // Then
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.clipDuration, progress.duration)
+            }
+        }
+
+    @Test
+    fun `Given a clip episode, When prepare called, Then progress duration is the whole episode duration because prepare does not clip`() =
+        runTest {
+            // prepare 도 메타에서 길이를 가져오는 네 지점 중 하나다. 지금은 늘 isClip = false 로
+            // 올리므로 실제로는 전체 길이가 나오지만, 그건 toMediaItem 이 클리핑을 걸지 않기
+            // 때문이지 prepare 가 예외라서가 아니다. 이 테스트는 판정 근거가 "경로" 가 아니라
+            // "실제로 클리핑이 걸렸는가" 임을 고정한다.
+            dataSource.prepare(listOf(clipEpisode), indexToPlay = 0, positionMs = 0L)
+
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(clipEpisode.duration, progress.duration)
+                assertEquals(clipEpisode.id, progress.episodeId)
+            }
+        }
+
+    @Test
+    fun `Given prepare with a restore position, When called, Then the position rides along with the duration`() =
+        runTest {
+            // prepare 를 publishStartOfPlayback 으로 합치면서 위치가 0 으로 뭉개지지 않는지 —
+            // 이 경로의 존재 이유가 "앱을 다시 켰을 때 듣던 자리로 되돌리는 것" 이라 위치가
+            // 사라지면 이어듣기가 통째로 망가진다.
+            dataSource.prepare(listOf(episode), indexToPlay = 0, positionMs = 90_000L)
+
+            dataSource.progress.test {
+                val progress = awaitItem()
+                assertEquals(90_000L.toDurationMillis(), progress.position)
+                assertEquals(episode.duration, progress.duration)
+                assertEquals(episode.id, progress.episodeId)
+            }
+        }
 }

@@ -110,9 +110,30 @@ class SoundbiteEpisodePagingSource(
                             it.feedTitle.contains(regex)
                 }
 
+            // 재생할 수 없는 행(길이 0 이하, 시작이 음수)은 들이지 않는다. 조회 쪽에도 같은
+            // 조건이 있지만(SoundbiteDao) 그쪽은 이미 캐시에 들어온 옛 행을 막는 뒷문이다.
+            //
+            // 한때 이 필터를 뺀 적이 있다. "응답이 전부 걸러지면 표가 비고, 그러면
+            // getSoundbitesOldestCachedAt() 이 null 이라 페이지를 넘길 때마다 원격을 때린다" 는
+            // 걱정이었다. **넘기는 쪽(APPEND)에 대해서는 틀린 걱정이다** — 목록이 비면 넘길
+            // 페이지가 없어 그쪽으로는 load 가 다시 불리지 않는다.
+            //
+            // 다만 REFRESH 는 다르다. 좋아요 토글이 liked_episodes 를 무효화하면 그때마다
+            // load 가 다시 불리고, 캐시가 통째로 재생 불가면 신선도가 null 이라 원격을 다시
+            // 때린다. 그 값을 치르고 이 필터를 두는 이유는, 없을 때가 더 나쁘기 때문이다:
+            // 표는 차 있어 "신선함" 으로 판정되는데 조회는 빈 목록을 주어 TTL 이 지날 때까지
+            // 다시 받아올 길 없이 빈 화면에 갇힌다. 사용자가 좋아요를 누를 때마다 한 번씩
+            // 재시도하는 쪽이 낫다.
+            //
+            // 길이는 `inWholeSeconds` 로 견준다 — DurationConverter 가 표에 앉히는 것과 같은
+            // 값이다. 오늘은 `> Duration.ZERO` 와 결과가 같다(SoundbiteResponse.duration 이
+            // Int 초라 1초 미만이 들어올 길이 없다). 그래도 이렇게 두는 것은, 잘린 값을 보는
+            // 조회와 안 잘린 값을 보는 저장이 갈라지는 날 그 차이가 곧바로 위에서 말한
+            // "표는 차 있는데 화면은 비어 있고 다시 받아올 길도 없는" 상태가 되기 때문이다.
             val soundbiteEntities = soundbiteResponses
                 .toSoundbites()
                 .toSoundbiteEntities()
+                .filterNot { it.duration.inWholeSeconds <= 0L || it.startTime.epochSeconds < 0 }
 
             soundbiteLocal.replaceSoundbites(soundbiteEntities)
             // 기존 soundbite 그룹의 episodes와 groups 정리

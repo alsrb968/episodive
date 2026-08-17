@@ -64,7 +64,7 @@ class PlayerDataSourceImpl @Inject constructor(
                 items.add(player.getMediaItemAt(i))
             }
             _playlist.value = items.mapNotNull { item ->
-                item.localConfiguration?.tag as? Episode
+                item.episodeTag()
             }
         }
 
@@ -88,7 +88,7 @@ class PlayerDataSourceImpl @Inject constructor(
                 }
             }
 
-            val episode = mediaItem?.localConfiguration?.tag as? Episode
+            val episode = mediaItem?.episodeTag()
             _nowPlaying.value = episode
             _indexOfList.value = player.currentMediaItemIndex
             // 재생목록을 통째로 갈아끼우는 중에는 발행하지 않는다. media3 가 setMediaItems 호출
@@ -110,7 +110,15 @@ class PlayerDataSourceImpl @Inject constructor(
                 publishProgress(
                     position = position,
                     buffered = Duration.ZERO,
-                    duration = episode?.duration ?: Duration.ZERO,
+                    // 에피소드 메타의 duration 을 그대로 쓰지 않는다. 클립은 잘라 올린
+                    // 길이만 재생되므로, 전체 길이를 실어 보내면 준비가 끝나 progressUpdater
+                    // 가 실제 길이를 읽을 때까지 화면의 남은 시간이 에피소드 전체 길이로
+                    // 보였다가 클립 길이로 튄다.
+                    //
+                    // 길이는 반드시 playbackDuration() 을 거친다. 같은 셈을 여기 펼쳐 쓰면
+                    // 그 함수가 바뀌는 날 이 경로만 조용히 옛 규칙을 따른다.
+                    // episode 와 같은 mediaItem 에서 나오므로 쌍의 원자성은 지켜진다.
+                    duration = mediaItem?.playbackDuration() ?: Duration.ZERO,
                     episodeId = episode?.id,
                 )
             }
@@ -183,6 +191,27 @@ class PlayerDataSourceImpl @Inject constructor(
         }
     }
 
+    /**
+     * 이 에피소드를 올릴 때 걸릴 잘라내기 창. 자르지 않는 경우는
+     * [MediaItem.ClippingConfiguration.UNSET] — `MediaItem.Builder` 의 기본값과 같은 값이라
+     * 그대로 세워도 "자르지 않음" 이다.
+     *
+     * [toMediaItem] 과 [playClip] 의 "이미 올라 있는가" 판정이 **둘 다 이 함수를 거친다.**
+     * 한쪽이 조건을 손으로 베껴 쓰면 그날로 갈라진다 — 실제로 갈라졌던 적이 있다. [hasClip] 이
+     * 거짓인 클립 요청은 창 없이 올라가는데, 판정 쪽만 [Episode.clipEndPositionMs] 와 견주다
+     * 보니 UNSET 의 끝값(`C.TIME_END_OF_SOURCE`, 즉 `Long.MIN_VALUE`)과는 영영 같아지지 않아
+     * 매번 다시 올렸다. 그 에피소드만 재생 버튼을 누를 때마다 처음으로 되감겼다.
+     */
+    private fun Episode.clippingConfiguration(isClip: Boolean): MediaItem.ClippingConfiguration =
+        if (isClip && hasClip) {
+            MediaItem.ClippingConfiguration.Builder()
+                .setStartPositionMs(clipStartPositionMs)
+                .setEndPositionMs(clipEndPositionMs)
+                .build()
+        } else {
+            MediaItem.ClippingConfiguration.UNSET
+        }
+
     private fun Episode.toMediaItem(isClip: Boolean): MediaItem {
         val mediaMetadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -211,14 +240,7 @@ class PlayerDataSourceImpl @Inject constructor(
             .setTag(this)
             .setMediaMetadata(mediaMetadata)
 
-        if (isClip && hasClip) {
-            builder.setClippingConfiguration(
-                MediaItem.ClippingConfiguration.Builder()
-                    .setStartPositionMs(clipStartPositionMs)
-                    .setEndPositionMs(clipEndPositionMs)
-                    .build()
-            )
-        }
+        builder.setClippingConfiguration(clippingConfiguration(isClip))
 
         transcriptUrl?.let { url ->
             Timber.i("transcriptUrl:$url")
@@ -235,6 +257,66 @@ class PlayerDataSourceImpl @Inject constructor(
 
         return builder.build()
     }
+
+    /**
+     * 이 미디어 아이템을 재생할 때 실제로 흐르는 길이.
+     *
+     * 준비가 끝나기 전에는 `player.duration` 이 TIME_UNSET 이라 메타에서 길이를 가져와야
+     * 하는데, 그때 어느 쪽을 가져올지는 이 함수가 정한다.
+     *
+     * **메타에서 길이를 가져오는 지점은 예외 없이 이 함수를 거칠 것.** 한 곳이라도 빠뜨리면
+     * 그 경로에서만 준비 전후로 값이 달라져 화면의 시간이 튄다.
+     *
+     * 잘라 올린 아이템은 에피소드에 되묻지 않고 **클리핑 창에서 직접 잰다.** 그 창이 곧
+     * media3 가 흘릴 구간이라 어긋날 여지가 없다 — [toMediaItem] 의 조건을 바꾸더라도
+     * 여기서 나오는 값은 늘 실제로 올라간 것을 따른다. (화면은 아직 올리기 전이라 되물을
+     * 아이템이 없어 [Episode.clipPlaybackDuration] 을 쓴다. 그쪽만 [Episode.hasClip] 기준이다.)
+     */
+    private fun MediaItem.playbackDuration(): Duration {
+        // 클리핑 창을 먼저 잰다. 이 폭은 태그가 없어도 알 수 있는 확정값이라, 태그부터
+        // 확인하고 없다고 0 을 돌려주면 알 수 있는 길이를 스스로 버리는 셈이 된다.
+        //
+        // 밀리초 쪽을 읽는다. 마이크로초 변형이 더 정밀해 보이지만 @UnstableApi 라 lint 가
+        // 막는다.
+        //
+        // 끝을 지정하지 않은 클리핑은 센티널을 직접 견줘 걸러낸다. 뺄셈 결과가 음수라
+        // isPositive 에 걸릴 것 같지만, TIME_END_OF_SOURCE 가 Long 최솟값 근처라 시작이
+        // 0 보다 크면 뺄셈이 넘쳐 거대한 양수가 된다 — 억 단위 연 수에 해당하는 길이가
+        // 발행된다(정확한 자릿수는 래핑 결과에 달렸다).
+        if (isClipped()) {
+            val clip = clippingConfiguration
+            if (clip.endPositionMs != C.TIME_END_OF_SOURCE) {
+                // 끝이 정해져 있으면 그 폭이 전부다. 폭이 0 이하로 나와도 에피소드 길이로
+                // 물러서지 않는다 — 흐를 것이 없다는 뜻이지 "끝까지" 라는 뜻이 아니다.
+                val window = (clip.endPositionMs - clip.startPositionMs).toDurationMillis()
+                return window.coerceAtLeast(Duration.ZERO)
+            }
+            // 끝을 지정하지 않은 클리핑("여기서부터 끝까지")이면 시작 뒤로 남은 만큼만 흐른다.
+            // 에피소드 전체 길이를 그대로 돌려주면 시작 오프셋만큼 부풀린 값이 된다.
+            val remainder = (episodeTag()?.duration ?: Duration.ZERO) -
+                    clip.startPositionMs.toDurationMillis()
+            return remainder.coerceAtLeast(Duration.ZERO)
+        }
+        return episodeTag()?.duration ?: Duration.ZERO
+    }
+
+    /**
+     * 이 아이템에 실린 에피소드. [toMediaItem] 이 `setTag` 로 붙여 둔 것이다.
+     *
+     * 길이와 id 를 각각 꺼내며 캐스트를 되풀이하지 않도록 한 곳으로 모은다 — 따로 꺼내면
+     * 태그가 에피소드가 아닐 때 한쪽은 0, 다른 쪽은 null 로 갈라진 답을 내놓는다.
+     */
+    private fun MediaItem.episodeTag(): Episode? = localConfiguration?.tag as? Episode
+
+    /**
+     * 잘라 올린 아이템인지 — 즉 [toMediaItem] 이 `setClippingConfiguration` 을 불렀는지.
+     *
+     * 시작·끝 위치를 각각 들여다보지 않고 [MediaItem.ClippingConfiguration.UNSET] 과
+     * 통째로 견준다. 묻고 싶은 것("클리핑을 걸었는가")을 그대로 옮긴 형태라, 어느 필드를
+     * 어떤 센티널과 견줘야 하는지 알 필요가 없다.
+     */
+    private fun MediaItem.isClipped(): Boolean =
+        clippingConfiguration != MediaItem.ClippingConfiguration.UNSET
 
     override fun getPlayer(): Player {
         return player
@@ -255,13 +337,12 @@ class PlayerDataSourceImpl @Inject constructor(
         }
 
         // 확정값을 여기서 한 번만 발행한다.
-        // 이 시점 player.duration 은 아직 TIME_UNSET 이므로 에피소드 메타의 길이를 쓴다.
-        val target = episodes.getOrNull(indexToPlay)
-        publishProgress(
+        // 이 시점 player.duration 은 아직 TIME_UNSET 이므로 미디어 아이템의 메타 길이를 쓴다.
+        // 지금은 이 경로가 늘 isClip = false 로 올리지만, 그래도 playbackDuration() 을 거친다 —
+        // 여기만 예외로 두면 나중에 이 경로로 클립을 복원할 때 조용히 전체 길이를 싣게 된다.
+        publishStartOfPlayback(
+            mediaItem = mediaItems.getOrNull(indexToPlay),
             position = positionMs.toDurationMillis(),
-            buffered = Duration.ZERO,
-            duration = target?.duration ?: Duration.ZERO,
-            episodeId = target?.id,
         )
     }
 
@@ -293,10 +374,42 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         player.playWhenReady = true
 
-        publishStartOfPlayback(episodes.getOrNull(indexToPlay ?: 0))
+        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0), position = Duration.ZERO)
     }
 
+    /**
+     * 클립 하나를 올려 재생한다. **이미 올라가 흐르고 있는 클립이면 아무것도 하지 않는다.**
+     *
+     * `setMediaItem` 은 듣던 지점을 지운다. "같은 것을 다시 틀어 달라" 는 요청은 대개 화면이
+     * 무엇이 올라가 있는지 잘못 알고 보낸 것이라, 그대로 따르면 사용자가 듣던 자리가 사라진다.
+     * 화면이 기억으로 막으려 하면 그 기억이 컴포지션과 함께 사라지거나 실제와 어긋나므로,
+     * 실제로 무엇이 올라가 있는지 아는 이 자리에서 막는다.
+     *
+     * 끝난 뒤(ENDED)와 비어 있을 때(IDLE)는 통과시킨다 — 그때 같은 클립을 다시 트는 것은
+     * "처음부터 다시 듣기" 라는 정상 요청이고, 지울 지점도 없다.
+     */
     override fun playClip(episode: Episode) {
+        // 같은 에피소드라도 잘라낸 창이 다르면 다시 올려야 한다. soundbites 는 episodeId 가
+        // 기본키라, 캐시가 갱신되면 같은 에피소드의 창만 바뀐 행이 온다. 그때 그냥 넘기면
+        // 플레이어는 옛 창을 흘리는데 카드는 새 길이를 보여준다.
+        //
+        // 견줄 창은 반드시 clippingConfiguration() 에서 받는다 — toMediaItem 이 실제로 세우는
+        // 바로 그 값이라, 자르지 않고 올라가는 경우(hasClip 이 거짓)까지 함께 맞는다.
+        // 태그부터 견준다. 우리가 올린 아이템일 때만 클리핑 창을 들여다본다.
+        val loaded = player.currentMediaItem
+        val alreadyLoaded = loaded != null &&
+                loaded.episodeTag()?.id == episode.id &&
+                loaded.clippingConfiguration == episode.clippingConfiguration(isClip = true) &&
+                player.playbackState != Player.STATE_IDLE &&
+                player.playbackState != Player.STATE_ENDED
+        if (alreadyLoaded) {
+            // 다시 올리지는 않되, 멈춰 있으면 이어서 튼다. 아무것도 하지 않고 돌아가면
+            // 멈춰 둔 클립의 재생 버튼이 죽는다 — 눌러도 소리가 나지 않는다.
+            if (!player.isPlaying) player.play()
+            Timber.i("playClip resumed in place: ${episode.id}")
+            return
+        }
+
         Timber.i("url: ${episode.enclosureUrl}, clipStartTime: ${episode.clipStartTime}, clipDuration: ${episode.clipDuration}")
         val mediaItem = episode.toMediaItem(isClip = true)
 
@@ -322,7 +435,7 @@ class PlayerDataSourceImpl @Inject constructor(
         }
         player.playWhenReady = true
 
-        publishStartOfPlayback(episodes.getOrNull(indexToPlay ?: 0))
+        publishStartOfPlayback(mediaItems.getOrNull(indexToPlay ?: 0), position = Duration.ZERO)
     }
 
     override fun playIndex(index: Int) {
@@ -353,6 +466,10 @@ class PlayerDataSourceImpl @Inject constructor(
     }
 
     override fun stop() {
+        // 진행 상태를 여기서 따로 비우지 않는다. clearMediaItems() 가 목록을 비우면 media3 가
+        // onMediaItemTransition(null, PLAYLIST_CHANGED) 를 부르고, 그 경로가 이미 비어 있는
+        // 진행 상태(episodeId = null)를 발행한다. 같은 값을 여기서 한 번 더 실어 보내면
+        // "이 자리가 그 일을 한다" 는 인상만 남고 실제로 지키는 것은 없다.
         player.stop()
         player.clearMediaItems()
     }
@@ -374,17 +491,23 @@ class PlayerDataSourceImpl @Inject constructor(
     override fun seekTo(position: Long) {
         player.seekTo(position)
         // 준비 전에는 player.duration 이 TIME_UNSET(음수)이라 그대로 실으면
-        // 시커와 수면 타이머가 쓰레기 값을 본다. 그럴 땐 에피소드 메타의 길이로 대신한다.
+        // 시커와 수면 타이머가 쓰레기 값을 본다. 그럴 땐 에피소드 메타의 길이로 대신하되,
+        // 잘라 올린 아이템이면 클립 길이를 쓴다(전체 길이를 쓰면 준비 전후로 값이 튄다).
         // 직전 progress 의 duration 을 쓰면 안 된다 — 전환 직후엔 그것이 이전 에피소드의
         // 길이여서, 짧은 길이 + 큰 위치 조합이 완료 판정을 잘못 뒤집는다.
+        //
+        // 아이템은 한 번만 읽는다. 길이와 id 를 따로 읽으면 그 사이에 전환이 끼어들어
+        // "A 의 길이 + B 의 id" 가 나갈 수 있고, 그 쌍이 원자적이라는 것이 publishProgress
+        // 의 계약이다. 수면 타이머가 바로 이 쌍으로 남은 시간을 셈한다.
+        val item = player.currentMediaItem
         val duration = player.duration.toDurationMillis().takeIf { it.isPositive() }
-            ?: currentEpisode()?.duration
+            ?: item?.playbackDuration()
             ?: Duration.ZERO
         publishProgress(
             position = position.toDurationMillis(),
             buffered = player.bufferedPosition.toDurationMillis(),
             duration = duration,
-            episodeId = currentEpisodeId(),
+            episodeId = item?.episodeTag()?.id,
         )
     }
 
@@ -507,20 +630,28 @@ class PlayerDataSourceImpl @Inject constructor(
      * 플레이어 스레드에서만 호출할 것.
      */
     private fun currentEpisode(): Episode? =
-        player.currentMediaItem?.localConfiguration?.tag as? Episode
+        player.currentMediaItem?.episodeTag()
 
     private fun currentEpisodeId(): Long? = currentEpisode()?.id
 
     /**
-     * 재생목록을 갈아끼운 직후, 실제로 재생할 항목의 시작 상태를 발행한다.
+     * 재생목록을 갈아끼운 직후, 실제로 재생할 항목의 상태를 발행한다.
      * 갈아끼우는 동안 억제한 transition 콜백을 대신하는 확정 발행이다.
+     *
+     * 에피소드가 아니라 [MediaItem] 을 받는다. 클립인지 아닌지를 호출자가 넘기게 하면 판정이
+     * 두 곳으로 갈라져 [playbackDuration] 의 기준과 어긋날 수 있다 — 실제로 잘라 올린 그
+     * 아이템에게 직접 묻는 편이 어긋날 여지가 없다.
+     *
+     * @param position 발행할 재생 위치. 기본값을 두지 않는다 — 목록을 새로 트는
+     * 경로(`play`·`playClips`)는 0 이지만 `prepare` 는 듣던 자리를 복원하므로, 잊고 빠뜨리면
+     * 이어듣기 지점이 0 으로 발행되어 그대로 저장된다. 컴파일이 막게 두는 편이 낫다.
      */
-    private fun publishStartOfPlayback(target: Episode?) {
+    private fun publishStartOfPlayback(mediaItem: MediaItem?, position: Duration) {
         publishProgress(
-            position = Duration.ZERO,
+            position = position,
             buffered = Duration.ZERO,
-            duration = target?.duration ?: Duration.ZERO,
-            episodeId = target?.id,
+            duration = mediaItem?.playbackDuration() ?: Duration.ZERO,
+            episodeId = mediaItem?.episodeTag()?.id,
         )
     }
 

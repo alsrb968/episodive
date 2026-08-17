@@ -14,6 +14,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.time.Duration
+import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
 class SoundbiteDaoTest {
@@ -186,5 +188,125 @@ class SoundbiteDaoTest {
                 soundbiteEntities.map { it.episodeId }.sorted(),
                 paged.map { it.episodeId },
             )
+        }
+
+    // --- 길이가 0 인 사운드바이트는 목록에 내보내지 않는다 ---
+    //
+    // 피드가 그런 행을 주는 일이 있는데, 그대로 클립 목록에 오르면 시작=끝인 창이 올라가
+    // 재생하자마자 끝나고, 그 완료가 다음 클립으로 넘기는 것을 연쇄시켜 목록을 소리 없이
+    // 훑고 지나간다. 재생할 수 없는 항목이므로 조회에서 뺀다.
+
+    @Test
+    fun `Given a zero length soundbite, When paged, Then it is left out`() =
+        runTest {
+            // Given
+            val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + zeroLength)
+
+            // When
+            val paged = dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size)
+
+            // Then
+            assertEquals(
+                playable.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId }.sorted(),
+            )
+        }
+
+    @Test
+    fun `Given a soundbite starting before zero, When paged, Then it is left out`() =
+        runTest {
+            // 시작이 음수면 media3 의 setStartPositionMs 가 예외를 던진다. 길이 0 은 보기
+            // 흉한 데 그치지만 이쪽은 크래시라, 조회에서 빠지는지 따로 못박는다.
+            // Given
+            val negativeStart = soundbiteEntities.first()
+                .copy(startTime = Instant.fromEpochSeconds(-5))
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + negativeStart)
+
+            // When
+            val paged = dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size)
+
+            // Then
+            assertEquals(
+                playable.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId }.sorted(),
+            )
+        }
+
+    @Test
+    fun `Given only unplayable rows, When getSoundbitesOldestCachedAt, Then the cache reads as empty`() =
+        runTest {
+            // 신선도 판정이 조회와 다른 것을 보면, 재생 불가 행만 남은 캐시가 "신선함" 으로
+            // 판정되는데 목록은 빈 결과라 다시 받아올 계기가 사라진다.
+            // Given
+            dao.upsertSoundbites(soundbiteEntities.map { it.copy(duration = Duration.ZERO) })
+
+            // When / Then
+            assertEquals(null, dao.getSoundbitesOldestCachedAt())
+            assertEquals(
+                0,
+                dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size).size,
+            )
+        }
+
+    @Test
+    fun `Given only rows starting before zero, When getSoundbitesOldestCachedAt, Then the cache reads as empty`() =
+        runTest {
+            // 술어가 둘(duration, startTime)이라 한쪽만 덮으면 나머지 절반이 조용히 빠져도
+            // 아무 테스트가 빨개지지 않는다. 신선도 쿼리의 술어는 조회 셋과 글자 그대로
+            // 같아야 한다.
+            // Given
+            dao.upsertSoundbites(
+                soundbiteEntities.map { it.copy(startTime = Instant.fromEpochSeconds(-5)) }
+            )
+
+            // When / Then
+            assertEquals(null, dao.getSoundbitesOldestCachedAt())
+            assertEquals(
+                0,
+                dao.getSoundbitesPagingList(offset = 0, limit = soundbiteEntities.size).size,
+            )
+        }
+
+    @Test
+    fun `Given a zero length soundbite, When getSoundbitesPaging, Then it is left out`() =
+        runTest {
+            // Given
+            val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + zeroLength)
+
+            // When
+            val paged = dao.getSoundbitesPaging().loadAsSnapshot()
+
+            // Then
+            assertEquals(
+                playable.map { it.episodeId }.sorted(),
+                paged.map { it.episodeId }.sorted(),
+            )
+        }
+
+    @Test
+    fun `Given a zero length soundbite, When getSoundbites, Then it is left out`() =
+        runTest {
+            // 목록 조회가 셋인데 술어를 하나만 손보면 나머지로 새어 나간다. 오늘 프로덕션이
+            // 실제로 부르는 것은 getSoundbitesPagingList 하나뿐이지만, 나머지 둘도 같은 표를
+            // 같은 뜻으로 읽으므로 조건이 갈라지면 그대로 함정이 된다.
+            // Given
+            val zeroLength = soundbiteEntities.first().copy(duration = Duration.ZERO)
+            val playable = soundbiteEntities.drop(1)
+            dao.upsertSoundbites(playable + zeroLength)
+
+            // When / Then
+            dao.getSoundbites(limit = soundbiteEntities.size).test {
+                val items = awaitItem()
+                assertEquals(
+                    playable.map { it.episodeId }.sorted(),
+                    items.map { it.episodeId }.sorted(),
+                )
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 }
