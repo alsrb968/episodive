@@ -876,6 +876,10 @@ fun EpisodeDetailItemSkeleton(modifier: Modifier = Modifier) {
 
 private const val EpisodeDetailDescriptionLines = 4
 
+/**
+ * @param onTogglePlay 재생 버튼을 누른 결과. `true` 면 재생을, `false` 면 일시정지를 원한다는 뜻이다.
+ * 토글 방향을 버리고 늘 재생으로 처리하면 일시정지가 곧바로 재생으로 되돌아온다.
+ */
 @Composable
 fun EpisodeClipItem(
     modifier: Modifier = Modifier,
@@ -884,7 +888,7 @@ fun EpisodeClipItem(
     remaining: Duration,
     amplitude: () -> Float = { 1f },
     onClick: () -> Unit,
-    onPlayEpisode: () -> Unit,
+    onTogglePlay: (play: Boolean) -> Unit,
     onToggleLikedEpisode: () -> Unit,
     onDominantColorExtracted: ((Color) -> Unit)? = null,
 ) {
@@ -1003,7 +1007,7 @@ fun EpisodeClipItem(
 
                 EpisodiveIconToggleButton(
                     checked = isPlaying,
-                    onCheckedChange = { onPlayEpisode() },
+                    onCheckedChange = onTogglePlay,
                     colors = IconButtonDefaults.iconToggleButtonColors(
                         checkedContainerColor = MaterialTheme.colorScheme.primary,
                         checkedContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -1128,7 +1132,7 @@ private fun EpisodeClipItemPreview() {
             isPlaying = true,
             remaining = 45.seconds,
             onClick = {},
-            onPlayEpisode = {},
+            onTogglePlay = {},
             onToggleLikedEpisode = {},
         )
     }
@@ -1228,7 +1232,7 @@ private fun EpisodeClipItemSkeletonPreview() {
                     isPlaying = true,
                     remaining = 45.seconds,
                     onClick = {},
-                    onPlayEpisode = {},
+                    onTogglePlay = {},
                     onToggleLikedEpisode = {},
                 )
             }

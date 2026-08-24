@@ -79,6 +79,7 @@ class ClipScreenTest {
         ),
         isPlaying: Boolean = true,
         onEpisodeChanged: (Episode) -> Unit = {},
+        onTogglePlay: (Episode, Boolean) -> Unit = { _, _ -> },
         onEpisodeClick: (Episode) -> Unit = {},
         onToggleLikedEpisode: (Episode) -> Unit = {},
         onPodcastClick: (Long) -> Unit = {},
@@ -96,6 +97,7 @@ class ClipScreenTest {
                     progress = progress,
                     isPlaying = isPlaying,
                     onEpisodeChanged = onEpisodeChanged,
+                    onTogglePlay = onTogglePlay,
                     onEpisodeClick = onEpisodeClick,
                     onToggleLikedEpisode = onToggleLikedEpisode,
                     onPodcastClick = onPodcastClick,
@@ -655,17 +657,14 @@ class ClipScreenTest {
     // 기본 Robolectric 화면은 카드의 컨트롤 줄이 밑으로 밀려 나갈 만큼 좁다. 버튼이 화면
     // 밖이면 performClick 은 조용히 아무 일도 하지 않으므로, 실기와 같은 크기를 준다.
     @Config(qualifiers = "w411dp-h914dp")
-    fun playButton_clickInvokesOnEpisodeChanged() {
-        // "null 이 아니다" 로는 부족하다 — 화면에 들어오는 것만으로 자동 재생이 이미 한 번
-        // 채우므로, 재생 버튼을 통째로 없애도 그 단언은 통과한다. 클릭 전후를 비교한다.
-        val requested = mutableListOf<Episode>()
+    fun playButton_clickRequestsPlay() {
+        val requested = mutableListOf<Pair<Long, Boolean>>()
         setClipScreen(
             episodes = clipEpisodes.take(1),
             isPlaying = false,
-            onEpisodeChanged = { requested.add(it) },
+            onTogglePlay = { episode, play -> requested.add(episode.id to play) },
         )
         composeTestRule.waitForIdle()
-        val beforeClick = requested.size
 
         // 표시 확인이 먼저다. 화면 밖 노드에 performClick 을 하면 예외도 없이 그냥 아무 일도
         // 일어나지 않아, 클릭을 검증한 적 없는 테스트가 초록으로 남는다.
@@ -674,8 +673,28 @@ class ClipScreenTest {
             .performClick()
         composeTestRule.waitForIdle()
 
-        assertEquals(beforeClick + 1, requested.size)
-        assertEquals(clipEpisodes.first().id, requested.last().id)
+        assertEquals(listOf(clipEpisodes.first().id to true), requested)
+    }
+
+    @Test
+    // 일시정지 버튼이 재생을 다시 요청하면(play = true) 화면은 멈추지 않는다. 실제로 겪은
+    // 버그다 — 토글 방향을 버리고 늘 재생으로 처리해 누를 때마다 처음부터 다시 흘렀다.
+    @Config(qualifiers = "w411dp-h914dp")
+    fun pauseButton_clickRequestsPauseNotPlay() {
+        val requested = mutableListOf<Pair<Long, Boolean>>()
+        setClipScreen(
+            episodes = clipEpisodes.take(1),
+            isPlaying = true,
+            onTogglePlay = { episode, play -> requested.add(episode.id to play) },
+        )
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithContentDescription("Pause")
+            .assertIsDisplayed()
+            .performClick()
+        composeTestRule.waitForIdle()
+
+        assertEquals(listOf(clipEpisodes.first().id to false), requested)
     }
 
     // --- New: 카드에 뜨는 시간은 처음부터 그 카드의 클립 시간이어야 한다 ---
