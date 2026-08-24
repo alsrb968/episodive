@@ -14,6 +14,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.player.audio.PlaybackAmplitudeMonitor
 import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.model.mapper.toDurationMillis
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -35,6 +37,8 @@ import kotlin.time.Duration
 class PlayerDataSourceImpl @Inject constructor(
     private val player: ExoPlayer,
     private val episodeDownloader: EpisodeDownloader,
+    // 파도 애니메이션이 있는 클립 플레이어에만 붙는다. 없으면 크기는 늘 0 이다.
+    private val amplitudeMonitor: PlaybackAmplitudeMonitor? = null,
 ) : PlayerDataSource {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -158,6 +162,10 @@ class PlayerDataSourceImpl @Inject constructor(
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             Timber.d("isPlaying: $isPlaying")
             _isPlaying.value = isPlaying
+
+            // 소리가 멎으면 버퍼가 더 오지 않아 마지막 크기가 그대로 얼어붙는다. 멎는 경로가
+            // 여럿(일시정지·정지·오디오 포커스 상실)이라 각 함수가 아니라 이 한 자리에서 푼다.
+            if (!isPlaying) amplitudeMonitor?.reset()
         }
 
         override fun onRepeatModeChanged(repeatMode: Int) {
@@ -706,6 +714,8 @@ class PlayerDataSourceImpl @Inject constructor(
 
     private val _cue = MutableStateFlow("")
     override val cue: Flow<String> = _cue
+
+    override val amplitude: Flow<Float> = amplitudeMonitor?.amplitude ?: flowOf(0f)
 
     private val _progress = MutableStateFlow(
         Progress(

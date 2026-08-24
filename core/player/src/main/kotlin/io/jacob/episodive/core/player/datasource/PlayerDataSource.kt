@@ -49,4 +49,10 @@ interface PlayerDataSource {
     val repeat: Flow<Int>
     val speed: Flow<Float>
     val cue: Flow<String>
+
+    /**
+     * 지금 나고 있는 소리의 크기(0..1). 측정을 붙이지 않은 플레이어는 늘 0 을 낸다.
+     * 실제로 귀에 닿는 소리보다 AudioTrack 버퍼만큼 앞선 값이다.
+     */
+    val amplitude: Flow<Float>
 }
