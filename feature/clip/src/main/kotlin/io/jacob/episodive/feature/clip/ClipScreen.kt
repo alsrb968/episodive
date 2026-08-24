@@ -114,6 +114,9 @@ internal fun ClipRoute(
         isPlaying = clipPlayerState.isPlaying,
         amplitude = { amplitudeState.value },
         onEpisodeChanged = { viewModel.sendAction(ClipAction.PlayClip(it)) },
+        onTogglePlay = { episode, play ->
+            viewModel.sendAction(ClipAction.TogglePlay(episode, play))
+        },
         onEpisodeClick = { viewModel.sendAction(ClipAction.ClickEpisode(it)) },
         onToggleLikedEpisode = { viewModel.sendAction(ClipAction.ToggleLikedEpisode(it)) },
         onPodcastClick = { viewModel.sendAction(ClipAction.ClickPodcast(it)) },
@@ -130,6 +133,7 @@ internal fun ClipScreen(
     isPlaying: Boolean,
     amplitude: () -> Float = { 1f },
     onEpisodeChanged: (Episode) -> Unit = {},
+    onTogglePlay: (Episode, Boolean) -> Unit = { _, _ -> },
     onEpisodeClick: (Episode) -> Unit = {},
     onToggleLikedEpisode: (Episode) -> Unit = {},
     onPodcastClick: (Long) -> Unit = {},
@@ -170,6 +174,7 @@ internal fun ClipScreen(
             isPlaying = isPlaying,
             amplitude = amplitude,
             onEpisodeChanged = onEpisodeChanged,
+            onTogglePlay = onTogglePlay,
             onEpisodeClick = onEpisodeClick,
             onToggleLikedEpisode = onToggleLikedEpisode,
             onPodcastClick = onPodcastClick,
@@ -200,6 +205,7 @@ fun EpisodeClipPager(
     isPlaying: Boolean,
     amplitude: () -> Float = { 1f },
     onEpisodeChanged: (Episode) -> Unit = {},
+    onTogglePlay: (Episode, Boolean) -> Unit = { _, _ -> },
     onEpisodeClick: (Episode) -> Unit = {},
     onToggleLikedEpisode: (Episode) -> Unit = {},
     onPodcastClick: (Long) -> Unit = {},
@@ -435,8 +441,8 @@ fun EpisodeClipPager(
                     onClick = {
                         onEpisodeClick(episode)
                     },
-                    onPlayEpisode = {
-                        onEpisodeChanged(episode)
+                    onTogglePlay = { play ->
+                        onTogglePlay(episode, play)
                     },
                     onToggleLikedEpisode = {
                         onToggleLikedEpisode(episode)

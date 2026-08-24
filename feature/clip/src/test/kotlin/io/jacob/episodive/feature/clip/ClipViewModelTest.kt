@@ -8,6 +8,7 @@ import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.model.Playback
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.testing.model.episodeTestData
+import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.coVerify
 import io.mockk.confirmVerified
@@ -142,4 +143,61 @@ class ClipViewModelTest {
 
         verify { playerRepository.pause() }
     }
+
+    // --- 재생 버튼 토글 — 일시정지가 곧바로 재생으로 되돌아오던 회귀의 방지선 ---
+    //
+    // "이미 올라 있는 그 클립이면 이어 튼다" 는 PlayerDataSourceImpl 의 몫이라 여기서 겹쳐
+    // 검사하지 않는다(PlayerDataSourceImplTest 에 계약 테스트가 있다). 여기서 지키는 것은
+    // 토글 방향이 그대로 전달되는가 하나다 — 그것이 뒤집혔던 것이 이 버그였다.
+
+    @Test
+    fun `Given TogglePlay to pause, Then pause is invoked and the clip is not reloaded`() = runTest {
+        val viewModel = createViewModel()
+        val episode = episodeTestData
+
+        viewModel.sendAction(ClipAction.TogglePlay(episode, play = false))
+
+        verify(exactly = 1) { playerRepository.pause() }
+        // 정지 요청에 playClip 이 나가면 멈춘 지점이 사라지고 처음부터 다시 흐른다.
+        verify(exactly = 0) { playerRepository.playClip(any()) }
+    }
+
+    @Test
+    fun `Given TogglePlay to play, Then playClip is invoked`() = runTest {
+        val viewModel = createViewModel()
+        val episode = episodeTestData
+
+        viewModel.sendAction(ClipAction.TogglePlay(episode, play = true))
+
+        verify(exactly = 1) { playerRepository.playClip(episode) }
+        verify(exactly = 0) { playerRepository.pause() }
+    }
+
+    // --- 수동 일시정지와 생명주기 자동 재개의 우선순위 ---
+
+    @Test
+    fun `Given user paused, When Resume action arrives, Then resume is not invoked`() = runTest {
+        val viewModel = createViewModel()
+        val episode = episodeTestData
+
+        viewModel.sendAction(ClipAction.PlayClip(episode))
+        viewModel.sendAction(ClipAction.TogglePlay(episode, play = false))
+        viewModel.sendAction(ClipAction.Resume)
+
+        verify(exactly = 0) { playerRepository.resume() }
+    }
+
+    @Test
+    fun `Given user paused then a new clip played, When Resume action arrives, Then resume runs`() =
+        runTest {
+            val viewModel = createViewModel()
+            val episode = episodeTestDataList[0]
+            val next = episodeTestDataList[1]
+
+            viewModel.sendAction(ClipAction.TogglePlay(episode, play = false))
+            viewModel.sendAction(ClipAction.PlayClip(next))
+            viewModel.sendAction(ClipAction.Resume)
+
+            verify(exactly = 1) { playerRepository.resume() }
+        }
 }

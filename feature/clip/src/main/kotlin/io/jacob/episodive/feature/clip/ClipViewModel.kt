@@ -66,6 +66,12 @@ class ClipViewModel @Inject constructor(
     private val _effect = MutableSharedFlow<ClipEffect>(extraBufferCapacity = 1)
     val effect = _effect.asSharedFlow()
 
+    /**
+     * 사용자가 직접 일시정지했는지. 화면이 다시 보일 때([ClipAction.Resume]) 무조건 재생하면
+     * 사용자가 세워 둔 것을 앱이 되돌려 버린다. 새 클립을 재생하는 순간 다시 내린다.
+     */
+    private var pausedByUser = false
+
     init {
         handleActions()
     }
@@ -74,6 +80,7 @@ class ClipViewModel @Inject constructor(
         _action.collectLatest { action ->
             when (action) {
                 is ClipAction.PlayClip -> playClip(action.episode)
+                is ClipAction.TogglePlay -> togglePlay(action.episode, action.play)
                 is ClipAction.ClickEpisode -> playEpisode(action.episode)
                 is ClipAction.ToggleLikedEpisode -> toggleLikedEpisode(action.episode)
                 is ClipAction.ClickPodcast -> clickPodcast(action.podcastId)
@@ -88,13 +95,36 @@ class ClipViewModel @Inject constructor(
     }
 
     private fun playClip(episode: Episode) {
+        pausedByUser = false
         playerRepository.playClip(episode)
     }
 
+    /**
+     * 재생 버튼 토글. [play] 는 사용자가 원하는 방향이다.
+     *
+     * 재생 쪽은 [PlayerRepository.playClip] 하나로 보낸다. "이미 올라 있는 그 클립인가" 는
+     * 플레이어에 실제로 무엇이 올라 있는지를 아는 [PlayerRepository] 쪽이 판정해 그 자리에서
+     * 이어 튼다. 여기서 같은 판정을 한 번 더 하면 두 곳이 갈라진다 — 특히 같은 에피소드라도
+     * 잘라낸 창이 바뀐 경우를 여기서는 알 수 없어, 옛 창을 이어 틀면서 카드는 새 길이를 띄운다.
+     */
+    private fun togglePlay(episode: Episode, play: Boolean) {
+        if (play) {
+            playClip(episode)
+        } else {
+            pausedByUser = true
+            playerRepository.pause()
+        }
+    }
+
+    /**
+     * 화면이 다시 보일 때의 자동 재개. 사용자가 직접 세워 둔 것은 그대로 둔다.
+     */
     private fun resume() {
+        if (pausedByUser) return
         playerRepository.resume()
     }
 
+    /** 화면이 가려질 때의 자동 정지. 사용자의 의도가 아니므로 [pausedByUser] 를 올리지 않는다. */
     private fun pause() {
         playerRepository.pause()
     }
@@ -121,6 +151,10 @@ data class ClipPlayerState(
 
 sealed interface ClipAction {
     data class PlayClip(val episode: Episode) : ClipAction
+
+    /** 재생 버튼 토글. [play] 가 `true` 면 재생, `false` 면 일시정지. */
+    data class TogglePlay(val episode: Episode, val play: Boolean) : ClipAction
+
     data class ClickEpisode(val episode: Episode) : ClipAction
     data class ToggleLikedEpisode(val episode: Episode) : ClipAction
     data class ClickPodcast(val podcastId: Long) : ClipAction
