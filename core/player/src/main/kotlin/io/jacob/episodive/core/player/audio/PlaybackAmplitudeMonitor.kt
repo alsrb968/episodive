@@ -32,7 +32,17 @@ import kotlin.math.sqrt
  *    함께 적어야 한다.
  */
 @Singleton
-class PlaybackAmplitudeMonitor @Inject constructor() : TeeAudioProcessor.AudioBufferSink {
+// 구현하는 인터페이스와 두 오버라이드가 모두 media3 의 opt-in API 다. 함수 하나에만 붙이면
+// 나머지가 lintDebug 의 UnsafeOptInUsageError 로 남는다. @UnstableApi 가 아니라 @OptIn 인 것은,
+// 이 클래스를 쓰는 쪽까지 unstable 로 번지게 할 이유가 없어서다.
+@OptIn(UnstableApi::class)
+class PlaybackAmplitudeMonitor internal constructor(
+    /** 지연 보정이 시계에 기대므로, 테스트가 시간을 쥘 수 있도록 밖에서 받는다. */
+    private val nanoTime: () -> Long,
+) : TeeAudioProcessor.AudioBufferSink {
+    @Inject
+    constructor() : this(nanoTime = System::nanoTime)
+
     private val _amplitude = MutableStateFlow(0f)
     val amplitude: StateFlow<Float> = _amplitude.asStateFlow()
 
@@ -50,7 +60,6 @@ class PlaybackAmplitudeMonitor @Inject constructor() : TeeAudioProcessor.AudioBu
     /** (잰 시각, 그때의 크기). 오디오 스레드에서만 만지므로 별도 동기화가 없다. */
     private val pending = ArrayDeque<TimedLevel>()
 
-    @OptIn(UnstableApi::class)
     override fun flush(sampleRateHz: Int, channelCount: Int, encoding: Int) {
         pcmEncoding = encoding
         reset()
@@ -84,7 +93,7 @@ class PlaybackAmplitudeMonitor @Inject constructor() : TeeAudioProcessor.AudioBu
 
         // 방금 잰 것은 AudioTrack 에 쌓였다가 잠시 뒤에 들릴 소리다. 잰 시각과 함께 넣어 두고
         // 그만큼 지난 것만 꺼내 내보낸다.
-        val now = System.nanoTime()
+        val now = nanoTime()
         pending.addLast(TimedLevel(measuredAt = now, level = smoothedLevel))
 
         val audibleAt = now - PlaybackLatencyNanos
