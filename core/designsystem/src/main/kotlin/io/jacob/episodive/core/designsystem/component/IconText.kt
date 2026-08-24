@@ -47,6 +47,7 @@ fun ClipAnimationIconText(
     color: Color = MaterialTheme.colorScheme.onSurface,
     isPlaying: Boolean,
     text: String,
+    amplitude: () -> Float = { 1f },
 ) {
     Surface(
         modifier = modifier,
@@ -64,6 +65,7 @@ fun ClipAnimationIconText(
                 barCount = barCount,
                 color = color,
                 isAnimating = isPlaying,
+                amplitude = amplitude,
             )
 
             Text(

@@ -882,6 +882,7 @@ fun EpisodeClipItem(
     episode: Episode,
     isPlaying: Boolean,
     remaining: Duration,
+    amplitude: () -> Float = { 1f },
     onClick: () -> Unit,
     onPlayEpisode: () -> Unit,
     onToggleLikedEpisode: () -> Unit,
@@ -970,6 +971,7 @@ fun EpisodeClipItem(
                 ClipAnimationIconText(
                     text = remaining.toHumanReadable(),
                     isPlaying = isPlaying,
+                    amplitude = amplitude,
                 )
 
                 Spacer(modifier = Modifier.weight(1f))

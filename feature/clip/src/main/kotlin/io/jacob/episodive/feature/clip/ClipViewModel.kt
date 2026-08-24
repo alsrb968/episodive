@@ -49,6 +49,18 @@ class ClipViewModel @Inject constructor(
         initialValue = ClipPlayerState()
     )
 
+    /**
+     * 지금 나고 있는 소리의 크기(0..1).
+     *
+     * clipPlayerState 에 섞지 않는다. 초당 서른 번 바뀌는 값을 화면 상태에 넣으면 그 빈도로
+     * 화면 전체가 재구성된다. 파도 막대 하나만 쓰는 값이므로 통로도 따로 둔다.
+     */
+    val amplitude: StateFlow<Float> = playerRepository.amplitude.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = 0f,
+    )
+
     private val _action = MutableSharedFlow<ClipAction>(extraBufferCapacity = 1)
 
     private val _effect = MutableSharedFlow<ClipEffect>(extraBufferCapacity = 1)

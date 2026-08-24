@@ -138,7 +138,7 @@ Material3 `ColorScheme`을 라이트/다크 두 세트로 **직접 정의**합�
 | 시커 썸 반경 | `animateDpAsState` 6dp ↔ 10dp (드래그 시 확대), gap 2dp↔4dp |
 | 배속 다이얼 스냅 | `spring(dampingRatio = MediumBouncy, stiffness = Low)` |
 | 배속 다이얼 fling | `exponentialDecay(frictionMultiplier = 3f)` → `spring(LowBouncy, Medium)` |
-| 웨이브 애니메이션(재생 표시) | `infiniteRepeatable(tween(300~500ms 랜덤, Linear), Reverse)`, 바마다 100ms 위상차 |
+| 웨이브 애니메이션(재생 표시) | 자체 리듬 없이 재생 중인 소리 크기(`PlaybackAmplitudeMonitor`, -40~-14dBFS → 0..1)만으로 높이를 정한다. `withInfiniteAnimationFrameNanos` 로 매 프레임 시간상수 70ms 로 목표를 좇고, 막대별 반응은 가운데 1 → 양 끝 0.2(코사인^1.6). 측정값은 실제로 들리는 시점보다 앞서므로 0.39초 늦춰 내보낸다. 멈추면 목표가 0 이라 높이 30% 의 한 줄로 잦아든다 |
 | 페이드 탑바 제목 | `fadeIn()`/`fadeOut()` |
 | 스크롤바 fade-out | Active→Inactive 후 2000ms 뒤 Dormant(Transparent), `SpringSpec(stiffness = Low)` |
 | 카드 펼침/접힘 | `animateContentSize()` |
@@ -290,7 +290,7 @@ M3 3종 래퍼, 각각 `content` 슬롯 버전 + `text`/`leadingIcon` 편의 버
 | `SkeletonBox` / `SkeletonLine` / `SkeletonCover` | 블록 / 텍스트 줄(자리는 `lineHeight`, 잉크는 72%) / 커버(`coverForSize` 사다리) |
 
 제약: 컨테이너에 배경을 칠하면 레이어 전체가 균일하게 쓸린다 — 배경은 바깥에서. 스크롤 리스트 전체에 걸면 스크롤마다 레이어가 무효화된다. 도메인 카드 스켈레톤은 `core/ui` 의 실제 컴포넌트 바로 아래에 둔다(치수 드리프트 방지).
-| `WaveAnimationIcon` | `AnimationIcon.kt` | 5개 막대(각 2dp, 16dp), 300~500ms 랜덤 웨이브, 100ms 위상차. 재생 파형 표시 |
+| `WaveAnimationIcon` | `AnimationIcon.kt` | 5개 막대(폭 3dp, 트랙 16dp, 간격 2dp), 세로 가운데 기준 대칭 성장. 높이는 재생 중인 소리 크기만으로 정한다(자체 리듬 없음) — 가운데가 크게, 양 끝이 덜 움직인다. 소리가 없으면 높이 30% 의 한 줄 |
 | `ClipAnimationIconText` | `IconText.kt` | 반투명 pill(`onBackground alpha 0.3f`, CircleShape) 안에 웨이브+시간 |
 
 ### 4.9 스크롤바 (`scrollbar/`)

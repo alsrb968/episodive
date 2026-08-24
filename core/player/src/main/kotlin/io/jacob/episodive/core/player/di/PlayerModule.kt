@@ -7,7 +7,11 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.TeeAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import dagger.Module
 import dagger.Provides
@@ -16,6 +20,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.common.EpisodivePlayers
 import io.jacob.episodive.core.common.Player
+import io.jacob.episodive.core.player.audio.PlaybackAmplitudeMonitor
 import javax.inject.Singleton
 
 @Module
@@ -30,17 +35,25 @@ object PlayerModule {
         return createExoPlayer(context)
     }
 
+    /**
+     * 클립 플레이어에만 소리 크기 측정을 붙인다. 파도 애니메이션이 있는 화면이 클립뿐이라,
+     * 전체 재생에까지 오디오 스레드의 일을 늘릴 이유가 없다.
+     */
     @Provides
     @Singleton
     @Player(EpisodivePlayers.Clip)
     fun provideClipExoPlayer(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        amplitudeMonitor: PlaybackAmplitudeMonitor,
     ): ExoPlayer {
-        return createExoPlayer(context)
+        return createExoPlayer(context, amplitudeMonitor)
     }
 
     @OptIn(UnstableApi::class)
-    private fun createExoPlayer(context: Context): ExoPlayer {
+    private fun createExoPlayer(
+        context: Context,
+        amplitudeSink: TeeAudioProcessor.AudioBufferSink? = null,
+    ): ExoPlayer {
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -58,6 +71,31 @@ object PlayerModule {
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .setSeekBackIncrementMs(15_000L)
             .setSeekForwardIncrementMs(30_000L)
+            .apply {
+                amplitudeSink?.let { setRenderersFactory(tappedRenderersFactory(context, it)) }
+            }
+            .build()
+    }
+
+    /**
+     * PCM 을 엿보는 [TeeAudioProcessor] 를 오디오 체인 앞에 끼운 렌더러 팩토리.
+     *
+     * `setAudioProcessors` 로 넘긴 프로세서 뒤에 media3 가 `SonicAudioProcessor`(배속)와
+     * `SilenceSkippingAudioProcessor` 를 그대로 붙이므로, 배속 재생은 영향받지 않는다.
+     */
+    @OptIn(UnstableApi::class)
+    private fun tappedRenderersFactory(
+        context: Context,
+        sink: TeeAudioProcessor.AudioBufferSink,
+    ): DefaultRenderersFactory = object : DefaultRenderersFactory(context) {
+        override fun buildAudioSink(
+            context: Context,
+            enableFloatOutput: Boolean,
+            enableAudioTrackPlaybackParams: Boolean,
+        ): AudioSink = DefaultAudioSink.Builder(context)
+            .setEnableFloatOutput(enableFloatOutput)
+            .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+            .setAudioProcessors(arrayOf(TeeAudioProcessor(sink)))
             .build()
     }
 }

@@ -102,12 +102,17 @@ internal fun ClipRoute(
 
     val clipPlayerState by viewModel.clipPlayerState.collectAsStateWithLifecycle()
 
+    // by 로 풀지 않는다. 이 State 를 컴포지션에서 읽는 순간 소리 크기가 바뀔 때마다 화면이
+    // 재구성된다. 값을 읽는 것은 파도 막대의 그리기 단계뿐이어야 한다.
+    val amplitudeState = viewModel.amplitude.collectAsStateWithLifecycle()
+
     ClipScreen(
         modifier = modifier,
         episodes = viewModel.episodes,
         playback = clipPlayerState.playback,
         progress = clipPlayerState.progress,
         isPlaying = clipPlayerState.isPlaying,
+        amplitude = { amplitudeState.value },
         onEpisodeChanged = { viewModel.sendAction(ClipAction.PlayClip(it)) },
         onEpisodeClick = { viewModel.sendAction(ClipAction.ClickEpisode(it)) },
         onToggleLikedEpisode = { viewModel.sendAction(ClipAction.ToggleLikedEpisode(it)) },
@@ -123,6 +128,7 @@ internal fun ClipScreen(
     playback: Playback,
     progress: Progress,
     isPlaying: Boolean,
+    amplitude: () -> Float = { 1f },
     onEpisodeChanged: (Episode) -> Unit = {},
     onEpisodeClick: (Episode) -> Unit = {},
     onToggleLikedEpisode: (Episode) -> Unit = {},
@@ -162,6 +168,7 @@ internal fun ClipScreen(
             playback = playback,
             progress = progress,
             isPlaying = isPlaying,
+            amplitude = amplitude,
             onEpisodeChanged = onEpisodeChanged,
             onEpisodeClick = onEpisodeClick,
             onToggleLikedEpisode = onToggleLikedEpisode,
@@ -191,6 +198,7 @@ fun EpisodeClipPager(
     playback: Playback,
     progress: Progress,
     isPlaying: Boolean,
+    amplitude: () -> Float = { 1f },
     onEpisodeChanged: (Episode) -> Unit = {},
     onEpisodeClick: (Episode) -> Unit = {},
     onToggleLikedEpisode: (Episode) -> Unit = {},
@@ -414,6 +422,7 @@ fun EpisodeClipPager(
                     modifier = Modifier.fillMaxSize(),
                     episode = episode,
                     isPlaying = isPlaying && isCurrentClip,
+                    amplitude = amplitude,
                     // 흐르는 남은 시간은 지금 플레이어에 올라 있는 클립의 것뿐이다. 아직
                     // 자기 차례가 아닌 카드(첫 진입, 스와이프 직후, 위아래로 걸쳐 보이는
                     // 이웃)까지 같은 값을 쓰면 남의 진행 시간을 빌려 보여주게 되고, 재생이
