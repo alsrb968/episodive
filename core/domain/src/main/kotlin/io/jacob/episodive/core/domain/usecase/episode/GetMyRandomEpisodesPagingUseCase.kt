@@ -11,8 +11,10 @@ import javax.inject.Inject
 /**
  * [GetMyRandomEpisodesUseCase] 의 전체 목록판.
  *
- * 원본과 마찬가지로 카테고리가 비어 있어도 그대로 요청한다 — 랜덤은 관심사가 없어도
- * 보여줄 것이 있는 섹션이다.
+ * 원본과 마찬가지로 카테고리가 비어 있어도 그대로 요청하고, **원본과 마찬가지로 관심
+ * 카테고리를 넘기지 않는다** — 언어와 함께 보내면 원격이 급격히 느려진다. 측정값과 판단
+ * 근거는 [GetMyRandomEpisodesUseCase] 에 적어 두었다. 둘 중 하나만 넘기면 같은 화면의
+ * 목록과 더 보기가 서로 다른 모수에서 뽑혀, 더 보기를 눌렀을 때 방금 본 항목이 사라진다.
  */
 class GetMyRandomEpisodesPagingUseCase @Inject constructor(
     private val episodeRepository: EpisodeRepository,
@@ -23,7 +25,6 @@ class GetMyRandomEpisodesPagingUseCase @Inject constructor(
             episodeRepository.getRandomEpisodesPaging(
                 max = max,
                 language = userData.language,
-                includeCategories = userData.categories,
             )
         }
     }

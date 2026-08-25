@@ -452,10 +452,13 @@ fun EpisodeItemSkeleton(modifier: Modifier = Modifier) {
     ) {
         SkeletonCover(size = dimension.thumbnailSmall)
 
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
+        // 줄 사이에 간격을 두지 않는다. SkeletonLine 은 이미 style 의 줄 높이를 통째로
+        // 차지하고 그 안에 잉크만 얇게 칠하므로, 쌓기만 해도 실제 텍스트와 같은 리듬이 난다.
+        // 여기에 spacedBy 를 걸면 세 줄 사이에 두 번 붙어 실제보다 8dp 길어지고, 그만큼
+        // 로딩에서 콘텐츠로 바뀔 때 아래가 위로 당겨진다 — 실제 EpisodeItem 의 높이는
+        // 커버(thumbnailSmall)가 정하는데, 제목이 두 줄로 접혀도 한 Text 안이라 줄 사이에
+        // 간격이 없어 텍스트가 커버를 넘지 않기 때문이다.
+        Column(modifier = Modifier.weight(1f)) {
             // 제목은 최대 2줄이라 항상 2줄을 그린다.
             SkeletonLine(style = MaterialTheme.typography.labelLarge, widthFraction = 0.92f)
             SkeletonLine(style = MaterialTheme.typography.labelLarge, widthFraction = 0.55f)

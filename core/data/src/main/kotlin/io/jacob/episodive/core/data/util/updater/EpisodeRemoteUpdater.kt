@@ -24,7 +24,8 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
     private val soundbiteLocal: SoundbiteLocalDataSource,
     private val soundbiteRemote: SoundbiteRemoteDataSource,
     @Assisted("query") override val query: EpisodeQuery,
-) : RemoteUpdater<EpisodeQuery, EpisodeResponse, EpisodeEntity, EpisodeWithExtrasView>(query) {
+    backgroundRefresher: BackgroundRefresher,
+) : RemoteUpdater<EpisodeQuery, EpisodeResponse, EpisodeEntity, EpisodeWithExtrasView>(query, backgroundRefresher) {
 
     @AssistedFactory
     interface Factory {

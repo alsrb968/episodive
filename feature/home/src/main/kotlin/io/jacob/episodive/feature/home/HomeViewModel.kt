@@ -21,20 +21,18 @@ import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
-import io.jacob.episodive.core.model.asDataError
+import io.jacob.episodive.core.model.isRetryable
 import io.jacob.episodive.feature.home.navigation.HomeSection
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,17 +56,19 @@ class HomeViewModel @Inject constructor(
     // 값을 증가시키기만 하면 되므로 트리거 자체의 내용은 의미가 없다.
     private val retryTrigger = MutableStateFlow(0)
 
+    // 각 소스를 SectionState 로 감싸는 것이 핵심이다. 감싸지 않으면 combine 이 아홉 개의 첫
+    // 값을 모두 기다려 가장 느린 하나가 홈 전체를 붙잡는다 — 자세한 사정은 SectionState 참고.
     val state: StateFlow<HomeState> = retryTrigger.flatMapLatest {
         combine(
-            getPlayingEpisodesUseCase(max = FEED_MAX),
-            getUserRecentPodcastsUseCase(max = FEED_MAX),
-            getMyRandomEpisodesUseCase(max = COMPACT_MAX),
-            getUserTrendingPodcastsUseCase(max = FEED_MAX),
-            getFollowedPodcastsUseCase(max = FEED_MAX),
-            getLocalTrendingPodcastsUseCase(max = FEED_MAX),
-            getForeignTrendingPodcastsUseCase(max = FEED_MAX),
-            getLiveEpisodesUseCase(max = COMPACT_MAX),
-            getChannelsUseCase(),
+            getPlayingEpisodesUseCase(max = FEED_MAX).asSectionState(),
+            getUserRecentPodcastsUseCase(max = FEED_MAX).asSectionState(),
+            getMyRandomEpisodesUseCase(max = COMPACT_MAX).asSectionState(),
+            getUserTrendingPodcastsUseCase(max = FEED_MAX).asSectionState(),
+            getFollowedPodcastsUseCase(max = FEED_MAX).asSectionState(),
+            getLocalTrendingPodcastsUseCase(max = FEED_MAX).asSectionState(),
+            getForeignTrendingPodcastsUseCase(max = FEED_MAX).asSectionState(),
+            getLiveEpisodesUseCase(max = COMPACT_MAX).asSectionState(),
+            getChannelsUseCase().asSectionState(),
         ) {
                 playingEpisodes,
                 userRecentPodcasts,
@@ -81,7 +81,9 @@ class HomeViewModel @Inject constructor(
                 channels,
             ->
 
-            HomeState.Success(
+            // 섹션 목록을 여기서 다시 세지 않고 상태 자신에게 묻는다 — 두 벌로 갈라지면
+            // 새 섹션을 더할 때 한쪽만 고쳐 판정이 조용히 어긋난다.
+            val loaded = HomeState.Success(
                 playingEpisodes = playingEpisodes,
                 userRecentPodcasts = userRecentPodcasts,
                 randomEpisodes = randomEpisodes,
@@ -90,11 +92,26 @@ class HomeViewModel @Inject constructor(
                 localTrendingPodcasts = localTrendingPodcasts,
                 foreignTrendingPodcasts = foreignTrendingPodcasts,
                 liveEpisodes = liveEpisodes,
-                channels = channels
-            ) as HomeState
-        }.catch { e ->
-            Timber.e(e, "홈 데이터를 불러오지 못했다")
-            emit(HomeState.Error(e.asDataError()))
+                channels = channels,
+            )
+
+            when {
+                // 화면 전체를 덮는 두 상태는 "모두 그렇다" 일 때만 쓴다. 하나라도 보여줄 것이
+                // 있으면 그것을 띄우고 나머지는 각자 자기 자리에서 기다리거나 빠진다.
+                loaded.sections.all { it is SectionState.Loading } -> HomeState.Loading
+
+                loaded.sections.all { it is SectionState.Error } -> {
+                    val errors = loaded.sections.filterIsInstance<SectionState.Error>()
+                    // 재시도할 수 있는 오류를 먼저 고른다. 그냥 첫 번째를 쓰면 재시도 불가
+                    // 오류(Unauthorized·NotFound)가 섞였을 때 사용자가 재시도 버튼조차 받지
+                    // 못하고 갇힌다.
+                    HomeState.Error(
+                        errors.firstOrNull { it.error.isRetryable }?.error ?: errors.first().error
+                    )
+                }
+
+                else -> loaded
+            }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -172,19 +189,44 @@ class HomeViewModel @Inject constructor(
 }
 
 sealed interface HomeState {
+    /** 아직 아무 섹션도 응답하지 않았다. 이 상태에서만 화면 전체가 스켈레톤이다. */
     data object Loading : HomeState
-    data class Success(
-        val playingEpisodes: List<Episode>,
-        val userRecentPodcasts: List<Podcast>,
-        val randomEpisodes: List<Episode>,
-        val userTrendingPodcasts: List<Podcast>,
-        val followedPodcasts: List<Podcast>,
-        val localTrendingPodcasts: List<Podcast>,
-        val foreignTrendingPodcasts: List<Podcast>,
-        val liveEpisodes: List<Episode>,
-        val channels: List<Channel>,
-    ) : HomeState
 
+    /**
+     * 섹션 중 적어도 하나가 판정됐다. **나머지가 아직 오지 않았어도 이 상태다** — 각 섹션이
+     * 자기 [SectionState] 를 들고 있어, 화면은 도착한 것을 그리고 나머지 자리에는 스켈레톤을 둔다.
+     */
+    data class Success(
+        val playingEpisodes: SectionState<Episode>,
+        val userRecentPodcasts: SectionState<Podcast>,
+        val randomEpisodes: SectionState<Episode>,
+        val userTrendingPodcasts: SectionState<Podcast>,
+        val followedPodcasts: SectionState<Podcast>,
+        val localTrendingPodcasts: SectionState<Podcast>,
+        val foreignTrendingPodcasts: SectionState<Podcast>,
+        val liveEpisodes: SectionState<Episode>,
+        val channels: SectionState<Channel>,
+    ) : HomeState {
+        /**
+         * 섹션 전체를 한 번에 훑어야 할 때. 화면을 통째로 덮을지(모두 로딩·모두 실패)를 여기서
+         * 가른다. **섹션을 더하면 이 목록에도 더한다** — 빠뜨리면 그 섹션만 판정에서 조용히
+         * 빠져, 예컨대 그것 하나만 남아 로딩 중인데도 화면이 다 온 척한다.
+         */
+        val sections: List<SectionState<*>>
+            get() = listOf(
+                playingEpisodes,
+                userRecentPodcasts,
+                randomEpisodes,
+                userTrendingPodcasts,
+                followedPodcasts,
+                localTrendingPodcasts,
+                foreignTrendingPodcasts,
+                liveEpisodes,
+                channels,
+            )
+    }
+
+    /** 모든 섹션이 실패했다. 하나라도 살아 있으면 [Success] 안의 섹션 오류로 다룬다. */
     data class Error(val error: DataError) : HomeState
 }
 

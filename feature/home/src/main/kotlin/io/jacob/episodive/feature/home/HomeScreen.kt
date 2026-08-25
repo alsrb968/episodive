@@ -88,6 +88,7 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.testing.model.liveEpisodeTestDataList
 import io.jacob.episodive.core.testing.model.podcastTestDataList
 import io.jacob.episodive.core.ui.ChannelSection
+import io.jacob.episodive.core.ui.ChannelSectionSkeleton
 import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.EpisodesSection
 import io.jacob.episodive.core.ui.EpisodesSectionSkeleton
@@ -168,15 +169,15 @@ internal fun HomeRoute(
 @Composable
 internal fun HomeScreen(
     modifier: Modifier = Modifier,
-    playingEpisodes: List<Episode>,
-    userRecentPodcasts: List<Podcast>,
-    randomEpisodes: List<Episode>,
-    userTrendingPodcasts: List<Podcast>,
-    followedPodcasts: List<Podcast>,
-    localTrendingPodcasts: List<Podcast>,
-    foreignTrendingPodcasts: List<Podcast>,
-    liveEpisodes: List<Episode>,
-    channels: List<Channel>,
+    playingEpisodes: SectionState<Episode>,
+    userRecentPodcasts: SectionState<Podcast>,
+    randomEpisodes: SectionState<Episode>,
+    userTrendingPodcasts: SectionState<Podcast>,
+    followedPodcasts: SectionState<Podcast>,
+    localTrendingPodcasts: SectionState<Podcast>,
+    foreignTrendingPodcasts: SectionState<Podcast>,
+    liveEpisodes: SectionState<Episode>,
+    channels: SectionState<Channel>,
     onPlayEpisode: (Episode) -> Unit,
     onResumeEpisode: (Episode) -> Unit,
     onToggleLikedEpisode: (Episode) -> Unit,
@@ -232,9 +233,14 @@ internal fun HomeScreen(
                             }
                         },
                 ) {
-                    if (playingEpisodes.isNotEmpty()) {
+                    // 이어듣기는 로컬 DB 만 읽어 사실상 즉시 도착하므로 로딩 자리를 따로
+                    // 잡지 않는다. 애초에 있을 수도 없을 수도 있는 자리라, 스켈레톤을 그리면
+                    // 이어듣을 것이 없는 사용자에게 없는 카드를 약속하는 꼴이 된다.
+                    val playing = playingEpisodes.itemsOrEmpty
+
+                    if (playing.isNotEmpty()) {
                         HomeContinueListeningRow(
-                            episodes = playingEpisodes,
+                            episodes = playing,
                             onEpisodeClick = onResumeEpisode,
                         )
 
@@ -264,22 +270,41 @@ internal fun HomeScreen(
                         // 구분선은 섹션 뒤가 아니라 앞에 붙인다 — 그래야 앞 섹션이 비어도
                         // 선이 겹치지 않고, 마지막 섹션 뒤에 선이 남지도 않는다.
                         var sectionRendered = false
-                        fun section(
-                            items: Collection<*>,
-                            content: @Composable LazyItemScope.() -> Unit,
+                        fun <T> section(
+                            state: SectionState<T>,
+                            skeleton: @Composable LazyItemScope.() -> Unit,
+                            content: @Composable LazyItemScope.(List<T>) -> Unit,
                         ) {
-                            if (items.isEmpty()) return
+                            val items = when (state) {
+                                // 아직 오지 않았다 — 자리를 잡아 둔다. 비워 두면 도착하는
+                                // 순간 아래가 통째로 밀려, 누르려던 카드가 손가락 밑에서
+                                // 움직인다. 랜덤 에피소드는 위에서 둘째라 특히 그렇다.
+                                is SectionState.Loading -> null
+
+                                is SectionState.Success -> state.items.ifEmpty { return }
+
+                                // 실패는 빈 응답과 똑같이 건너뛴다. RemoteUpdater 가 예외를
+                                // 올리는 것은 캐시조차 없을 때뿐이라 대신 보여줄 것이 없고,
+                                // 섹션마다 오류 카드를 늘어놓는 것은 피드가 할 일이 아니다.
+                                is SectionState.Error -> return
+                            }
+
                             if (sectionRendered) {
                                 item { HorizontalDivider(modifier = Modifier.padding(16.dp)) }
                             }
                             sectionRendered = true
-                            item(content = content)
+                            item {
+                                if (items == null) skeleton() else content(items)
+                            }
                         }
 
-                        section(userRecentPodcasts) {
+                        section(
+                            state = userRecentPodcasts,
+                            skeleton = { PodcastsSectionSkeleton(hasAction = true) },
+                        ) { items ->
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_my_recent_feeds),
-                                podcasts = userRecentPodcasts,
+                                podcasts = items,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
                                 onMore = { onMoreClick(HomeSection.MyRecentPodcasts) },
                                 onPodcastClick = { feed ->
@@ -288,10 +313,18 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(randomEpisodes) {
+                        section(
+                            state = randomEpisodes,
+                            skeleton = {
+                                EpisodesSectionSkeleton(
+                                    count = HomeEpisodeSkeletonCount,
+                                    hasAction = true,
+                                )
+                            },
+                        ) { items ->
                             EpisodesSection(
                                 title = stringResource(R.string.feature_home_section_random_episodes),
-                                episodes = randomEpisodes,
+                                episodes = items,
                                 onEpisodeClick = onPlayEpisode,
                                 onToggleLikedEpisode = onToggleLikedEpisode,
                                 onToggleSavedEpisode = onToggleSavedEpisode,
@@ -299,10 +332,13 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(userTrendingPodcasts) {
+                        section(
+                            state = userTrendingPodcasts,
+                            skeleton = { PodcastsSectionSkeleton(hasAction = true) },
+                        ) { items ->
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_my_trending_feeds),
-                                podcasts = userTrendingPodcasts,
+                                podcasts = items,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
                                 onMore = { onMoreClick(HomeSection.MyTrendingPodcasts) },
                                 onPodcastClick = { feed ->
@@ -311,10 +347,13 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(followedPodcasts) {
+                        section(
+                            state = followedPodcasts,
+                            skeleton = { PodcastsSectionSkeleton(hasAction = true) },
+                        ) { items ->
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_followed_podcasts),
-                                podcasts = followedPodcasts,
+                                podcasts = items,
                                 onMore = { onMoreClick(HomeSection.FollowedPodcasts) },
                                 onPodcastClick = { podcast ->
                                     onPodcastClick(podcast.id)
@@ -322,10 +361,13 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(localTrendingPodcasts) {
+                        section(
+                            state = localTrendingPodcasts,
+                            skeleton = { PodcastsSectionSkeleton(hasAction = true) },
+                        ) { items ->
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_trending_in_local),
-                                podcasts = localTrendingPodcasts,
+                                podcasts = items,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
                                 onMore = { onMoreClick(HomeSection.LocalTrendingPodcasts) },
                                 onPodcastClick = { feed ->
@@ -334,10 +376,13 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(foreignTrendingPodcasts) {
+                        section(
+                            state = foreignTrendingPodcasts,
+                            skeleton = { PodcastsSectionSkeleton(hasAction = true) },
+                        ) { items ->
                             PodcastsSection(
                                 title = stringResource(R.string.feature_home_section_trending_in_foreign),
-                                podcasts = foreignTrendingPodcasts,
+                                podcasts = items,
                                 subtitleProvider = { it.ownerName.ifEmpty { it.author } },
                                 onMore = { onMoreClick(HomeSection.ForeignTrendingPodcasts) },
                                 onPodcastClick = { feed ->
@@ -346,10 +391,18 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(liveEpisodes) {
+                        section(
+                            state = liveEpisodes,
+                            skeleton = {
+                                EpisodesSectionSkeleton(
+                                    count = HomeEpisodeSkeletonCount,
+                                    hasAction = true,
+                                )
+                            },
+                        ) { items ->
                             EpisodesSection(
                                 title = stringResource(R.string.feature_home_section_live_episodes),
-                                episodes = liveEpisodes,
+                                episodes = items,
                                 onEpisodeClick = onPlayEpisode,
                                 onToggleLikedEpisode = onToggleLikedEpisode,
                                 onToggleSavedEpisode = onToggleSavedEpisode,
@@ -357,10 +410,13 @@ internal fun HomeScreen(
                             )
                         }
 
-                        section(channels) {
+                        section(
+                            state = channels,
+                            skeleton = { ChannelSectionSkeleton(hasAction = true) },
+                        ) { items ->
                             ChannelSection(
                                 title = stringResource(R.string.feature_home_section_channels),
-                                channels = channels,
+                                channels = items,
                                 onChannelClick = onChannelClick,
                                 onMore = { onMoreClick(HomeSection.Channels) },
                             )
@@ -647,6 +703,16 @@ private fun HomeContinueListeningHero(
 private val HomeHeroSkeletonInitialHeight = 130.dp
 
 /**
+ * 아직 오지 않은 에피소드 섹션이 잡아 둘 카드 수.
+ *
+ * `EpisodesSection` 은 가로 캐러셀이 아니라 세로 Column 이라 **이 수가 곧 섹션 높이**다.
+ * 실제로 채워질 개수(`HomeViewModel.COMPACT_MAX`)와 맞춰 둬야 도착하는 순간 아래가 밀리지
+ * 않는다. 팟캐스트·채널 캐러셀은 가로로 흘러 넘치는 만큼이 화면 밖이라 이 값이 필요 없고,
+ * 각 스켈레톤의 기본값을 그대로 쓴다.
+ */
+private const val HomeEpisodeSkeletonCount = 6
+
+/**
  * 로딩 자리. 화면 제목은 데이터와 무관한 정적 크롬이라 그대로 렌더하고, 이어듣기 히어로와
  * 시트 안 섹션 2개(캐러셀 1 + 세로 리스트 1)만 흉내낸다. 8개 섹션을 다 그리면 뒤쪽은 아무도
  * 못 보면서 컴포지션 비용만 내고, `section()` 헬퍼(L230-241)가 빈 섹션을 스킵하는 탓에 실제
@@ -794,15 +860,42 @@ private fun HomeSkeletonPreview() {
 private fun HomeScreenPreview() {
     EpisodiveTheme {
         HomeScreen(
-            playingEpisodes = episodeTestDataList,
-            userRecentPodcasts = podcastTestDataList,
-            randomEpisodes = episodeTestDataList,
-            userTrendingPodcasts = podcastTestDataList,
-            followedPodcasts = podcastTestDataList,
-            localTrendingPodcasts = podcastTestDataList,
-            foreignTrendingPodcasts = podcastTestDataList,
-            liveEpisodes = liveEpisodeTestDataList,
-            channels = channelTestDataList,
+            playingEpisodes = SectionState.Success(episodeTestDataList),
+            userRecentPodcasts = SectionState.Success(podcastTestDataList),
+            randomEpisodes = SectionState.Success(episodeTestDataList),
+            userTrendingPodcasts = SectionState.Success(podcastTestDataList),
+            followedPodcasts = SectionState.Success(podcastTestDataList),
+            localTrendingPodcasts = SectionState.Success(podcastTestDataList),
+            foreignTrendingPodcasts = SectionState.Success(podcastTestDataList),
+            liveEpisodes = SectionState.Success(liveEpisodeTestDataList),
+            channels = SectionState.Success(channelTestDataList),
+            onPlayEpisode = {},
+            onResumeEpisode = {},
+            onToggleLikedEpisode = {},
+            onPodcastClick = {},
+            onChannelClick = {},
+            onMoreClick = {},
+        )
+    }
+}
+/**
+ * 이 화면이 존재하는 이유가 되는 상태 — 랜덤 에피소드만 아직 오지 않았고 나머지는 다 찼다.
+ * 그 자리에만 스켈레톤이 남고 다른 섹션은 정상적으로 눌린다.
+ */
+@DevicePreviews
+@Composable
+private fun HomeScreenPartiallyLoadedPreview() {
+    EpisodiveTheme {
+        HomeScreen(
+            playingEpisodes = SectionState.Success(episodeTestDataList),
+            userRecentPodcasts = SectionState.Success(podcastTestDataList),
+            randomEpisodes = SectionState.Loading,
+            userTrendingPodcasts = SectionState.Success(podcastTestDataList),
+            followedPodcasts = SectionState.Success(podcastTestDataList),
+            localTrendingPodcasts = SectionState.Loading,
+            foreignTrendingPodcasts = SectionState.Success(podcastTestDataList),
+            liveEpisodes = SectionState.Success(liveEpisodeTestDataList),
+            channels = SectionState.Loading,
             onPlayEpisode = {},
             onResumeEpisode = {},
             onToggleLikedEpisode = {},
