@@ -406,36 +406,17 @@ internal fun PlayerScreen(
                             }
                         )
 
-                        // 좋아요와 공유를 오른쪽에 묶는다. SpaceBetween 은 요소가 셋이 되면
-                        // 가운데 하나를 화면 중앙으로 밀어내므로, 짝을 이룰 것은 짝으로 싼다.
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            EpisodiveIconButton(
-                                modifier = Modifier.size(dimension.iconButtonSize),
-                                onClick = onToggleLike,
-                                icon = {
-                                    Icon(
-                                        modifier = Modifier.size(22.dp),
-                                        imageVector = if (nowPlaying.isLiked) EpisodiveIcons.LikeFilled else EpisodiveIcons.Like,
-                                        contentDescription = "Like",
-                                    )
-                                }
-                            )
-
-                            EpisodiveIconButton(
-                                modifier = Modifier.size(dimension.iconButtonSize),
-                                onClick = onShare,
-                                icon = {
-                                    Icon(
-                                        modifier = Modifier.size(22.dp),
-                                        imageVector = EpisodiveIcons.Share,
-                                        contentDescription = stringResource(uiR.string.core_ui_share),
-                                    )
-                                }
-                            )
-                        }
+                        EpisodiveIconButton(
+                            modifier = Modifier.size(dimension.iconButtonSize),
+                            onClick = onToggleLike,
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.size(22.dp),
+                                    imageVector = if (nowPlaying.isLiked) EpisodiveIcons.LikeFilled else EpisodiveIcons.Like,
+                                    contentDescription = "Like",
+                                )
+                            }
+                        )
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -526,6 +507,7 @@ internal fun PlayerScreen(
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
                         onList = { showPlaylistSheet = true },
                         onToggleSave = onToggleSave,
+                        onShare = onShare,
                     )
                 }
             }
@@ -745,6 +727,7 @@ private fun ControlPanelBottom(
     sleepTimerRemainingMs: Long? = null,
     onList: () -> Unit = {},
     onToggleSave: () -> Unit = {},
+    onShare: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -887,6 +870,21 @@ private fun ControlPanelBottom(
                             imageVector = EpisodiveIcons.Moon,
                             contentDescription = stringResource(R.string.feature_player_sleep_timer),
                             tint = moonTint,
+                        )
+                    }
+                )
+
+                // 다섯 칸의 한가운데. 좌우 두 칸씩이 재생을 조절하는 것들이라, 성격이 다른
+                // 공유를 가장자리에 두면 목록·다운로드와 같은 줄로 읽힌다.
+                EpisodiveIconButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onShare,
+                    icon = {
+                        Icon(
+                            modifier = Modifier.size(21.dp),
+                            imageVector = EpisodiveIcons.Share,
+                            contentDescription = stringResource(uiR.string.core_ui_share),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 )

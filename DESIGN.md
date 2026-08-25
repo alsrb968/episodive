@@ -453,15 +453,16 @@ Now in Android 방식 커스텀 스크롤바.
 **풀스크린 플레이어**(`PlayerScreen`): `ModalBottomSheet`(`skipPartiallyExpanded = true`, dragHandle 없음, scrim 투명)로 표시. 본문은 단일 `LazyColumn`(`overscrollEffect = null`):
 
 1. **히어로 블록**(화면 높이 92%, `EpisodiveGradientBackground` top=앨범아트 추출색):
-   - 상단바: 좌 `CaretDown`(접기), 우 좋아요 토글 + 공유(4dp 간격 `Row` 로 묶는다 —
-     `SpaceBetween` 에 셋을 늘어놓으면 가운데 하나가 화면 중앙으로 밀린다), 배경 투명
+   - 상단바: 좌 `CaretDown`(접기), 우 좋아요 토글, 배경 투명
    - **앨범아트**: `padding(horizontal 24dp)` 정사각, `StateImage` size=600px, 셰이프 `extraExtraLarge`(48dp), Top 추출색·brightness -0.2f. 위아래 weight로 수직 중앙
    - **PushUpCue**: 아트 하단에 transcript 자막을 아래→위 슬라이드+페이드(`AnimatedContent` tween 300)
    - 텍스트: 팟캐스트명 `bodyLarge`/`onSurfaceVariant` + 에피소드명 `titleLarge`/`onSurface` (둘 다 FadingEdgeText 1줄, 중앙)
    - **시크바 영역**: `EpisodiveSeeker` + 3열(현재위치 55dp | 챕터명 중앙 | 전체길이 55dp, `labelMedium`)
    - **컨트롤 패널**:
      - 1행: Replay15(48dp/아이콘32dp) · SkipPrevious(48/40) · **재생·정지 토글(68dp 원형/아이콘36dp, `onBackground` 배경)** · SkipNext · Forward30
-     - 2행: 배속 텍스트버튼(`"1.0x"` titleLarge) · 슬립타이머(32dp, 임박 시 `primary`로 lerp) · 저장/다운로드 토글(진행 시 진행률 링) · 재생목록(32dp)
+     - 2행: 배속 텍스트버튼(`"1.0x"` titleLarge) · 슬립타이머(32dp, 임박 시 `primary`로 lerp) ·
+       **공유** · 저장/다운로드 토글(진행 시 진행률 링) · 재생목록(32dp). 다섯 칸을
+       `weight(1f)` 로 똑같이 나눠 각 아이콘이 자기 칸 중앙에 온다 — 공유는 그 한가운데다
 2. **에피소드 정보 카드**: `Card`(`extraLarge`, animateContentSize), HTML 설명(접힘 3줄). 헤더는 `EpisodiveViewToggleHeader` — **클릭은 카드가 전담한다.** 제목·아이콘에 버튼을 겹치면 클릭 지점이 둘로 갈려 리플이 제목 언저리에만 번지고 스크린리더도 같은 동작을 두 번 읽는다
 3. **챕터 카드**(있을 때): 접힘 시 현재 챕터 주변 최대 5개, 초과 시 더보기
 4. **팟캐스트 정보 카드**: HTML 설명 + `PodcastSimpleItem`
