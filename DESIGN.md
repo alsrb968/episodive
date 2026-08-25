@@ -123,6 +123,8 @@ Material3 `ColorScheme`을 라이트/다크 두 세트로 **직접 정의**합�
 - Play/Pause = `PlayerPlay`/`PlayerPause`, Replay15 = `RewindBackward15`, Forward30 = `RewindForward30`
 - Like = `HeartPlus`/`HeartFilled`, Follow = `UsersPlus`/`UsersMinus`, Save = `DeviceFloppy`
 - Owner = `CreativeCommonsBy`, PublicationDate = `CalendarTime`, WorldShare(외부 링크)
+- **Share** = `Share`(점 3개 연결) — 공유 전용. `WorldShare`(지구본)와 나누어 쓴다: 저쪽은
+  채널·팟캐스트 웹사이트로 나가는 **외부 링크** 자리이고, 이쪽은 `ACTION_SEND` 자리다
 
 하단 탭은 **비선택=아웃라인 / 선택=Filled** 쌍을 사용합니다.
 
@@ -451,7 +453,8 @@ Now in Android 방식 커스텀 스크롤바.
 **풀스크린 플레이어**(`PlayerScreen`): `ModalBottomSheet`(`skipPartiallyExpanded = true`, dragHandle 없음, scrim 투명)로 표시. 본문은 단일 `LazyColumn`(`overscrollEffect = null`):
 
 1. **히어로 블록**(화면 높이 92%, `EpisodiveGradientBackground` top=앨범아트 추출색):
-   - 상단바: 좌 `CaretDown`(접기), 우 좋아요 토글, 배경 투명
+   - 상단바: 좌 `CaretDown`(접기), 우 좋아요 토글 + 공유(4dp 간격 `Row` 로 묶는다 —
+     `SpaceBetween` 에 셋을 늘어놓으면 가운데 하나가 화면 중앙으로 밀린다), 배경 투명
    - **앨범아트**: `padding(horizontal 24dp)` 정사각, `StateImage` size=600px, 셰이프 `extraExtraLarge`(48dp), Top 추출색·brightness -0.2f. 위아래 weight로 수직 중앙
    - **PushUpCue**: 아트 하단에 transcript 자막을 아래→위 슬라이드+페이드(`AnimatedContent` tween 300)
    - 텍스트: 팟캐스트명 `bodyLarge`/`onSurfaceVariant` + 에피소드명 `titleLarge`/`onSurface` (둘 다 FadingEdgeText 1줄, 중앙)
@@ -550,7 +553,9 @@ Now in Android 방식 커스텀 스크롤바.
 
 **`VerticalPager`**(세로 스와이프, Paging 연동, `pageSpacing 32dp`, `contentPadding vertical 80dp/horizontal 24dp`로 위아래 peek).
 - 자동화: 첫 진입 자동재생 · settledPage 변경 시 재생 · `ENDED` 시 다음 페이지 auto-scroll · lifecycle 연동 재생/정지
-- `EpisodeClipItem`: blur(20dp) 배경 + 250dp 커버 Card(elevation 24dp) + 제목 3줄/설명 6줄 + 하단(남은시간 웨이브 + 좋아요·재생 토글)
+- `EpisodeClipItem`: blur(20dp) 배경 + 250dp 커버 Card(elevation 24dp) + 제목 3줄/설명 6줄 +
+  하단(남은시간 웨이브 + 공유·좋아요·재생 토글). 공유는 `onShare` 를 준 화면에만 뜬다 —
+  공용 컴포넌트라 기본값을 빈 람다로 두면 눌러도 아무 일이 없는 버튼이 생긴다(§4.10 `onMore` 와 같은 규약)
 
 ### 7.8 채널 (`feature:channel`)
 

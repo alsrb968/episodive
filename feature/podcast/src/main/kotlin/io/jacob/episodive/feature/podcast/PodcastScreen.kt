@@ -1,6 +1,5 @@
 package io.jacob.episodive.feature.podcast
 
-import android.content.Intent
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +41,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -79,6 +77,7 @@ import io.jacob.episodive.core.ui.EpisodeItemSkeleton
 import io.jacob.episodive.core.ui.asUiMessage
 import io.jacob.episodive.core.ui.pagingAppendState
 import io.jacob.episodive.core.ui.pagingRefreshState
+import io.jacob.episodive.core.ui.share.rememberShareLauncher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -171,6 +170,10 @@ internal fun PodcastScreen(
     val episodesPaging = episodes.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val shareFailedMessage = stringResource(uiR.string.core_ui_share_failed)
+    val shareLauncher = rememberShareLauncher(
+        onError = { scope.launch { onShowSnackbar(shareFailedMessage, null) } }
+    )
     val dimension = LocalDimensionTheme.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -225,6 +228,7 @@ internal fun PodcastScreen(
                         .padding(horizontal = dimension.screenPadding),
                     podcast = podcast,
                     onFollowClick = onFollowClick,
+                    onShareClick = { shareLauncher.share(podcast) },
                     onDominantColorExtracted = { dominantColor = it },
                 )
             }
@@ -532,10 +536,10 @@ private fun PodcastHeader(
     modifier: Modifier = Modifier,
     podcast: Podcast,
     onFollowClick: () -> Unit,
+    onShareClick: () -> Unit = {},
     onDominantColorExtracted: (Color) -> Unit = {},
 ) {
     val isFollowed = podcast.isFollowed
-    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -619,13 +623,7 @@ private fun PodcastHeader(
 
             EpisodiveIconButton(
                 modifier = Modifier.size(LocalDimensionTheme.current.buttonHeightCompact),
-                onClick = {
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, podcast.link.ifEmpty { podcast.url })
-                    }
-                    context.startActivity(Intent.createChooser(shareIntent, null))
-                },
+                onClick = onShareClick,
                 shape = EpisodiveShapes.pill,
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -634,8 +632,8 @@ private fun PodcastHeader(
                 icon = {
                     Icon(
                         modifier = Modifier.size(20.dp),
-                        imageVector = EpisodiveIcons.WorldShare,
-                        contentDescription = "Share",
+                        imageVector = EpisodiveIcons.Share,
+                        contentDescription = stringResource(uiR.string.core_ui_share),
                     )
                 },
             )

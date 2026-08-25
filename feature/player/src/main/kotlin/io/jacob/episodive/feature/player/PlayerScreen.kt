@@ -110,6 +110,7 @@ import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.ChapterItem
 import io.jacob.episodive.core.ui.PodcastSimpleItem
 import io.jacob.episodive.core.ui.episodeItems
+import io.jacob.episodive.core.ui.share.rememberShareLauncher
 
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -168,6 +169,18 @@ fun PlayerBottomSheet(
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
     val sleepTimerExpiredMessage = stringResource(R.string.feature_player_sleep_timer_expired)
+    val shareFailedMessage = stringResource(uiR.string.core_ui_share_failed)
+
+    val shareLauncher = rememberShareLauncher(
+        onError = {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = shareFailedMessage,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -238,6 +251,18 @@ fun PlayerBottomSheet(
             isPlaying = s.isPlaying,
             onCollapse = { collapse() },
             onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
+            onShare = {
+                shareLauncher.share(
+                    episode = s.nowPlaying,
+                    // 에피소드에 웹 링크가 없는 경우가 대부분이라(피드가 잘 주지 않는다)
+                    // 팟캐스트 링크를 폴백으로 함께 넘긴다.
+                    podcast = s.podcast,
+                    // 지금 흐르는 위치가 이 에피소드의 것일 때만 싣는다. progress 는 에피소드가
+                    // 바뀌는 순간 잠깐 이전 것을 들고 있어, 확인 없이 실으면 남의 지점을 보낸다.
+                    positionMs = s.progress.position.inWholeMilliseconds
+                        .takeIf { s.progress.episodeId == s.nowPlaying.id },
+                )
+            },
             onToggleSave = { viewModel.sendAction(PlayerAction.ToggleSave) },
             onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
             onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
@@ -284,6 +309,7 @@ internal fun PlayerScreen(
     isPlaying: Boolean,
     onCollapse: () -> Unit,
     onToggleLike: () -> Unit,
+    onShare: () -> Unit = {},
     onToggleSave: () -> Unit,
     onSeekTo: (Long) -> Unit,
     onPlayOrPause: () -> Unit,
@@ -376,17 +402,36 @@ internal fun PlayerScreen(
                             }
                         )
 
-                        EpisodiveIconButton(
-                            modifier = Modifier.size(dimension.iconButtonSize),
-                            onClick = onToggleLike,
-                            icon = {
-                                Icon(
-                                    modifier = Modifier.size(22.dp),
-                                    imageVector = if (nowPlaying.isLiked) EpisodiveIcons.LikeFilled else EpisodiveIcons.Like,
-                                    contentDescription = "Like",
-                                )
-                            }
-                        )
+                        // 좋아요와 공유를 오른쪽에 묶는다. SpaceBetween 은 요소가 셋이 되면
+                        // 가운데 하나를 화면 중앙으로 밀어내므로, 짝을 이룰 것은 짝으로 싼다.
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            EpisodiveIconButton(
+                                modifier = Modifier.size(dimension.iconButtonSize),
+                                onClick = onToggleLike,
+                                icon = {
+                                    Icon(
+                                        modifier = Modifier.size(22.dp),
+                                        imageVector = if (nowPlaying.isLiked) EpisodiveIcons.LikeFilled else EpisodiveIcons.Like,
+                                        contentDescription = "Like",
+                                    )
+                                }
+                            )
+
+                            EpisodiveIconButton(
+                                modifier = Modifier.size(dimension.iconButtonSize),
+                                onClick = onShare,
+                                icon = {
+                                    Icon(
+                                        modifier = Modifier.size(22.dp),
+                                        imageVector = EpisodiveIcons.Share,
+                                        contentDescription = stringResource(uiR.string.core_ui_share),
+                                    )
+                                }
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.weight(1f))

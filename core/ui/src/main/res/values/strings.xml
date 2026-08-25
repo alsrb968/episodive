@@ -19,6 +19,15 @@
     <string name="core_ui_snackbar_unsaved">Removed from saved</string>
     <string name="core_ui_snackbar_undo">Undo</string>
 
+    <string name="core_ui_share">Share</string>
+    <string name="core_ui_share_failed">No app is available to share with.</string>
+    <!-- 공유 제목. %1$s 에피소드 제목, %2$s 팟캐스트 제목 -->
+    <string name="core_ui_share_subject_episode_format">%1$s · %2$s</string>
+    <!-- 클립이 시작하는 지점. %1$s 는 m:ss 또는 h:mm:ss -->
+    <string name="core_ui_share_line_clip_format">From %1$s</string>
+    <!-- 듣고 있던 위치. %1$s 는 m:ss 또는 h:mm:ss -->
+    <string name="core_ui_share_line_position_format">Starting at %1$s</string>
+
     <!-- 섹션 헤더의 '더 보기' 버튼. %1$s 는 섹션 제목이라 스크린리더가 어느 섹션인지 읽는다. -->
     <string name="core_ui_section_more_format">See all %1$s</string>
 

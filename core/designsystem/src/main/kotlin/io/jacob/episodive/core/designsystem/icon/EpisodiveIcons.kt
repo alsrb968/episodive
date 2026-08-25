@@ -38,6 +38,7 @@ import io.jacob.episodive.core.designsystem.icon.tabler.PlaylistX
 import io.jacob.episodive.core.designsystem.icon.tabler.Plus
 import io.jacob.episodive.core.designsystem.icon.tabler.RewindBackward15
 import io.jacob.episodive.core.designsystem.icon.tabler.RewindForward30
+import io.jacob.episodive.core.designsystem.icon.tabler.Share
 import io.jacob.episodive.core.designsystem.icon.tabler.Tabler
 import io.jacob.episodive.core.designsystem.icon.tabler.TransitionTop
 import io.jacob.episodive.core.designsystem.icon.tabler.UsersMinus
@@ -88,6 +89,12 @@ object EpisodiveIcons {
     val SaveFilled = Tabler.DeviceFloppyFilled
     val Search = Tabler.Zoom
     val SearchFilled = Tabler.ZoomFilled
+
+    /**
+     * 공유. [WorldShare] 와 나누어 쓴다 — 저쪽은 "외부 웹사이트 열기" 전용이라
+     * (채널 상세 푸터·팟캐스트 웹사이트) 한 글리프에 두 뜻을 지우면 구분이 사라진다.
+     */
+    val Share = Tabler.Share
     val SkipNext = Tabler.PlayerSkipForward
     val SkipPrevious = Tabler.PlayerSkipBack
     val TransitionTop = Tabler.TransitionTop

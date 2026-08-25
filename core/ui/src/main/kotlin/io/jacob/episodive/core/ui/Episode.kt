@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
 import androidx.paging.compose.LazyPagingItems
 import io.jacob.episodive.core.designsystem.component.ClipAnimationIconText
+import io.jacob.episodive.core.designsystem.component.EpisodiveIconButton
 import io.jacob.episodive.core.designsystem.component.EpisodiveIconToggleButton
 import io.jacob.episodive.core.designsystem.component.HtmlTextContainer
 import io.jacob.episodive.core.designsystem.component.SectionHeader
@@ -882,6 +883,8 @@ private const val EpisodeDetailDescriptionLines = 4
 /**
  * @param onTogglePlay 재생 버튼을 누른 결과. `true` 면 재생을, `false` 면 일시정지를 원한다는 뜻이다.
  * 토글 방향을 버리고 늘 재생으로 처리하면 일시정지가 곧바로 재생으로 되돌아온다.
+ * @param onShare 주지 않으면 공유 버튼을 그리지 않는다. 공용 컴포넌트라 모든 화면이 공유를
+ * 원한다고 전제하지 않는다 — 섹션 헤더의 `onMore` 가 쓰는 것과 같은 방식이다.
  */
 @Composable
 fun EpisodeClipItem(
@@ -893,6 +896,7 @@ fun EpisodeClipItem(
     onClick: () -> Unit,
     onTogglePlay: (play: Boolean) -> Unit,
     onToggleLikedEpisode: () -> Unit,
+    onShare: (() -> Unit)? = null,
     onDominantColorExtracted: ((Color) -> Unit)? = null,
 ) {
     Surface(
@@ -982,6 +986,23 @@ fun EpisodeClipItem(
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                if (onShare != null) {
+                    EpisodiveIconButton(
+                        onClick = onShare,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color.White,
+                        ),
+                        icon = {
+                            Icon(
+                                imageVector = EpisodiveIcons.Share,
+                                contentDescription = stringResource(R.string.core_ui_share),
+                                tint = Color.White,
+                            )
+                        }
+                    )
+                }
 
                 EpisodiveIconToggleButton(
                     checked = episode.isLiked,
