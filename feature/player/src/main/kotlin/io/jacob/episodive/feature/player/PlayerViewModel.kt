@@ -366,6 +366,9 @@ class PlayerViewModel @Inject constructor(
         playEpisodeUseCase(episode)
         // 0 도 뜻이 있는 값이라 그대로 태운다 — "맨 앞부터"다.
         startPositionMs?.let { playerRepository.seekTo(it) }
+
+        // 올릴 것이 확정된 뒤에 시트를 연다. 먼저 열면 실패했을 때 빈 시트만 남는다.
+        _effect.emit(PlayerEffect.ShowPlayerBottomSheet)
     }
 
     private fun toggleCurrentLikedEpisode() = viewModelScope.launch {

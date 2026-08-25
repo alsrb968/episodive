@@ -83,6 +83,14 @@ class EpisodiveDeepLinkTest {
     }
 
     @Test
+    fun `drops a timestamp too large to hold in millis`() {
+        // 초를 그대로 1000 배 하면 Long 을 넘겨 음수 ms 가 되고, 그것이 seekTo 로 흘러간다.
+        val link = parse("episodive://episode/7?t=9223372036854775") as EpisodiveDeepLink.Episode
+        assertEquals(7L, link.id)
+        assertNull(link.startPositionMs)
+    }
+
+    @Test
     fun `drops a negative timestamp`() {
         assertNull((parse("episodive://episode/7?t=-5") as EpisodiveDeepLink.Episode).startPositionMs)
     }

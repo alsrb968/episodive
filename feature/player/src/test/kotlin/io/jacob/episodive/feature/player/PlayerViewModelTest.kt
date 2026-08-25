@@ -239,6 +239,23 @@ class PlayerViewModelTest {
         }
 
     @Test
+    fun `Given a resolvable episode, When OpenDeepLink, Then the sheet is asked to open`() =
+        runTest {
+            // 시트는 올릴 것이 확정된 뒤에 연다. 미리 열면 링크가 잘못됐을 때 빈 시트만
+            // 남고, 그 안의 스낵바 호스트도 없어 실패를 알릴 길이 사라진다.
+            setupDefaultMocks()
+            val episode = episodeTestData
+            every { getEpisodeByIdUseCase(episode.id) } returns flowOf(episode)
+            val viewModel = createViewModel()
+
+            viewModel.effect.test {
+                viewModel.sendAction(PlayerAction.OpenDeepLink(episode.id, startPositionMs = null))
+                assertTrue(awaitItem() is PlayerEffect.ShowPlayerBottomSheet)
+                cancel()
+            }
+        }
+
+    @Test
     fun `Given a zero position, When OpenDeepLink, Then it still seeks`() = runTest {
         // 0 은 없는 값이 아니라 "맨 앞부터"다.
         setupDefaultMocks()
@@ -266,6 +283,23 @@ class PlayerViewModelTest {
             }
 
             coVerify(exactly = 0) { playEpisodeUseCase(any<Episode>()) }
+        }
+
+    @Test
+    fun `Given the episode cannot be found, When OpenDeepLink, Then the sheet is not opened`() =
+        runTest {
+            setupDefaultMocks()
+            every { getEpisodeByIdUseCase(any()) } returns flowOf(null)
+            coEvery { fetchEpisodeByIdUseCase(any()) } returns null
+            val viewModel = createViewModel()
+
+            viewModel.effect.test {
+                viewModel.sendAction(PlayerAction.OpenDeepLink(999L, startPositionMs = null))
+                // 첫 이펙트가 에러여야 한다. 시트 열기가 앞서면 빈 시트가 남는다.
+                assertTrue(awaitItem() is PlayerEffect.ShowDeepLinkError)
+                expectNoEvents()
+                cancel()
+            }
         }
 
     @Test
