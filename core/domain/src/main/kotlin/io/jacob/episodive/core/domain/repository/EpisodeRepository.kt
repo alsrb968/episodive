@@ -77,6 +77,14 @@ interface EpisodeRepository {
     fun getEpisodeById(id: Long): Flow<Episode?>
 
     /**
+     * 원격에서 에피소드 하나를 받아 온다. 실패하거나 없으면 null.
+     *
+     * [getEpisodeById] 는 로컬 DB 만 보므로, 공유받은 링크처럼 이 기기가 한 번도 만난 적 없는
+     * 에피소드는 영영 null 이다. 그 경우의 마지막 수단이다.
+     */
+    suspend fun fetchEpisodeById(id: Long): Episode?
+
+    /**
      * 목록/단건 조회 모두 fulltext 없이 받아 description 이 짧게 잘려 있다. 재생 중인
      * 에피소드가 바뀌는 시점에 호출해 fulltext=true 로 단건을 다시 받아 description 만 보강한다.
      * 실패해도 예외를 던지지 않는다 — 보강은 부가 기능이라 실패해도 기존 캐시로 계속 보여준다.

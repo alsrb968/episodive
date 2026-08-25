@@ -55,6 +55,7 @@ import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.coverUrl
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.podcastTestData
+import io.jacob.episodive.core.model.share.EpisodiveDeepLink
 import io.jacob.episodive.core.ui.R as uiR
 import kotlin.time.Duration.Companion.seconds
 
@@ -76,6 +77,8 @@ fun PlayerBar(
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean = { _, _ -> false },
     expandSignal: Int = 0,
     collapseSignal: Int = 0,
+    pendingEpisode: () -> EpisodiveDeepLink.Episode? = { null },
+    onPendingEpisodeHandled: () -> Unit = {},
     onNowPlayingChange: (Long?) -> Unit = {},
     onIsPlayingChange: (Boolean) -> Unit = {},
 ) {
@@ -105,9 +108,28 @@ fun PlayerBar(
         }
     }
 
+    // 공유받은 링크로 들어온 에피소드. 시트를 펼치고 재생을 건다.
+    //
+    // 값이 아니라 읽는 함수로 받는 것은 EpisodiveNavHost 가 문서화한 캡처 함정과 같은 이유다.
+    // 소비 콜백은 emit 뒤에 부른다 — 먼저 비우면 그 재구성이 이 이펙트를 취소해 액션이
+    // 나가지 못한 채 요청만 사라진다.
+    val pending = pendingEpisode()
+    LaunchedEffect(pending) {
+        val target = pending ?: return@LaunchedEffect
+        isShowPlayer = true
+        viewModel.sendAction(
+            PlayerAction.OpenDeepLink(
+                episodeId = target.id,
+                startPositionMs = target.startPositionMs,
+            )
+        )
+        onPendingEpisodeHandled()
+    }
+
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
     val sleepTimerExpiredMessage = stringResource(R.string.feature_player_sleep_timer_expired)
+    val deepLinkErrorMessage = stringResource(R.string.feature_player_deep_link_not_found)
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -127,6 +149,12 @@ fun PlayerBar(
                         if (undone) viewModel.sendAction(PlayerAction.ToggleSavedEpisode(effect.episode))
                     }
                     // full player open → handled in PlayerBottomSheet
+                }
+
+                is PlayerEffect.ShowDeepLinkError -> {
+                    // 딥링크는 시트를 펼치고 들어오므로 보통은 시트 쪽이 띄운다. 여기는
+                    // 사용자가 그 사이 시트를 닫은 경우를 받는다(다른 스낵바들과 같은 가드).
+                    if (!isShowPlayer) onShowSnackbar(deepLinkErrorMessage, null)
                 }
 
                 is PlayerEffect.SleepTimerExpired -> {

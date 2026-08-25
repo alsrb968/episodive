@@ -52,8 +52,6 @@ class MainActivity : ComponentActivity() {
             viewModel.state.value.shouldKeepSplashScreen()
         }
 
-        viewModel.handleDeepLink(intent)
-
         // Start and bind MediaSessionService
         val intent = Intent(this, MediaNotificationService::class.java)
         startService(intent)
@@ -68,7 +66,12 @@ class MainActivity : ComponentActivity() {
         // 액티비티가 다시 만들어질 때는 건너뛴다. playOrPause() 는 토글이라 두 번 불리면
         // 사용자가 켜 달라고 한 재생을 그대로 꺼 버린다. intent.removeExtra 는 방어가 되지 못한다 —
         // 재생성 시 시스템이 원본 Intent 를 다시 실어 주므로 extra 가 되살아난다.
+        //
+        // 딥링크도 같은 가드 안에 둔다. URI 는 `removeExtra` 로 지울 수조차 없어(intent.data 를
+        // 비워도 재생성 때 원본이 다시 온다) 방어할 다른 수단이 없다. 새로 들어오는 링크는
+        // onNewIntent 가 받으므로 사용자가 같은 링크를 다시 눌러도 막히지 않는다.
         if (savedInstanceState == null) {
+            viewModel.handleDeepLink(getIntent())
             handleWidgetAutoplay(getIntent())
         }
 

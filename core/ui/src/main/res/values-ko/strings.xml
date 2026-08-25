@@ -17,6 +17,7 @@
     <string name="core_ui_share_subject_episode_format">%1$s · %2$s</string>
     <string name="core_ui_share_line_clip_format">%1$s 부터</string>
     <string name="core_ui_share_line_position_format">%1$s 지점부터</string>
+    <string name="core_ui_share_line_open_in_app_format">Episodive 에서 열기 → %1$s</string>
 
     <string name="core_ui_section_more_format">%1$s 더 보기</string>
 
