@@ -28,6 +28,8 @@ data class ShareLabels(
     val clipLineFormat: String,
     /** `"%1$s 지점부터"` — 듣고 있던 위치 */
     val positionLineFormat: String,
+    /** `"앱에서 열기 → %1$s"` — 앱으로 되돌아오는 딥링크 */
+    val openInAppFormat: String,
 )
 
 /**
@@ -43,9 +45,9 @@ const val MIN_SHARE_POSITION_MS = 10_000L
  * 링크는 웹사이트가 없으면 RSS 라도 보낸다. 브라우저에서 XML 이 열리는 것은 아쉽지만, 이는
  * 기존 팟캐스트 공유가 이미 하던 동작이라 여기서 바꾸면 회귀가 된다.
  */
-fun Podcast.toShareContent(): ShareContent = ShareContent(
+fun Podcast.toShareContent(labels: ShareLabels): ShareContent = ShareContent(
     subject = title,
-    text = shareText(subject = title, detailLine = null, url = shareWebUrl()),
+    text = shareText(title, null, shareWebUrl(), labels.appLine(toDeepLink())),
 )
 
 /**
@@ -67,7 +69,12 @@ fun Episode.toShareContent(
 
     return ShareContent(
         subject = subject,
-        text = shareText(subject, positionLine, shareWebUrl(podcast)),
+        text = shareText(
+            subject = subject,
+            detailLine = positionLine,
+            url = shareWebUrl(podcast),
+            appLine = labels.appLine(toDeepLink(positionMs)),
+        ),
     )
 }
 
@@ -91,7 +98,12 @@ fun Episode.toClipShareContent(
 
     return ShareContent(
         subject = subject,
-        text = shareText(subject, clipLine, shareWebUrl(podcast)),
+        text = shareText(
+            subject = subject,
+            detailLine = clipLine,
+            url = shareWebUrl(podcast),
+            appLine = labels.appLine(toClipDeepLink()),
+        ),
     )
 }
 
@@ -123,5 +135,15 @@ private fun Episode.shareSubject(labels: ShareLabels): String =
         ?.let { labels.episodeSubjectFormat.format(title, it) }
         ?: title
 
-private fun shareText(subject: String, detailLine: String?, url: String?): String =
-    listOfNotNull(subject, detailLine, url).joinToString(separator = "\n")
+private fun ShareLabels.appLine(deepLink: String): String = openInAppFormat.format(deepLink)
+
+/**
+ * 앱 링크는 웹 링크를 대신하지 않고 **덧붙는다.** 받는 사람이 앱을 깔지 않았으면
+ * `episodive://` 는 아무 데도 닿지 못하므로, 웹 링크가 있으면 그것도 그대로 남긴다.
+ */
+private fun shareText(
+    subject: String,
+    detailLine: String?,
+    url: String?,
+    appLine: String?,
+): String = listOfNotNull(subject, detailLine, url, appLine).joinToString(separator = "\n")

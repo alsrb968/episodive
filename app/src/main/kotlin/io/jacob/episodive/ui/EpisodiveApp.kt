@@ -138,6 +138,13 @@ fun EpisodiveApp(
                     expandPlayerSignal++
                     appState.viewModel.consumeDeepLink()
                 }
+
+                is DeepLinkEvent.Episode -> {
+                    // 시트를 여는 것과 재생을 거는 것 모두 PlayerBar 가 한다 — PlayerViewModel 은
+                    // 그 안에서 만들어져 여기서는 손이 닿지 않는다.
+                    appState.requestEpisodeDeepLink(event.target)
+                    appState.viewModel.consumeDeepLink()
+                }
             }
         }
     }
@@ -251,6 +258,10 @@ fun EpisodiveApp(
                     onShowSnackbar = onShowSnackbar,
                     expandSignal = expandPlayerSignal,
                     collapseSignal = collapsePlayerSignal,
+                    // 값이 아니라 읽는 함수로 넘긴다 — entryProvider 가 처음 캡처한 값에
+                    // 갇히는 것과 같은 이유다(EpisodiveNavHost 주석 참고).
+                    pendingEpisode = { appState.pendingEpisodeDeepLink },
+                    onPendingEpisodeHandled = appState::consumeEpisodeDeepLink,
                     onNowPlayingChange = { nowPlayingEpisodeId = it },
                     onIsPlayingChange = { isPlaying = it },
                 )

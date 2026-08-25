@@ -5,11 +5,14 @@ import io.jacob.episodive.core.common.TimeProvider
 import io.jacob.episodive.core.domain.repository.PlayerRepository
 import io.jacob.episodive.core.domain.usecase.episode.GetChaptersUseCase
 import io.jacob.episodive.core.domain.usecase.episode.RefreshEpisodeDescriptionUseCase
+import io.jacob.episodive.core.domain.usecase.episode.FetchEpisodeByIdUseCase
+import io.jacob.episodive.core.domain.usecase.episode.GetEpisodeByIdUseCase
 import io.jacob.episodive.core.domain.usecase.episode.SaveEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
 import io.jacob.episodive.core.domain.usecase.player.GetPlaylistUseCase
+import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.RestoreLastPlayStateUseCase
 import io.jacob.episodive.core.domain.usecase.player.SaveLastPlayStateUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
@@ -62,6 +65,9 @@ class PlayerViewModelTest {
     private val restoreLastPlayStateUseCase = mockk<RestoreLastPlayStateUseCase>(relaxed = true)
     private val saveEpisodeUseCase = mockk<SaveEpisodeUseCase>(relaxed = true)
     private val timeProvider = mockk<TimeProvider>(relaxed = true)
+    private val getEpisodeByIdUseCase = mockk<GetEpisodeByIdUseCase>(relaxed = true)
+    private val fetchEpisodeByIdUseCase = mockk<FetchEpisodeByIdUseCase>(relaxed = true)
+    private val playEpisodeUseCase = mockk<PlayEpisodeUseCase>(relaxed = true)
 
     private val progressFlow = MutableStateFlow(Progress(0.seconds, 0.seconds, 0.seconds))
     private val isPlayingFlow = MutableStateFlow(false)
@@ -109,6 +115,9 @@ class PlayerViewModelTest {
             saveLastPlayStateUseCase = saveLastPlayStateUseCase,
             restoreLastPlayStateUseCase = restoreLastPlayStateUseCase,
             saveEpisodeUseCase = saveEpisodeUseCase,
+            getEpisodeByIdUseCase = getEpisodeByIdUseCase,
+            fetchEpisodeByIdUseCase = fetchEpisodeByIdUseCase,
+            playEpisodeUseCase = playEpisodeUseCase,
             timeProvider = timeProvider,
         ).also { viewModelInstance = it }
     }
@@ -191,6 +200,73 @@ class PlayerViewModelTest {
             assertTrue(state is PlayerState.Error)
         }
     }
+
+    // --- episodive:// 딥링크 착지 ---
+
+    @Test
+    fun `Given a locally known episode, When OpenDeepLink, Then it plays from the link position`() =
+        runTest {
+            setupDefaultMocks()
+            val episode = episodeTestData
+            every { getEpisodeByIdUseCase(episode.id) } returns flowOf(episode)
+            val viewModel = createViewModel()
+
+            viewModel.sendAction(PlayerAction.OpenDeepLink(episode.id, startPositionMs = 83_000L))
+
+            coVerify { playEpisodeUseCase(episode) }
+            coVerify { playerRepository.seekTo(83_000L) }
+            // 로컬에 있으면 원격을 치지 않는다 — 링크를 누를 때마다 요청이 나가면 안 된다.
+            coVerify(exactly = 0) { fetchEpisodeByIdUseCase(any()) }
+        }
+
+    @Test
+    fun `Given an episode this device has never seen, When OpenDeepLink, Then it falls back to remote`() =
+        runTest {
+            // 남이 보낸 링크의 에피소드는 로컬 DB 에 없다. getEpisodeById 는 DB 만 보므로
+            // 폴백이 없으면 공유 링크가 영영 열리지 않는다.
+            setupDefaultMocks()
+            val episode = episodeTestData
+            every { getEpisodeByIdUseCase(episode.id) } returns flowOf(null)
+            coEvery { fetchEpisodeByIdUseCase(episode.id) } returns episode
+            val viewModel = createViewModel()
+
+            viewModel.sendAction(PlayerAction.OpenDeepLink(episode.id, startPositionMs = null))
+
+            coVerify { fetchEpisodeByIdUseCase(episode.id) }
+            coVerify { playEpisodeUseCase(episode) }
+            // 지점이 없으면 seek 하지 않는다. 0 으로 채우면 이어듣기 지점을 맨 앞으로 돌린다.
+            coVerify(exactly = 0) { playerRepository.seekTo(any()) }
+        }
+
+    @Test
+    fun `Given a zero position, When OpenDeepLink, Then it still seeks`() = runTest {
+        // 0 은 없는 값이 아니라 "맨 앞부터"다.
+        setupDefaultMocks()
+        val episode = episodeTestData
+        every { getEpisodeByIdUseCase(episode.id) } returns flowOf(episode)
+        val viewModel = createViewModel()
+
+        viewModel.sendAction(PlayerAction.OpenDeepLink(episode.id, startPositionMs = 0L))
+
+        coVerify { playerRepository.seekTo(0L) }
+    }
+
+    @Test
+    fun `Given the episode cannot be found anywhere, When OpenDeepLink, Then it reports the failure`() =
+        runTest {
+            setupDefaultMocks()
+            every { getEpisodeByIdUseCase(any()) } returns flowOf(null)
+            coEvery { fetchEpisodeByIdUseCase(any()) } returns null
+            val viewModel = createViewModel()
+
+            viewModel.effect.test {
+                viewModel.sendAction(PlayerAction.OpenDeepLink(999L, startPositionMs = null))
+                assertTrue(awaitItem() is PlayerEffect.ShowDeepLinkError)
+                cancel()
+            }
+
+            coVerify(exactly = 0) { playEpisodeUseCase(any<Episode>()) }
+        }
 
     @Test
     fun `Given PlayOrPause action, When sent, Then playerRepository playOrPause is invoked`() =

@@ -35,7 +35,7 @@ class ShareLauncher internal constructor(
     private val labels: ShareLabels,
     private val onError: (Throwable) -> Unit,
 ) {
-    fun share(podcast: Podcast) = launch(podcast.toShareContent())
+    fun share(podcast: Podcast) = launch(podcast.toShareContent(labels))
 
     /**
      * [positionMs] 를 주면 듣고 있던 지점을 함께 싣는다(너무 이른 지점은 모델이 걸러낸다).
@@ -80,6 +80,7 @@ fun rememberShareLauncher(onError: (Throwable) -> Unit = {}): ShareLauncher {
         episodeSubjectFormat = stringResource(R.string.core_ui_share_subject_episode_format),
         clipLineFormat = stringResource(R.string.core_ui_share_line_clip_format),
         positionLineFormat = stringResource(R.string.core_ui_share_line_position_format),
+        openInAppFormat = stringResource(R.string.core_ui_share_line_open_in_app_format),
     )
 
     // labels 는 data class 라 로케일이 바뀌어야만 키가 달라진다.

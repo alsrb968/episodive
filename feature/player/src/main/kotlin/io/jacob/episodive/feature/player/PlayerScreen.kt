@@ -170,6 +170,7 @@ fun PlayerBottomSheet(
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
     val sleepTimerExpiredMessage = stringResource(R.string.feature_player_sleep_timer_expired)
     val shareFailedMessage = stringResource(uiR.string.core_ui_share_failed)
+    val deepLinkErrorMessage = stringResource(R.string.feature_player_deep_link_not_found)
 
     val shareLauncher = rememberShareLauncher(
         onError = {
@@ -202,6 +203,13 @@ fun PlayerBottomSheet(
                 is PlayerEffect.SleepTimerExpired -> {
                     snackbarHostState.showSnackbar(
                         message = sleepTimerExpiredMessage,
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+
+                is PlayerEffect.ShowDeepLinkError -> {
+                    snackbarHostState.showSnackbar(
+                        message = deepLinkErrorMessage,
                         duration = SnackbarDuration.Short,
                     )
                 }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import io.jacob.episodive.MainActivityViewModel
 import io.jacob.episodive.core.data.util.NetworkMonitor
+import io.jacob.episodive.core.model.share.EpisodiveDeepLink
 import io.jacob.episodive.feature.home.navigation.HomeRoute
 import io.jacob.episodive.feature.podcast.navigation.PodcastRoute
 import io.jacob.episodive.feature.search.navigation.SearchRoute
@@ -66,6 +67,24 @@ class EpisodiveAppState(
      */
     var searchAutoFocus by mutableStateOf(false)
         private set
+
+    /**
+     * 공유받은 링크로 열어야 할 에피소드. 플레이어가 집어 가면 [consumeEpisodeDeepLink] 로 비운다.
+     *
+     * [searchAutoFocus] 와 같은 이유로 상태다. 딥링크는 앱이 뜨는 것과 같은 프레임에 도착하는데
+     * `PlayerBar` 는 그보다 늦게 구독을 시작하므로, 일회성 이벤트로 쏘면 콜드 스타트에서
+     * 그대로 지나쳐 사라진다.
+     */
+    var pendingEpisodeDeepLink by mutableStateOf<EpisodiveDeepLink.Episode?>(null)
+        private set
+
+    fun requestEpisodeDeepLink(target: EpisodiveDeepLink.Episode) {
+        pendingEpisodeDeepLink = target
+    }
+
+    fun consumeEpisodeDeepLink() {
+        pendingEpisodeDeepLink = null
+    }
 
     fun navigateToBottomBarDestination(destination: BottomBarDestination) {
         val route = destination.navKey
