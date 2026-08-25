@@ -374,9 +374,24 @@ Android 관련 작업은 **`android` (Antigravity CLI, `/usr/local/bin/android`)
 - title-format: {타입}: {제목}
 - types: feat, fix, refactor, test, docs, chore, ci
 - title-max-length: 70
-- body-format: ## 변경 사항\n- ...\n\n## 테스트\n...
+- body-format: ## 변경 사항\n- ...\n\n## 테스트\n...\n\n## 리뷰\n- [ ] Claude Code 코드 리뷰 (`/code-review`)
 - label-map: feat→feature, fix→bugfix, refactor→refactoring, test→test, docs→documentation, chore→chore, ci→ci/cd
 - auto-assignee: true
+
+### PR 전에 코드 리뷰를 돌린다 (필수)
+
+`/pr` 로 PR 을 만들기 **전에** `/code-review` 를 돌리고, 나온 지적을 반영한 뒤 본문의
+`## 리뷰` 체크박스를 `- [x]` 로 바꾼다. 리뷰를 돌리지 않았으면 체크하지 않은 채로 두거나
+PR 을 draft 로 연다 — **체크가 비어 있는 것 자체가 "아직 리뷰를 안 거쳤다"는 신호**이므로
+형식만 맞추려고 미리 체크하지 마라.
+
+**빌드·테스트·기기 확인은 리뷰를 대신하지 못한다.** 그것들은 작성자가 자기 코드를 자기
+기준으로 확인한 것이라, 작성자가 놓친 전제는 그대로 통과한다. `/code-review` 는 diff 를
+별도 패스로 훑어 정확성·경계조건·리소스 수명·중복을 본다.
+
+`/pr` 스킬 자체에는 리뷰 단계가 없다(스킬 단계는 사전 확인 → push → 제목 → 본문 → 생성 →
+업데이트 → Actions 체크 추적 → 보고). 그러니 **이 규칙을 지키는 것은 스킬이 아니라 여기를
+읽는 쪽이다.** 실제로 한 번 건너뛰어 PR 을 올렸다가 draft 로 되돌린 적이 있다(#110).
 
 ## mccm:Cleanup Conventions
 
