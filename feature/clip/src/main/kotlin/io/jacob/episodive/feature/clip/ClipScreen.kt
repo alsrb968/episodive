@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -58,13 +59,16 @@ import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.jacob.episodive.core.ui.EpisodeClipItem
 import io.jacob.episodive.core.ui.EpisodeClipItemSkeleton
 import io.jacob.episodive.core.ui.PagingRefreshPhase
+import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.refreshPhase
+import io.jacob.episodive.core.ui.share.rememberShareLauncher
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -139,6 +143,12 @@ internal fun ClipScreen(
     onPodcastClick: (Long) -> Unit = {},
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean = { _, _ -> false },
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val shareFailedMessage = stringResource(uiR.string.core_ui_share_failed)
+    val shareLauncher = rememberShareLauncher(
+        onError = { coroutineScope.launch { onShowSnackbar(shareFailedMessage, null) } }
+    )
+
     val backgroundColor = MaterialTheme.colorScheme.background
 
     // 배경은 지금 보고 있는 클립의 커버 색을 따라간다. 팔레트가 아직 없으면 기본색.
@@ -178,6 +188,7 @@ internal fun ClipScreen(
             onEpisodeClick = onEpisodeClick,
             onToggleLikedEpisode = onToggleLikedEpisode,
             onPodcastClick = onPodcastClick,
+            onShare = { shareLauncher.shareClip(it) },
             onCurrentDominantColor = { dominantColor = it },
         )
     }
@@ -209,6 +220,7 @@ fun EpisodeClipPager(
     onEpisodeClick: (Episode) -> Unit = {},
     onToggleLikedEpisode: (Episode) -> Unit = {},
     onPodcastClick: (Long) -> Unit = {},
+    onShare: ((Episode) -> Unit)? = null,
     onCurrentDominantColor: (Color) -> Unit = {},
 ) {
     val episodesPaging = episodes.collectAsLazyPagingItems()
@@ -447,6 +459,7 @@ fun EpisodeClipPager(
                     onToggleLikedEpisode = {
                         onToggleLikedEpisode(episode)
                     },
+                    onShare = onShare?.let { share -> { share(episode) } },
                     onDominantColorExtracted = { color -> pageColors[page] = color },
                 )
             }

@@ -123,6 +123,8 @@ Material3 `ColorScheme`을 라이트/다크 두 세트로 **직접 정의**합�
 - Play/Pause = `PlayerPlay`/`PlayerPause`, Replay15 = `RewindBackward15`, Forward30 = `RewindForward30`
 - Like = `HeartPlus`/`HeartFilled`, Follow = `UsersPlus`/`UsersMinus`, Save = `DeviceFloppy`
 - Owner = `CreativeCommonsBy`, PublicationDate = `CalendarTime`, WorldShare(외부 링크)
+- **Share** = `Share`(점 3개 연결) — 공유 전용. `WorldShare`(지구본)와 나누어 쓴다: 저쪽은
+  채널·팟캐스트 웹사이트로 나가는 **외부 링크** 자리이고, 이쪽은 `ACTION_SEND` 자리다
 
 하단 탭은 **비선택=아웃라인 / 선택=Filled** 쌍을 사용합니다.
 
@@ -458,7 +460,9 @@ Now in Android 방식 커스텀 스크롤바.
    - **시크바 영역**: `EpisodiveSeeker` + 3열(현재위치 55dp | 챕터명 중앙 | 전체길이 55dp, `labelMedium`)
    - **컨트롤 패널**:
      - 1행: Replay15(48dp/아이콘32dp) · SkipPrevious(48/40) · **재생·정지 토글(68dp 원형/아이콘36dp, `onBackground` 배경)** · SkipNext · Forward30
-     - 2행: 배속 텍스트버튼(`"1.0x"` titleLarge) · 슬립타이머(32dp, 임박 시 `primary`로 lerp) · 저장/다운로드 토글(진행 시 진행률 링) · 재생목록(32dp)
+     - 2행: 배속 텍스트버튼(`"1.0x"` titleLarge) · 슬립타이머(32dp, 임박 시 `primary`로 lerp) ·
+       **공유** · 저장/다운로드 토글(진행 시 진행률 링) · 재생목록(32dp). 다섯 칸을
+       `weight(1f)` 로 똑같이 나눠 각 아이콘이 자기 칸 중앙에 온다 — 공유는 그 한가운데다
 2. **에피소드 정보 카드**: `Card`(`extraLarge`, animateContentSize), HTML 설명(접힘 3줄). 헤더는 `EpisodiveViewToggleHeader` — **클릭은 카드가 전담한다.** 제목·아이콘에 버튼을 겹치면 클릭 지점이 둘로 갈려 리플이 제목 언저리에만 번지고 스크린리더도 같은 동작을 두 번 읽는다
 3. **챕터 카드**(있을 때): 접힘 시 현재 챕터 주변 최대 5개, 초과 시 더보기
 4. **팟캐스트 정보 카드**: HTML 설명 + `PodcastSimpleItem`
@@ -550,7 +554,9 @@ Now in Android 방식 커스텀 스크롤바.
 
 **`VerticalPager`**(세로 스와이프, Paging 연동, `pageSpacing 32dp`, `contentPadding vertical 80dp/horizontal 24dp`로 위아래 peek).
 - 자동화: 첫 진입 자동재생 · settledPage 변경 시 재생 · `ENDED` 시 다음 페이지 auto-scroll · lifecycle 연동 재생/정지
-- `EpisodeClipItem`: blur(20dp) 배경 + 250dp 커버 Card(elevation 24dp) + 제목 3줄/설명 6줄 + 하단(남은시간 웨이브 + 좋아요·재생 토글)
+- `EpisodeClipItem`: blur(20dp) 배경 + 250dp 커버 Card(elevation 24dp) + 제목 3줄/설명 6줄 +
+  하단(남은시간 웨이브 + 공유·좋아요·재생 토글). 공유는 `onShare` 를 준 화면에만 뜬다 —
+  공용 컴포넌트라 기본값을 빈 람다로 두면 눌러도 아무 일이 없는 버튼이 생긴다(§4.10 `onMore` 와 같은 규약)
 
 ### 7.8 채널 (`feature:channel`)
 

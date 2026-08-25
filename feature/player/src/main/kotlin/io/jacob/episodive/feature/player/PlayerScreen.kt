@@ -110,6 +110,7 @@ import io.jacob.episodive.core.ui.R as uiR
 import io.jacob.episodive.core.ui.ChapterItem
 import io.jacob.episodive.core.ui.PodcastSimpleItem
 import io.jacob.episodive.core.ui.episodeItems
+import io.jacob.episodive.core.ui.share.rememberShareLauncher
 
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -168,6 +169,18 @@ fun PlayerBottomSheet(
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
     val sleepTimerExpiredMessage = stringResource(R.string.feature_player_sleep_timer_expired)
+    val shareFailedMessage = stringResource(uiR.string.core_ui_share_failed)
+
+    val shareLauncher = rememberShareLauncher(
+        onError = {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = shareFailedMessage,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -238,6 +251,22 @@ fun PlayerBottomSheet(
             isPlaying = s.isPlaying,
             onCollapse = { collapse() },
             onToggleLike = { viewModel.sendAction(PlayerAction.ToggleLike) },
+            onShare = {
+                shareLauncher.share(
+                    episode = s.nowPlaying,
+                    // 에피소드에 웹 링크가 없는 경우가 대부분이라(피드가 잘 주지 않는다)
+                    // 팟캐스트 링크를 폴백으로 함께 넘긴다.
+                    podcast = s.podcast,
+                    // 지금 흐르는 위치가 이 에피소드의 것일 때만 싣는다. progress 는 에피소드가
+                    // 바뀌는 순간 잠깐 이전 것을 들고 있어, 확인 없이 실으면 남의 지점을 보낸다.
+                    // 다 들은 에피소드도 뺀다 — 위치가 끝에 멈춰 있어 "엔딩 크레딧부터 들어라"가
+                    // 된다. 모델의 하한(MIN_SHARE_POSITION_MS)은 이 반대쪽만 막는다.
+                    positionMs = s.progress.position.inWholeMilliseconds
+                        .takeIf {
+                            s.progress.episodeId == s.nowPlaying.id && !s.nowPlaying.isCompleted
+                        },
+                )
+            },
             onToggleSave = { viewModel.sendAction(PlayerAction.ToggleSave) },
             onSeekTo = { viewModel.sendAction(PlayerAction.SeekTo(it)) },
             onPlayOrPause = { viewModel.sendAction(PlayerAction.PlayOrPause) },
@@ -284,6 +313,7 @@ internal fun PlayerScreen(
     isPlaying: Boolean,
     onCollapse: () -> Unit,
     onToggleLike: () -> Unit,
+    onShare: () -> Unit,
     onToggleSave: () -> Unit,
     onSeekTo: (Long) -> Unit,
     onPlayOrPause: () -> Unit,
@@ -477,6 +507,7 @@ internal fun PlayerScreen(
                         sleepTimerRemainingMs = sleepTimerRemainingMs,
                         onList = { showPlaylistSheet = true },
                         onToggleSave = onToggleSave,
+                        onShare = onShare,
                     )
                 }
             }
@@ -696,6 +727,7 @@ private fun ControlPanelBottom(
     sleepTimerRemainingMs: Long? = null,
     onList: () -> Unit = {},
     onToggleSave: () -> Unit = {},
+    onShare: () -> Unit,
 ) {
     val dimension = LocalDimensionTheme.current
 
@@ -838,6 +870,21 @@ private fun ControlPanelBottom(
                             imageVector = EpisodiveIcons.Moon,
                             contentDescription = stringResource(R.string.feature_player_sleep_timer),
                             tint = moonTint,
+                        )
+                    }
+                )
+
+                // 다섯 칸의 한가운데. 좌우 두 칸씩이 재생을 조절하는 것들이라, 성격이 다른
+                // 공유를 가장자리에 두면 목록·다운로드와 같은 줄로 읽힌다.
+                EpisodiveIconButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onShare,
+                    icon = {
+                        Icon(
+                            modifier = Modifier.size(21.dp),
+                            imageVector = EpisodiveIcons.Share,
+                            contentDescription = stringResource(uiR.string.core_ui_share),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 )
@@ -1505,6 +1552,7 @@ private fun PlayerScreenPreview() {
                 Chapter("Chapter 3", 1500.seconds, 2500.seconds),
             ),
             onToggleFollowedPodcast = {},
+            onShare = {},
             cue = "we start again after a rejection or a perceived",
         )
     }
