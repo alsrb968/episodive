@@ -61,6 +61,7 @@ class PlayerScreenTest {
         onToggleSavedEpisode: (Episode) -> Unit = {},
         onSpeedChange: (Float) -> Unit = {},
         onToggleFollowedPodcast: (Podcast) -> Unit = {},
+        onShare: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             EpisodiveTheme {
@@ -71,6 +72,7 @@ class PlayerScreenTest {
                     isPlaying = isPlaying,
                     onCollapse = onCollapse,
                     onToggleLike = onToggleLike,
+                    onShare = onShare,
                     onSeekTo = onSeekTo,
                     onPlayOrPause = onPlayOrPause,
                     onBackward = onBackward,

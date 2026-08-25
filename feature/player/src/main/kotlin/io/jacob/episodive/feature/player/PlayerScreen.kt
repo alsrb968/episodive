@@ -259,8 +259,12 @@ fun PlayerBottomSheet(
                     podcast = s.podcast,
                     // 지금 흐르는 위치가 이 에피소드의 것일 때만 싣는다. progress 는 에피소드가
                     // 바뀌는 순간 잠깐 이전 것을 들고 있어, 확인 없이 실으면 남의 지점을 보낸다.
+                    // 다 들은 에피소드도 뺀다 — 위치가 끝에 멈춰 있어 "엔딩 크레딧부터 들어라"가
+                    // 된다. 모델의 하한(MIN_SHARE_POSITION_MS)은 이 반대쪽만 막는다.
                     positionMs = s.progress.position.inWholeMilliseconds
-                        .takeIf { s.progress.episodeId == s.nowPlaying.id },
+                        .takeIf {
+                            s.progress.episodeId == s.nowPlaying.id && !s.nowPlaying.isCompleted
+                        },
                 )
             },
             onToggleSave = { viewModel.sendAction(PlayerAction.ToggleSave) },
@@ -309,7 +313,7 @@ internal fun PlayerScreen(
     isPlaying: Boolean,
     onCollapse: () -> Unit,
     onToggleLike: () -> Unit,
-    onShare: () -> Unit = {},
+    onShare: () -> Unit,
     onToggleSave: () -> Unit,
     onSeekTo: (Long) -> Unit,
     onPlayOrPause: () -> Unit,
@@ -1550,6 +1554,7 @@ private fun PlayerScreenPreview() {
                 Chapter("Chapter 3", 1500.seconds, 2500.seconds),
             ),
             onToggleFollowedPodcast = {},
+            onShare = {},
             cue = "we start again after a rejection or a perceived",
         )
     }

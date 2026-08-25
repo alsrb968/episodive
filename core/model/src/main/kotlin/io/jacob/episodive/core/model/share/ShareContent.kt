@@ -101,14 +101,19 @@ fun Episode.toClipShareContent(
  * 폴백이 세 단인 이유는 실제 데이터가 그만큼 비어 있기 때문이다. 기기 DB 를 세어 보면
  * 에피소드 384개 중 366개(95%)가 [Episode.link] 가 빈 문자열이고, **사운드바이트로 들어온
  * 항목은 [Episode.feedUrl] 마저 하나도 없다**(`episode_with_extras` 뷰가 `soundbites.feedUrl`
- * 을 흘려보내지 않는다). 반면 팟캐스트의 링크는 빠짐없이 차 있어 마지막 기댈 곳이 된다.
+ * 을 흘려보내지 않는다). 반면 팟캐스트의 링크는 빠짐없이 차 있어 기댈 곳이 된다.
+ *
+ * **[Episode.feedUrl] 은 팟캐스트보다 뒤에 둔다.** 그것은 에피소드 고유의 주소가 아니라 그
+ * 팟캐스트의 RSS 라, 앞에 두면 사람이 받았을 때 브라우저에 XML 이 열린다. 같은 대상을
+ * 가리키면서 사람이 읽을 수 있는 [Podcast.link] 가 있으면 그쪽이 낫다. 에피소드 대부분이
+ * `link` 는 비고 `feedUrl` 은 차 있어서, 순서를 뒤집으면 팟캐스트 단은 영영 닿지 않는다.
  *
  * **[Episode.enclosureUrl] 로는 폴백하지 않는다.** 오디오 파일 직링크라 받는 쪽이 브라우저에서
  * mp3 를 통째로 내려받게 된다. 링크가 하나도 없을 때조차 이 값으로 메우지 않는다.
  */
 internal fun Episode.shareWebUrl(podcast: Podcast? = null): String? =
-    link.ifBlank { feedUrl.orEmpty() }
-        .ifBlank { podcast?.shareWebUrl().orEmpty() }
+    link.ifBlank { podcast?.shareWebUrl().orEmpty() }
+        .ifBlank { feedUrl.orEmpty() }
         .ifBlank { null }
 
 internal fun Podcast.shareWebUrl(): String? = link.ifBlank { url }.ifBlank { null }

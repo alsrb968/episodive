@@ -136,11 +136,22 @@ class ShareContentTest {
     }
 
     @Test
-    fun `episode share falls back to the podcast link as a last resort`() {
+    fun `episode share falls back to the podcast link when it has none of its own`() {
         // 실데이터에서 에피소드 link 는 95% 가 비어 있고, 사운드바이트로 들어온 항목은
-        // feedUrl 마저 없다. 팟캐스트 링크는 빠짐없이 차 있어 마지막 기댈 곳이 된다.
+        // feedUrl 마저 없다. 팟캐스트 링크는 빠짐없이 차 있어 기댈 곳이 된다.
         val content = episode(link = "", feedUrl = null)
             .toShareContent(labels, podcast = podcast())
+
+        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com", content.text)
+    }
+
+    @Test
+    fun `episode share prefers the podcast website over the rss feed url`() {
+        // feedUrl 은 에피소드 고유 주소가 아니라 그 팟캐스트의 RSS 다. 받는 사람 브라우저에
+        // XML 이 열리므로, 같은 대상을 가리키는 사람이 읽을 링크가 있으면 그쪽이 낫다.
+        // 이 순서가 뒤집히면 대부분의 에피소드(link 는 비고 feedUrl 은 찬)에서 팟캐스트
+        // 단이 영영 닿지 않는다.
+        val content = episode(link = "").toShareContent(labels, podcast = podcast())
 
         assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com", content.text)
     }
