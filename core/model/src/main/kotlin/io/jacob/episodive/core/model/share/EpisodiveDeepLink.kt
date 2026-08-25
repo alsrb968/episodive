@@ -103,6 +103,15 @@ fun Episode.toClipDeepLink(): String = buildString {
 
 private const val MILLIS_PER_SECOND = 1_000L
 
+/**
+ * 링크가 실을 수 있는 최대 오프셋(하루).
+ *
+ * 상한이 필요한 이유는 크기 자체보다 곱셈이다 — 초를 그대로 1000 배 하면 큰 값이 Long 을
+ * 넘겨 **음수 ms** 가 되고, 그것이 그대로 `seekTo` 에 실린다. 링크는 앱 밖에서 오는
+ * 문자열이라 여기서 걸러야 한다. 하루를 넘는 에피소드는 사실상 없으므로 실용적인 손해도 없다.
+ */
+private const val MAX_OFFSET_SECONDS = 24L * 60L * 60L
+
 private fun String.removeSchemePrefix(): String? {
     val prefix = "${EpisodiveDeepLink.SCHEME}://"
     // 스킴은 대소문자를 가리지 않는다(RFC 3986). 브라우저·메신저가 그대로 넘겨 주는 값이라
@@ -118,5 +127,5 @@ private fun String.secondsParamAsMillis(key: String): Long? =
                 .takeIf { part.substringBefore('=') == key }
         }
         ?.toLongOrNull()
-        ?.takeIf { it >= 0L }
+        ?.takeIf { it in 0L..MAX_OFFSET_SECONDS }
         ?.times(MILLIS_PER_SECOND)

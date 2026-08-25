@@ -108,7 +108,13 @@ fun PlayerBar(
         }
     }
 
-    // 공유받은 링크로 들어온 에피소드. 시트를 펼치고 재생을 건다.
+    // 공유받은 링크로 들어온 에피소드. 재생을 걸어 달라고만 하고 시트는 열지 않는다 —
+    // 여는 것은 에피소드를 실제로 찾은 뒤 ViewModel 이 ShowPlayerBottomSheet 로 알린다.
+    //
+    // 여기서 미리 열면 링크가 잘못됐거나 오프라인일 때 되돌릴 사람이 없다. 올릴 것이 없어
+    // state 가 Success 가 아니면 시트 본문이 통째로 그려지지 않는데(그 안에 스낵바 호스트도
+    // 있다) isShowPlayer 만 참으로 남아, 한참 뒤 아무 에피소드나 재생하는 순간 부르지도
+    // 않은 전체 화면 플레이어가 튀어나온다.
     //
     // 값이 아니라 읽는 함수로 받는 것은 EpisodiveNavHost 가 문서화한 캡처 함정과 같은 이유다.
     // 소비 콜백은 emit 뒤에 부른다 — 먼저 비우면 그 재구성이 이 이펙트를 취소해 액션이
@@ -116,7 +122,6 @@ fun PlayerBar(
     val pending = pendingEpisode()
     LaunchedEffect(pending) {
         val target = pending ?: return@LaunchedEffect
-        isShowPlayer = true
         viewModel.sendAction(
             PlayerAction.OpenDeepLink(
                 episodeId = target.id,
@@ -152,8 +157,10 @@ fun PlayerBar(
                 }
 
                 is PlayerEffect.ShowDeepLinkError -> {
-                    // 딥링크는 시트를 펼치고 들어오므로 보통은 시트 쪽이 띄운다. 여기는
-                    // 사용자가 그 사이 시트를 닫은 경우를 받는다(다른 스낵바들과 같은 가드).
+                    // 실패했다는 것은 시트를 열지 않았다는 뜻이라 보통 여기가 띄운다. 앱 전역
+                    // 스낵바 호스트라 재생 중인 것이 없어도 그려져 있다 — 시트 안 호스트는
+                    // state 가 Success 일 때만 있어서, 없을 때 부르면 영영 뜨지 않는 데다
+                    // showSnackbar 가 그 자리에서 멎어 이 수집 루프까지 함께 멈춘다.
                     if (!isShowPlayer) onShowSnackbar(deepLinkErrorMessage, null)
                 }
 
