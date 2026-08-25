@@ -23,6 +23,7 @@ import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.network.datasource.ChapterRemoteDataSource
 import io.jacob.episodive.core.network.datasource.EpisodeRemoteDataSource
 import io.jacob.episodive.core.network.datasource.SoundbiteRemoteDataSource
+import io.jacob.episodive.core.network.mapper.toEpisode as responseToEpisode
 import io.jacob.episodive.core.network.mapper.toEpisodes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -218,6 +219,23 @@ class EpisodeRepositoryImpl @Inject constructor(
     override fun getEpisodeById(id: Long): Flow<Episode?> {
         return episodeLocalDataSource.getEpisodeById(id)
             .map { it?.toEpisode() }
+    }
+
+    /**
+     * 로컬에 심지 않는다. `replaceEpisodes` 는 그룹을 통째로 갈아치우므로 여기서 부르면
+     * 사용자가 듣던 재생목록(`GroupKey.PLAYLIST`)이 날아가고, 어차피 이 값을 받아 재생을 거는
+     * `PlayEpisodeUseCase` 가 곧바로 같은 그룹에 심는다.
+     *
+     * 실패를 예외로 올리지 않는 것도 의도한 선택이다. 호출부는 "로컬에 없으면 원격도 본다"는
+     * 폴백 자리라, 없는 것과 못 가져온 것을 똑같이 다루면 된다. 취소만은 다시 던진다.
+     */
+    override suspend fun fetchEpisodeById(id: Long): Episode? = try {
+        episodeRemoteDataSource.getEpisodeById(id, fulltext = true)?.responseToEpisode()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "에피소드 단건 조회에 실패했다 (id=$id)")
+        null
     }
 
     /**

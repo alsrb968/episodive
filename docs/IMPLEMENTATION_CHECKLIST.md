@@ -156,7 +156,12 @@ Episodive의 기능 구현 상태를 추적합니다.
 
 ### 2.4 딥링크 · 권한
 
-- ✅ 딥링크 처리 — 알림 딥링크, 위젯 자동 재생 딥링크 2종
+- ✅ 딥링크 처리 3종 — 알림(Intent extra), 위젯 자동 재생(Intent extra),
+  **`episodive://` 커스텀 스킴**(공유 링크). 앞의 둘은 URI 가 아니라 extra 기반이다
+    - URI 문법: `episodive://podcast/{feedId}`, `episodive://episode/{id}?t={초}&d={초}`
+    - 재방출 방어는 `onCreate` 의 `handleDeepLink` 를 `savedInstanceState` 가드 안에 두어 푼다 —
+      URI 는 `removeExtra` 로 지울 수 없다
+    - https App Links 는 없다. `autoVerify` 에 필요한 도메인과 `assetlinks.json` 이 없다
 - 🟡 런타임 권한 요청 (`POST_NOTIFICATIONS`) — 요청·허용은 동작하나
   rationale 화면과 거부 후속 UX가 없어 미허용 시 콜드스타트마다 재요청됨
 
@@ -224,7 +229,9 @@ Episodive의 기능 구현 상태를 추적합니다.
 - ✅ 에피소드 공유 — 플레이어의 알약 컨트롤 바 한가운데. 듣던 지점이 10초를 넘으면 함께 싣는다
   (`PlayerScreen.kt` 의 `onShare`, 문구는 `core/model/.../share/ShareContent.kt`)
 - ✅ 클립 공유 (타임스탬프 포함) — 클립 카드의 공유 버튼 (`core/ui/.../Episode.kt` `EpisodeClipItem`)
-- ⬜ 앱 딥링크 스킴 기반 공유
+- ✅ 앱 딥링크 스킴 기반 공유 — 공유 문구에 웹 링크와 `episodive://` 를 나란히 싣는다
+  (앱이 없는 사람에게도 웹 링크가 남는다). 착지는 플레이어 시트이고, 로컬에 없는
+  에피소드는 원격 단건 조회로 채운다
 - ⬜ OPML import / export
 - ⬜ 에피소드 목록 행에서 공유 — 오버플로 메뉴·롱프레스 패턴이 저장소에 전례가 없어
   이번 범위에서 뺐다. 목록에서는 행을 눌러 플레이어를 연 뒤 공유한다
@@ -248,7 +255,7 @@ Episodive의 기능 구현 상태를 추적합니다.
 | NetworkMonitor | 데이터 계층에 연결되지 않음 |
 | 캐시 정책 | `RemoteUpdater`의 stale-while-error가 Podcast·Episode에만 적용 (Channel·RecentSearch·User·Player는 대상 밖) |
 | 트랜스크립트 | VTT 전용, 전문 뷰어 없음 |
-| 클립 공유의 링크 | 클립은 제목과 시작 지점만 공유되고 웹 링크가 붙지 않는다. `episode_with_extras` 가 `soundbites.feedUrl` 을 흘려보내지 않아 사운드바이트로 들어온 에피소드는 `feedUrl` 이 비고, 클립 화면은 팟캐스트 객체를 쥐고 있지 않아 폴백할 곳도 없다(플레이어·팟캐스트 상세는 팟캐스트 링크로 폴백해 항상 링크가 붙는다). 앱 딥링크([4.3](#43-공유--연동))로 해소할 예정이다 — 뷰에 `soundbites.feedUrl` 을 한 컬럼 더 흘리는 더 얕은 길도 있지만(`clipStartTime`/`clipDuration` 이 이미 그렇게 온다) 그쪽이 주는 것은 RSS 주소라, 사람이 받아 볼 링크로는 딥링크가 낫다 |
+| 클립 공유의 링크 | 클립 공유에는 웹 링크가 붙지 않고 앱 딥링크만 붙는다. `episode_with_extras` 가 `soundbites.feedUrl` 을 흘려보내지 않아 사운드바이트로 들어온 에피소드는 `feedUrl` 이 비고, 클립 화면은 팟캐스트 객체를 쥐고 있지 않아 폴백할 곳도 없다(플레이어·팟캐스트 상세는 팟캐스트 링크로 폴백해 웹 링크가 항상 붙는다). 앱이 깔린 사람에게는 딥링크로 충분하지만, 안 깔린 사람에게는 제목과 지점만 간다 |
 | 검색 결과 '더보기' | 착지할 전체 목록 화면이 없어 섹션 헤더에 버튼을 달지 않음 (`SearchScreen.kt:403`) |
 | 빈 결과 캐싱 | `feeds` 의 만료 판정이 `MIN(cachedAt)` 이라, 원격이 0건을 주면 표식이 남지 않아 화면에 들어올 때마다 목록 API 를 다시 친다. 결과 없는 카테고리·언어 조합에서만 발생하고 화면은 정상적으로 빈 상태를 보인다 |
 | `feeds` 회수 | `podcast_group` 과 달리 `feeds` 에는 그룹 수 상한도 TTL 청소도 없다. 삭제는 같은 groupKey 를 다시 채울 때만 일어나므로, 사용자가 언어·카테고리를 바꾸면 죽은 그룹(그룹당 ≤50행)이 남는다 |

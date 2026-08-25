@@ -8,13 +8,16 @@ import io.jacob.episodive.core.common.Player
 import io.jacob.episodive.core.common.TimeProvider
 import io.jacob.episodive.core.common.combine as combineTyped
 import io.jacob.episodive.core.domain.repository.PlayerRepository
+import io.jacob.episodive.core.domain.usecase.episode.FetchEpisodeByIdUseCase
 import io.jacob.episodive.core.domain.usecase.episode.GetChaptersUseCase
+import io.jacob.episodive.core.domain.usecase.episode.GetEpisodeByIdUseCase
 import io.jacob.episodive.core.domain.usecase.episode.RefreshEpisodeDescriptionUseCase
 import io.jacob.episodive.core.domain.usecase.episode.SaveEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.ToggleLikedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.episode.UpdatePlayedEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.GetNowPlayingUseCase
 import io.jacob.episodive.core.domain.usecase.player.GetPlaylistUseCase
+import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.domain.usecase.player.RestoreLastPlayStateUseCase
 import io.jacob.episodive.core.domain.usecase.player.SaveLastPlayStateUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetPodcastUseCase
@@ -27,6 +30,7 @@ import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.Repeat
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -67,6 +71,9 @@ class PlayerViewModel @Inject constructor(
     private val toggleFollowedUseCase: ToggleFollowedUseCase,
     private val saveLastPlayStateUseCase: SaveLastPlayStateUseCase,
     private val restoreLastPlayStateUseCase: RestoreLastPlayStateUseCase,
+    private val getEpisodeByIdUseCase: GetEpisodeByIdUseCase,
+    private val fetchEpisodeByIdUseCase: FetchEpisodeByIdUseCase,
+    private val playEpisodeUseCase: PlayEpisodeUseCase,
     private val timeProvider: TimeProvider,
 ) : ViewModel() {
     private val nowPlaying = getNowPlayingUseCase()
@@ -89,6 +96,11 @@ class PlayerViewModel @Inject constructor(
             flowOf(chapters)
         }
 
+
+    /**
+     * 마지막 재생 복원 작업. 딥링크가 이것을 멈출 수 있어야 한다 — [openDeepLink] 참고.
+     */
+    private var restoreLastPlayJob: Job? = null
 
     private var sleepTimerJob: Job? = null
     private val _sleepTimerRemainingMs = MutableStateFlow<Long?>(null)
@@ -161,7 +173,7 @@ class PlayerViewModel @Inject constructor(
                     playerRepository.setSpeed(speed)
                 }
         }
-        viewModelScope.launch {
+        restoreLastPlayJob = viewModelScope.launch {
             val currentEpisode = playerRepository.nowPlaying.first()
             if (currentEpisode == null) {
                 restoreLastPlayStateUseCase()
@@ -261,6 +273,8 @@ class PlayerViewModel @Inject constructor(
                 is PlayerAction.SetSleepTimer -> startSleepTimer(action.durationMs)
                 is PlayerAction.CancelSleepTimer -> cancelSleepTimer()
                 is PlayerAction.SleepTimerEndOfEpisode -> startEndOfEpisodeTimer()
+                is PlayerAction.OpenDeepLink ->
+                    openDeepLink(action.episodeId, action.startPositionMs)
             }
         }
     }
@@ -320,6 +334,41 @@ class PlayerViewModel @Inject constructor(
             val index = currentState.playlist.indexOf(episode)
             playerRepository.playIndex(index)
         }
+    }
+
+    /**
+     * 공유받은 링크의 에피소드를 재생 큐에 올린다.
+     *
+     * 로컬을 먼저 보고, 없으면 원격에서 한 건 가져온다 — 남이 보낸 링크는 이 기기가 한 번도
+     * 만난 적 없는 에피소드일 수 있는데 `getEpisodeById` 는 DB 만 보기 때문이다.
+     *
+     * 재생 중이던 재생목록은 이 호출로 갈린다(`PlayEpisodeUseCase` 가 PLAYLIST 그룹을
+     * 갈아치운다). 링크를 눌러 그 에피소드를 듣겠다는 뜻이니 앱 안에서 다른 에피소드를 고른
+     * 것과 같은 결과이고, 이어듣기 지점은 에피소드별로 남아 있어 잃는 것이 없다.
+     */
+    private fun openDeepLink(episodeId: Long, startPositionMs: Long?) = viewModelScope.launch {
+        val episode = getEpisodeByIdUseCase(episodeId).first()
+            ?: fetchEpisodeByIdUseCase(episodeId)
+
+        if (episode == null) {
+            // 복원은 건드리지 않은 채로 둔다. 올릴 것도 없는데 멈춰 버리면 링크 하나가
+            // 잘못된 대가로 듣던 것까지 잃는다.
+            _effect.emit(PlayerEffect.ShowDeepLinkError)
+            return@launch
+        }
+
+        // 올릴 것이 확실해진 뒤에 마지막 재생 복원을 멈춘다. 콜드 스타트에서 둘이 나란히
+        // 달리면 복원이 늦게 끝나면서 딥링크가 올린 것을 덮어쓰고, 이어서 우리 seekTo 만
+        // 그 위에 적용되어 **엉뚱한 에피소드가 링크의 지점부터** 재생된다(실제로 겪은 버그다).
+        // 링크는 사용자가 방금 누른 명시적 의도이므로 복원보다 우선한다.
+        restoreLastPlayJob?.cancelAndJoin()
+
+        playEpisodeUseCase(episode)
+        // 0 도 뜻이 있는 값이라 그대로 태운다 — "맨 앞부터"다.
+        startPositionMs?.let { playerRepository.seekTo(it) }
+
+        // 올릴 것이 확정된 뒤에 시트를 연다. 먼저 열면 실패했을 때 빈 시트만 남는다.
+        _effect.emit(PlayerEffect.ShowPlayerBottomSheet)
     }
 
     private fun toggleCurrentLikedEpisode() = viewModelScope.launch {
@@ -479,6 +528,9 @@ sealed interface PlayerAction {
     data class SetSleepTimer(val durationMs: Long) : PlayerAction
     data object CancelSleepTimer : PlayerAction
     data object SleepTimerEndOfEpisode : PlayerAction
+
+    /** 공유받은 링크로 들어온 에피소드를 재생 큐에 올린다. */
+    data class OpenDeepLink(val episodeId: Long, val startPositionMs: Long?) : PlayerAction
 }
 
 sealed interface PlayerEffect {
@@ -487,6 +539,9 @@ sealed interface PlayerEffect {
     data object HidePlayerBottomSheet : PlayerEffect
     data class ShowUnsaveSnackbar(val episode: Episode) : PlayerEffect
     data object SleepTimerExpired : PlayerEffect
+
+    /** 공유받은 링크의 에피소드를 끝내 찾지 못했다. */
+    data object ShowDeepLinkError : PlayerEffect
 }
 
 private data class LastPlaySnapshot(

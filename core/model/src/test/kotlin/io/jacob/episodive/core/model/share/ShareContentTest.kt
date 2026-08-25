@@ -25,7 +25,11 @@ class ShareContentTest {
         episodeSubjectFormat = "%1\$s · %2\$s",
         clipLineFormat = "%1\$s 부터",
         positionLineFormat = "%1\$s 지점부터",
+        openInAppFormat = "앱: %1\$s",
     )
+
+    /** 에피소드 팩토리의 id 가 1 이므로 앱 링크는 늘 이 줄이 된다. */
+    private fun appLine(suffix: String = "") = "앱: episodive://episode/1$suffix"
 
     private fun episode(
         link: String = "https://example.com/ep1",
@@ -90,18 +94,18 @@ class ShareContentTest {
 
     @Test
     fun `podcast share uses the website link`() {
-        val content = podcast().toShareContent()
+        val content = podcast().toShareContent(labels)
 
         assertEquals("팟캐스트 제목", content.subject)
-        assertEquals("팟캐스트 제목\nhttps://example.com", content.text)
+        assertEquals("팟캐스트 제목\nhttps://example.com\n앱: episodive://podcast/1", content.text)
     }
 
     @Test
     fun `podcast share falls back to the feed url when the website is empty`() {
         // 피드가 웹사이트를 주지 않는 경우가 흔하다. 기존 공유 동작(link.ifEmpty { url })과 같다.
-        val content = podcast(link = "").toShareContent()
+        val content = podcast(link = "").toShareContent(labels)
 
-        assertEquals("팟캐스트 제목\nhttps://example.com/rss.xml", content.text)
+        assertEquals("팟캐스트 제목\nhttps://example.com/rss.xml\n앱: episodive://podcast/1", content.text)
     }
 
     // --- 에피소드 ---
@@ -125,14 +129,14 @@ class ShareContentTest {
         // Episode.link 는 타입상 non-null 이지만 Podcast Index 가 빈 문자열을 흔히 내려 준다.
         val content = episode(link = "").toShareContent(labels)
 
-        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com/rss.xml", content.text)
+        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com/rss.xml\n${appLine()}", content.text)
     }
 
     @Test
     fun `episode share omits the url line when there is no web link at all`() {
         val content = episode(link = "", feedUrl = null).toShareContent(labels)
 
-        assertEquals("에피소드 제목 · 팟캐스트", content.text)
+        assertEquals("에피소드 제목 · 팟캐스트\n${appLine()}", content.text)
     }
 
     @Test
@@ -142,7 +146,7 @@ class ShareContentTest {
         val content = episode(link = "", feedUrl = null)
             .toShareContent(labels, podcast = podcast())
 
-        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com", content.text)
+        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com\n${appLine()}", content.text)
     }
 
     @Test
@@ -153,14 +157,14 @@ class ShareContentTest {
         // 단이 영영 닿지 않는다.
         val content = episode(link = "").toShareContent(labels, podcast = podcast())
 
-        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com", content.text)
+        assertEquals("에피소드 제목 · 팟캐스트\nhttps://example.com\n${appLine()}", content.text)
     }
 
     @Test
     fun `episode share prefers its own link over the podcast link`() {
         val content = episode().toShareContent(labels, podcast = podcast())
 
-        assertTrue(content.text.endsWith("https://example.com/ep1"))
+        assertTrue(content.text.contains("\nhttps://example.com/ep1\n"))
     }
 
     @Test
@@ -174,7 +178,10 @@ class ShareContentTest {
 
         val content = clip.toClipShareContent(labels, podcast = podcast())
 
-        assertEquals("에피소드 제목 · 팟캐스트\n1:23 부터\nhttps://example.com", content.text)
+        assertEquals(
+            "에피소드 제목 · 팟캐스트\n1:23 부터\nhttps://example.com\n${appLine("?t=83&d=30")}",
+            content.text,
+        )
     }
 
     @Test
@@ -251,7 +258,7 @@ class ShareContentTest {
         val notAClip = episode(clipStartTime = Instant.fromEpochSeconds(83), clipDuration = null)
 
         assertEquals(
-            "에피소드 제목 · 팟캐스트\nhttps://example.com/ep1",
+            "에피소드 제목 · 팟캐스트\nhttps://example.com/ep1\n${appLine()}",
             notAClip.toClipShareContent(labels).text,
         )
     }

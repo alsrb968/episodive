@@ -15,9 +15,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +47,48 @@ class EpisodeRepositoryImplTest {
         soundbiteRemoteDataSource = soundbiteRemoteDataSource,
         remoteUpdater = remoteUpdater,
     )
+
+    // --- 딥링크 착지용 원격 폴백 ---
+
+    @Test
+    fun `Given a remote hit, When fetchEpisodeById, Then it returns the episode`() = runTest {
+        val episode = episodeTestData
+        coEvery {
+            episodeRemoteDataSource.getEpisodeById(episode.id, fulltext = true)
+        } returns listOf(episode).toEpisodeResponses().first()
+
+        assertEquals(episode.id, repository.fetchEpisodeById(episode.id)?.id)
+    }
+
+    @Test
+    fun `Given the remote has no such episode, When fetchEpisodeById, Then it returns null`() =
+        runTest {
+            coEvery { episodeRemoteDataSource.getEpisodeById(any(), any()) } returns null
+
+            assertNull(repository.fetchEpisodeById(999L))
+        }
+
+    @Test
+    fun `Given the remote call fails, When fetchEpisodeById, Then it returns null instead of throwing`() =
+        runTest {
+            // 호출부는 "로컬에 없으면 원격도 본다"는 폴백 자리라, 없는 것과 못 가져온 것을
+            // 똑같이 다룬다. 여기서 던지면 플레이어가 그 예외를 다시 받아 처리해야 한다.
+            coEvery { episodeRemoteDataSource.getEpisodeById(any(), any()) } throws
+                    RuntimeException("boom")
+
+            assertNull(repository.fetchEpisodeById(999L))
+        }
+
+    @Test
+    fun `Given a cancellation, When fetchEpisodeById, Then it propagates`() = runTest {
+        // 취소는 삼키면 안 된다 — 코루틴 취소가 전파되지 않으면 화면을 떠난 뒤에도 일이 남는다.
+        coEvery { episodeRemoteDataSource.getEpisodeById(any(), any()) } throws
+                CancellationException("cancelled")
+
+        assertThrows(CancellationException::class.java) {
+            runBlocking { repository.fetchEpisodeById(999L) }
+        }
+    }
 
     @Test
     fun `Given feedId, When getLatestEpisodeDatePublished, Then delegates to localDataSource`() =
