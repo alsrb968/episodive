@@ -65,3 +65,14 @@ internal fun <T> Flow<List<T>>.asSectionState(): Flow<SectionState<T>> =
  */
 internal val <T> SectionState<T>.itemsOrEmpty: List<T>
     get() = if (this is SectionState.Success) items else emptyList()
+
+/**
+ * 화면에 실제로 내놓을 것이 있는가.
+ *
+ * 로딩 중이거나, 비어 온 응답이거나, 실패한 섹션은 모두 "없다" 다 — 화면이 이 셋을 똑같이
+ * 건너뛰기 때문이다. 홈 전체를 오류로 덮을지 가르는 기준이 "모든 섹션이 실패했는가" 가 아니라
+ * 이것이어야 한다. 아홉 중 셋은 로컬만 읽어 네트워크로 실패하지 않으므로, 실패 개수로 세면
+ * 오프라인에서도 조건이 참이 되지 않는다.
+ */
+internal val SectionState<*>.hasContent: Boolean
+    get() = this is SectionState.Success && items.isNotEmpty()

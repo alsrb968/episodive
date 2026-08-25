@@ -176,6 +176,9 @@ class HomeViewModelTest {
         // 소스 하나가 실패했다고 홈 전체가 오류 화면이 되면 안 된다. 나머지 여덟 개는
         // 멀쩡히 도착했고, 사용자에게 보여줄 것이 남아 있다.
         setupDefaultMocks()
+        // 보여줄 것이 하나는 있어야 한다. 전부 비어 있는데 하나가 실패하면 그때는 화면에
+        // 내놓을 것이 없어 오류 화면이 맞고, 그 경우는 아래 별도 테스트가 다룬다.
+        every { getChannelsUseCase() } returns flowOf(channelTestDataList)
         every { getPlayingEpisodesUseCase(max = any()) } returns flow {
             throw RuntimeException("Error")
         }
@@ -190,14 +193,38 @@ class HomeViewModelTest {
             // 접어 올린다 — 판별 로직 자체는 core:model 쪽 책임이라 여기서는 그 결과가 섹션에
             // 그대로 실렸는지만 확인한다.
             assertTrue((failed as SectionState.Error).error is DataError.Unexpected)
-            assertEquals(SectionState.Success(emptyList<Channel>()), success.channels)
+            // 실패한 것은 한 섹션뿐이고 나머지는 그대로 화면에 오른다.
+            assertEquals(SectionState.Success(channelTestDataList), success.channels)
         }
     }
 
     @Test
+    fun `Given remote fails while local is empty, When collecting, Then state is Error`() =
+        runTest {
+            // 오프라인 첫 실행. 로컬만 읽는 셋(이어듣기·팔로우·채널)은 빈 목록으로 **성공**
+            // 하고 원격은 전부 실패한다. "모든 섹션이 실패했는가" 로 판정하면 이 상황이
+            // 영영 걸리지 않아, 화면은 아무 설명도 재시도 버튼도 없는 빈 시트가 된다.
+            setupDefaultMocks()
+            val boom = { flow<Nothing> { throw RuntimeException("offline") } }
+            every { getUserRecentPodcastsUseCase(max = any()) } returns boom()
+            every { getMyRandomEpisodesUseCase(max = any()) } returns boom()
+            every { getUserTrendingPodcastsUseCase(max = any()) } returns boom()
+            every { getLocalTrendingPodcastsUseCase(max = any()) } returns boom()
+            every { getForeignTrendingPodcastsUseCase(max = any()) } returns boom()
+            every { getLiveEpisodesUseCase(max = any()) } returns boom()
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                var state = awaitItem()
+                while (state !is HomeState.Error) state = awaitItem()
+                assertTrue(state.error is DataError.Unexpected)
+            }
+        }
+
+    @Test
     fun `Given every flow throws, When collecting, Then state is Error`() = runTest {
-        // 반대쪽 끝. 보여줄 것이 하나도 없으면 그때는 화면 전체가 오류를 다뤄야 한다 —
-        // 섹션이 전부 빠진 빈 피드를 내놓으면 사용자는 무엇이 잘못됐는지 알 수 없다.
+        // 보여줄 것이 하나도 없으면 화면 전체가 오류를 다룬다.
         throwFromAllSources()
 
         val viewModel = createViewModel()

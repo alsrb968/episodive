@@ -95,13 +95,24 @@ class HomeViewModel @Inject constructor(
                 channels = channels,
             )
 
-            when {
-                // 화면 전체를 덮는 두 상태는 "모두 그렇다" 일 때만 쓴다. 하나라도 보여줄 것이
-                // 있으면 그것을 띄우고 나머지는 각자 자기 자리에서 기다리거나 빠진다.
-                loaded.sections.all { it is SectionState.Loading } -> HomeState.Loading
+            val sections = loaded.sections
+            val errors = sections.filterIsInstance<SectionState.Error>()
 
-                loaded.sections.all { it is SectionState.Error } -> {
-                    val errors = loaded.sections.filterIsInstance<SectionState.Error>()
+            when {
+                sections.all { it is SectionState.Loading } -> HomeState.Loading
+
+                // 판정 기준은 "모든 섹션이 실패했는가" 가 아니라 **화면에 내놓을 것이 하나도
+                // 없는가** 다. 아홉 중 셋(이어듣기·팔로우·채널)은 로컬만 읽어 네트워크로
+                // 실패하지 않으므로, "모두 실패" 를 기준으로 삼으면 오프라인 첫 실행에서
+                // 그 셋이 빈 목록으로 성공해 조건이 영영 참이 되지 않는다. 그러면 원격이
+                // 전부 죽었는데도 상태는 Success 이고, 화면은 빈 섹션과 실패한 섹션을 똑같이
+                // 건너뛰어 **아무 설명도 재시도 버튼도 없는 빈 시트**가 된다.
+                //
+                // 아직 오지 않은 섹션이 하나라도 있으면 판정을 미룬다. 그것이 채워질 수도
+                // 있는데 먼저 오류 화면으로 덮으면 멀쩡한 응답을 버리게 된다.
+                sections.none { it is SectionState.Loading } &&
+                    errors.isNotEmpty() &&
+                    sections.none { it.hasContent } -> {
                     // 재시도할 수 있는 오류를 먼저 고른다. 그냥 첫 번째를 쓰면 재시도 불가
                     // 오류(Unauthorized·NotFound)가 섞였을 때 사용자가 재시도 버튼조차 받지
                     // 못하고 갇힌다.
@@ -184,7 +195,15 @@ class HomeViewModel @Inject constructor(
 
     companion object {
         private const val FEED_MAX = 10
-        private const val COMPACT_MAX = 6
+
+        /**
+         * 캐러셀이 아닌 세로 목록 섹션(랜덤·라이브)이 받아 오는 개수.
+         *
+         * `internal` 인 것은 화면이 로딩 자리를 이만큼 잡아야 하기 때문이다. 화면에 같은 숫자를
+         * 따로 두면 한쪽만 고쳤을 때 스켈레톤이 실제보다 짧거나 길어져, 데이터가 도착하는 순간
+         * 목록이 위아래로 튄다 — 그것을 막으려고 만든 값이 스스로 그 원인이 된다.
+         */
+        internal const val COMPACT_MAX = 6
     }
 }
 

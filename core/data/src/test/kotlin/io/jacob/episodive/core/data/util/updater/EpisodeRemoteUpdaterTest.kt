@@ -13,8 +13,8 @@ import io.jacob.episodive.core.network.datasource.SoundbiteRemoteDataSource
 import io.jacob.episodive.core.network.model.EpisodeResponse
 import io.jacob.episodive.core.testing.util.MainDispatcherRule
 import io.mockk.Runs
-import io.mockk.coVerify
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
 import io.mockk.just

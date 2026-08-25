@@ -5,7 +5,9 @@ import io.jacob.episodive.core.domain.repository.EpisodeRepository
 import io.jacob.episodive.core.domain.repository.UserRepository
 import io.jacob.episodive.core.model.Episode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 /**
@@ -21,11 +23,17 @@ class GetMyRandomEpisodesPagingUseCase @Inject constructor(
     private val userRepository: UserRepository,
 ) {
     operator fun invoke(max: Int): Flow<PagingData<Episode>> {
-        return userRepository.getUserData().flatMapLatest { userData ->
-            episodeRepository.getRandomEpisodesPaging(
-                max = max,
-                language = userData.language,
-            )
-        }
+        // UserData 전체가 아니라 language 만 본다. 통째로 flatMapLatest 하면 재생 속도처럼
+        // 이 쿼리와 무관한 값이 바뀔 때마다 흐름을 끊고 다시 구독해, 갱신을 다시 돌리고
+        // (페이징 쪽은) Pager 를 새로 만들어 **보던 목록이 맨 위로 되감긴다.**
+        return userRepository.getUserData()
+            .map { it.language }
+            .distinctUntilChanged()
+            .flatMapLatest { language ->
+                episodeRepository.getRandomEpisodesPaging(
+                    max = max,
+                    language = language,
+                )
+            }
     }
 }

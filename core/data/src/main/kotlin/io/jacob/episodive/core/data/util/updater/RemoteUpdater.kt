@@ -68,12 +68,17 @@ abstract class RemoteUpdater<Query : CacheableQuery, Response, Entity, Output : 
         if (!expired) return
 
         if (cachedAt != null) {
-            backgroundRefresher.refresh(query.key) { refresh() }
+            backgroundRefresher.refreshInBackground(query.key) { refresh() }
             return
         }
 
+        // 보여줄 것이 없으니 기다린다. **다만 갱신 자체는 여기서 돌리지 않는다** — 이 자리는
+        // `onStart` 안이라 화면 스코프에 매달려 있어, 사용자가 5초 안에 탭을 옮기면
+        // `WhileSubscribed` 가 걷히며 요청이 잘린다. 돌아와도 처음부터 다시 시작해 다시
+        // 잘리므로, 탭을 오가는 동안 첫 데이터를 **영영** 받지 못한 채 스켈레톤에 갇힌다.
+        // refreshAndWait 는 앱 스코프에서 돌리고 대기만 여기에 건다.
         try {
-            refresh()
+            backgroundRefresher.refreshAndWait(query.key) { refresh() }
         } catch (e: CancellationException) {
             // 취소는 실패가 아니다. 여기서 삼키면 코루틴 취소가 전파되지 않는다.
             throw e

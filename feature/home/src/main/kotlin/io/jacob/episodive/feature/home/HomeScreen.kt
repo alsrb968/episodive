@@ -271,6 +271,7 @@ internal fun HomeScreen(
                         // 선이 겹치지 않고, 마지막 섹션 뒤에 선이 남지도 않는다.
                         var sectionRendered = false
                         fun <T> section(
+                            section: HomeSection,
                             state: SectionState<T>,
                             skeleton: @Composable LazyItemScope.() -> Unit,
                             content: @Composable LazyItemScope.(List<T>) -> Unit,
@@ -289,16 +290,24 @@ internal fun HomeScreen(
                                 is SectionState.Error -> return
                             }
 
+                            // 키가 있어야 한다. 섹션은 이제 로딩 중에 나타났다가 빈 응답으로
+                            // 사라질 수 있어 목록의 인덱스가 밀리는데, 키가 없으면 Compose 가
+                            // 슬롯 상태를 인덱스로 짝지어 **다른 섹션의 것을 물려준다** —
+                            // 캐러셀 안의 rememberLazyListState 가 엉뚱한 섹션에 적용돼 절반쯤
+                            // 넘겨 둔 스크롤이 다른 줄에 나타난다.
                             if (sectionRendered) {
-                                item { HorizontalDivider(modifier = Modifier.padding(16.dp)) }
+                                item(key = "divider:${section.name}") {
+                                    HorizontalDivider(modifier = Modifier.padding(16.dp))
+                                }
                             }
                             sectionRendered = true
-                            item {
+                            item(key = "section:${section.name}") {
                                 if (items == null) skeleton() else content(items)
                             }
                         }
 
                         section(
+                            section = HomeSection.MyRecentPodcasts,
                             state = userRecentPodcasts,
                             skeleton = { PodcastsSectionSkeleton(hasAction = true) },
                         ) { items ->
@@ -314,6 +323,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.RandomEpisodes,
                             state = randomEpisodes,
                             skeleton = {
                                 EpisodesSectionSkeleton(
@@ -333,6 +343,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.MyTrendingPodcasts,
                             state = userTrendingPodcasts,
                             skeleton = { PodcastsSectionSkeleton(hasAction = true) },
                         ) { items ->
@@ -348,6 +359,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.FollowedPodcasts,
                             state = followedPodcasts,
                             skeleton = { PodcastsSectionSkeleton(hasAction = true) },
                         ) { items ->
@@ -362,6 +374,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.LocalTrendingPodcasts,
                             state = localTrendingPodcasts,
                             skeleton = { PodcastsSectionSkeleton(hasAction = true) },
                         ) { items ->
@@ -377,6 +390,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.ForeignTrendingPodcasts,
                             state = foreignTrendingPodcasts,
                             skeleton = { PodcastsSectionSkeleton(hasAction = true) },
                         ) { items ->
@@ -392,6 +406,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.LiveEpisodes,
                             state = liveEpisodes,
                             skeleton = {
                                 EpisodesSectionSkeleton(
@@ -411,6 +426,7 @@ internal fun HomeScreen(
                         }
 
                         section(
+                            section = HomeSection.Channels,
                             state = channels,
                             skeleton = { ChannelSectionSkeleton(hasAction = true) },
                         ) { items ->
@@ -706,11 +722,12 @@ private val HomeHeroSkeletonInitialHeight = 130.dp
  * 아직 오지 않은 에피소드 섹션이 잡아 둘 카드 수.
  *
  * `EpisodesSection` 은 가로 캐러셀이 아니라 세로 Column 이라 **이 수가 곧 섹션 높이**다.
- * 실제로 채워질 개수(`HomeViewModel.COMPACT_MAX`)와 맞춰 둬야 도착하는 순간 아래가 밀리지
- * 않는다. 팟캐스트·채널 캐러셀은 가로로 흘러 넘치는 만큼이 화면 밖이라 이 값이 필요 없고,
- * 각 스켈레톤의 기본값을 그대로 쓴다.
+ * 그래서 실제로 채워질 개수를 베껴 적지 않고 [HomeViewModel.COMPACT_MAX] 를 그대로 참조한다 —
+ * 숫자를 두 벌로 두면 한쪽만 고쳤을 때 로딩 자리와 콘텐츠 높이가 어긋나 목록이 튄다.
+ * 팟캐스트·채널 캐러셀은 넘치는 만큼이 가로로 화면 밖이라 이 값이 필요 없고, 각 스켈레톤의
+ * 기본값을 그대로 쓴다.
  */
-private const val HomeEpisodeSkeletonCount = 6
+private const val HomeEpisodeSkeletonCount = HomeViewModel.COMPACT_MAX
 
 /**
  * 로딩 자리. 화면 제목은 데이터와 무관한 정적 크롬이라 그대로 렌더하고, 이어듣기 히어로와
@@ -879,8 +896,12 @@ private fun HomeScreenPreview() {
     }
 }
 /**
- * 이 화면이 존재하는 이유가 되는 상태 — 랜덤 에피소드만 아직 오지 않았고 나머지는 다 찼다.
- * 그 자리에만 스켈레톤이 남고 다른 섹션은 정상적으로 눌린다.
+ * 이 화면이 존재하는 이유가 되는 상태 — 일부 섹션만 아직 오지 않았다. 그 자리에는 스켈레톤이
+ * 남고 이미 도착한 섹션은 정상적으로 눌린다.
+ *
+ * 캐러셀(팟캐스트·채널)과 세로 리스트(에피소드)를 하나씩 로딩으로 두어 두 종류의 로딩 자리를
+ * 함께 본다. Robolectric 이 `lineHeight` 를 반영하지 않아 자리 예약은 테스트로 검증할 수 없고,
+ * 이 미리보기와 기기가 그 역할을 한다.
  */
 @DevicePreviews
 @Composable
