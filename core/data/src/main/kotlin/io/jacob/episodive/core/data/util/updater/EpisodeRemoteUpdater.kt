@@ -24,7 +24,8 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
     private val soundbiteLocal: SoundbiteLocalDataSource,
     private val soundbiteRemote: SoundbiteRemoteDataSource,
     @Assisted("query") override val query: EpisodeQuery,
-) : RemoteUpdater<EpisodeQuery, EpisodeResponse, EpisodeEntity, EpisodeWithExtrasView>(query) {
+    backgroundRefresher: BackgroundRefresher,
+) : RemoteUpdater<EpisodeQuery, EpisodeResponse, EpisodeEntity, EpisodeWithExtrasView>(query, backgroundRefresher) {
 
     @AssistedFactory
     interface Factory {
@@ -57,7 +58,11 @@ class EpisodeRemoteUpdater @AssistedInject constructor(
             is EpisodeQuery.Random -> episodeRemote.getRandomEpisodes(
                 max = query.max,
                 language = query.language,
-                includeCategories = query.categories.toCommaString(),
+                // 빈 목록은 빈 문자열이 아니라 null 로 보낸다. Retrofit 은 @Query 가 null 일
+                // 때만 파라미터를 빼므로, 그냥 두면 `cat=` 가 붙어 나간다. 지금 원격은 빈
+                // 값을 "필터 없음" 으로 받아 주지만(실측), 그 관대함에 기대면 서버가 판정을
+                // 파라미터 존재 여부로 바꾸는 순간 조용히 느린 경로로 돌아간다.
+                includeCategories = query.categories.toCommaString().ifEmpty { null },
             )
 
             is EpisodeQuery.Recent -> episodeRemote.getRecentEpisodes(max = query.max)

@@ -1,5 +1,6 @@
 package io.jacob.episodive.feature.home
 
+import app.cash.turbine.TurbineTestContext
 import app.cash.turbine.test
 import io.jacob.episodive.core.domain.usecase.channel.GetChannelsUseCase
 import io.jacob.episodive.core.domain.usecase.episode.GetLiveEpisodesUseCase
@@ -14,7 +15,10 @@ import io.jacob.episodive.core.domain.usecase.podcast.GetForeignTrendingPodcasts
 import io.jacob.episodive.core.domain.usecase.podcast.GetLocalTrendingPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserRecentPodcastsUseCase
 import io.jacob.episodive.core.domain.usecase.podcast.GetUserTrendingPodcastsUseCase
+import io.jacob.episodive.core.model.Channel
 import io.jacob.episodive.core.model.DataError
+import io.jacob.episodive.core.model.Episode
+import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.testing.model.channelTestDataList
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
@@ -26,6 +30,7 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -135,18 +140,19 @@ class HomeViewModelTest {
             val viewModel = createViewModel()
 
             viewModel.state.test {
-                val state = awaitItem()
-                assertTrue(state is HomeState.Success)
-                val success = state as HomeState.Success
-                assertEquals(playingEpisodes, success.playingEpisodes)
-                assertEquals(recentPodcasts, success.userRecentPodcasts)
-                assertEquals(randomEpisodes, success.randomEpisodes)
-                assertEquals(trendingPodcasts, success.userTrendingPodcasts)
-                assertEquals(followedPodcasts, success.followedPodcasts)
-                assertEquals(localTrending, success.localTrendingPodcasts)
-                assertEquals(foreignTrending, success.foreignTrendingPodcasts)
-                assertEquals(liveEpisodes, success.liveEpisodes)
-                assertEquals(channels, success.channels)
+                val success = awaitSettled()
+                assertEquals(SectionState.Success(playingEpisodes), success.playingEpisodes)
+                assertEquals(SectionState.Success(recentPodcasts), success.userRecentPodcasts)
+                assertEquals(SectionState.Success(randomEpisodes), success.randomEpisodes)
+                assertEquals(SectionState.Success(trendingPodcasts), success.userTrendingPodcasts)
+                assertEquals(SectionState.Success(followedPodcasts), success.followedPodcasts)
+                assertEquals(SectionState.Success(localTrending), success.localTrendingPodcasts)
+                assertEquals(
+                    SectionState.Success(foreignTrending),
+                    success.foreignTrendingPodcasts,
+                )
+                assertEquals(SectionState.Success(liveEpisodes), success.liveEpisodes)
+                assertEquals(SectionState.Success(channels), success.channels)
             }
         }
 
@@ -158,60 +164,120 @@ class HomeViewModelTest {
             val viewModel = createViewModel()
 
             viewModel.state.test {
-                val state = awaitItem()
-                assertTrue(state is HomeState.Success)
-                val success = state as HomeState.Success
-                assertTrue(success.playingEpisodes.isEmpty())
-                assertTrue(success.userRecentPodcasts.isEmpty())
-                assertTrue(success.channels.isEmpty())
+                val success = awaitSettled()
+                assertEquals(SectionState.Success(emptyList<Episode>()), success.playingEpisodes)
+                assertEquals(SectionState.Success(emptyList<Podcast>()), success.userRecentPodcasts)
+                assertEquals(SectionState.Success(emptyList<Channel>()), success.channels)
             }
         }
 
     @Test
-    fun `Given one flow throws, When collecting, Then state is Error with Unexpected cause`() =
-        runTest {
-            every { getPlayingEpisodesUseCase(max = any()) } returns flow {
-                throw RuntimeException("Error")
-            }
-            every { getUserRecentPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-            every { getMyRandomEpisodesUseCase(max = any()) } returns flowOf(emptyList())
-            every { getUserTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-            every { getFollowedPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-            every { getLocalTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-            every { getForeignTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-            every { getLiveEpisodesUseCase(max = any()) } returns flowOf(emptyList())
-            every { getChannelsUseCase() } returns flowOf(emptyList())
-
-            val viewModel = createViewModel()
-
-            viewModel.state.test {
-                val state = awaitItem()
-                assertTrue(state is HomeState.Error)
-                // RuntimeException 은 DataErrorException 이 아니므로 asDataError() 가
-                // Unexpected 로 접어 올린다 — 판별 로직 자체는 core:model 쪽 책임이라 여기서는
-                // ViewModel 이 그 결과를 그대로 State 에 실었는지만 확인한다.
-                assertTrue((state as HomeState.Error).error is DataError.Unexpected)
-            }
-        }
-
-    @Test
-    fun `Given Retry action after failure, When sent, Then flows are resubscribed`() = runTest {
+    fun `Given one flow throws, When collecting, Then only that section is Error`() = runTest {
+        // 소스 하나가 실패했다고 홈 전체가 오류 화면이 되면 안 된다. 나머지 여덟 개는
+        // 멀쩡히 도착했고, 사용자에게 보여줄 것이 남아 있다.
+        setupDefaultMocks()
+        // 보여줄 것이 하나는 있어야 한다. 전부 비어 있는데 하나가 실패하면 그때는 화면에
+        // 내놓을 것이 없어 오류 화면이 맞고, 그 경우는 아래 별도 테스트가 다룬다.
+        every { getChannelsUseCase() } returns flowOf(channelTestDataList)
         every { getPlayingEpisodesUseCase(max = any()) } returns flow {
             throw RuntimeException("Error")
         }
-        every { getUserRecentPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-        every { getMyRandomEpisodesUseCase(max = any()) } returns flowOf(emptyList())
-        every { getUserTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-        every { getFollowedPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-        every { getLocalTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-        every { getForeignTrendingPodcastsUseCase(max = any()) } returns flowOf(emptyList())
-        every { getLiveEpisodesUseCase(max = any()) } returns flowOf(emptyList())
-        every { getChannelsUseCase() } returns flowOf(emptyList())
 
         val viewModel = createViewModel()
 
         viewModel.state.test {
-            assertTrue(awaitItem() is HomeState.Error)
+            val success = awaitSettled()
+            val failed = success.playingEpisodes
+            assertTrue(failed is SectionState.Error)
+            // RuntimeException 은 DataErrorException 이 아니므로 asDataError() 가 Unexpected 로
+            // 접어 올린다 — 판별 로직 자체는 core:model 쪽 책임이라 여기서는 그 결과가 섹션에
+            // 그대로 실렸는지만 확인한다.
+            assertTrue((failed as SectionState.Error).error is DataError.Unexpected)
+            // 실패한 것은 한 섹션뿐이고 나머지는 그대로 화면에 오른다.
+            assertEquals(SectionState.Success(channelTestDataList), success.channels)
+        }
+    }
+
+    @Test
+    fun `Given remote fails while local is empty, When collecting, Then state is Error`() =
+        runTest {
+            // 오프라인 첫 실행. 로컬만 읽는 셋(이어듣기·팔로우·채널)은 빈 목록으로 **성공**
+            // 하고 원격은 전부 실패한다. "모든 섹션이 실패했는가" 로 판정하면 이 상황이
+            // 영영 걸리지 않아, 화면은 아무 설명도 재시도 버튼도 없는 빈 시트가 된다.
+            setupDefaultMocks()
+            val boom = { flow<Nothing> { throw RuntimeException("offline") } }
+            every { getUserRecentPodcastsUseCase(max = any()) } returns boom()
+            every { getMyRandomEpisodesUseCase(max = any()) } returns boom()
+            every { getUserTrendingPodcastsUseCase(max = any()) } returns boom()
+            every { getLocalTrendingPodcastsUseCase(max = any()) } returns boom()
+            every { getForeignTrendingPodcastsUseCase(max = any()) } returns boom()
+            every { getLiveEpisodesUseCase(max = any()) } returns boom()
+
+            val viewModel = createViewModel()
+
+            viewModel.state.test {
+                var state = awaitItem()
+                while (state !is HomeState.Error) state = awaitItem()
+                assertTrue(state.error is DataError.Unexpected)
+            }
+        }
+
+    @Test
+    fun `Given every flow throws, When collecting, Then state is Error`() = runTest {
+        // 보여줄 것이 하나도 없으면 화면 전체가 오류를 다룬다.
+        throwFromAllSources()
+
+        val viewModel = createViewModel()
+
+        viewModel.state.test {
+            var state = awaitItem()
+            while (state !is HomeState.Error) state = awaitItem()
+            assertTrue(state.error is DataError.Unexpected)
+        }
+    }
+
+    @Test
+    fun `Given one slow flow, When collecting, Then the others do not wait for it`() = runTest {
+        // 이 ViewModel 이 고쳐야 했던 것. 랜덤 에피소드가 아직 응답하지 않아도 나머지는
+        // 곧바로 화면에 오른다. 예전에는 값째로 combine 해 가장 느린 하나가 전체를 붙잡았다.
+        setupDefaultMocks()
+        val slowRandom = MutableSharedFlow<List<Episode>>()
+        every { getMyRandomEpisodesUseCase(max = any()) } returns slowRandom
+        every { getUserRecentPodcastsUseCase(max = any()) } returns flowOf(podcastTestDataList)
+
+        val viewModel = createViewModel()
+
+        viewModel.state.test {
+            var state = awaitItem()
+            while (
+                state !is HomeState.Success ||
+                state.userRecentPodcasts !is SectionState.Success
+            ) {
+                state = awaitItem()
+            }
+
+            // 랜덤만 아직 오지 않았고, 나머지는 이미 화면에 올릴 수 있다.
+            assertEquals(SectionState.Loading, state.randomEpisodes)
+            assertEquals(SectionState.Success(podcastTestDataList), state.userRecentPodcasts)
+
+            // 뒤늦게 도착해도 바뀌는 것은 그 섹션 하나뿐이다.
+            slowRandom.emit(episodeTestDataList)
+            val arrived = awaitSettled()
+            assertEquals(SectionState.Success(episodeTestDataList), arrived.randomEpisodes)
+            assertEquals(SectionState.Success(podcastTestDataList), arrived.userRecentPodcasts)
+        }
+    }
+
+    @Test
+    fun `Given Retry action after failure, When sent, Then flows are resubscribed`() = runTest {
+        // 재시도 버튼이 뜨는 것은 전체 실패일 때뿐이므로 그 상황을 만든다.
+        throwFromAllSources()
+
+        val viewModel = createViewModel()
+
+        viewModel.state.test {
+            var state = awaitItem()
+            while (state !is HomeState.Error) state = awaitItem()
 
             viewModel.sendAction(HomeAction.Retry)
 
@@ -220,7 +286,8 @@ class HomeViewModelTest {
             // 값과 달라 StateFlow 가 재방출한다 — 그 자체가 flatMapLatest 가 실제로 재구독했다는
             // 신호다. 값만으론 "같은 에러가 다시 온 것"과 "재시도가 아예 안 된 것"을 구분할 수
             // 없으므로, combine 안의 소스 UseCase 호출 횟수로 재구독 여부를 명시적으로 검증한다.
-            assertTrue(awaitItem() is HomeState.Error)
+            state = awaitItem()
+            while (state !is HomeState.Error) state = awaitItem()
             verify(exactly = 2) { getPlayingEpisodesUseCase(max = any()) }
         }
     }
@@ -308,4 +375,34 @@ class HomeViewModelTest {
                 assertEquals(HomeEffect.NavigateToMore(HomeSection.Channels), awaitItem())
             }
         }
+
+    /** 모든 소스가 같은 예외로 실패하게 둔다. 전체 실패(= 화면 전체가 오류)를 만드는 유일한 길이다. */
+    private fun throwFromAllSources() {
+        val boom = { flow<Nothing> { throw RuntimeException("Error") } }
+
+        every { getPlayingEpisodesUseCase(max = any()) } returns boom()
+        every { getUserRecentPodcastsUseCase(max = any()) } returns boom()
+        every { getMyRandomEpisodesUseCase(max = any()) } returns boom()
+        every { getUserTrendingPodcastsUseCase(max = any()) } returns boom()
+        every { getFollowedPodcastsUseCase(max = any()) } returns boom()
+        every { getLocalTrendingPodcastsUseCase(max = any()) } returns boom()
+        every { getForeignTrendingPodcastsUseCase(max = any()) } returns boom()
+        every { getLiveEpisodesUseCase(max = any()) } returns boom()
+        every { getChannelsUseCase() } returns boom()
+    }
+
+    /**
+     * 모든 섹션이 판정될 때까지 흘려보내고 그 상태를 돌려준다.
+     *
+     * 소스마다 Loading 을 먼저 흘리고 그다음 결과를 내므로 combine 이 중간 상태를 여러 번
+     * 낸다. 첫 값 하나만 붙잡으면 아직 다 도착하지 않은 순간을 검사해 테스트가 들쭉날쭉해진다.
+     */
+    private suspend fun TurbineTestContext<HomeState>.awaitSettled(): HomeState.Success {
+        while (true) {
+            val state = awaitItem()
+            if (state is HomeState.Success && state.sections.none { it is SectionState.Loading }) {
+                return state
+            }
+        }
+    }
 }

@@ -50,9 +50,16 @@ class GetMyRandomEpisodesUseCaseTest {
             }
 
             // Then
+            // 사용자가 카테고리를 골랐어도 원격에는 넘기지 않는다 — lang 과 cat 을 함께
+            // 보내면 응답이 2.7~27초로 뛴다(근거는 UseCase KDoc). any() 로 두면 카테고리를
+            // 다시 넘기는 회귀가 이 테스트를 그대로 통과한다.
             coVerifySequence {
                 userRepository.getUserData()
-                episodeRepository.getRandomEpisodes(any(), any(), any())
+                episodeRepository.getRandomEpisodes(
+                    max = 10,
+                    language = "ko",
+                    includeCategories = emptyList(),
+                )
             }
         }
 }

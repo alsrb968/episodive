@@ -23,6 +23,7 @@ import io.mockk.coVerifySequence
 import io.mockk.confirmVerified
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -37,6 +38,11 @@ import kotlin.time.Duration.Companion.hours
 class PodcastRemoteUpdaterTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    // 백그라운드 갱신을 테스트 디스패처에서 돌린다. UnconfinedTestDispatcher 라 launch 가
+    // 곧바로 실행돼, 검증 시점에는 갱신이 이미 끝나 있다.
+    private val backgroundRefresher =
+        BackgroundRefresher(CoroutineScope(mainDispatcherRule.testDispatcher))
 
     private val podcastLocal = mockk<PodcastLocalDataSource>(relaxed = true)
     private val podcastRemote = mockk<PodcastRemoteDataSource>(relaxed = true)
@@ -62,6 +68,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -101,6 +108,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             val cachedPodcasts = listOf(mockk<PodcastWithExtrasView>(relaxed = true))
             coEvery {
@@ -138,6 +146,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             // SocketTimeoutException 을 던져 toDataError() 판별이 실제로 동작하는지까지 고정한다.
             val error = SocketTimeoutException("network error")
@@ -178,6 +187,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             val cachedPodcasts = listOf(mockk<PodcastWithExtrasView>(relaxed = true))
             coEvery {
@@ -211,6 +221,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKeyPaging(any())
@@ -256,6 +267,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -295,6 +307,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKeyPaging(any())
@@ -340,6 +353,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -379,6 +393,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKeyPaging(any())
@@ -424,6 +439,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -463,6 +479,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKeyPaging(any())
@@ -516,6 +533,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -563,6 +581,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKeyPaging(any())
@@ -612,6 +631,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -665,6 +685,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -724,6 +745,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -777,6 +799,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -832,6 +855,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())
@@ -878,6 +902,7 @@ class PodcastRemoteUpdaterTest {
                 podcastRemote = podcastRemote,
                 feedRemote = feedRemote,
                 query = query,
+                backgroundRefresher = backgroundRefresher,
             )
             coEvery {
                 podcastLocal.getPodcastsByGroupKey(any(), any())

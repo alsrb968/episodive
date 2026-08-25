@@ -49,12 +49,14 @@ class GetMyRandomEpisodesPagingUseCaseTest {
             }
 
             // Then
+            // 사용자가 카테고리를 골랐어도 원격에는 넘기지 않는다 — lang 과 cat 을 함께
+            // 보내면 응답이 2.7~27초로 뛴다(근거는 GetMyRandomEpisodesUseCase 참고).
             coVerifySequence {
                 userRepository.getUserData()
                 episodeRepository.getRandomEpisodesPaging(
                     max = 100,
                     language = "ko",
-                    includeCategories = listOf(Category.BUSINESS),
+                    includeCategories = emptyList(),
                 )
             }
         }

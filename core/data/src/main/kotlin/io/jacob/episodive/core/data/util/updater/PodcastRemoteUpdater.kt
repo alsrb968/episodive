@@ -32,7 +32,8 @@ class PodcastRemoteUpdater @AssistedInject constructor(
     private val podcastRemote: PodcastRemoteDataSource,
     private val feedRemote: FeedRemoteDataSource,
     @Assisted("query") override val query: PodcastQuery,
-) : RemoteUpdater<PodcastQuery, PodcastResponse, PodcastEntity, PodcastWithExtrasView>(query) {
+    backgroundRefresher: BackgroundRefresher,
+) : RemoteUpdater<PodcastQuery, PodcastResponse, PodcastEntity, PodcastWithExtrasView>(query, backgroundRefresher) {
 
     @AssistedFactory
     interface Factory {

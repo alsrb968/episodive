@@ -15,6 +15,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Dp
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.model.Channel
+import io.jacob.episodive.core.model.DataError
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Podcast
 import io.jacob.episodive.core.testing.model.channelTestDataList
@@ -57,19 +58,32 @@ class HomeScreenTest {
         // 이어듣기 목록을 화면이 뜬 뒤에 바꿔야 하는 테스트를 위한 통로. 주면 [playingEpisodes]
         // 대신 이 상태를 읽어, 값을 바꾸는 것만으로 카드가 다시 그려진다.
         playingEpisodesState: State<List<Episode>>? = null,
+        // 섹션 하나만 로딩·실패로 두는 테스트를 위한 통로. 목록으로 받는 위 인자들은 전부
+        // "이미 도착한" 섹션이라, 아직 오지 않은 상태는 이쪽으로만 만들 수 있다.
+        //
+        // 자리 예약(로딩 자리가 도착할 콘텐츠와 같은 높이인가)은 여기서 검증할 수 없다.
+        // Robolectric 이 TextStyle.lineHeight 를 반영하지 않아 — 80sp 를 줘도 Text 높이가
+        // 그대로다 — 스켈레톤이 참조하는 lineHeight(17dp)와 실제 Text 높이(35dp)가 이 환경
+        // 에서만 두 배 가까이 벌어진다. 높이를 비교하는 테스트를 여기 두면 실제와 무관하게
+        // 늘 실패한다. 정합은 양쪽이 같은 상수를 참조하는 구조로 지키고, 눈으로는 기기나
+        // HomeScreenPartiallyLoadedPreview 로 확인한다.
+        randomEpisodesState: State<SectionState<Episode>>? = null,
     ) {
         composeTestRule.setContent {
             EpisodiveTheme {
                 HomeScreen(
-                    playingEpisodes = playingEpisodesState?.value ?: playingEpisodes,
-                    userRecentPodcasts = userRecentPodcasts,
-                    randomEpisodes = randomEpisodes,
-                    userTrendingPodcasts = userTrendingPodcasts,
-                    followedPodcasts = followedPodcasts,
-                    localTrendingPodcasts = localTrendingPodcasts,
-                    foreignTrendingPodcasts = foreignTrendingPodcasts,
-                    liveEpisodes = liveEpisodes,
-                    channels = channels,
+                    playingEpisodes = SectionState.Success(
+                        playingEpisodesState?.value ?: playingEpisodes
+                    ),
+                    userRecentPodcasts = SectionState.Success(userRecentPodcasts),
+                    randomEpisodes = randomEpisodesState?.value
+                        ?: SectionState.Success(randomEpisodes),
+                    userTrendingPodcasts = SectionState.Success(userTrendingPodcasts),
+                    followedPodcasts = SectionState.Success(followedPodcasts),
+                    localTrendingPodcasts = SectionState.Success(localTrendingPodcasts),
+                    foreignTrendingPodcasts = SectionState.Success(foreignTrendingPodcasts),
+                    liveEpisodes = SectionState.Success(liveEpisodes),
+                    channels = SectionState.Success(channels),
                     onPlayEpisode = onPlayEpisode,
                     onResumeEpisode = onResumeEpisode,
                     onToggleLikedEpisode = onToggleLikedEpisode,
@@ -661,6 +675,35 @@ class HomeScreenTest {
 
         composeTestRule.onNodeWithText("5min Left").assertExists()
         assertEquals(widthBefore, continueListeningProgressBarWidth())
+    }
+
+    // --- Per-section loading tests ---
+
+    @Test
+    fun loadingSection_doesNotBlockTheRest() {
+        // 이 화면이 고쳐야 했던 것. 랜덤 에피소드처럼 유독 느린 소스 하나가 아직 도착하지
+        // 않아도 이미 온 섹션들은 그대로 보이고 눌린다. 예전에는 아홉 개를 값째로 combine 해
+        // 가장 느린 하나가 홈 전체를 스켈레톤에 붙잡아 두었다.
+        setHomeScreen(randomEpisodesState = mutableStateOf(SectionState.Loading))
+
+        composeTestRule.onNodeWithText("My recent published").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("See all My recent published").assertExists()
+        // 아직 오지 않은 섹션은 스켈레톤이라 제목이 없다.
+        composeTestRule.onNodeWithText("Random episodes").assertDoesNotExist()
+    }
+
+    @Test
+    fun failedSection_isSkippedAndTheRestSurvives() {
+        // 섹션 하나가 실패해도 홈 전체가 오류 화면으로 넘어가지 않는다. 빈 섹션과 똑같이
+        // 그 자리만 빠진다 — RemoteUpdater 가 예외를 올리는 것은 캐시조차 없을 때뿐이라
+        // 대신 보여줄 것이 없다.
+        setHomeScreen(
+            randomEpisodesState = mutableStateOf(SectionState.Error(DataError.Offline)),
+        )
+
+        composeTestRule.onNodeWithText("My recent published").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Random episodes").assertDoesNotExist()
+        composeTestRule.onNodeWithText("My trending feeds").assertIsDisplayed()
     }
 
     private fun continueListeningProgressBarWidth(): Dp {
