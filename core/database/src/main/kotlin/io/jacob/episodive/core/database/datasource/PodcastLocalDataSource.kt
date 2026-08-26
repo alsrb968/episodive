@@ -25,4 +25,6 @@ interface PodcastLocalDataSource {
     fun getFollowedPodcasts(query: String? = null, limit: Int): Flow<List<PodcastWithExtrasView>>
     fun getFollowedPodcastsPaging(query: String? = null): PagingSource<Int, PodcastWithExtrasView>
     suspend fun getFollowedPodcastsToSync(): Map<Long, Instant>
+    suspend fun getFollowedPodcastsOnce(): List<PodcastWithExtrasView>
+    suspend fun followPodcast(id: Long): Boolean
 }

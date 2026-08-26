@@ -1056,4 +1056,127 @@ class PodcastDaoTest {
             assertTrue(result.isEmpty())
         }
 
+    @Test
+    fun `Given unfollowed podcast, When followPodcast is called, Then returns true and podcast is followed`() =
+        runTest {
+            // Given
+            dao.upsertPodcast(podcastEntity.copy(id = 100L))
+
+            // When
+            val result = dao.followPodcast(100L)
+
+            // Then
+            assertEquals(true, result)
+            dao.isFollowedPodcast(100L).test {
+                assertEquals(true, awaitItem())
+            }
+        }
+
+    @Test
+    fun `Given already followed podcast, When followPodcast is called twice, Then second call returns false and followedAt is unchanged`() =
+        runTest {
+            // Given: followPodcast 는 toggleFollowedPodcast 와 달리 두 번째 호출에서
+            // 팔로우를 해제하면 안 된다. 이미 팔로우 중인 팟캐스트를 OPML 가져오기 중
+            // 다시 마주쳐도(중복 항목, 재시도 등) 계속 팔로우 상태로 남아야 한다.
+            dao.upsertPodcast(podcastEntity.copy(id = 100L))
+            val firstResult = dao.followPodcast(100L)
+
+            val followedAtAfterFirstCall = dao.getFollowedPodcastsToSync()[100L]
+
+            // When
+            val secondResult = dao.followPodcast(100L)
+
+            // Then
+            assertEquals(true, firstResult)
+            assertEquals(false, secondResult)
+            assertEquals(followedAtAfterFirstCall, dao.getFollowedPodcastsToSync()[100L])
+        }
+
+    @Test
+    fun `Given already followed podcast, When followPodcast is called twice, Then podcast appears only once in followed list`() =
+        runTest {
+            // Given
+            dao.upsertPodcast(podcastEntity.copy(id = 100L))
+            dao.followPodcast(100L)
+
+            // When
+            dao.followPodcast(100L)
+
+            // Then
+            val followed = dao.getFollowedPodcastsOnce()
+            assertEquals(1, followed.count { it.podcast.id == 100L })
+        }
+
+    @Test
+    fun `Given followed and unfollowed podcasts, When getFollowedPodcastsOnce is called, Then only followed podcasts are returned`() =
+        runTest {
+            // Given
+            dao.upsertPodcast(podcastEntity.copy(id = 100L))
+            dao.upsertPodcast(podcastEntity.copy(id = 101L))
+            dao.addFollowedPodcast(
+                FollowedPodcastEntity(id = 100L, followedAt = Instant.fromEpochSeconds(0), isNotificationEnabled = false)
+            )
+
+            // When
+            val result = dao.getFollowedPodcastsOnce()
+
+            // Then
+            assertEquals(1, result.size)
+            assertEquals(100L, result[0].podcast.id)
+        }
+
+    @Test
+    fun `Given podcasts followed at different times, When getFollowedPodcastsOnce is called, Then ordered by followedAt descending`() =
+        runTest {
+            // Given: DAO 내부에서 시각을 정하는 followPodcast 로는 순서를 통제할 수 없으므로
+            // addFollowedPodcast 로 followedAt 을 직접 지정한다.
+            dao.upsertPodcast(podcastEntity.copy(id = 100L))
+            dao.upsertPodcast(podcastEntity.copy(id = 101L))
+            dao.upsertPodcast(podcastEntity.copy(id = 102L))
+            dao.addFollowedPodcast(
+                FollowedPodcastEntity(id = 100L, followedAt = Instant.fromEpochSeconds(1000), isNotificationEnabled = false)
+            )
+            dao.addFollowedPodcast(
+                FollowedPodcastEntity(id = 101L, followedAt = Instant.fromEpochSeconds(3000), isNotificationEnabled = false)
+            )
+            dao.addFollowedPodcast(
+                FollowedPodcastEntity(id = 102L, followedAt = Instant.fromEpochSeconds(2000), isNotificationEnabled = false)
+            )
+
+            // When
+            val result = dao.getFollowedPodcastsOnce()
+
+            // Then
+            assertEquals(listOf(101L, 102L, 100L), result.map { it.podcast.id })
+        }
+
+    @Test
+    fun `Given more followed podcasts than any LIMIT-bound query would allow, When getFollowedPodcastsOnce is called, Then all of them are returned`() =
+        runTest {
+            // Given: getFollowedPodcasts(limit) 과 달리 getFollowedPodcastsOnce 는 LIMIT 이
+            // 없다 — OPML 내보내기가 잘림 없이 전량을 담아야 하는 것이 이 함수의 존재 이유다.
+            dao.upsertPodcasts(podcastEntities)
+            podcastEntities.forEach { podcast ->
+                dao.addFollowedPodcast(
+                    FollowedPodcastEntity(id = podcast.id, followedAt = Instant.fromEpochSeconds(0), isNotificationEnabled = false)
+                )
+            }
+
+            // When
+            val result = dao.getFollowedPodcastsOnce()
+
+            // Then
+            assertEquals(podcastEntities.size, result.size)
+        }
+
+    @Test(expected = android.database.sqlite.SQLiteConstraintException::class)
+    fun `Given podcast id with no matching podcasts row, When followPodcast is called, Then foreign key constraint throws`() =
+        runTest {
+            // Given/When: Room 은 EpisodiveDatabase_Impl 에서 "PRAGMA foreign_keys = ON" 을
+            // 실행하므로 followed_podcasts.id -> podcasts.id 외래키가 강제된다. 이 값이
+            // ImportOpmlUseCase 가 "조회로 얻은 팟캐스트를 곧바로 followPodcast 에 넘겨야
+            // 하는" 근거다 — 존재하지 않는 id 를 넘기면 여기서 예외로 드러난다.
+            dao.followPodcast(999L)
+        }
+
 }

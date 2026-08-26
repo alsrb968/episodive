@@ -125,6 +125,10 @@ Material3 `ColorScheme`을 라이트/다크 두 세트로 **직접 정의**합�
 - Owner = `CreativeCommonsBy`, PublicationDate = `CalendarTime`, WorldShare(외부 링크)
 - **Share** = `Share`(점 3개 연결) — 공유 전용. `WorldShare`(지구본)와 나누어 쓴다: 저쪽은
   채널·팟캐스트 웹사이트로 나가는 **외부 링크** 자리이고, 이쪽은 `ACTION_SEND` 자리다
+- **Transfer** = `Transfer`(위아래 화살표) / **Import** = `FileImport` / **Export** = `FileExport`
+  — 구독 목록 OPML. 진입점에는 방향이 정해지지 않은 `Transfer` 를 쓰고, 시트 안에서 방향을
+  고르면 그때 `Import`/`Export` 가 나온다. `Share` 를 여기 끌어 쓰지 않는다 — 그 글리프는
+  위에 적은 대로 `ACTION_SEND` 전용이다
 
 하단 탭은 **비선택=아웃라인 / 선택=Filled** 쌍을 사용합니다.
 
@@ -307,7 +311,7 @@ Now in Android 방식 커스텀 스크롤바.
 
 | 컴포넌트 | 파일 | 사양 |
 |:----|:----|:----|
-| `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외. `hideTitleOnScroll = true` 면 아래 §4.10.1 |
+| `EpisodiveScaffold` | `Layout.kt` | 타이틀 `headlineMedium` 상단바 + subTitle 슬롯, 네비바 inset 제외. `hideTitleOnScroll = true` 면 아래 §4.10.1. 액션은 `actionIcon` 과 그 **왼쪽**의 `secondaryActionIcon` 둘까지 (아래 §4.10.2) |
 | `SectionHeader` | `Layout.kt` | 헤더 Row 좌우 `screenPadding`(20dp), 제목 `titleMedium`, 우측 옵션 액션(48dp), 하단 14dp Spacer. 액션이 붙으면 헤더 높이가 그만큼 커지므로 로딩 자리는 `SectionHeaderSkeleton(hasAction = true)` 로 같은 자리를 예약 |
 | `SubSectionHeader` | `Layout.kt` | 제목 `titleSmall`/`onSurfaceVariant` |
 | `FadeTopBarLayout` | `Layout.kt` | 스크롤 연동 페이드 탑바 (§3.4) |
@@ -332,6 +336,20 @@ Now in Android 방식 커스텀 스크롤바.
   아니다. 불리언에 걸면 양방향으로 최대 220ms 어긋나, 사라지는 동안엔 눈에 보이는 띠가 터치를
   아래 항목으로 흘려보내고 나타나는 동안엔 빈 띠가 터치를 삼킨다. 이 때문에 M3 `TopAppBar` 를
   그대로 겹치지 않고 띠를 직접 그린다 — M3 쪽은 조건 없이 `pointerInput` 을 달아 항상 삼킨다.
+
+#### 4.10.2 두 번째 상단 액션 (`secondaryActionIcon`)
+
+액션이 둘 필요한 화면(보관함: 검색 + OPML)을 위해 `ImageVector` 파라미터 한 벌
+(`secondaryActionIcon` / `…ContentDescription` / `onSecondaryActionClick`)을 더 둔다.
+화면에서는 기존 `actionIcon` **왼쪽**에 놓이므로 이미 있던 아이콘 자리가 움직이지 않는다.
+
+- **`actions: RowScope` 슬롯이 아니라 파라미터인 이유**: §4.10.1 의 겹침 헤더 경로는 M3
+  `TopAppBar` 를 쓰지 않고 띠를 직접 그리며, 그 아이콘은 배경이 물러난 만큼 짙어지는 원형
+  스크림을 깔아야 앨범아트 위에서 읽힌다. 임의 컴포저블을 받는 슬롯으로는 그것을 강제할 수
+  없다. `navigationIcon`/`actionIcon` 이 이미 `ImageVector` 파라미터인 것도 같은 이유다.
+- 액션이 **셋**이 되는 날에는 `tertiary…` 를 더하지 말고 그때 슬롯으로 갈아탄다.
+- 두 경로(M3 상단바 / 겹침 헤더) **모두에** 배선한다. 지금 겹침 헤더를 쓰는 화면은 액션을
+  넘기지 않지만, 한쪽만 연결해 두면 "그 경로만 조용히 다르게 도는" 자리가 하나 더 생긴다.
 
 ### 4.11 하단 네비게이션 바 (`Navigation.kt`)
 

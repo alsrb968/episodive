@@ -36,6 +36,8 @@ fun EpisodiveTopAppBar(
     navigationIconContentDescription: String? = null,
     actionIcon: ImageVector? = null,
     actionIconContentDescription: String? = null,
+    secondaryActionIcon: ImageVector? = null,
+    secondaryActionIconContentDescription: String? = null,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
         containerColor = Color.Transparent,
         scrolledContainerColor = Color.Transparent,
@@ -47,6 +49,7 @@ fun EpisodiveTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
+    onSecondaryActionClick: () -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -74,15 +77,27 @@ fun EpisodiveTopAppBar(
             }
         },
         actions = {
-            if (actionIcon == null) return@TopAppBar
-            if (actionIconContentDescription == null) return@TopAppBar
+            // early-return 하나로 묶으면 primary(actionIcon)가 없는 화면에서 secondary 까지
+            // 같이 사라진다. 그래서 두 아이콘을 독립된 if 블록으로 나눈다.
+            // RowScope 는 좌→우로 쌓이므로, secondary 를 primary 왼쪽에 두려면 먼저 그린다.
+            if (secondaryActionIcon != null && secondaryActionIconContentDescription != null) {
+                IconButton(onClick = onSecondaryActionClick) {
+                    Icon(
+                        imageVector = secondaryActionIcon,
+                        contentDescription = secondaryActionIconContentDescription,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
 
-            IconButton(onClick = onActionClick) {
-                Icon(
-                    imageVector = actionIcon,
-                    contentDescription = actionIconContentDescription,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
+            if (actionIcon != null && actionIconContentDescription != null) {
+                IconButton(onClick = onActionClick) {
+                    Icon(
+                        imageVector = actionIcon,
+                        contentDescription = actionIconContentDescription,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         },
         colors = colors,
@@ -174,6 +189,8 @@ private fun EpisodiveTopAppBarPreview() {
             navigationIconContentDescription = "Navigation icon",
             actionIcon = EpisodiveIcons.MoreVert,
             actionIconContentDescription = "Action icon",
+            secondaryActionIcon = EpisodiveIcons.Transfer,
+            secondaryActionIconContentDescription = "Secondary action icon",
         )
     }
 }

@@ -278,4 +278,12 @@ class PodcastRepositoryImpl @Inject constructor(
     override suspend fun getFollowedPodcastsToSync(): Map<Long, Instant> {
         return podcastLocalDataSource.getFollowedPodcastsToSync()
     }
+
+    override suspend fun getFollowedPodcastsOnce(): List<Podcast> {
+        return podcastLocalDataSource.getFollowedPodcastsOnce().toPodcasts()
+    }
+
+    override suspend fun followPodcast(id: Long): Boolean {
+        return podcastLocalDataSource.followPodcast(id)
+    }
 }

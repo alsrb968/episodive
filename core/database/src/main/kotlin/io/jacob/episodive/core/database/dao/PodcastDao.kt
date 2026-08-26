@@ -249,4 +249,32 @@ interface PodcastDao {
 
     @Query("SELECT id, followedAt FROM followed_podcasts")
     suspend fun getFollowedPodcastsToSync(): Map<@MapColumn(columnName = "id") Long, @MapColumn(columnName = "followedAt") Instant>
+
+    // OPML 내보내기는 전량이 필요한 one-shot 조회다. FTS_SEARCH_CONDITION 은 검색어가 없는
+    // 자리라 빼고, LIMIT 도 두지 않는다 — 잘리면 사용자가 모르는 채로 일부만 담긴 파일이 나간다.
+    @Query(
+        """
+        SELECT * FROM podcast_with_extras
+        WHERE followedAt IS NOT NULL
+        ORDER BY followedAt DESC, id DESC
+    """
+    )
+    suspend fun getFollowedPodcastsOnce(): List<PodcastWithExtrasView>
+
+    // OPML 가져오기는 "새로 추가됐는지" 를 알아야 진행 상황을 셀 수 있다. addFollowedPodcast
+    // 의 onConflict=IGNORE 는 반환값 없이 조용히 무시하므로 그것만으로는 "이미 있었다" 를
+    // 구분할 수 없다 — 확인과 삽입을 한 트랜잭션으로 묶어 직접 판정한다.
+    @Transaction
+    suspend fun followPodcast(id: Long): Boolean {
+        if (isFollowedPodcast(id).first()) return false
+
+        addFollowedPodcast(
+            FollowedPodcastEntity(
+                id = id,
+                followedAt = Clock.System.now(),
+                isNotificationEnabled = false
+            )
+        )
+        return true
+    }
 }

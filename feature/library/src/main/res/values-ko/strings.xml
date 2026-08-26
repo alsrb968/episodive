@@ -19,4 +19,16 @@
     <string name="feature_library_saved_empty">아직 저장한 에피소드가 없어요.</string>
     <string name="feature_library_followed_empty">아직 팔로우한 팟캐스트가 없어요.</string>
     <string name="feature_library_load_error">보관함을 불러오지 못했어요.\n네트워크를 확인하고 다시 시도해 주세요.</string>
+    <string name="feature_library_opml">OPML 가져오기/내보내기</string>
+    <string name="feature_library_opml_title">구독 목록 주고받기</string>
+    <string name="feature_library_opml_import">가져오기</string>
+    <string name="feature_library_opml_export">내보내기</string>
+    <string name="feature_library_opml_import_progress">%1$d / %2$d</string>
+    <string name="feature_library_opml_import_result">추가 %1$d · 이미 팔로우 %2$d · 못 찾음 %3$d · 실패 %4$d</string>
+    <string name="feature_library_opml_import_offline">네트워크에 연결되지 않아 멈췄어요.</string>
+    <string name="feature_library_opml_import_running_hint">닫아도 괜찮아요. 뒤에서 계속 진행돼요.</string>
+    <string name="feature_library_opml_exported">%1$d개의 팟캐스트를 내보냈어요.</string>
+    <string name="feature_library_opml_export_failed">OPML을 내보내지 못했어요.</string>
+    <string name="feature_library_opml_import_failed">그 OPML 파일을 읽지 못했어요.</string>
+    <string name="feature_library_opml_empty">아직 팔로우한 팟캐스트가 없어요.</string>
 </resources>

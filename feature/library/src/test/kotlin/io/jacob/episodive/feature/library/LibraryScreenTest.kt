@@ -53,6 +53,7 @@ class LibraryScreenTest {
         onToggleSavedEpisode: (Episode) -> Unit = {},
         onToggleFollowedPodcast: (Podcast) -> Unit = {},
         onTogglePreferredCategory: (Category) -> Unit = {},
+        onOpmlClick: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             EpisodiveTheme {
@@ -62,6 +63,7 @@ class LibraryScreenTest {
                     onFind = onFind,
                     section = section,
                     onSectionChange = onSectionChange,
+                    onOpmlClick = onOpmlClick,
                     playedEpisodes = playedEpisodes,
                     likedEpisodes = likedEpisodes,
                     savedEpisodes = savedEpisodes,

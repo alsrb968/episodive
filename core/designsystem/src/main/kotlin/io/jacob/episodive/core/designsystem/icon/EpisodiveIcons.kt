@@ -18,6 +18,8 @@ import io.jacob.episodive.core.designsystem.icon.tabler.CreativeCommonsBy
 import io.jacob.episodive.core.designsystem.icon.tabler.DeviceFloppy
 import io.jacob.episodive.core.designsystem.icon.tabler.DeviceFloppyFilled
 import io.jacob.episodive.core.designsystem.icon.tabler.DotsVertical
+import io.jacob.episodive.core.designsystem.icon.tabler.FileExport
+import io.jacob.episodive.core.designsystem.icon.tabler.FileImport
 import io.jacob.episodive.core.designsystem.icon.tabler.Fountain
 import io.jacob.episodive.core.designsystem.icon.tabler.FountainFilled
 import io.jacob.episodive.core.designsystem.icon.tabler.HeartFilled
@@ -40,6 +42,7 @@ import io.jacob.episodive.core.designsystem.icon.tabler.RewindBackward15
 import io.jacob.episodive.core.designsystem.icon.tabler.RewindForward30
 import io.jacob.episodive.core.designsystem.icon.tabler.Share
 import io.jacob.episodive.core.designsystem.icon.tabler.Tabler
+import io.jacob.episodive.core.designsystem.icon.tabler.Transfer
 import io.jacob.episodive.core.designsystem.icon.tabler.TransitionTop
 import io.jacob.episodive.core.designsystem.icon.tabler.UsersMinus
 import io.jacob.episodive.core.designsystem.icon.tabler.UsersPlus
@@ -62,10 +65,12 @@ object EpisodiveIcons {
     val DownloadDone = Icons.Default.DownloadDone
     val Error = Tabler.PhotoExclamation
     val Expand = Tabler.ArrowsDiagonal
+    val Export = Tabler.FileExport
     val Forward30 = Tabler.RewindForward30
     val History = Tabler.History
     val Home = Tabler.Blob
     val HomeFilled = Tabler.BlobFilled
+    val Import = Tabler.FileImport
     val Label = Tabler.Label
     val LetterI = Tabler.LetterISmall
     val LetterX = Tabler.LetterXSmall
@@ -97,6 +102,12 @@ object EpisodiveIcons {
     val Share = Tabler.Share
     val SkipNext = Tabler.PlayerSkipForward
     val SkipPrevious = Tabler.PlayerSkipBack
+
+    /**
+     * 구독 목록을 파일로 주고받는 자리(OPML). 방향이 하나로 정해지지 않은 진입점이라
+     * [Import]·[Export] 어느 쪽도 쓰지 않는다 — 시트를 열면 그 안에서 방향을 고른다.
+     */
+    val Transfer = Tabler.Transfer
     val TransitionTop = Tabler.TransitionTop
     val WorldShare = Tabler.WorldShare
 }

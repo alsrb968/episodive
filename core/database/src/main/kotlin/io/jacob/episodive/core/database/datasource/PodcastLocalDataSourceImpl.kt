@@ -100,4 +100,12 @@ class PodcastLocalDataSourceImpl(
     override suspend fun getFollowedPodcastsToSync(): Map<Long, Instant> {
         return podcastDao.getFollowedPodcastsToSync()
     }
+
+    override suspend fun getFollowedPodcastsOnce(): List<PodcastWithExtrasView> {
+        return podcastDao.getFollowedPodcastsOnce()
+    }
+
+    override suspend fun followPodcast(id: Long): Boolean {
+        return podcastDao.followPodcast(id)
+    }
 }

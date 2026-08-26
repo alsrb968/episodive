@@ -103,8 +103,11 @@ fun EpisodiveScaffold(
     navigationIconContentDescription: String? = null,
     actionIcon: ImageVector? = null,
     actionIconContentDescription: String? = null,
+    secondaryActionIcon: ImageVector? = null,
+    secondaryActionIconContentDescription: String? = null,
     onNavigationClick: () -> Unit = {},
     onActionClick: () -> Unit = {},
+    onSecondaryActionClick: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
 ) {
@@ -148,8 +151,11 @@ fun EpisodiveScaffold(
                     navigationIconContentDescription = navigationIconContentDescription,
                     actionIcon = actionIcon,
                     actionIconContentDescription = actionIconContentDescription,
+                    secondaryActionIcon = secondaryActionIcon,
+                    secondaryActionIconContentDescription = secondaryActionIconContentDescription,
                     onNavigationClick = onNavigationClick,
                     onActionClick = onActionClick,
+                    onSecondaryActionClick = onSecondaryActionClick,
                     scrollBehavior = scrollBehavior
                 )
 
@@ -171,8 +177,11 @@ fun EpisodiveScaffold(
                 navigationIconContentDescription = navigationIconContentDescription,
                 actionIcon = actionIcon,
                 actionIconContentDescription = actionIconContentDescription,
+                secondaryActionIcon = secondaryActionIcon,
+                secondaryActionIconContentDescription = secondaryActionIconContentDescription,
                 onNavigationClick = onNavigationClick,
                 onActionClick = onActionClick,
+                onSecondaryActionClick = onSecondaryActionClick,
                 scrollBehavior = scrollBehavior,
                 content = content,
             )
@@ -208,8 +217,11 @@ private fun CollapsingTitleContent(
     navigationIconContentDescription: String?,
     actionIcon: ImageVector?,
     actionIconContentDescription: String?,
+    secondaryActionIcon: ImageVector?,
+    secondaryActionIconContentDescription: String?,
     onNavigationClick: () -> Unit,
     onActionClick: () -> Unit,
+    onSecondaryActionClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
 ) {
@@ -272,8 +284,11 @@ private fun CollapsingTitleContent(
                 navigationIconContentDescription = navigationIconContentDescription,
                 actionIcon = actionIcon,
                 actionIconContentDescription = actionIconContentDescription,
+                secondaryActionIcon = secondaryActionIcon,
+                secondaryActionIconContentDescription = secondaryActionIconContentDescription,
                 onNavigationClick = onNavigationClick,
                 onActionClick = onActionClick,
+                onSecondaryActionClick = onSecondaryActionClick,
             )
 
             subTitle()
@@ -300,8 +315,11 @@ private fun CollapsingHeaderBand(
     navigationIconContentDescription: String?,
     actionIcon: ImageVector?,
     actionIconContentDescription: String?,
+    secondaryActionIcon: ImageVector?,
+    secondaryActionIconContentDescription: String?,
     onNavigationClick: () -> Unit,
     onActionClick: () -> Unit,
+    onSecondaryActionClick: () -> Unit,
 ) {
     // 터치를 막을지는 `titleVisible` 이 아니라 **실제로 칠해진 알파**로 정한다. 불리언은
     // 즉시 뒤집히는데 배경은 CollapsingHeaderDurationMs 동안 페이드하므로, 불리언에 걸면
@@ -358,15 +376,35 @@ private fun CollapsingHeaderBand(
             )
         }
 
-        if (actionIcon != null && actionIconContentDescription != null) {
-            CollapsingHeaderIcon(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                icon = actionIcon,
-                contentDescription = actionIconContentDescription,
-                scrimColor = scrimColor,
-                progress = progress,
-                onClick = onActionClick,
-            )
+        // 두 아이콘 모두 CenterEnd 에 각자 align 을 주면 같은 자리에 겹쳐 그려진다.
+        // align 을 Row 하나로 옮기고, 그 안에서 secondary → primary 순서로 배치해
+        // TopAppBar 쪽(actions 람다)과 같은 좌우 순서를 맞춘다.
+        Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 지금 이 경로(겹침 헤더)를 쓰는 화면 중 secondaryActionIcon 을 넘기는 곳은
+            // 아직 없다. 그래도 배선을 빼면 이 경로만 조용히 다른 규약을 따르는 구조가
+            // 생기므로, 쓰임이 없어도 primary 와 동등하게 연결해 둔다.
+            if (secondaryActionIcon != null && secondaryActionIconContentDescription != null) {
+                CollapsingHeaderIcon(
+                    icon = secondaryActionIcon,
+                    contentDescription = secondaryActionIconContentDescription,
+                    scrimColor = scrimColor,
+                    progress = progress,
+                    onClick = onSecondaryActionClick,
+                )
+            }
+
+            if (actionIcon != null && actionIconContentDescription != null) {
+                CollapsingHeaderIcon(
+                    icon = actionIcon,
+                    contentDescription = actionIconContentDescription,
+                    scrimColor = scrimColor,
+                    progress = progress,
+                    onClick = onActionClick,
+                )
+            }
         }
     }
 }
@@ -768,6 +806,10 @@ private fun EpisodiveScaffoldPreview() {
     EpisodiveTheme {
         EpisodiveScaffold(
             title = "Title",
+            actionIcon = EpisodiveIcons.MoreVert,
+            actionIconContentDescription = "Action icon",
+            secondaryActionIcon = EpisodiveIcons.Transfer,
+            secondaryActionIconContentDescription = "Secondary action icon",
         ) { paddingValues, nestedScrollConnection ->
             Text(
                 text = "Content",
