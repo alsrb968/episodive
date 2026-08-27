@@ -86,5 +86,17 @@ interface PodcastRepository {
 
     suspend fun toggleFollowed(id: Long): Boolean
 
+    /** OPML 내보내기용 전량 조회. 페이징 없이 한 번에 List 로 받는다. */
+    suspend fun getFollowedPodcastsOnce(): List<Podcast>
+
+    /**
+     * [toggleFollowed] 와 달리 **멱등한 추가**다. 이미 팔로우 중이면 아무것도 바꾸지 않고
+     * false 를 돌려준다 — 절대 해제하지 않는다. OPML 가져오기가 토글을 쓰면 이미 구독
+     * 중인 팟캐스트가 오히려 풀려버리므로 이 메서드가 필요하다.
+     *
+     * @return 이번 호출로 새로 팔로우가 추가됐으면 true, 이미 팔로우 중이었으면 false.
+     */
+    suspend fun followPodcast(id: Long): Boolean
+
     suspend fun getFollowedPodcastsToSync(): Map<Long, Instant>
 }

@@ -1,6 +1,8 @@
 package io.jacob.episodive.feature.library
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -32,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -81,8 +84,11 @@ import io.jacob.episodive.core.ui.asUiMessage
 import io.jacob.episodive.core.ui.displayName
 import io.jacob.episodive.core.ui.pagingAppendState
 import io.jacob.episodive.core.ui.pagingRefreshState
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 
 @Composable
 fun LibraryRoute(
@@ -92,9 +98,30 @@ fun LibraryRoute(
     onShowSnackbar: suspend (message: String, actionLabel: String?) -> Boolean,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val opmlProgress by viewModel.opmlProgress.collectAsStateWithLifecycle()
+    var showOpmlSheet by rememberSaveable { mutableStateOf(false) }
 
     val unsavedMessage = stringResource(uiR.string.core_ui_snackbar_unsaved)
     val undoLabel = stringResource(uiR.string.core_ui_snackbar_undo)
+    // 개수는 이벤트마다 달라 미리 완성해 둘 수 없다. 포맷 문자열만 받아 두고 그 자리에서
+    // 채운다 — LaunchedEffect 안에서는 stringResource 를 부를 수 없고, LocalContext 로
+    // 리소스를 조회하는 것은 lint(LocalContextGetResourceValueCall)가 막는다.
+    // 선례: PodcastScreen.kt 의 feature_podcast_all_episodes_format
+    val opmlExportedFormat = stringResource(R.string.feature_library_opml_exported)
+    val opmlEmptyMessage = stringResource(R.string.feature_library_opml_empty)
+    val opmlExportFailedMessage = stringResource(R.string.feature_library_opml_export_failed)
+    val opmlImportFailedMessage = stringResource(R.string.feature_library_opml_import_failed)
+
+    // MIME 을 "text/xml" 로 주면 DocumentsUI 가 파일명에 .xml 을 덧붙여
+    // "episodive-20260826.opml.xml" 이 된다. octet-stream 을 주면 사용자가 준 이름을 그대로
+    // 쓴다 — API 36 에뮬레이터에서 확인했다. 제공자마다 다를 수는 있다.
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri -> uri?.let { viewModel.sendAction(LibraryAction.ExportOpml(it.toString())) } }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { viewModel.sendAction(LibraryAction.ImportOpml(it.toString())) } }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -104,8 +131,47 @@ fun LibraryRoute(
                     val undone = onShowSnackbar(unsavedMessage, undoLabel)
                     if (undone) viewModel.sendAction(LibraryAction.ToggleSavedEpisode(effect.episode))
                 }
+
+                is LibraryEffect.LaunchOpmlExport ->
+                    exportLauncher.launch(defaultOpmlFileName())
+
+                // OPML 스낵바는 **떼어 내어** 띄운다. onShowSnackbar 는 스낵바가 사라질
+                // 때까지(약 4초) suspend 하는데, 이 collect 는 순차라 그동안 도착한
+                // 이펙트가 전부 뒤로 밀린다 — 다른 스낵바가 떠 있는 사이 내보내기를
+                // 누르면 파일 선택기가 몇 초 뒤에야 열린다.
+                //
+                // 위의 ShowUnsaveSnackbar 는 반환값(되돌리기를 눌렀는지)으로 다음 동작을
+                // 정하므로 순차로 남겨 둔다.
+                is LibraryEffect.ShowOpmlExported ->
+                    launch { onShowSnackbar(opmlExportedFormat.format(effect.count), null) }
+
+                is LibraryEffect.ShowOpmlExportFailed ->
+                    launch { onShowSnackbar(opmlExportFailedMessage, null) }
+
+                is LibraryEffect.ShowOpmlEmpty ->
+                    launch { onShowSnackbar(opmlEmptyMessage, null) }
+
+                is LibraryEffect.ShowOpmlImportFailed ->
+                    launch { onShowSnackbar(opmlImportFailedMessage, null) }
             }
         }
+    }
+
+    // 진행 중이라고 시트를 강제로 띄우지 않는다. 200건짜리 가져오기는 몇 분이 걸리는데
+    // 그동안 닫을 수 없는 시트에 갇히면 앱을 쓸 수 없다. 닫아도 작업은 계속되고, 진행률은
+    // _opmlProgress 에 남아 있어 아이콘을 다시 누르면 그대로 이어 보인다.
+    if (showOpmlSheet) {
+        OpmlSheet(
+            progress = opmlProgress,
+            onImport = { importLauncher.launch(arrayOf("*/*")) },
+            onExport = { viewModel.sendAction(LibraryAction.RequestOpmlExport) },
+            onDismiss = {
+                showOpmlSheet = false
+                // 끝난 결과만 지운다(ViewModel 이 판정한다). 진행 중이면 남겨 두어야
+                // 다시 열었을 때 이어 보인다.
+                viewModel.sendAction(LibraryAction.DismissOpmlProgress)
+            },
+        )
     }
 
     when (val s = state) {
@@ -118,6 +184,7 @@ fun LibraryRoute(
             onFind = { viewModel.sendAction(LibraryAction.ClickFind(it)) },
             section = s.section,
             onSectionChange = { viewModel.sendAction(LibraryAction.SelectSection(it)) },
+            onOpmlClick = { showOpmlSheet = true },
             playedEpisodes = s.allPlayedEpisodes,
             likedEpisodes = s.likedEpisodes,
             savedEpisodes = s.savedEpisodes,
@@ -153,6 +220,12 @@ fun LibraryRoute(
             },
         )
     }
+}
+
+/** 내보내기 기본 파일명. "episodive-yyyyMMdd.opml" 형태다. */
+private fun defaultOpmlFileName(): String {
+    val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+    return "episodive-$date.opml"
 }
 
 /**
@@ -253,6 +326,8 @@ internal fun LibraryScreen(
     onFind: (String) -> Unit,
     section: LibrarySection,
     onSectionChange: (LibrarySection) -> Unit = {},
+    /** 상단 액션 아이콘이 조건 없이 그려지므로 기본값을 두지 않는다. */
+    onOpmlClick: () -> Unit,
     playedEpisodes: List<Episode>,
     likedEpisodes: List<Episode>,
     savedEpisodes: List<Episode>,
@@ -305,7 +380,10 @@ internal fun LibraryScreen(
             if (showFind) {
                 onSectionChange(LibrarySection.All)
             }
-        }
+        },
+        secondaryActionIcon = EpisodiveIcons.Transfer,
+        secondaryActionIconContentDescription = stringResource(R.string.feature_library_opml),
+        onSecondaryActionClick = onOpmlClick,
     ) { paddingValues, nestedScrollConnection ->
         when (section) {
             LibrarySection.All -> AllSectionContent(
@@ -1218,6 +1296,7 @@ private fun LibraryScreenPreview() {
                     isSelected = true,
                 )
             },
+            onOpmlClick = {},
         )
     }
 }

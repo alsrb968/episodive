@@ -19,4 +19,16 @@
     <string name="feature_library_saved_empty">No saved episodes yet.</string>
     <string name="feature_library_followed_empty">No followed podcasts yet.</string>
     <string name="feature_library_load_error">Couldn\'t load your library.\nCheck your connection and try again.</string>
+    <string name="feature_library_opml">Import/export OPML</string>
+    <string name="feature_library_opml_title">Import or export subscriptions</string>
+    <string name="feature_library_opml_import">Import</string>
+    <string name="feature_library_opml_export">Export</string>
+    <string name="feature_library_opml_import_progress">%1$d / %2$d</string>
+    <string name="feature_library_opml_import_result">Added %1$d · Already followed %2$d · Not found %3$d · Failed %4$d</string>
+    <string name="feature_library_opml_import_offline">You\'re offline, so the import stopped.</string>
+    <string name="feature_library_opml_import_running_hint">You can close this and it\'ll keep going in the background.</string>
+    <string name="feature_library_opml_exported">Exported %1$d podcasts.</string>
+    <string name="feature_library_opml_export_failed">Couldn\'t export your OPML.</string>
+    <string name="feature_library_opml_import_failed">Couldn\'t read that OPML file.</string>
+    <string name="feature_library_opml_empty">You\'re not following any podcasts yet.</string>
 </resources>
