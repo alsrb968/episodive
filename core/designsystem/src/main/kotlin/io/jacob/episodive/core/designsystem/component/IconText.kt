@@ -47,7 +47,7 @@ fun ClipAnimationIconText(
     color: Color = MaterialTheme.colorScheme.onSurface,
     isPlaying: Boolean,
     text: String,
-    amplitude: () -> Float = { 1f },
+    bandLevel: (band: Int) -> Float = ::waveIdleBandLevel,
 ) {
     Surface(
         modifier = modifier,
@@ -65,7 +65,7 @@ fun ClipAnimationIconText(
                 barCount = barCount,
                 color = color,
                 isAnimating = isPlaying,
-                amplitude = amplitude,
+                bandLevel = bandLevel,
             )
 
             Text(

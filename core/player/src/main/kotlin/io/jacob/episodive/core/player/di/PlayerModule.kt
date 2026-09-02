@@ -20,7 +20,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.common.EpisodivePlayers
 import io.jacob.episodive.core.common.Player
-import io.jacob.episodive.core.player.audio.PlaybackAmplitudeMonitor
+import io.jacob.episodive.core.player.audio.PlaybackSpectrumMonitor
 import javax.inject.Singleton
 
 @Module
@@ -36,7 +36,7 @@ object PlayerModule {
     }
 
     /**
-     * 클립 플레이어에만 소리 크기 측정을 붙인다. 파도 애니메이션이 있는 화면이 클립뿐이라,
+     * 클립 플레이어에만 주파수 분석을 붙인다. 파도 애니메이션이 있는 화면이 클립뿐이라,
      * 전체 재생에까지 오디오 스레드의 일을 늘릴 이유가 없다.
      */
     @Provides
@@ -44,15 +44,15 @@ object PlayerModule {
     @Player(EpisodivePlayers.Clip)
     fun provideClipExoPlayer(
         @ApplicationContext context: Context,
-        amplitudeMonitor: PlaybackAmplitudeMonitor,
+        spectrumMonitor: PlaybackSpectrumMonitor,
     ): ExoPlayer {
-        return createExoPlayer(context, amplitudeMonitor)
+        return createExoPlayer(context, spectrumMonitor)
     }
 
     @OptIn(UnstableApi::class)
     private fun createExoPlayer(
         context: Context,
-        amplitudeSink: TeeAudioProcessor.AudioBufferSink? = null,
+        spectrumSink: TeeAudioProcessor.AudioBufferSink? = null,
     ): ExoPlayer {
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -72,7 +72,7 @@ object PlayerModule {
             .setSeekBackIncrementMs(15_000L)
             .setSeekForwardIncrementMs(30_000L)
             .apply {
-                amplitudeSink?.let { setRenderersFactory(tappedRenderersFactory(context, it)) }
+                spectrumSink?.let { setRenderersFactory(tappedRenderersFactory(context, it)) }
             }
             .build()
     }
@@ -82,6 +82,7 @@ object PlayerModule {
      *
      * `setAudioProcessors` 로 넘긴 프로세서 뒤에 media3 가 `SonicAudioProcessor`(배속)와
      * `SilenceSkippingAudioProcessor` 를 그대로 붙이므로, 배속 재생은 영향받지 않는다.
+     * 탭이 Sonic 앞이라 밴드 경계가 원본 샘플레이트 기준으로 유지된다.
      */
     @OptIn(UnstableApi::class)
     private fun tappedRenderersFactory(

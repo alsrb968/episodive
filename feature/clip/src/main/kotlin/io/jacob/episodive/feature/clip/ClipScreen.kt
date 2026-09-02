@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import io.jacob.episodive.core.designsystem.component.SkeletonContainer
+import io.jacob.episodive.core.designsystem.component.waveIdleBandLevel
 import io.jacob.episodive.core.designsystem.theme.LocalDimensionTheme
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.DevicePreviews
@@ -108,7 +109,7 @@ internal fun ClipRoute(
 
     // by 로 풀지 않는다. 이 State 를 컴포지션에서 읽는 순간 소리 크기가 바뀔 때마다 화면이
     // 재구성된다. 값을 읽는 것은 파도 막대의 그리기 단계뿐이어야 한다.
-    val amplitudeState = viewModel.amplitude.collectAsStateWithLifecycle()
+    val spectrumState = viewModel.spectrum.collectAsStateWithLifecycle()
 
     ClipScreen(
         modifier = modifier,
@@ -116,7 +117,7 @@ internal fun ClipRoute(
         playback = clipPlayerState.playback,
         progress = clipPlayerState.progress,
         isPlaying = clipPlayerState.isPlaying,
-        amplitude = { amplitudeState.value },
+        bandLevel = { band -> spectrumState.value.level(band) },
         onEpisodeChanged = { viewModel.sendAction(ClipAction.PlayClip(it)) },
         onTogglePlay = { episode, play ->
             viewModel.sendAction(ClipAction.TogglePlay(episode, play))
@@ -135,7 +136,7 @@ internal fun ClipScreen(
     playback: Playback,
     progress: Progress,
     isPlaying: Boolean,
-    amplitude: () -> Float = { 1f },
+    bandLevel: (band: Int) -> Float = ::waveIdleBandLevel,
     onEpisodeChanged: (Episode) -> Unit = {},
     onTogglePlay: (Episode, Boolean) -> Unit = { _, _ -> },
     onEpisodeClick: (Episode) -> Unit = {},
@@ -182,7 +183,7 @@ internal fun ClipScreen(
             playback = playback,
             progress = progress,
             isPlaying = isPlaying,
-            amplitude = amplitude,
+            bandLevel = bandLevel,
             onEpisodeChanged = onEpisodeChanged,
             onTogglePlay = onTogglePlay,
             onEpisodeClick = onEpisodeClick,
@@ -214,7 +215,7 @@ fun EpisodeClipPager(
     playback: Playback,
     progress: Progress,
     isPlaying: Boolean,
-    amplitude: () -> Float = { 1f },
+    bandLevel: (band: Int) -> Float = ::waveIdleBandLevel,
     onEpisodeChanged: (Episode) -> Unit = {},
     onTogglePlay: (Episode, Boolean) -> Unit = { _, _ -> },
     onEpisodeClick: (Episode) -> Unit = {},
@@ -440,7 +441,7 @@ fun EpisodeClipPager(
                     modifier = Modifier.fillMaxSize(),
                     episode = episode,
                     isPlaying = isPlaying && isCurrentClip,
-                    amplitude = amplitude,
+                    bandLevel = bandLevel,
                     // 흐르는 남은 시간은 지금 플레이어에 올라 있는 클립의 것뿐이다. 아직
                     // 자기 차례가 아닌 카드(첫 진입, 스와이프 직후, 위아래로 걸쳐 보이는
                     // 이웃)까지 같은 값을 쓰면 남의 진행 시간을 빌려 보여주게 되고, 재생이

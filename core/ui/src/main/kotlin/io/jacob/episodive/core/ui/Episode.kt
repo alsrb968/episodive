@@ -73,6 +73,7 @@ import io.jacob.episodive.core.designsystem.component.SkeletonCover
 import io.jacob.episodive.core.designsystem.component.SkeletonLine
 import io.jacob.episodive.core.designsystem.component.StateImage
 import io.jacob.episodive.core.designsystem.component.SubSectionHeader
+import io.jacob.episodive.core.designsystem.component.waveIdleBandLevel
 import io.jacob.episodive.core.designsystem.icon.EpisodiveIcons
 import io.jacob.episodive.core.designsystem.theme.EpisodiveShapes
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
@@ -892,7 +893,7 @@ fun EpisodeClipItem(
     episode: Episode,
     isPlaying: Boolean,
     remaining: Duration,
-    amplitude: () -> Float = { 1f },
+    bandLevel: (band: Int) -> Float = ::waveIdleBandLevel,
     onClick: () -> Unit,
     onTogglePlay: (play: Boolean) -> Unit,
     onToggleLikedEpisode: () -> Unit,
@@ -982,7 +983,7 @@ fun EpisodeClipItem(
                 ClipAnimationIconText(
                     text = remaining.toHumanReadable(),
                     isPlaying = isPlaying,
-                    amplitude = amplitude,
+                    bandLevel = bandLevel,
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
