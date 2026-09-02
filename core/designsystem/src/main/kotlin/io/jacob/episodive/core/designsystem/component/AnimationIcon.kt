@@ -20,11 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.jacob.episodive.core.designsystem.theme.EpisodiveTheme
 import io.jacob.episodive.core.designsystem.tooling.ThemePreviews
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.exp
-import kotlin.math.pow
 
 /** 막대 치수 (원본 줄 436·471·584). */
 private val WaveBarWidth = 3.dp
@@ -32,7 +28,7 @@ private val WaveBarMaxHeight = 16.dp
 private val WaveBarGap = 2.dp
 private val WaveBarCornerRadius = 1.5.dp
 
-/** 소리가 최대일 때 가운데 막대가 닿는 높이 비율. */
+/** 소리가 최대일 때 막대가 닿는 높이 비율. */
 private const val WaveMaxHeightFraction = 1f
 
 /**
@@ -42,15 +38,6 @@ private const val WaveMaxHeightFraction = 1f
  * 16dp 기준 0.2 아래로 내리면 높이가 막대 폭(3dp)과 비슷해져 캡슐이 아니라 점이 된다.
  */
 private const val WaveRestHeightFraction = 0.3f
-
-/** 양 끝 막대가 소리에 반응하는 정도. 가운데는 1, 끝은 이 값이다. */
-private const val WaveEdgeResponse = 0.2f
-
-/**
- * 가운데로 몰아주는 정도. 1 이면 코사인 그대로이고, 키울수록 가운데만 크게 솟고 옆은 빨리
- * 눕는다. 다섯 막대 기준 1.6 이면 대략 0.2 / 0.46 / 1.0 / 0.46 / 0.2 이 된다.
- */
-private const val WaveCenterBias = 1.6f
 
 /**
  * 크기 변화를 따라가는 데 걸리는 시간(초).
@@ -66,18 +53,21 @@ private const val WaveMaxFrameSeconds = 0.1f
 private const val NanosPerSecond = 1_000_000_000f
 
 /**
- * 재생 중인 소리의 크기를 막대 다섯 개로 보여준다.
+ * 막대 다섯은 각자 하나의 주파수 대역을 맡는다. 예전에는 하나의 크기에 고정 비율을 곱해
+ * 모양을 만들었는데 그 모양은 소리와 무관한 UI 의 장식이었다. 지금은 모양 자체가 소리다.
  *
  * 막대에 자체 리듬은 없다. 예전에는 사인파를 합성해 늘 흔들리게 했는데, 그 움직임이 소리에
- * 따른 변화와 섞여 **무엇에 반응하는 것인지 읽히지 않았다.** 지금은 오직 [amplitude] 만이
- * 높이를 정한다 — 소리가 없으면 가운데 한 줄로 잠잠하고, 소리가 커지면 위아래로 자란다.
+ * 따른 변화와 섞여 **무엇에 반응하는 것인지 읽히지 않았다.** 지금은 오직 [bandLevel] 만이
+ * 높이를 정한다 — 소리가 없으면 다섯이 함께 한 줄로 잠잠하고, 소리가 커지면 각자의 대역에
+ * 맞춰 따로 자란다.
  *
- * 가운데일수록 크게, 바깥일수록 덜 움직인다([WaveEdgeResponse]). 다섯 막대가 똑같이
- * 오르내리면 이퀄라이저가 아니라 그냥 커졌다 작아지는 덩어리로 보인다.
+ * 막대 높이는 물리적 세기가 아니다. dB 창에서의 상대적 위치일 뿐이라, 두 막대의 높이가
+ * 같다고 그 대역의 에너지가 같은 것은 아니다.
  *
- * @param amplitude 지금 나고 있는 소리의 크기(0..1)를 그리기 시점에 답하는 람다. 값을 State 로
- * 받지 않고 람다로 받는 것은, 초당 수십 번 바뀌는 값을 컴포지션에서 읽으면 그 빈도로 재구성이
- * 일어나기 때문이다. 기본값은 소리를 모르는 호출자(프리뷰·다른 화면)를 위한 "늘 최대" 다.
+ * @param bandLevel 막대 번호(0 부터, 낮은 주파수부터)를 받아 그 대역의 세기(0..1)를 그리기
+ * 시점에 답하는 람다. 값을 State 로 받지 않고 람다로 받는 것은, 초당 수십 번 바뀌는 값을
+ * 컴포지션에서 읽으면 그 빈도로 재구성이 일어나기 때문이다. 기본값은 소리를 모르는
+ * 호출자(프리뷰·다른 화면)를 위한 [waveIdleBandLevel] 이다.
  */
 @Composable
 fun WaveAnimationIcon(
@@ -85,17 +75,16 @@ fun WaveAnimationIcon(
     barCount: Int = 5,
     color: Color = MaterialTheme.colorScheme.primary,
     isAnimating: Boolean = true,
-    amplitude: () -> Float = { 1f },
+    bandLevel: (band: Int) -> Float = ::waveIdleBandLevel,
 ) {
-    // 막대별 반응 정도. 가운데 1 에서 양 끝 WaveEdgeResponse 까지 코사인으로 눕힌다.
-    val responses = remember(barCount) { barResponses(barCount) }
+    // 그리기 단계에서만 읽는 값이라 재구성이 아니라 다시 그리기만 일으킨다. 막대마다 독립된
+    // 상태를 가져야 각자의 대역을 따로 좇을 수 있다.
+    val levels = remember(barCount) { List(barCount) { mutableFloatStateOf(0f) } }
 
-    // 그리기 단계에서만 읽는 값이라 재구성이 아니라 다시 그리기만 일으킨다.
-    val level = remember { mutableFloatStateOf(0f) }
-
-    // isAnimating 을 키로 둔다. LaunchedEffect(Unit) 이면 처음 들어온 값을 계속 붙들어,
-    // 일시정지해도 막대가 그대로 움직인다.
-    LaunchedEffect(isAnimating) {
+    // isAnimating, barCount 를 키로 둔다. LaunchedEffect(Unit) 이면 처음 들어온 값을 계속
+    // 붙들어, 일시정지해도 막대가 그대로 움직인다. barCount 가 빠지면 levels 가 새로
+    // remember 된 뒤에도 이펙트가 옛 리스트를 붙든다.
+    LaunchedEffect(isAnimating, barCount) {
         var lastFrameNanos = 0L
         while (true) {
             // withFrameNanos 가 아니라 이 쪽이다. 끝나지 않는 애니메이션이라는 사실을
@@ -108,11 +97,13 @@ fun WaveAnimationIcon(
                     ((frameNanos - lastFrameNanos) / NanosPerSecond).coerceAtMost(WaveMaxFrameSeconds)
                 }
                 lastFrameNanos = frameNanos
-
-                // 멈췄으면 목표는 0 이다 — 잦아드는 모습이 곧 정지 표현이라 따로 둘 것이 없다.
-                val target = if (isAnimating) amplitude().coerceIn(0f, 1f) else 0f
                 val follow = 1f - exp(-elapsed / WaveFollowSeconds)
-                level.floatValue += (target - level.floatValue) * follow
+
+                for (index in 0 until barCount) {
+                    // 멈췄으면 목표는 0 이다 — 잦아드는 모습이 곧 정지 표현이라 따로 둘 것이 없다.
+                    val target = if (isAnimating) bandLevel(index).coerceIn(0f, 1f) else 0f
+                    levels[index].floatValue += (target - levels[index].floatValue) * follow
+                }
             }
         }
     }
@@ -125,15 +116,13 @@ fun WaveAnimationIcon(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(barCount) { index ->
-            val response = responses[index]
-
             Canvas(
                 modifier = Modifier
                     .width(WaveBarWidth)
                     .height(WaveBarMaxHeight)
             ) {
                 val fraction = WaveRestHeightFraction +
-                        (WaveMaxHeightFraction - WaveRestHeightFraction) * level.floatValue * response
+                        (WaveMaxHeightFraction - WaveRestHeightFraction) * levels[index].floatValue
                 val barHeight = size.height * fraction
 
                 drawRoundRect(
@@ -147,23 +136,14 @@ fun WaveAnimationIcon(
     }
 }
 
-/**
- * 가운데 1, 양 끝 [WaveEdgeResponse] 로 눕는 막대별 반응 정도.
- *
- * 선형으로 줄이면 꺾인 삼각형이 되어 가운데만 튀어나온 것처럼 보인다. 코사인으로 눕히면
- * 이웃한 막대끼리 높이 차가 고르게 벌어져 하나의 모양으로 읽힌다.
- */
-private fun barResponses(barCount: Int): List<Float> {
-    val center = (barCount - 1) / 2f
-    return List(barCount) { index ->
-        // 막대가 하나뿐이면 그 하나가 곧 가운데다.
-        if (center == 0f) return@List 1f
+private val WaveIdleBandLevels = floatArrayOf(0.2f, 0.46f, 1f, 0.46f, 0.2f)
 
-        val distance = abs(index - center) / center
-        val shape = (0.5f * (1f + cos(PI.toFloat() * distance))).pow(WaveCenterBias)
-        WaveEdgeResponse + (1f - WaveEdgeResponse) * shape
-    }
-}
+/**
+ * 소리를 모르는 호출자(프리뷰·다른 화면)를 위한 정적 모양. 예전 파도 아이콘의 코사인 곡선
+ * 그대로다 — 단 **막대가 다섯일 때만** 그렇다. 표를 다시 계산하지 않고 남는 자리는 양끝 값
+ * (0.2)으로 답하므로, 막대 수를 바꾸려면 이 표도 함께 손봐야 대칭이 유지된다.
+ */
+fun waveIdleBandLevel(band: Int): Float = WaveIdleBandLevels.getOrElse(band) { WaveIdleBandLevels.last() }
 
 @ThemePreviews
 @Composable

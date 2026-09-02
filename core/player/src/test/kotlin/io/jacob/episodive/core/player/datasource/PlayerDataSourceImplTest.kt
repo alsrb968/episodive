@@ -15,6 +15,7 @@ import app.cash.turbine.test
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.mapper.toDurationMillis
+import io.jacob.episodive.core.player.audio.PlaybackSpectrumMonitor
 import io.jacob.episodive.core.testing.model.episodeTestData
 import io.jacob.episodive.core.testing.model.episodeTestDataList
 import io.mockk.Runs
@@ -26,8 +27,12 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -1548,6 +1553,32 @@ class PlayerDataSourceImplTest {
                 assertEquals(clipEpisode.id, progress.episodeId)
             }
         }
+
+    @Test
+    fun `Given a spectrum monitor, When playback stops, Then the monitor is reset`() {
+        // 일시정지 시 막대를 잠재우는 배선은 이 한 줄뿐인데, 지워도 전 모듈 테스트가 초록이었다.
+        // 증상은 "정지했는데 막대 다섯이 마지막 모양 그대로 굳는다" 라 눈으로만 잡힌다.
+        //
+        // 재생 중 상태를 만들면 progressUpdater 가 Dispatchers.Main 을 찾는다. 이 파일은 Main 을
+        // 세우지 않으므로(나머지 90개의 환경을 바꾸지 않으려는 것이다) 여기서만 잠깐 세워 둔다.
+        Dispatchers.setMain(StandardTestDispatcher())
+        val monitor = mockk<PlaybackSpectrumMonitor>(relaxed = true)
+        val clipPlayer = mockk<ExoPlayer>(relaxed = true)
+        val clipListener = slot<Player.Listener>()
+        every { clipPlayer.addListener(capture(clipListener)) } just Runs
+        val clipDataSource = PlayerDataSourceImpl(clipPlayer, episodeDownloader, monitor)
+
+        try {
+            clipListener.captured.onIsPlayingChanged(true)
+            verify(exactly = 0) { monitor.reset() }
+
+            clipListener.captured.onIsPlayingChanged(false)
+            verify(exactly = 1) { monitor.reset() }
+        } finally {
+            clipDataSource.release()
+            Dispatchers.resetMain()
+        }
+    }
 
     @Test
     fun `Given prepare with a restore position, When called, Then the position rides along with the duration`() =

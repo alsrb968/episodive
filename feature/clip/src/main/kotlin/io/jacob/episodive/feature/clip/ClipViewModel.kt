@@ -13,6 +13,7 @@ import io.jacob.episodive.core.domain.usecase.player.PlayEpisodeUseCase
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Playback
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.model.Spectrum
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,15 +51,15 @@ class ClipViewModel @Inject constructor(
     )
 
     /**
-     * 지금 나고 있는 소리의 크기(0..1).
+     * 지금 나고 있는 소리를 주파수 대역 다섯 칸으로 나눈 세기(각 0..1).
      *
      * clipPlayerState 에 섞지 않는다. 초당 서른 번 바뀌는 값을 화면 상태에 넣으면 그 빈도로
-     * 화면 전체가 재구성된다. 파도 막대 하나만 쓰는 값이므로 통로도 따로 둔다.
+     * 화면 전체가 재구성된다. 파형 막대 다섯만 쓰는 값이므로 통로도 따로 둔다.
      */
-    val amplitude: StateFlow<Float> = playerRepository.amplitude.stateIn(
+    val spectrum: StateFlow<Spectrum> = playerRepository.spectrum.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = 0f,
+        initialValue = Spectrum.Silent,
     )
 
     private val _action = MutableSharedFlow<ClipAction>(extraBufferCapacity = 1)

@@ -8,7 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import io.jacob.episodive.core.common.EpisodivePlayers
 import io.jacob.episodive.core.common.Player
 import io.jacob.episodive.core.domain.download.EpisodeDownloader
-import io.jacob.episodive.core.player.audio.PlaybackAmplitudeMonitor
+import io.jacob.episodive.core.player.audio.PlaybackSpectrumMonitor
 import io.jacob.episodive.core.player.datasource.PlayerDataSource
 import io.jacob.episodive.core.player.datasource.PlayerDataSourceImpl
 import javax.inject.Singleton
@@ -36,12 +36,12 @@ object DataSourceModule {
         @Player(EpisodivePlayers.Clip) exoPlayer: ExoPlayer,
         episodeDownloader: EpisodeDownloader,
         // PlayerModule 이 같은 인스턴스를 클립 플레이어의 오디오 체인에 끼워 둔다.
-        amplitudeMonitor: PlaybackAmplitudeMonitor,
+        spectrumMonitor: PlaybackSpectrumMonitor,
     ): PlayerDataSource {
         return PlayerDataSourceImpl(
             player = exoPlayer,
             episodeDownloader = episodeDownloader,
-            amplitudeMonitor = amplitudeMonitor,
+            spectrumMonitor = spectrumMonitor,
         )
     }
 }

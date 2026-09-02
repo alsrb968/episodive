@@ -6,6 +6,7 @@ import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Playback
 import io.jacob.episodive.core.model.Progress
 import io.jacob.episodive.core.model.Repeat
+import io.jacob.episodive.core.model.Spectrum
 import io.jacob.episodive.core.player.datasource.PlayerDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -145,5 +146,5 @@ class PlayerRepositoryImpl @Inject constructor(
     override val repeat: Flow<Repeat> = playerDataSource.repeat.map { Repeat.fromValue(it) }
     override val speed: Flow<Float> = playerDataSource.speed
     override val cue: Flow<String> = playerDataSource.cue
-    override val amplitude: Flow<Float> = playerDataSource.amplitude
+    override val spectrum: Flow<Spectrum> = playerDataSource.spectrum
 }

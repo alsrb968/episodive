@@ -3,6 +3,7 @@ package io.jacob.episodive.core.player.datasource
 import androidx.media3.common.Player
 import io.jacob.episodive.core.model.Episode
 import io.jacob.episodive.core.model.Progress
+import io.jacob.episodive.core.model.Spectrum
 import kotlinx.coroutines.flow.Flow
 
 interface PlayerDataSource {
@@ -51,8 +52,8 @@ interface PlayerDataSource {
     val cue: Flow<String>
 
     /**
-     * 지금 나고 있는 소리의 크기(0..1). 측정을 붙이지 않은 플레이어는 늘 0 을 낸다.
-     * 실제로 귀에 닿는 소리보다 AudioTrack 버퍼만큼 앞선 값이다.
+     * 지금 나고 있는 소리를 주파수 대역 다섯 칸으로 나눈 세기(각 0..1). 분석을 붙이지 않은
+     * 플레이어는 늘 잠잠하다. 실제로 귀에 닿는 소리보다 AudioTrack 버퍼만큼 앞선 값이다.
      */
-    val amplitude: Flow<Float>
+    val spectrum: Flow<Spectrum>
 }
