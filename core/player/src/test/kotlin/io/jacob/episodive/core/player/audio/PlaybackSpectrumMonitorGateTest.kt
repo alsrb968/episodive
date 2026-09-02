@@ -78,6 +78,31 @@ class PlaybackSpectrumMonitorGateTest {
         )
     }
 
+    @Test
+    fun `Given a frozen spectrum, When a new subscriber arrives, Then it does not inherit the old shape`() {
+        // 구독이 끊기면 마지막 값이 그대로 남는다(위 테스트가 그것을 못 박는다). 그 상태로
+        // 클립 탭에 다시 들어오면 새 구독자가 지난 세션의 모양을 첫 값으로 받는다. 지연 큐까지
+        // 비우고 다시 시작하므로 새 값은 0.39초 뒤에야 나온다 — 그동안 옛 모양이 걸려 있다.
+        val monitor = newMonitor()
+        val first = collectScope.launch { monitor.spectrum.collect {} }
+        scheduler.runCurrent()
+        pump(monitor, millis = 1_000)
+        assertTrue("먼저 값이 올라와 있어야 한다", monitor.spectrum.value.levels.any { it > 0.5f })
+
+        first.cancel()
+        scheduler.runCurrent()
+
+        val second = collectScope.launch { monitor.spectrum.collect {} }
+        scheduler.runCurrent()
+
+        assertEquals(
+            "다시 구독되면 낡은 값이 아니라 잠잠함에서 시작해야 한다",
+            Spectrum.Silent.levels,
+            monitor.spectrum.value.levels,
+        )
+        second.cancel()
+    }
+
     private fun newMonitor(): PlaybackSpectrumMonitor =
         PlaybackSpectrumMonitor(nanoTime = { now }, dispatcher = dispatcher).apply {
             flush(44_100, 2, C.ENCODING_PCM_16BIT)

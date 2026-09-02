@@ -214,9 +214,6 @@ class PlaybackSpectrumMonitor internal constructor(
      * `internal` 로 열어 둔다.
      */
     internal fun analyzeOnce() {
-        // 들어올 때의 세대를 적어 둔다. 내보내기 직전에 이 값과 견주어 [reset] 이 지나갔는지 본다.
-        val generation = resetGeneration.get()
-
         if (analysisResetRequested) {
             analysisResetRequested = false
             // 넘어와 있는 창도 여기서 한 번 더 버린다. [reset] 이 비운 **뒤에** 오디오 스레드가
@@ -228,6 +225,11 @@ class PlaybackSpectrumMonitor internal constructor(
             lastCapturedAt = 0L
             lastPublishedAt = 0L
         }
+
+        // 세대는 **위 정리를 마친 뒤에** 적는다. 진입 첫 줄에서 읽으면, 바로 앞에 지나간
+        // [reset] 의 증가분까지 "내가 도는 동안 지나간 것" 으로 세어 — 그 reset **이후에** 잡힌
+        // 멀쩡한 창을 이 틱이 통째로 버린다.
+        val generation = resetGeneration.get()
 
         // 창을 **소비**한다. 새 소리가 없으면 여기서 그대로 돌아가므로, 일시정지 중에는 루프가
         // 계속 돌아도 아무것도 발행되지 않고 [reset] 이 쓴 잠잠함이 유지된다.
@@ -299,6 +301,12 @@ class PlaybackSpectrumMonitor internal constructor(
         if (resetGeneration.get() != generation) return
         lastPublishedAt = now
         _spectrum.value = audible
+
+        // 위 검사와 이 대입은 원자적이지 않다. 그 틈에 [reset] 이 지나가면 방금 쓴 값이 [reset]
+        // 의 잠잠함을 덮어써, 더는 버퍼가 오지 않는 정지 상태에서 막대 다섯이 켜진 채로 굳는다.
+        // [reset] 은 세대를 **먼저** 올리고 잠잠함을 **나중에** 쓰므로, 여기서 한 번 더 견주면
+        // 두 순서 어느 쪽이든 잠잠함이 마지막에 남는다.
+        if (resetGeneration.get() != generation) _spectrum.value = Spectrum.Silent
     }
 
     private suspend fun analysisLoop() {
@@ -351,6 +359,10 @@ class PlaybackSpectrumMonitor internal constructor(
                 .collectLatest { active ->
                     if (active) {
                         analysisResetRequested = true
+                        // 내부 상태만 비우면 마지막으로 내보낸 값이 그대로 남아, 돌아온 구독자가
+                        // 지난 세션의 모양을 첫 값으로 받는다. 지연 큐까지 비우고 다시 시작하므로
+                        // 새 값은 [PlaybackLatencyNanos] 뒤에야 나온다 — 그동안 옛 모양이 걸린다.
+                        _spectrum.value = Spectrum.Silent
                         analysisLoop()
                     }
                 }
